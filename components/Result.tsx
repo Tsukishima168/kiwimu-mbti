@@ -591,9 +591,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
         <div className="flex flex-col items-center w-full mb-12">
           <p className="text-[28px] font-mono tracking-[0.4em] uppercase text-gray-400 mb-6 font-bold">KIWIMU MBTI LAB</p>
           <div className="w-[60px] h-[2px] bg-black mb-12"></div>
-          <div className="flex flex-col items-center">
-            <h1 className="text-[120px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-2">{resultData.id}</h1>
-            <p className="text-[36px] font-serif italic text-gray-500 mt-2">{resultData.title}</p>
+          <div className="flex flex-col items-center mt-4">
+            <h1 className="text-[110px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-6">{resultData.id}</h1>
+            <p className="text-[32px] font-serif italic text-gray-500">{resultData.title}</p>
           </div>
         </div>
 
