@@ -42,9 +42,9 @@ const MENU_DATA = {
     { title: "單品", items: ["經典烤布丁"], desc: "安全感錨點，最直接的安撫與回歸。" }
   ],
   drinks: [
-    { title: "美式系", items: ["美式咖啡", "西西里美式", "日本柚子美式"] },
-    { title: "拿鐵系", items: ["經典拿鐵", "烤布丁拿鐵", "抹茶拿鐵", "焙茶拿鐵"] },
-    { title: "茶系", items: ["花草茶", "博士茶", "薄荷茶", "蕎麥茶"] }
+    { title: "美式系", items: ["美式咖啡", "西西里美式", "日本柚子美式"], imageUrl: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767872296/Americano_ypoftv.webp" },
+    { title: "拿鐵系", items: ["經典拿鐵", "烤布丁拿鐵", "抹茶拿鐵", "焙茶拿鐵"], imageUrl: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767872211/Latta_nklym6.webp" },
+    { title: "茶系", items: ["花草茶", "博士茶", "薄荷茶", "蕎麥茶"], imageUrl: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767872296/Tea_cioupy.webp" }
   ]
 };
 
@@ -469,6 +469,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
                         </button>
                         {openAccordion === cat.title && (
                           <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
+                            {/* Category Image */}
+                            {cat.imageUrl && (
+                              <div className="w-full h-48 md:h-64 mb-6 rounded-lg overflow-hidden border border-gray-100 shadow-sm">
+                                <img src={cat.imageUrl} alt={cat.title} className="w-full h-full object-cover" />
+                              </div>
+                            )}
                             <div className="grid gap-3 md:gap-4">
                               {cat.items.map(i => (
                                 <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
