@@ -73,6 +73,14 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) =
                     </>
                 )}
 
+                {/* Privacy Notice */}
+                <p className="text-xs text-gray-400 mb-6">
+                    繼續即表示您同意我們的{' '}
+                    <a href="/privacy.html" target="_blank" className="text-kiwi-dark underline">隱私權政策</a>
+                    {' '}與{' '}
+                    <a href="/privacy.html" target="_blank" className="text-kiwi-dark underline">使用條款</a>
+                </p>
+
                 <button
                     onClick={handleGoogleLogin}
                     className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-colors mb-4"
