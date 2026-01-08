@@ -84,16 +84,36 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
 
       const dataUrl = canvas.toDataURL('image/png');
 
-      // On mobile devices, sometimes automatic download fails. 
-      // Opening in new tab is a more reliable fallback.
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+      // Attempt to share URL if supported
+      if (isMobile && navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Kiwimu MBTI Lab',
+            text: '來看看我的靈魂甜點是什麼！',
+            url: window.location.origin,
+          });
+        } catch (shareErr) {
+          console.log('Share error or cancelled', shareErr);
+        }
+      }
+
       if (isMobile) {
         const win = window.open();
         if (win) {
-          win.document.write(`<img src="${dataUrl}" style="width:100%" />`);
-          win.document.title = "Save Report";
+          win.document.write(`
+            <html>
+              <head><title>Share Report</title></head>
+              <body style="margin:0; background:#f9f7f5; display:flex; flex-col; items-center;">
+                <div style="padding: 20px; text-align:center; width:100%;">
+                   <p style="font-family:sans-serif; color:#666; font-size:14px;">長按圖片即可儲存您的專屬報告</p>
+                </div>
+                <img src="${dataUrl}" style="width:100%" />
+              </body>
+            </html>
+          `);
         } else {
-          // Fallback if popup blocked
           const link = document.createElement('a');
           link.download = `KIWIMU_MBTI_${resultData.id}.png`;
           link.href = dataUrl;
@@ -526,6 +546,20 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
             )}
           </div>
 
+          {/* BRAND INTRO & GIF */}
+          <div className="flex flex-col items-center py-20 md:py-32 border-t border-gray-100 bg-white/30">
+            <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener noreferrer" className="group relative w-20 h-20 md:w-24 md:h-24 mb-10 rounded-full overflow-hidden border border-gray-100 shadow-2xl hover:scale-110 transition-all duration-500">
+              <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="KIWIMU Brand" className="w-full h-full object-cover" />
+            </a>
+            <div className="max-w-md px-6 text-center">
+              <h4 className="text-xl md:text-2xl font-serif font-bold text-kiwi-dark mb-4 tracking-tight">探索內在與美味的邊界</h4>
+              <p className="text-xs md:text-sm text-gray-500 leading-loose font-serif italic">
+                KIWIMU 是一個致力於將人格探索與生活美學結合的創作品牌。<br className="hidden md:block" />
+                我們相信每一種靈魂都有其獨特的風味，期待與你在這趟奇幻之旅中相遇。
+              </p>
+            </div>
+          </div>
+
           {/* 12. ARCHIVE - 2 columns on mobile, 4 on desktop */}
           <div className="border-t border-gray-100 pt-20 md:pt-32">
             <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.6em] md:tracking-[0.8em] uppercase mb-20 md:mb-32 text-gray-300 font-mono">PERSONALITY ARCHIVE <br className="md:hidden" /> 深度檔案館</h3>
@@ -558,9 +592,6 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
           </div>
 
           <div className="flex flex-col items-center py-12 md:py-20">
-            <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener noreferrer" className="group relative w-16 h-16 md:w-20 md:h-20 mb-8 md:mb-10 rounded-full overflow-hidden border border-gray-100 shadow-2xl hover:scale-110 transition-all duration-500">
-              <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="Logo" className="w-full h-full object-cover" />
-            </a>
             <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase font-mono font-bold">KIWIMU MBTI LAB © 2026</p>
           </div>
         </div>
@@ -574,7 +605,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
         <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
         <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-colors text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap">Retest 重測</button>
         <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
-        <button onClick={handleSave} className="shrink-0 px-4 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase shadow-lg transition-transform active:scale-95 whitespace-nowrap">Save 保存</button>
+        <button onClick={handleSave} className="shrink-0 px-4 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase shadow-lg transition-transform active:scale-95 whitespace-nowrap">Share 分享</button>
         <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
         <button onClick={handleDownloadIG} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 transition-colors text-black border border-white/20 shadow-lg">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
