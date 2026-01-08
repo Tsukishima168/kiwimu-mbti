@@ -106,11 +106,17 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
       // We already positioned it off-screen with transform.
 
       const canvas = await html2canvas(element, {
-        scale: 1, // 1080x1920 is already large enough
+        scale: 2, // Higher quality to prevent clipping
         useCORS: true,
         backgroundColor: '#F9F7F5',
+        width: 1080,
+        height: 1920,
         windowWidth: 1080,
-        windowHeight: 1920
+        windowHeight: 1920,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0
       });
 
       const dataUrl = canvas.toDataURL('image/png');
@@ -514,7 +520,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
             <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener noreferrer" className="group relative w-16 h-16 md:w-20 md:h-20 mb-8 md:mb-10 rounded-full overflow-hidden border border-gray-100 shadow-2xl hover:scale-110 transition-all duration-500">
               <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="Logo" className="w-full h-full object-cover" />
             </a>
-            <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase font-mono font-bold">KIWIMU MBTI LAB V2 © 2024</p>
+            <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase font-mono font-bold">KIWIMU MBTI LAB © 2026</p>
           </div>
         </div>
       </div>
