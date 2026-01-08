@@ -439,7 +439,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                       <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkT}</span>
                     </div>
                   </div>
-                  <div className="soul-btns" style={{ flexDirection: 'column' }}>
+                  <div className="soul-btns" style={{ flexDirection: 'column' }} data-html2canvas-ignore>
                     <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>跟 KIWIMU 當朋友，抽幸運甜點</a>
                     <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
                       <button className="soul-btn" onClick={() => setShowAlt(!showAlt)} style={{ flex: 1 }}>{showAlt ? '收起建議' : '同象限替換'}</button>
@@ -448,319 +448,319 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   </div>
                 </div>
               </div>
+            </div> {/* closes soul-module */}
+          </div> {/* closes full-report-container */}
 
-              {showAlt && (
-                <div className="soul-alt-box border-x border-b border-black fade-in text-left">
-                  <p className="text-[10px] font-mono tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-300 mb-6 md:mb-8 font-bold">Alternative Selection 替換建議（同系同象限）</p>
-                  <div className="flex flex-col md:flex-row gap-8 md:gap-10">
-                    {anchor.alt.map((item: string) => (
-                      <div key={item} className="flex flex-col">
-                        <span className="font-serif text-xl md:text-2xl text-kiwi-dark font-bold border-b-2 border-kiwi-dark pb-2 mb-2">{item}</span>
-                        <span className="text-[9px] text-gray-400 uppercase tracking-widest">OPTIMAL MATCH</span>
-                      </div>
-                    ))}
+          {showAlt && (
+            <div className="soul-alt-box border-x border-b border-black fade-in text-left">
+              <p className="text-[10px] font-mono tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-300 mb-6 md:mb-8 font-bold">Alternative Selection 替換建議（同系同象限）</p>
+              <div className="flex flex-col md:flex-row gap-8 md:gap-10">
+                {anchor.alt.map((item: string) => (
+                  <div key={item} className="flex flex-col">
+                    <span className="font-serif text-xl md:text-2xl text-kiwi-dark font-bold border-b-2 border-kiwi-dark pb-2 mb-2">{item}</span>
+                    <span className="text-[9px] text-gray-400 uppercase tracking-widest">OPTIMAL MATCH</span>
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* MODAL MENU - 全螢幕響應式 */}
+          {showMenu && (
+            <div className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center p-4 md:p-16 transition-all fade-in" onClick={() => setShowMenu(false)}>
+              <div className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-16 relative rounded-sm shadow-2xl border border-white/20" onClick={e => e.stopPropagation()}>
+                <button onClick={() => setShowMenu(false)} className="sticky top-0 right-0 float-right ml-4 text-4xl md:text-5xl font-light hover:rotate-90 transition-transform duration-300 z-50">&times;</button>
+                <div className="mb-8 md:mb-12 mt-4 md:mt-0">
+                  <h3 className="font-display text-3xl md:text-5xl font-bold mb-4 tracking-tighter">THE FULL MENU</h3>
+                  <p className="text-gray-400 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-bold border-b border-gray-100 pb-4">把人格解析轉化為一份靈魂心錨</p>
                 </div>
-              )}
 
-              {/* MODAL MENU - 全螢幕響應式 */}
-              {showMenu && (
-                <div className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center p-4 md:p-16 transition-all fade-in" onClick={() => setShowMenu(false)}>
-                  <div className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-16 relative rounded-sm shadow-2xl border border-white/20" onClick={e => e.stopPropagation()}>
-                    <button onClick={() => setShowMenu(false)} className="sticky top-0 right-0 float-right ml-4 text-4xl md:text-5xl font-light hover:rotate-90 transition-transform duration-300 z-50">&times;</button>
-                    <div className="mb-8 md:mb-12 mt-4 md:mt-0">
-                      <h3 className="font-display text-3xl md:text-5xl font-bold mb-4 tracking-tighter">THE FULL MENU</h3>
-                      <p className="text-gray-400 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-bold border-b border-gray-100 pb-4">把人格解析轉化為一份靈魂心錨</p>
-                    </div>
-
-                    <div className="space-y-4">
-                      <p className="text-[10px] font-mono font-bold text-kiwi-dark tracking-widest uppercase mb-6 bg-gray-50 px-4 py-2">Desserts 甜點類別</p>
-                      {MENU_DATA.desserts.map(cat => (
-                        <div key={cat.title} className="border-b border-gray-100 last:border-0">
-                          <button className="w-full text-left py-4 md:py-6 font-serif text-xl md:text-2xl font-bold flex justify-between items-center group" onClick={() => setOpenAccordion(openAccordion === cat.title ? null : cat.title)}>
-                            <span className="group-hover:pl-4 transition-all duration-300">{cat.title}</span>
-                            <span className="font-light text-2xl md:text-3xl">{openAccordion === cat.title ? '−' : '+'}</span>
-                          </button>
-                          {openAccordion === cat.title && (
-                            <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
-                              <p className="text-xs md:text-sm italic text-gray-400 mb-6 border-l-4 border-kiwi-dark pl-4 md:pl-6 leading-relaxed">{cat.desc}</p>
-                              <div className="grid gap-3 md:gap-4">
-                                {cat.items.map(i => (
-                                  <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
-                                    <span>{i}</span>
-                                    <span className="text-[9px] font-mono text-gray-300 tracking-widest hidden md:inline">AVAILABLE</span>
-                                  </div>
-                                ))}
+                <div className="space-y-4">
+                  <p className="text-[10px] font-mono font-bold text-kiwi-dark tracking-widest uppercase mb-6 bg-gray-50 px-4 py-2">Desserts 甜點類別</p>
+                  {MENU_DATA.desserts.map(cat => (
+                    <div key={cat.title} className="border-b border-gray-100 last:border-0">
+                      <button className="w-full text-left py-4 md:py-6 font-serif text-xl md:text-2xl font-bold flex justify-between items-center group" onClick={() => setOpenAccordion(openAccordion === cat.title ? null : cat.title)}>
+                        <span className="group-hover:pl-4 transition-all duration-300">{cat.title}</span>
+                        <span className="font-light text-2xl md:text-3xl">{openAccordion === cat.title ? '−' : '+'}</span>
+                      </button>
+                      {openAccordion === cat.title && (
+                        <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
+                          <p className="text-xs md:text-sm italic text-gray-400 mb-6 border-l-4 border-kiwi-dark pl-4 md:pl-6 leading-relaxed">{cat.desc}</p>
+                          <div className="grid gap-3 md:gap-4">
+                            {cat.items.map(i => (
+                              <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
+                                <span>{i}</span>
+                                <span className="text-[9px] font-mono text-gray-300 tracking-widest hidden md:inline">AVAILABLE</span>
                               </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  <p className="text-[10px] font-mono font-bold text-kiwi-dark tracking-widest uppercase mb-6 bg-gray-50 px-4 py-2 mt-8 md:mt-12">Drinks 飲品類別</p>
+                  {MENU_DATA.drinks.map(cat => (
+                    <div key={cat.title} className="border-b border-gray-100 last:border-0">
+                      <button className="w-full text-left py-4 md:py-6 font-serif text-xl md:text-2xl font-bold flex justify-between items-center group" onClick={() => setOpenAccordion(openAccordion === cat.title ? null : cat.title)}>
+                        <span className="group-hover:pl-4 transition-all duration-300">{cat.title}</span>
+                        <span className="font-light text-2xl md:text-3xl">{openAccordion === cat.title ? '−' : '+'}</span>
+                      </button>
+                      {openAccordion === cat.title && (
+                        <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
+                          {/* Category Image */}
+                          {cat.imageUrl && (
+                            <div className="w-full h-48 md:h-64 mb-6 rounded-lg overflow-hidden border border-gray-100 shadow-sm">
+                              <img src={cat.imageUrl} alt={cat.title} className="w-full h-full object-cover" />
                             </div>
                           )}
-                        </div>
-                      ))}
-
-                      <p className="text-[10px] font-mono font-bold text-kiwi-dark tracking-widest uppercase mb-6 bg-gray-50 px-4 py-2 mt-8 md:mt-12">Drinks 飲品類別</p>
-                      {MENU_DATA.drinks.map(cat => (
-                        <div key={cat.title} className="border-b border-gray-100 last:border-0">
-                          <button className="w-full text-left py-4 md:py-6 font-serif text-xl md:text-2xl font-bold flex justify-between items-center group" onClick={() => setOpenAccordion(openAccordion === cat.title ? null : cat.title)}>
-                            <span className="group-hover:pl-4 transition-all duration-300">{cat.title}</span>
-                            <span className="font-light text-2xl md:text-3xl">{openAccordion === cat.title ? '−' : '+'}</span>
-                          </button>
-                          {openAccordion === cat.title && (
-                            <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
-                              {/* Category Image */}
-                              {cat.imageUrl && (
-                                <div className="w-full h-48 md:h-64 mb-6 rounded-lg overflow-hidden border border-gray-100 shadow-sm">
-                                  <img src={cat.imageUrl} alt={cat.title} className="w-full h-full object-cover" />
-                                </div>
-                              )}
-                              <div className="grid gap-3 md:gap-4">
-                                {cat.items.map(i => (
-                                  <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
-                                    <span>{i}</span>
-                                    <span className="text-[9px] font-mono text-gray-300 tracking-widest hidden md:inline">CRAFTED</span>
-                                  </div>
-                                ))}
+                          <div className="grid gap-3 md:gap-4">
+                            {cat.items.map(i => (
+                              <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
+                                <span>{i}</span>
+                                <span className="text-[9px] font-mono text-gray-300 tracking-widest hidden md:inline">CRAFTED</span>
                               </div>
-                            </div>
-                          )}
+                            ))}
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
-                  </div>
+                  ))}
                 </div>
-              )}
-            </div> {/* closes full-report-container */}
-
-            {/* BRAND INTRO & GIF */}
-            <div className="flex flex-col items-center py-20 md:py-32 border-t border-gray-100 bg-white/30">
-              <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener noreferrer" className="group relative w-20 h-20 md:w-24 md:h-24 mb-10 rounded-full overflow-hidden border border-gray-100 shadow-2xl hover:scale-110 transition-all duration-500">
-                <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="KIWIMU Brand" className="w-full h-full object-cover" />
-              </a>
-              <div className="max-w-md px-6 text-center">
-                <h4 className="text-xl md:text-2xl font-serif font-bold text-kiwi-dark mb-4 tracking-tight">探索內在與美味的邊界</h4>
-                <p className="text-xs md:text-sm text-gray-500 leading-loose font-serif italic">
-                  KIWIMU 是一個致力於將人格探索與生活美學結合的創作品牌。<br className="hidden md:block" />
-                  我們相信每一種靈魂都有其獨特的風味，期待與你在這趟奇幻之旅中相遇。
-                </p>
               </div>
             </div>
+          )}
 
-            {/* 12. ARCHIVE - 2 columns on mobile, 4 on desktop */}
-            <div className="border-t border-gray-100 pt-20 md:pt-32">
-              <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.6em] md:tracking-[0.8em] uppercase mb-20 md:mb-32 text-gray-300 font-mono">PERSONALITY ARCHIVE <br className="md:hidden" /> 深度檔案館</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12 mb-20 md:mb-32">
-                {ALL_TYPES.map(type => {
-                  const data = getResultData(type);
-                  return (
-                    <button key={type} onClick={() => setSelectedOtherType(data)} className="group flex flex-col text-left transition-all duration-700 bg-white p-3 md:p-6 hover:shadow-2xl border border-gray-100 relative hover:-translate-y-2">
-                      <div className="w-full aspect-square overflow-hidden bg-gray-50 mb-4 md:mb-8 border border-gray-100 shadow-sm relative">
-                        <img src={data.characterImage} alt={type} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
-                        {/* Overlay for aesthetic */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500"></div>
-                      </div>
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-baseline mb-1 md:mb-2">
-                        <span className="font-display font-bold text-xl md:text-3xl text-kiwi-dark">{type}</span>
-                        <span className="text-[8px] md:text-[9px] font-mono text-gray-300 uppercase tracking-widest font-bold group-hover:text-black transition-colors hidden md:inline">INSPECT</span>
-                      </div>
-                      <span className="text-xs md:text-sm font-serif text-gray-500 italic font-medium truncate w-full">{data.title}</span>
-                      <p className="mt-2 md:mt-4 text-[10px] md:text-[11px] text-gray-400 line-clamp-2 leading-relaxed opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block">{data.summary}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* DISCLAIMER & FOOTER */}
-            <div className="text-center max-w-2xl mx-auto py-16 md:py-24 border-t border-gray-100 px-6">
-              <p className="text-[10px] md:text-[11px] font-mono text-gray-300 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-6 font-bold">DISCLAIMER 免責聲明</p>
-              <div className="flex flex-col items-center py-12 md:py-20">
-                <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase font-mono font-bold">KIWIMU MBTI LAB © 2026</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Floating Menu - Mobile responsive */}
-          <div className="fixed bottom-6 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-1.5 md:p-3 rounded-full shadow-2xl flex items-center gap-1.5 md:gap-3 z-50 w-max max-w-[95vw] border border-white/10 backdrop-blur-xl">
-            <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-colors border border-white/20">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+          {/* BRAND INTRO & GIF */}
+          <div className="flex flex-col items-center py-20 md:py-32 border-t border-gray-100 bg-white/30">
+            <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener noreferrer" className="group relative w-20 h-20 md:w-24 md:h-24 mb-10 rounded-full overflow-hidden border border-gray-100 shadow-2xl hover:scale-110 transition-all duration-500">
+              <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="KIWIMU Brand" className="w-full h-full object-cover" />
             </a>
-            <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
-            <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-colors text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap">Retest 重測</button>
-            <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
-            <button onClick={handleSave} className="shrink-0 px-4 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase shadow-lg transition-transform active:scale-95 whitespace-nowrap">Share 分享</button>
-            <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
-            <button onClick={handleDownloadIG} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 transition-colors text-black border border-white/20 shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
-            </button>
+            <div className="max-w-md px-6 text-center">
+              <h4 className="text-xl md:text-2xl font-serif font-bold text-kiwi-dark mb-4 tracking-tight">探索內在與美味的邊界</h4>
+              <p className="text-xs md:text-sm text-gray-500 leading-loose font-serif italic">
+                KIWIMU 是一個致力於將人格探索與生活美學結合的創作品牌。<br className="hidden md:block" />
+                我們相信每一種靈魂都有其獨特的風味，期待與你在這趟奇幻之旅中相遇。
+              </p>
+            </div>
           </div>
 
-          {/* SHARE MODAL (In-app overlay for better mobile compatibility) */}
-          {
-            shareImage && (
-              <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4 md:p-8 select-none" onClick={() => setShareImage(null)}>
-                <div className="w-full max-w-lg bg-white rounded-2xl overflow-hidden flex flex-col shadow-2xl slide-up" onClick={e => e.stopPropagation()}>
-                  <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-                    <span className="font-mono text-[10px] tracking-[0.2em] font-bold text-gray-400 uppercase">{shareImage.title}</span>
-                    <button onClick={() => setShareImage(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-black hover:text-white transition-colors">&times;</button>
-                  </div>
-
-                  <div className="overflow-y-auto max-h-[70vh] bg-gray-50 flex flex-col items-center">
-                    <div className="p-6 text-center">
-                      <p className="text-sm font-serif text-kiwi-dark mb-1 font-bold">已為您生成轉傳圖片</p>
-                      <p className="text-[11px] text-gray-400">請「長按圖片」選擇「儲存影像」或「分享」</p>
+          {/* 12. ARCHIVE - 2 columns on mobile, 4 on desktop */}
+          <div className="border-t border-gray-100 pt-20 md:pt-32">
+            <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.6em] md:tracking-[0.8em] uppercase mb-20 md:mb-32 text-gray-300 font-mono">PERSONALITY ARCHIVE <br className="md:hidden" /> 深度檔案館</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12 mb-20 md:mb-32">
+              {ALL_TYPES.map(type => {
+                const data = getResultData(type);
+                return (
+                  <button key={type} onClick={() => setSelectedOtherType(data)} className="group flex flex-col text-left transition-all duration-700 bg-white p-3 md:p-6 hover:shadow-2xl border border-gray-100 relative hover:-translate-y-2">
+                    <div className="w-full aspect-square overflow-hidden bg-gray-50 mb-4 md:mb-8 border border-gray-100 shadow-sm relative">
+                      <img src={data.characterImage} alt={type} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                      {/* Overlay for aesthetic */}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500"></div>
                     </div>
-                    <img
-                      src={shareImage.url}
-                      alt="Share Result"
-                      className="w-full h-auto cursor-pointer"
-                      style={{ WebkitTouchCallout: 'default' }}
-                    />
-                  </div>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-baseline mb-1 md:mb-2">
+                      <span className="font-display font-bold text-xl md:text-3xl text-kiwi-dark">{type}</span>
+                      <span className="text-[8px] md:text-[9px] font-mono text-gray-300 uppercase tracking-widest font-bold group-hover:text-black transition-colors hidden md:inline">INSPECT</span>
+                    </div>
+                    <span className="text-xs md:text-sm font-serif text-gray-500 italic font-medium truncate w-full">{data.title}</span>
+                    <p className="mt-2 md:mt-4 text-[10px] md:text-[11px] text-gray-400 line-clamp-2 leading-relaxed opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block">{data.summary}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-                  <div className="p-4 bg-white border-t border-gray-100 grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => {
-                        const text = `來看看我的靈魂甜點是什麼！ ${window.location.origin}`;
-                        window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`);
-                      }}
-                      className="flex items-center justify-center gap-2 bg-[#06C755] text-white py-3 rounded-lg text-xs font-bold"
-                    >
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
-                      分享至 LINE
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(window.location.origin);
-                        alert('已複製網址到剪貼簿！');
-                      }}
-                      className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-lg text-xs font-bold"
-                    >
-                      複製連結
-                    </button>
+          {/* DISCLAIMER & FOOTER */}
+          <div className="text-center max-w-2xl mx-auto py-16 md:py-24 border-t border-gray-100 px-6">
+            <p className="text-[10px] md:text-[11px] font-mono text-gray-300 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-6 font-bold">DISCLAIMER 免責聲明</p>
+            <div className="flex flex-col items-center py-12 md:py-20">
+              <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase font-mono font-bold">KIWIMU MBTI LAB © 2026</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Menu - Mobile responsive */}
+        <div className="fixed bottom-6 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-1.5 md:p-3 rounded-full shadow-2xl flex items-center gap-1.5 md:gap-3 z-50 w-max max-w-[95vw] border border-white/10 backdrop-blur-xl">
+          <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-colors border border-white/20">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+          </a>
+          <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-colors text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap">Retest 重測</button>
+          <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          <button onClick={handleSave} className="shrink-0 px-4 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase shadow-lg transition-transform active:scale-95 whitespace-nowrap">Share 分享</button>
+          <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          <button onClick={handleDownloadIG} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 transition-colors text-black border border-white/20 shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+          </button>
+        </div>
+
+        {/* SHARE MODAL (In-app overlay for better mobile compatibility) */}
+        {
+          shareImage && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4 md:p-8 select-none" onClick={() => setShareImage(null)}>
+              <div className="w-full max-w-lg bg-white rounded-2xl overflow-hidden flex flex-col shadow-2xl slide-up" onClick={e => e.stopPropagation()}>
+                <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                  <span className="font-mono text-[10px] tracking-[0.2em] font-bold text-gray-400 uppercase">{shareImage.title}</span>
+                  <button onClick={() => setShareImage(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-black hover:text-white transition-colors">&times;</button>
+                </div>
+
+                <div className="overflow-y-auto max-h-[70vh] bg-gray-50 flex flex-col items-center">
+                  <div className="p-6 text-center">
+                    <p className="text-sm font-serif text-kiwi-dark mb-1 font-bold">已為您生成轉傳圖片</p>
+                    <p className="text-[11px] text-gray-400">請「長按圖片」選擇「儲存影像」或「分享」</p>
                   </div>
+                  <img
+                    src={shareImage.url}
+                    alt="Share Result"
+                    className="w-full h-auto cursor-pointer"
+                    style={{ WebkitTouchCallout: 'default' }}
+                  />
+                </div>
+
+                <div className="p-4 bg-white border-t border-gray-100 grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => {
+                      const text = `來看看我的靈魂甜點是什麼！ ${window.location.origin}`;
+                      window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`);
+                    }}
+                    className="flex items-center justify-center gap-2 bg-[#06C755] text-white py-3 rounded-lg text-xs font-bold"
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+                    分享給好友
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.origin);
+                      alert('已複製網址到剪貼簿！');
+                    }}
+                    className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-lg text-xs font-bold"
+                  >
+                    複製連結
+                  </button>
                 </div>
               </div>
-            )
-          }
-
-          {/* HIDDEN IG STORY CONTAINER (1080x1920) */}
-          <div
-            id="ig-story-container"
-            className="fixed top-0 left-0 -z-50 bg-[#F9F7F5] flex flex-col items-center justify-center p-[80px] text-center"
-            style={{ width: '1080px', height: '1920px', transform: 'translateX(-9999px)' }}
-          >
-            {/* Header */}
-            <div className="flex flex-col items-center w-full mb-12">
-              <p className="text-[28px] font-mono tracking-[0.4em] uppercase text-gray-400 mb-6 font-bold">KIWIMU MBTI LAB</p>
-              <div className="w-[60px] h-[2px] bg-black mb-12"></div>
-              <div className="flex flex-col items-center mt-4">
-                <h1 className="text-[110px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-6">{resultData.id}-{identitySuffix}</h1>
-                <p className="text-[32px] font-serif italic text-gray-500">{resultData.title}</p>
-              </div>
             </div>
+          )
+        }
 
-            {/* Main Visual (Icon/Image) */}
-            <div className="w-[500px] h-[500px] relative flex items-center justify-center mb-12">
-              <div className="absolute inset-0 border-[2px] border-black/10 rounded-full"></div>
-              <img src={resultData.characterImage} alt={resultData.id} className="max-w-full max-h-full object-contain drop-shadow-2xl" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} />
-            </div>
-
-            {/* Core Essence for IG */}
-            <div className="w-full max-w-[700px] mb-12 text-center">
-              <p className="text-[24px] font-serif text-gray-800 leading-relaxed italic px-8">
-                {resultData.coreAnalysis}
-              </p>
-            </div>
-
-            {/* Description */}
-            <div className="w-full max-w-[780px] mb-16 bg-white p-10 shadow-xl border border-gray-100 rounded-2xl relative">
-              <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-black text-white px-6 py-2 text-[20px] font-mono font-bold tracking-widest uppercase rounded-full">CHARACTERISTICS</div>
-              <p className="text-[36px] leading-snug font-serif text-gray-800 font-medium pt-4">
-                {resultData.quote}
-              </p>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-auto">
-              <div className="flex items-center gap-3 justify-center mb-5">
-                <span className="text-[28px] font-bold text-kiwi-dark">KIWIMU</span>
-                <span className="text-[28px] text-gray-400">×</span>
-                <span className="text-[28px] font-bold text-kiwi-dark">月島甜點店</span>
-              </div>
+        {/* HIDDEN IG STORY CONTAINER (1080x1920) */}
+        <div
+          id="ig-story-container"
+          className="fixed top-0 left-0 -z-50 bg-[#F9F7F5] flex flex-col items-center justify-center p-[80px] text-center"
+          style={{ width: '1080px', height: '1920px', transform: 'translateX(-9999px)' }}
+        >
+          {/* Header */}
+          <div className="flex flex-col items-center w-full mb-12">
+            <p className="text-[28px] font-mono tracking-[0.4em] uppercase text-gray-400 mb-6 font-bold">KIWIMU MBTI LAB</p>
+            <div className="w-[60px] h-[2px] bg-black mb-12"></div>
+            <div className="flex flex-col items-center mt-4">
+              <h1 className="text-[110px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-6">{resultData.id}-{identitySuffix}</h1>
+              <p className="text-[32px] font-serif italic text-gray-500">{resultData.title}</p>
             </div>
           </div>
 
-          {/* MODAL ARCHIVE (Fully Responsive) */}
-          {
-            selectedOtherType && (
-              <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/95 p-0 md:p-8 fade-in" onClick={() => setSelectedOtherType(null)}>
-                <div className="w-full md:max-w-4xl h-[90vh] md:h-auto md:max-h-[85vh] overflow-y-auto bg-white flex flex-col md:flex-row relative slide-up shadow-2xl rounded-t-2xl md:rounded-sm" onClick={e => e.stopPropagation()}>
+          {/* Main Visual (Icon/Image) */}
+          <div className="w-[500px] h-[500px] relative flex items-center justify-center mb-12">
+            <div className="absolute inset-0 border-[2px] border-black/10 rounded-full"></div>
+            <img src={resultData.characterImage} alt={resultData.id} className="max-w-full max-h-full object-contain drop-shadow-2xl" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} />
+          </div>
 
-                  {/* Close Button */}
-                  <button
-                    onClick={() => setSelectedOtherType(null)}
-                    className="absolute top-4 right-4 md:top-6 md:right-6 text-black z-20 hover:rotate-90 transition-all duration-300 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-white/80 hover:bg-black hover:text-white shadow-lg"
-                  >
-                    <span className="text-xl md:text-2xl font-light">&times;</span>
-                  </button>
+          {/* Core Essence for IG */}
+          <div className="w-full max-w-[700px] mb-12 text-center">
+            <p className="text-[24px] font-serif text-gray-800 leading-relaxed italic px-8">
+              {resultData.coreAnalysis}
+            </p>
+          </div>
 
-                  {/* Left: Compact Image Column */}
-                  <div className="w-full md:w-1/3 bg-gray-50 relative group h-[200px] md:h-auto shrink-0">
-                    <img src={selectedOtherType.characterImage} className="w-full h-full object-cover absolute inset-0" alt={selectedOtherType.id} />
-                    <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
-                      <h3 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tighter">{selectedOtherType.id}</h3>
-                      <p className="text-white/80 text-[10px] md:text-xs font-serif italic mt-1">{selectedOtherType.title}</p>
+          {/* Description */}
+          <div className="w-full max-w-[780px] mb-16 bg-white p-10 shadow-xl border border-gray-100 rounded-2xl relative">
+            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-black text-white px-6 py-2 text-[20px] font-mono font-bold tracking-widest uppercase rounded-full">CHARACTERISTICS</div>
+            <p className="text-[36px] leading-snug font-serif text-gray-800 font-medium pt-4">
+              {resultData.quote}
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-auto">
+            <div className="flex items-center gap-3 justify-center mb-5">
+              <span className="text-[28px] font-bold text-kiwi-dark">KIWIMU</span>
+              <span className="text-[28px] text-gray-400">×</span>
+              <span className="text-[28px] font-bold text-kiwi-dark">月島甜點店</span>
+            </div>
+          </div>
+        </div>
+
+        {/* MODAL ARCHIVE (Fully Responsive) */}
+        {
+          selectedOtherType && (
+            <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/95 p-0 md:p-8 fade-in" onClick={() => setSelectedOtherType(null)}>
+              <div className="w-full md:max-w-4xl h-[90vh] md:h-auto md:max-h-[85vh] overflow-y-auto bg-white flex flex-col md:flex-row relative slide-up shadow-2xl rounded-t-2xl md:rounded-sm" onClick={e => e.stopPropagation()}>
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setSelectedOtherType(null)}
+                  className="absolute top-4 right-4 md:top-6 md:right-6 text-black z-20 hover:rotate-90 transition-all duration-300 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-white/80 hover:bg-black hover:text-white shadow-lg"
+                >
+                  <span className="text-xl md:text-2xl font-light">&times;</span>
+                </button>
+
+                {/* Left: Compact Image Column */}
+                <div className="w-full md:w-1/3 bg-gray-50 relative group h-[200px] md:h-auto shrink-0">
+                  <img src={selectedOtherType.characterImage} className="w-full h-full object-cover absolute inset-0" alt={selectedOtherType.id} />
+                  <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
+                    <h3 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tighter">{selectedOtherType.id}</h3>
+                    <p className="text-white/80 text-[10px] md:text-xs font-serif italic mt-1">{selectedOtherType.title}</p>
+                  </div>
+                </div>
+
+                {/* Right: Content Column */}
+                <div className="w-full md:w-2/3 p-6 md:p-12 text-kiwi-dark text-left overflow-y-auto">
+                  <div className="mb-6 md:mb-8 pb-6 md:pb-8 border-b border-gray-100">
+                    <div className="border border-kiwi-dark/20 px-3 py-1 inline-block mb-4 md:mb-6 bg-white shadow-sm">
+                      <p className="text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase font-bold text-gray-500">ARCHIVE DATA</p>
                     </div>
+                    <h4 className="text-xl md:text-3xl font-serif font-bold text-gray-800 leading-snug mb-3 md:mb-4">
+                      {selectedOtherType.summary}
+                    </h4>
+                    <p className="text-sm md:text-base text-gray-500 font-serif italic">
+                      {selectedOtherType.quote}
+                    </p>
                   </div>
 
-                  {/* Right: Content Column */}
-                  <div className="w-full md:w-2/3 p-6 md:p-12 text-kiwi-dark text-left overflow-y-auto">
-                    <div className="mb-6 md:mb-8 pb-6 md:pb-8 border-b border-gray-100">
-                      <div className="border border-kiwi-dark/20 px-3 py-1 inline-block mb-4 md:mb-6 bg-white shadow-sm">
-                        <p className="text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase font-bold text-gray-500">ARCHIVE DATA</p>
-                      </div>
-                      <h4 className="text-xl md:text-3xl font-serif font-bold text-gray-800 leading-snug mb-3 md:mb-4">
-                        {selectedOtherType.summary}
-                      </h4>
-                      <p className="text-sm md:text-base text-gray-500 font-serif italic">
-                        {selectedOtherType.quote}
+                  <div className="space-y-6 md:space-y-8">
+                    <div>
+                      <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-2 md:mb-3 font-bold">CORE ANALYSIS</span>
+                      <p className="text-gray-700 leading-relaxed font-serif text-sm md:text-base text-justify">
+                        {selectedOtherType.coreAnalysis}
                       </p>
                     </div>
 
-                    <div className="space-y-6 md:space-y-8">
-                      <div>
-                        <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-2 md:mb-3 font-bold">CORE ANALYSIS</span>
-                        <p className="text-gray-700 leading-relaxed font-serif text-sm md:text-base text-justify">
-                          {selectedOtherType.coreAnalysis}
-                        </p>
+                    <div>
+                      <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-2 md:mb-3 font-bold">KEYWORDS</span>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedOtherType.keywords.map(k => (
+                          <span key={k} className="px-2 md:px-3 py-1 bg-gray-50 text-gray-500 text-[9px] md:text-[10px] tracking-widest font-bold uppercase">{k}</span>
+                        ))}
                       </div>
+                    </div>
 
+                    <div className="grid grid-cols-2 gap-4 md:gap-6 pt-2 md:pt-4">
                       <div>
-                        <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-2 md:mb-3 font-bold">KEYWORDS</span>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedOtherType.keywords.map(k => (
-                            <span key={k} className="px-2 md:px-3 py-1 bg-gray-50 text-gray-500 text-[9px] md:text-[10px] tracking-widest font-bold uppercase">{k}</span>
-                          ))}
-                        </div>
+                        <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">WORK</span>
+                        <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed">{selectedOtherType.career.style}</p>
                       </div>
-
-                      <div className="grid grid-cols-2 gap-4 md:gap-6 pt-2 md:pt-4">
-                        <div>
-                          <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">WORK</span>
-                          <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed">{selectedOtherType.career.style}</p>
-                        </div>
-                        <div>
-                          <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">LOVE</span>
-                          <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed">{selectedOtherType.relationships.style}</p>
-                        </div>
+                      <div>
+                        <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">LOVE</span>
+                        <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed">{selectedOtherType.relationships.style}</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
-        </div>
+            </div>
+          )}
       </div>
-    </div>
+    </div >
   );
 };
 
