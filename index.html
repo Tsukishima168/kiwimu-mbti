@@ -59,6 +59,16 @@
       color: #121212;
       font-family: 'Noto Sans TC', sans-serif;
       -webkit-font-smoothing: antialiased;
+      /* Global protection against text selection */
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+    }
+
+    img {
+      -webkit-user-drag: none;
     }
 
     .font-display {
