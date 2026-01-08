@@ -1,5 +1,6 @@
 
 
+// Deployment trigger: 2026-01-08-23-10
 import React, { useState, useEffect } from 'react';
 import { User } from 'firebase/auth'; // Import User type
 import { auth } from './firebase'; // Import auth
