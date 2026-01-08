@@ -5,14 +5,32 @@ import { signInWithPopup, User } from 'firebase/auth';
 
 interface LoginProps {
     onLoginSuccess: (user: User) => void;
+    isUnlockMode?: boolean;
 }
 
-const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
+const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) => {
     const [error, setError] = useState<string | null>(null);
 
     const handleGoogleLogin = async () => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
+
+            // Log user to Google Sheets
+            try {
+                await fetch('/api/save-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        uid: result.user.uid,
+                        email: result.user.email,
+                        displayName: result.user.displayName,
+                        method: 'google'
+                    })
+                });
+            } catch (logError) {
+                console.error('Failed to log user', logError);
+            }
+
             onLoginSuccess(result.user);
         } catch (err: any) {
             setError(err.message);
@@ -43,8 +61,17 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6">
             <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
-                <h1 className="text-2xl font-bold mb-6 text-kiwi-dark">Welcome</h1>
-                <p className="text-gray-600 mb-8">Please sign in to continue</p>
+                {isUnlockMode ? (
+                    <>
+                        <h1 className="text-2xl font-bold mb-4 text-kiwi-dark">您的靈魂甜點已分析完成！</h1>
+                        <p className="text-gray-600 mb-8 text-sm">請登入以解鎖完整人格分析報告，<br />並領取您的專屬甜點優惠。</p>
+                    </>
+                ) : (
+                    <>
+                        <h1 className="text-2xl font-bold mb-6 text-kiwi-dark">Welcome</h1>
+                        <p className="text-gray-600 mb-8">Please sign in to continue</p>
+                    </>
+                )}
 
                 <button
                     onClick={handleGoogleLogin}

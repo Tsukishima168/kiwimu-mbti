@@ -37,6 +37,27 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
                 await signInWithCustomToken(auth, data.customToken);
 
                 // Login success
+                // Login success
+
+                // Log user to Google Sheets uses the user object from auth
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                    try {
+                        await fetch('/api/save-user', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                uid: currentUser.uid,
+                                email: currentUser.email, // Might be null for LINE flow depending on claims
+                                displayName: currentUser.displayName,
+                                method: 'line'
+                            })
+                        });
+                    } catch (logError) {
+                        console.error('Failed to log user', logError);
+                    }
+                }
+
                 onLoginSuccess();
 
             } catch (err: any) {

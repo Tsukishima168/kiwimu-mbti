@@ -18,7 +18,7 @@ type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' |
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [stage, setStage] = useState<Stage>('login'); // Start with login
+  const [stage, setStage] = useState<Stage>('intro'); // Start with intro
   const [resultData, setResultData] = useState<MbtiResultData | null>(null);
   const [scores, setScores] = useState<Score | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
@@ -27,23 +27,16 @@ const App: React.FC = () => {
     // Check for existing auth state
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
-      if (currentUser) {
-        // If already at login stage or just loaded, move to intro
-        if (stage === 'login' || stage === 'callback') {
-          setStage('intro');
-        }
-      } else {
-        // Only default to login if we are not in callback handling
-        if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
-          setStage('callback');
-        } else {
-          setStage('login');
-        }
+
+      // Handle callback specifically
+      if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
+        setStage('callback');
       }
+
       setLoadingAuth(false);
     });
     return () => unsubscribe();
-  }, [stage]);
+  }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -68,7 +61,21 @@ const App: React.FC = () => {
   };
 
   const handleLoadingFinished = () => {
-    setStage('result');
+    // Check if user is logged in
+    if (user) {
+      setStage('result');
+    } else {
+      setStage('login'); // Require login to see result
+    }
+  };
+
+  const handleLoginSuccess = () => {
+    // If we have result data, go to result, otherwise go to intro
+    if (resultData) {
+      setStage('result');
+    } else {
+      setStage('intro');
+    }
   };
 
   const handleRetest = () => {
@@ -84,9 +91,9 @@ const App: React.FC = () => {
 
   return (
     <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
-      {stage === 'callback' && <LoginCallback onLoginSuccess={() => setStage('intro')} />}
-      {stage === 'login' && <Login onLoginSuccess={() => setStage('intro')} />}
-      {stage === 'intro' && user && <Intro onStart={goToManifesto} />}
+      {stage === 'callback' && <LoginCallback onLoginSuccess={handleLoginSuccess} />}
+      {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
+      {stage === 'intro' && <Intro onStart={goToManifesto} />}
       {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
       {stage === 'quiz' && <Quiz onComplete={handleQuizComplete} />}
       {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
