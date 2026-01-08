@@ -83,13 +83,7 @@ const App: React.FC = () => {
   };
 
   const handleLoadingFinished = () => {
-    // Check if user is logged in
-    if (user) {
-      setStage('result');
-    } else {
-      sessionStorage.setItem('flow_stage', 'login');
-      setStage('login'); // Require login to see result
-    }
+    setStage('result');
   };
 
   const handleLoginSuccess = () => {
