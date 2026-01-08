@@ -1,20 +1,21 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getAnalytics } from "firebase/analytics";
 
-// TODO: Replace with your specific Firebase configuration
-// You can get this from the Firebase Console > Project Settings > General > Your apps > SDK setup and configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBiG4Z8ccrx_nswypmuaeFaLAqtnH6Eqj8",
+  authDomain: "kiwimu-mbti.firebaseapp.com",
+  projectId: "kiwimu-mbti",
+  storageBucket: "kiwimu-mbti.firebasestorage.app",
+  messagingSenderId: "537717488268",
+  appId: "1:537717488268:web:e1586a9d8d5be06c0f59a9",
+  measurementId: "G-2NBWRX24YR"
 };
 
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-export { auth, googleProvider };
+export { auth, googleProvider, analytics };
