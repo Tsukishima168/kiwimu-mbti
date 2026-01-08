@@ -537,39 +537,39 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
       {/* HIDDEN IG STORY CONTAINER (1080x1920) */}
       <div
         id="ig-story-container"
-        className="fixed top-0 left-0 -z-50 bg-[#F9F7F5] flex flex-col items-center justify-between p-[120px] text-center"
+        className="fixed top-0 left-0 -z-50 bg-[#F9F7F5] flex flex-col items-center justify-center p-[80px] text-center"
         style={{ width: '1080px', height: '1920px', transform: 'translateX(-9999px)' }}
       >
         {/* Header */}
-        <div className="flex flex-col items-center w-full">
-          <p className="text-[32px] font-mono tracking-[0.4em] uppercase text-gray-400 mb-8 font-bold">KIWIMU MBTI LAB</p>
-          <div className="w-[80px] h-[2px] bg-black mb-16"></div>
-          <h1 className="text-[140px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-4">{resultData.id}</h1>
-          <p className="text-[40px] font-serif italic text-gray-500">{resultData.title}</p>
+        <div className="flex flex-col items-center w-full mb-12">
+          <p className="text-[28px] font-mono tracking-[0.4em] uppercase text-gray-400 mb-6 font-bold">KIWIMU MBTI LAB</p>
+          <div className="w-[60px] h-[2px] bg-black mb-12"></div>
+          <h1 className="text-[120px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-3">{resultData.id}</h1>
+          <p className="text-[36px] font-serif italic text-gray-500">{resultData.title}</p>
         </div>
 
         {/* Main Visual (Icon/Image) */}
-        <div className="w-[800px] h-[800px] relative">
-          <div className="absolute inset-0 border-[3px] border-black/10 rounded-full animate-pulse-slow"></div>
-          <img src={resultData.characterImage} alt={resultData.id} className="w-full h-full object-contain drop-shadow-2xl" />
+        <div className="w-[600px] h-[600px] relative flex items-center justify-center mb-16">
+          <div className="absolute inset-0 border-[2px] border-black/10 rounded-full"></div>
+          <img src={resultData.characterImage} alt={resultData.id} className="max-w-full max-h-full object-contain drop-shadow-2xl" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} />
         </div>
 
         {/* Description */}
-        <div className="w-full max-w-[800px] mb-20 bg-white p-12 shadow-xl border border-gray-100 rounded-3xl relative">
-          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-black text-white px-8 py-2 text-[24px] font-mono font-bold tracking-widest uppercase rounded-full">Characteristics</div>
-          <p className="text-[42px] leading-snug font-serif text-gray-800 font-medium">
+        <div className="w-full max-w-[780px] mb-16 bg-white p-10 shadow-xl border border-gray-100 rounded-2xl relative">
+          <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-black text-white px-6 py-2 text-[20px] font-mono font-bold tracking-widest uppercase rounded-full">CHARACTERISTICS</div>
+          <p className="text-[36px] leading-snug font-serif text-gray-800 font-medium pt-4">
             {resultData.quote}
           </p>
         </div>
 
         {/* Footer */}
-        <div className="mb-20">
-          <div className="flex items-center gap-4 justify-center mb-6">
-            <span className="text-[32px] font-bold text-kiwi-dark">KIWIMU</span>
-            <span className="text-[32px] text-gray-400">×</span>
-            <span className="text-[32px] font-bold text-kiwi-dark">DESSERT</span>
+        <div className="mt-auto">
+          <div className="flex items-center gap-3 justify-center mb-5">
+            <span className="text-[28px] font-bold text-kiwi-dark">KIWIMU</span>
+            <span className="text-[28px] text-gray-400">×</span>
+            <span className="text-[28px] font-bold text-kiwi-dark">DESSERT</span>
           </div>
-          <p className="text-[28px] text-gray-400 font-mono tracking-widest">www.kiwimutaiwan.com</p>
+          <p className="text-[24px] text-gray-400 font-mono tracking-widest">www.kiwimutaiwan.com</p>
         </div>
       </div>
 
