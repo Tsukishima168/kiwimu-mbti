@@ -1,20 +1,25 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Kiwimu MBTI Lab v5
 
-# Run and deploy your AI Studio app
+## Project Status
+This project uses:
+- **Frontend**: React + Vite
+- **Styling**: TailwindCSS
+- **Authentication**: Firebase Auth (Google & LINE)
+- **Deployment**: Vercel
 
-This contains everything you need to run your app locally.
+## Deployment
+Latest update: LINE Login integration.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1wC6-QbqUzMrpBaaaZvLVbwsUMMzUX8nn
+## Setup
+1. Clone repository
+2. `npm install`
+3. `npm run dev`
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Environment Variables
+Required for deployment:
+- `VITE_LINE_CHANNEL_ID`
+- `VITE_LINE_REDIRECT_URI`
+- `LINE_CHANNEL_ID`
+- `LINE_CHANNEL_SECRET`
+- `LINE_REDIRECT_URI`
+- `FIREBASE_SERVICE_ACCOUNT`
