@@ -534,17 +534,17 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
       </div>
 
       {/* Floating Menu - Mobile responsive */}
-      <div className="fixed bottom-8 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-2 md:p-3 rounded-full shadow-2xl flex items-center gap-2 md:gap-3 z-50 max-w-[90vw] overflow-x-hidden border border-white/10 backdrop-blur-xl">
-        <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-colors border border-white/20">
-          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+      <div className="fixed bottom-6 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-1.5 md:p-3 rounded-full shadow-2xl flex items-center gap-1.5 md:gap-3 z-50 w-max max-w-[95vw] border border-white/10 backdrop-blur-xl">
+        <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-colors border border-white/20">
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
         </a>
-        <div className="w-[1px] h-4 md:h-6 bg-white/20"></div>
-        <button onClick={onRetest} className="px-5 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-colors text-[10px] md:text-[11px] font-bold tracking-[0.1em] md:tracking-[0.2em] uppercase whitespace-nowrap">Retest 重測</button>
-        <div className="w-[1px] h-4 md:h-6 bg-white/20"></div>
-        <button onClick={handleSave} className="px-6 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[10px] md:text-[11px] font-bold tracking-[0.1em] md:tracking-[0.2em] uppercase shadow-lg transition-transform active:scale-95 whitespace-nowrap">Save Report 保存</button>
-        <div className="w-[1px] h-4 md:h-6 bg-white/20"></div>
-        <button onClick={handleDownloadIG} className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 transition-colors text-black border border-white/20 shadow-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+        <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+        <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-colors text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap">Retest 重測</button>
+        <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+        <button onClick={handleSave} className="shrink-0 px-4 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase shadow-lg transition-transform active:scale-95 whitespace-nowrap">Save 保存</button>
+        <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+        <button onClick={handleDownloadIG} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 transition-colors text-black border border-white/20 shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
         </button>
       </div>
 
