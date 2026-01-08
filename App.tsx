@@ -28,6 +28,23 @@ const App: React.FC = () => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
 
+      // Restore results if they exist in session storage
+      const savedResult = sessionStorage.getItem('last_quiz_result');
+      const savedScores = sessionStorage.getItem('last_quiz_scores');
+      if (savedResult && savedScores) {
+        setResultData(JSON.parse(savedResult));
+        setScores(JSON.parse(savedScores));
+
+        // If we were in the middle of a flow, handle it
+        const currentStage = sessionStorage.getItem('flow_stage');
+        if (currentStage === 'login' && currentUser) {
+          setStage('result');
+          sessionStorage.removeItem('flow_stage');
+        } else if (currentStage) {
+          setStage(currentStage as Stage);
+        }
+      }
+
       // Handle callback specifically
       if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
         setStage('callback');
@@ -57,6 +74,11 @@ const App: React.FC = () => {
 
     setScores(scores);
     setResultData(data);
+
+    // Persist to session storage so we can restore after redirect
+    sessionStorage.setItem('last_quiz_result', JSON.stringify(data));
+    sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+
     setStage('loading');
   };
 
@@ -65,6 +87,7 @@ const App: React.FC = () => {
     if (user) {
       setStage('result');
     } else {
+      sessionStorage.setItem('flow_stage', 'login');
       setStage('login'); // Require login to see result
     }
   };
@@ -81,6 +104,9 @@ const App: React.FC = () => {
   const handleRetest = () => {
     setResultData(null);
     setScores(null);
+    sessionStorage.removeItem('last_quiz_result');
+    sessionStorage.removeItem('last_quiz_scores');
+    sessionStorage.removeItem('flow_stage');
     setStage('intro');
   };
 
