@@ -83,10 +83,28 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
       });
 
       const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `KIWIMU_MBTI_${resultData.id}.png`;
-      link.href = dataUrl;
-      link.click();
+
+      // On mobile devices, sometimes automatic download fails. 
+      // Opening in new tab is a more reliable fallback.
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        const win = window.open();
+        if (win) {
+          win.document.write(`<img src="${dataUrl}" style="width:100%" />`);
+          win.document.title = "Save Report";
+        } else {
+          // Fallback if popup blocked
+          const link = document.createElement('a');
+          link.download = `KIWIMU_MBTI_${resultData.id}.png`;
+          link.href = dataUrl;
+          link.click();
+        }
+      } else {
+        const link = document.createElement('a');
+        link.download = `KIWIMU_MBTI_${resultData.id}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
     } catch (err) {
       console.error('Failed to save report:', err);
     }
@@ -120,10 +138,25 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
       });
 
       const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `KIWIMU_STORY_${resultData.id}.png`;
-      link.href = dataUrl;
-      link.click();
+
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        const win = window.open();
+        if (win) {
+          win.document.write(`<img src="${dataUrl}" style="width:100%" />`);
+          win.document.title = "Instagram Story";
+        } else {
+          const link = document.createElement('a');
+          link.download = `KIWIMU_STORY_${resultData.id}.png`;
+          link.href = dataUrl;
+          link.click();
+        }
+      } else {
+        const link = document.createElement('a');
+        link.download = `KIWIMU_STORY_${resultData.id}.png`;
+        link.href = dataUrl;
+        link.click();
+      }
     } catch (err) {
       console.error('Failed to save IG story:', err);
     }
@@ -558,8 +591,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
         <div className="flex flex-col items-center w-full mb-12">
           <p className="text-[28px] font-mono tracking-[0.4em] uppercase text-gray-400 mb-6 font-bold">KIWIMU MBTI LAB</p>
           <div className="w-[60px] h-[2px] bg-black mb-12"></div>
-          <h1 className="text-[120px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-3">{resultData.id}</h1>
-          <p className="text-[36px] font-serif italic text-gray-500">{resultData.title}</p>
+          <div className="flex flex-col items-center">
+            <h1 className="text-[120px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-2">{resultData.id}</h1>
+            <p className="text-[36px] font-serif italic text-gray-500 mt-2">{resultData.title}</p>
+          </div>
         </div>
 
         {/* Main Visual (Icon/Image) */}
@@ -581,9 +616,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
           <div className="flex items-center gap-3 justify-center mb-5">
             <span className="text-[28px] font-bold text-kiwi-dark">KIWIMU</span>
             <span className="text-[28px] text-gray-400">×</span>
-            <span className="text-[28px] font-bold text-kiwi-dark">DESSERT</span>
+            <span className="text-[28px] font-bold text-kiwi-dark">月島甜點店</span>
           </div>
-          <p className="text-[24px] text-gray-400 font-mono tracking-widest">www.kiwimutaiwan.com</p>
         </div>
       </div>
 
