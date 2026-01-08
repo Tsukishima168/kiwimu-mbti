@@ -56,6 +56,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
   const [showAlt, setShowAlt] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
 
   const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
   const identitySuffix = resultAT;
@@ -67,6 +68,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [selectedOtherType]);
 
   /* 
    * SAVE REPORT FUNCTIONALITY (Download as Image)
@@ -83,50 +88,20 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
       });
 
       const dataUrl = canvas.toDataURL('image/png');
+      setShareImage({ url: dataUrl, title: '保存報告' });
 
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-      // Attempt to share URL if supported
-      if (isMobile && navigator.share) {
+      // Attempt native share if supported (best effort)
+      if (navigator.share) {
         try {
           await navigator.share({
             title: 'Kiwimu MBTI Lab',
             text: '來看看我的靈魂甜點是什麼！',
             url: window.location.origin,
           });
-        } catch (shareErr) {
-          console.log('Share error or cancelled', shareErr);
-        }
-      }
-
-      if (isMobile) {
-        const win = window.open();
-        if (win) {
-          win.document.write(`
-            <html>
-              <head><title>Share Report</title></head>
-              <body style="margin:0; background:#f9f7f5; display:flex; flex-col; items-center;">
-                <div style="padding: 20px; text-align:center; width:100%;">
-                   <p style="font-family:sans-serif; color:#666; font-size:14px;">長按圖片即可儲存您的專屬報告</p>
-                </div>
-                <img src="${dataUrl}" style="width:100%" />
-              </body>
-            </html>
-          `);
-        } else {
-          const link = document.createElement('a');
-          link.download = `KIWIMU_MBTI_${resultData.id}.png`;
-          link.href = dataUrl;
-          link.click();
-        }
-      } else {
-        const link = document.createElement('a');
-        link.download = `KIWIMU_MBTI_${resultData.id}.png`;
-        link.href = dataUrl;
-        link.click();
+        } catch (e) { console.log('Native share failed', e); }
       }
     } catch (err) {
-      console.error('Failed to save report:', err);
+      console.error('Failed to generate report:', err);
     }
   };
 
@@ -158,25 +133,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
       });
 
       const dataUrl = canvas.toDataURL('image/png');
-
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        const win = window.open();
-        if (win) {
-          win.document.write(`<img src="${dataUrl}" style="width:100%" />`);
-          win.document.title = "Instagram Story";
-        } else {
-          const link = document.createElement('a');
-          link.download = `KIWIMU_STORY_${resultData.id}.png`;
-          link.href = dataUrl;
-          link.click();
-        }
-      } else {
-        const link = document.createElement('a');
-        link.download = `KIWIMU_STORY_${resultData.id}.png`;
-        link.href = dataUrl;
-        link.click();
-      }
+      setShareImage({ url: dataUrl, title: 'Instagram Story' });
     } catch (err) {
       console.error('Failed to save IG story:', err);
     }
@@ -611,6 +568,53 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
         </button>
       </div>
+
+      {/* SHARE MODAL (In-app overlay for better mobile compatibility) */}
+      {shareImage && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4 md:p-8 select-none" onClick={() => setShareImage(null)}>
+          <div className="w-full max-w-lg bg-white rounded-2xl overflow-hidden flex flex-col shadow-2xl slide-up" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+              <span className="font-mono text-[10px] tracking-[0.2em] font-bold text-gray-400 uppercase">{shareImage.title}</span>
+              <button onClick={() => setShareImage(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-black hover:text-white transition-colors">&times;</button>
+            </div>
+
+            <div className="overflow-y-auto max-h-[70vh] bg-gray-50 flex flex-col items-center">
+              <div className="p-6 text-center">
+                <p className="text-sm font-serif text-kiwi-dark mb-1 font-bold">已為您生成轉傳圖片</p>
+                <p className="text-[11px] text-gray-400">請「長按圖片」選擇「儲存影像」或「分享」</p>
+              </div>
+              <img
+                src={shareImage.url}
+                alt="Share Result"
+                className="w-full h-auto cursor-pointer"
+                style={{ WebkitTouchCallout: 'default' }}
+              />
+            </div>
+
+            <div className="p-4 bg-white border-t border-gray-100 grid grid-cols-2 gap-3">
+              <button
+                onClick={() => {
+                  const text = `來看看我的靈魂甜點是什麼！ ${window.location.origin}`;
+                  window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`);
+                }}
+                className="flex items-center justify-center gap-2 bg-[#06C755] text-white py-3 rounded-lg text-xs font-bold"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+                分享至 LINE
+              </button>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(window.location.origin);
+                  alert('已複製網址到剪貼簿！');
+                }}
+                className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-lg text-xs font-bold"
+              >
+                複製連結
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HIDDEN IG STORY CONTAINER (1080x1920) */}
       <div
