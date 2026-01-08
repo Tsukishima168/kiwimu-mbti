@@ -20,9 +20,24 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         }
     };
 
+
     const handleLineLogin = () => {
-        // TODO: Implement LINE Login (requires custom backend or OpenID Connect)
-        alert("LINE Login is coming soon! Please use Google for now.");
+        // Generate a random state for CSRF protection
+        const state = Math.random().toString(36).substring(7);
+        sessionStorage.setItem('line_auth_state', state);
+
+        const clientID = import.meta.env.VITE_LINE_CHANNEL_ID;
+        // Construct the Redirect URI based on current location if not specified
+        const redirectURI = import.meta.env.VITE_LINE_REDIRECT_URI || `${window.location.origin}/callback`;
+
+        if (!clientID) {
+            alert("LINE Channel ID is missing. Please set VITE_LINE_CHANNEL_ID in .env");
+            return;
+        }
+
+        const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${clientID}&redirect_uri=${encodeURIComponent(redirectURI)}&state=${state}&scope=profile%20openid`;
+
+        window.location.href = lineAuthUrl;
     };
 
     return (

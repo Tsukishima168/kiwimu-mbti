@@ -11,9 +11,10 @@ import Quiz from './components/Quiz';
 import Loading from './components/Loading';
 import Result from './components/Result';
 import Manifesto from './components/Manifesto';
-import Login from './components/Login'; // Import Login component
+import Login from './components/Login';
+import LoginCallback from './components/LoginCallback'; // Import Callback component
 
-type Stage = 'login' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result';
+type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -28,11 +29,16 @@ const App: React.FC = () => {
       setUser(currentUser);
       if (currentUser) {
         // If already at login stage or just loaded, move to intro
-        if (stage === 'login') {
+        if (stage === 'login' || stage === 'callback') {
           setStage('intro');
         }
       } else {
-        setStage('login');
+        // Only default to login if we are not in callback handling
+        if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
+          setStage('callback');
+        } else {
+          setStage('login');
+        }
       }
       setLoadingAuth(false);
     });
@@ -71,12 +77,14 @@ const App: React.FC = () => {
     setStage('intro');
   };
 
-  if (loadingAuth) {
+  if (loadingAuth && stage !== 'callback') {
+    // Don't show generic loading if we are handling callback (which has its own loading)
     return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;
   }
 
   return (
     <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
+      {stage === 'callback' && <LoginCallback onLoginSuccess={() => setStage('intro')} />}
       {stage === 'login' && <Login onLoginSuccess={() => setStage('intro')} />}
       {stage === 'intro' && user && <Intro onStart={goToManifesto} />}
       {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
