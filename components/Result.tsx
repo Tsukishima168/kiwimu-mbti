@@ -535,7 +535,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
         <div className="w-[1px] h-4 md:h-6 bg-white/20"></div>
         <button onClick={handleSave} className="px-6 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[10px] md:text-[11px] font-bold tracking-[0.1em] md:tracking-[0.2em] uppercase shadow-lg transition-transform active:scale-95 whitespace-nowrap">Save Report 保存</button>
         <div className="w-[1px] h-4 md:h-6 bg-white/20"></div>
-        <button onClick={handleDownloadIG} className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-pink-500 hover:bg-pink-600 transition-colors text-white border border-white/20">
+        <button onClick={handleDownloadIG} className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 transition-colors text-black border border-white/20 shadow-lg">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
         </button>
       </div>
