@@ -341,7 +341,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
                 .soul-img-box { width: 100%; min-height: 250px; background: #f9f9f9; overflow: hidden; }
                 @media (min-width: 768px) { .soul-img-box { flex: 1; min-height: 400px; } }
                 
-                .soul-img-box img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.8s ease; }
+                .soul-img-box img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
                 .soul-img-box:hover img { transform: scale(1.05); }
                 
                 .soul-info-box { width: 100%; padding: 30px; display: flex; flex-direction: column; justify-content: center; text-align: left; }
