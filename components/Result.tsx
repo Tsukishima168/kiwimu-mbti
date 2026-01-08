@@ -341,7 +341,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
                 .soul-img-box { width: 100%; min-height: 250px; background: #f9f9f9; overflow: hidden; }
                 @media (min-width: 768px) { .soul-img-box { flex: 1; min-height: 400px; } }
                 
-                .soul-img-box img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; }
+                .soul-img-box img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.8s ease; }
                 .soul-img-box:hover img { transform: scale(1.05); }
                 
                 .soul-info-box { width: 100%; padding: 30px; display: flex; flex-direction: column; justify-content: center; text-align: left; }
@@ -402,10 +402,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest }) => {
                     <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkT}</span>
                   </div>
                 </div>
-                <div className="soul-btns">
-                  <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755' }}>跟 KIWIMU 當朋友，抽幸運甜點</a>
-                  <button className="soul-btn" onClick={() => setShowAlt(!showAlt)}>{showAlt ? '收起建議' : '同象限替換'}</button>
-                  <button className="soul-btn soul-btn-black" onClick={() => setShowMenu(true)}>完整菜單</button>
+                <div className="soul-btns" style={{ flexDirection: 'column' }}>
+                  <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>跟 KIWIMU 當朋友，抽幸運甜點</a>
+                  <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
+                    <button className="soul-btn" onClick={() => setShowAlt(!showAlt)} style={{ flex: 1 }}>{showAlt ? '收起建議' : '同象限替換'}</button>
+                    <button className="soul-btn soul-btn-black" onClick={() => setShowMenu(true)} style={{ flex: 1 }}>完整菜單</button>
+                  </div>
                 </div>
               </div>
             </div>
