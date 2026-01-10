@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { auth } from '../firebase';
 import { signInWithCustomToken } from 'firebase/auth';
+import { linkAnonymousAccount } from '../utils/accountLinking';
 
 interface LoginCallbackProps {
     onLoginSuccess: () => void;
@@ -33,13 +34,14 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
                     throw new Error(data.error || 'Failed to exchange token');
                 }
 
-                setStatus('Signing into Firebase...');
-                await signInWithCustomToken(auth, data.customToken);
+                setStatus('Linking account...');
 
-                // Login success
-                // Login success
+                // Use account linking to preserve anonymous data
+                await linkAnonymousAccount(data.customToken);
 
-                // Log user to Google Sheets uses the user object from auth
+                setStatus('Finalizing...');
+
+                // Log user to Google Sheets
                 const currentUser = auth.currentUser;
                 if (currentUser) {
                     try {
@@ -48,7 +50,7 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 uid: currentUser.uid,
-                                email: currentUser.email, // Might be null for LINE flow depending on claims
+                                email: currentUser.email,
                                 displayName: currentUser.displayName,
                                 method: 'line'
                             })

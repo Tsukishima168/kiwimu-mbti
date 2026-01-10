@@ -12,7 +12,7 @@ export interface Question {
   imageUrl: string;
   dimensionPair: 'EI' | 'SN' | 'TF' | 'JP' | 'AT';
   options: [Option, Option];
-  weight?: number; 
+  weight?: number;
 }
 
 export interface Dessert {
@@ -23,15 +23,15 @@ export interface Dessert {
 }
 
 export interface MbtiResultData {
-  id: string; 
-  title: string; 
-  summary: string; 
-  quote: string; 
+  id: string;
+  title: string;
+  summary: string;
+  quote: string;
   keywords: string[];
   bgColor: string; // 新增專屬背景色
-  
-  coreAnalysis: string; 
-  
+
+  coreAnalysis: string;
+
   dimensionAnalysis: {
     EI: string;
     SN: string;
@@ -44,21 +44,21 @@ export interface MbtiResultData {
   blindSpots: string[];
 
   career: {
-    style: string; 
-    advice: string; 
-    suitableJobs: string[]; 
+    style: string;
+    advice: string;
+    suitableJobs: string[];
   };
 
   relationships: {
-    style: string; 
-    strengths: string; 
-    advice: string; 
+    style: string;
+    strengths: string;
+    advice: string;
   };
 
   socialStyle: string;
-  
-  growthAdvice: string; 
-  soulQuestions: string[]; 
+
+  growthAdvice: string;
+  soulQuestions: string[];
 
   characterImage: string;
   dessert: Dessert;
@@ -75,4 +75,35 @@ export interface Score {
   P: number;
   A: number;
   Turbulent: number;
+}
+
+/** Quiz Progress（測驗進度） */
+export interface QuizProgress {
+  uid: string;
+  answers: Option[];
+  currentIndex: number;
+  quizVersion: string;
+  updatedAt: number; // timestamp
+}
+
+/** Test Run（測驗結果歷程） */
+export interface TestRun {
+  id?: string; // Firestore document ID
+  uid: string;
+  resultType: string; // e.g., "INTJ"
+  suffix: 'A' | 'T';
+  scores: Score;
+  quizVersion: string;
+  scoringVersion: string;
+  dessertCatalogVersion: string;
+  finishedAt: number; // timestamp
+}
+
+/** User Document（用戶基本資料） */
+export interface UserDocument {
+  uid: string;
+  displayName?: string;
+  email?: string;
+  createdAt: number;
+  lastActiveAt: number;
 }

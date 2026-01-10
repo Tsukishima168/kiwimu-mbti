@@ -7,6 +7,8 @@ import { auth } from './firebase'; // Import auth
 import { Option, MbtiResultData, Score } from './types';
 import { calculateResults, getVariant } from './utils/logic';
 import { getResultData } from './constants';
+import { useFirestoreSync } from './hooks/useFirestoreSync';
+import { signInAnonymously } from 'firebase/auth';
 import Intro from './components/Intro';
 import Quiz from './components/Quiz';
 import Loading from './components/Loading';
@@ -14,8 +16,9 @@ import Result from './components/Result';
 import Manifesto from './components/Manifesto';
 import Login from './components/Login';
 import LoginCallback from './components/LoginCallback'; // Import Callback component
+import MyArchive from './components/MyArchive';
 
-type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result';
+type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -24,10 +27,30 @@ const App: React.FC = () => {
   const [scores, setScores] = useState<Score | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
 
+  // Firestore sync hook
+  const { saveCompletedTest, saveToCloud } = useFirestoreSync(user);
+
   useEffect(() => {
     // Check for existing auth state
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      // If no user at all, sign in anonymously
+      if (!currentUser) {
+        try {
+          const anonymousUser = await signInAnonymously(auth);
+          setUser(anonymousUser.user);
+          console.log('Anonymous user created:', anonymousUser.user.uid);
+        } catch (error) {
+          console.error('Anonymous sign-in failed:', error);
+          setUser(null);
+        }
+      } else {
+        setUser(currentUser);
+        console.log('User authenticated:', {
+          uid: currentUser.uid,
+          isAnonymous: currentUser.isAnonymous,
+          provider: currentUser.providerData[0]?.providerId || 'anonymous'
+        });
+      }
 
       // Restore results if they exist in session storage
       const savedResult = sessionStorage.getItem('last_quiz_result');
@@ -38,7 +61,7 @@ const App: React.FC = () => {
 
         // If we were in the middle of a flow, handle it
         const currentStage = sessionStorage.getItem('flow_stage');
-        if (currentStage === 'login' && currentUser) {
+        if (currentStage === 'login' && currentUser && !currentUser.isAnonymous) {
           setStage('result');
           sessionStorage.removeItem('flow_stage');
         } else if (currentStage) {
@@ -68,7 +91,7 @@ const App: React.FC = () => {
     setStage('quiz');
   };
 
-  const handleQuizComplete = (answers: Option[]) => {
+  const handleQuizComplete = async (answers: Option[]) => {
     const { type, scores } = calculateResults(answers);
     const variant = getVariant(scores); // Determine A or T
     const data = getResultData(type, variant); // Pass variant to get specific content
@@ -79,6 +102,11 @@ const App: React.FC = () => {
     // Persist to session storage so we can restore after redirect
     sessionStorage.setItem('last_quiz_result', JSON.stringify(data));
     sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+
+    // Save to Firestore if user is logged in
+    if (user) {
+      await saveCompletedTest(type, variant, scores);
+    }
 
     setStage('loading');
   };
@@ -105,6 +133,24 @@ const App: React.FC = () => {
     setStage('intro');
   };
 
+  const handleViewArchive = () => {
+    if (!user || user.isAnonymous) {
+      // Prompt to bind account
+      sessionStorage.setItem('flow_stage', 'result');
+      setStage('login');
+    } else {
+      setStage('archive');
+    }
+  };
+
+  const handleBackFromArchive = () => {
+    if (resultData && scores) {
+      setStage('result');
+    } else {
+      setStage('intro');
+    }
+  };
+
   if (loadingAuth && stage !== 'callback') {
     // Don't show generic loading if we are handling callback (which has its own loading)
     return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;
@@ -116,7 +162,7 @@ const App: React.FC = () => {
       {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
       {stage === 'intro' && <Intro onStart={goToManifesto} />}
       {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
-      {stage === 'quiz' && <Quiz onComplete={handleQuizComplete} />}
+      {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
       {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
       {stage === 'result' && resultData && scores && (
         <Result
@@ -124,7 +170,12 @@ const App: React.FC = () => {
           rawScores={scores}
           onRetest={handleRetest}
           onOpenConsultant={() => { }}
+          onViewArchive={handleViewArchive}
+          user={user}
         />
+      )}
+      {stage === 'archive' && user && (
+        <MyArchive user={user} onBack={handleBackFromArchive} />
       )}
     </div>
   );

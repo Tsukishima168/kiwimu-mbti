@@ -1,5 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
+import { User } from 'firebase/auth';
 import { MbtiResultData, Score } from '../types';
 import { calculatePercentages } from '../utils/logic';
 import { DIMENSION_EXPLANATIONS, getResultData } from '../constants';
@@ -10,6 +11,9 @@ interface ResultProps {
   rawScores: Score;
   onRetest: () => void;
   onOpenConsultant: () => void;
+  onViewArchive?: () => void;
+  isArchiveMode?: boolean;
+  user?: User | null;
 }
 
 const ALL_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
@@ -69,7 +73,7 @@ const SpectrumBar = ({ leftLabel, rightLabel, leftScore, rightScore, leftDesc, r
   </div>
 );
 
-const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpenConsultant }) => {
+const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpenConsultant, onViewArchive, isArchiveMode = false, user }) => {
   const percentages = calculatePercentages(rawScores);
   const resultRef = useRef<HTMLDivElement>(null);
   const [selectedOtherType, setSelectedOtherType] = useState<MbtiResultData | null>(null);
@@ -586,6 +590,18 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           </a>
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-colors text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap">Retest 重測</button>
+          {onViewArchive && !isArchiveMode && (
+            <>
+              <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+              <button
+                onClick={onViewArchive}
+                className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-colors text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap"
+                title={user?.isAnonymous ? '綁定帳號以永久保存' : '查看檔案館'}
+              >
+                {user?.isAnonymous ? '🔗 綁定帳號' : 'Archive 檔案館'}
+              </button>
+            </>
+          )}
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           <button onClick={handleSave} className="shrink-0 px-4 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase shadow-lg transition-transform active:scale-95 whitespace-nowrap">Share 分享</button>
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
