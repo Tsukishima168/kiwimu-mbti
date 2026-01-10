@@ -70,19 +70,27 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) =
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6">
-            <div className="bg-white p-8 rounded-2xl shadow-xl max-w-sm w-full text-center">
-                {isUnlockMode ? (
-                    <>
-                        <h1 className="text-2xl font-bold mb-4 text-kiwi-dark">您的靈魂甜點已分析完成！</h1>
-                        <p className="text-gray-600 mb-8 text-sm">請登入以解鎖完整人格分析報告，<br />並領取您的專屬甜點優惠。</p>
-                    </>
-                ) : (
-                    <>
-                        <h1 className="text-2xl font-bold mb-6 text-kiwi-dark">Welcome</h1>
-                        <p className="text-gray-600 mb-8">Please sign in to continue</p>
-                    </>
-                )}
-
+            <div className="max-w-md mx-auto px-6 py-12 bg-white rounded-2xl shadow-2xl">
+                <div className="text-center mb-8">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-kiwi-green to-kiwi-dark flex items-center justify-center">
+                        <span className="text-4xl">🌟</span>
+                    </div>
+                    <h1 className="text-3xl font-display font-bold text-gray-800 mb-3">
+                        {isUnlockMode ? '儲存你的人格紀錄' : '開始你的人格探索'}
+                    </h1>
+                    <p className="text-gray-600 leading-relaxed">
+                        {isUnlockMode
+                            ? '登入以保存你的測驗結果，並追蹤你的成長軌跡。每一次的測驗，都是下一次冒險的起點。'
+                            : '請登入以將測驗進度同步至雲端，並追蹤你的靈魂甜點歷險記。'
+                        }
+                    </p>
+                    <p className="text-sm text-gray-400 mt-4">
+                        {isUnlockMode
+                            ? '儲存後你可以隨時回看、對比不同時期的自己'
+                            : '無論您在哪裡，都能續寫您的故事'
+                        }
+                    </p>
+                </div>
                 {/* Privacy Notice */}
                 <p className="text-xs text-gray-400 mb-6">
                     繼續即表示您同意我們的{' '}

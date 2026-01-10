@@ -23,15 +23,20 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     const currentQuestion: Question = QUESTIONS[currentIndex];
     const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
 
-    // Load saved progress on mount
+    // Check for existing progress on mount
     useEffect(() => {
         if (hasProgress) {
             const saved = loadProgress();
-            if (saved && saved.answers.length > 0) {
+            // Only show resume modal if user has answered at least 10 questions (25% progress)
+            if (saved && saved.answers.length >= 10) {
                 setShowResumeModal(true);
+            } else if (saved) {
+                // Silently restore progress without modal if less than 10 questions
+                setAnswers(saved.answers);
+                setCurrentIndex(saved.currentIndex);
             }
         }
-    }, [hasProgress]);
+    }, []);
 
     // Image Preloading Logic
     useEffect(() => {
