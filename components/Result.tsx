@@ -7,6 +7,7 @@ import { DIMENSION_EXPLANATIONS, getResultData } from '../constants';
 import { getRarityData, getRarityLabel, getRarityMessage } from '../data/rarityData';
 import { getCelebrityArchetypes } from '../data/celebrityData';
 import html2canvas from 'html2canvas';
+import UserMenu from './UserMenu';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -16,6 +17,8 @@ interface ResultProps {
   onViewArchive?: () => void;
   isArchiveMode?: boolean;
   user?: User | null;
+  onLogin?: () => void;
+  onLogout?: () => void;
 }
 
 const ALL_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
@@ -75,7 +78,7 @@ const SpectrumBar = ({ leftLabel, rightLabel, leftScore, rightScore, leftDesc, r
   </div>
 );
 
-const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpenConsultant, onViewArchive, isArchiveMode = false, user }) => {
+const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpenConsultant, onViewArchive, isArchiveMode = false, user, onLogin, onLogout }) => {
   const percentages = calculatePercentages(rawScores);
   const resultRef = useRef<HTMLDivElement>(null);
   const [selectedOtherType, setSelectedOtherType] = useState<MbtiResultData | null>(null);
