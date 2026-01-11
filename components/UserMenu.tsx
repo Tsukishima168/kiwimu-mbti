@@ -9,11 +9,16 @@ interface UserMenuProps {
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({ user, onLogin, onLogout }) => {
-    if (!user) {
+    if (!user || user.isAnonymous) {
         return (
             <button
-                onClick={onLogin}
-                className="px-4 py-2 bg-kiwi-dark text-white text-sm font-mono tracking-wider hover:bg-black transition-colors duration-300"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Login button clicked');
+                    onLogin();
+                }}
+                className="px-6 py-3 bg-kiwi-dark text-white text-sm font-mono tracking-wider hover:bg-black transition-colors duration-300 shadow-lg"
             >
                 登入
             </button>
@@ -21,12 +26,17 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogin, onLogout }) => {
     }
 
     return (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 bg-white shadow-lg border border-gray-200 px-4 py-2">
             <div className="text-right hidden md:block">
-                <p className="text-xs font-mono text-gray-600">{user.email || '已登入用戶'}</p>
+                <p className="text-xs font-mono text-gray-600">{user.email || user.displayName || '已登入用戶'}</p>
             </div>
             <button
-                onClick={onLogout}
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Logout button clicked');
+                    onLogout();
+                }}
                 className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-mono tracking-wider hover:bg-gray-50 transition-colors duration-300"
             >
                 登出
