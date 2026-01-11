@@ -442,7 +442,121 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </div>
             </div>
 
-            {/* 8. SOUL REFLECTION - 響應式字體 */}
+            {/* 08. PERSONALITY RARITY */}
+            {(() => {
+              const rarityData = getRarityData(resultData.id);
+              if (!rarityData) return null;
+
+              const rarityLabel = getRarityLabel(rarityData.rank);
+              const rarityMessage = getRarityMessage(rarityData.rank);
+
+              return (
+                <div className="py-16 md:py-24 border-b border-gray-100">
+                  <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-12 md:mb-20 font-mono uppercase">PERSONALITY RARITY 人格稀有度</h3>
+
+                  <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
+                    <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
+                      在人群中的出現率
+                    </p>
+
+                    {/* Rarity Bar */}
+                    <div className="relative h-2 bg-gray-100 w-full mb-8 rounded-full overflow-hidden">
+                      <div
+                        className="absolute top-0 left-0 h-full bg-kiwi-dark transition-all duration-1000 ease-out"
+                        style={{ width: `${rarityData.totalPopulation}%` }}
+                      />
+                    </div>
+
+                    <div className="text-5xl md:text-7xl font-display font-bold text-kiwi-dark mb-4">
+                      {rarityData.totalPopulation}%
+                    </div>
+
+                    <div className="inline-block px-6 py-2 bg-gray-50 border border-gray-200 rounded-full mb-6">
+                      <span className="text-xs font-mono text-gray-500 tracking-wider">
+                        稀有度排名：{rarityData.rank} / 16
+                      </span>
+                    </div>
+
+                    <p className="text-xl md:text-2xl font-serif text-kiwi-dark mb-12">
+                      {rarityMessage}
+                    </p>
+
+                    {/* Gender Breakdown */}
+                    <div className="grid grid-cols-2 gap-8 max-w-md mx-auto text-left">
+                      <div className="border-l-2 border-kiwi-dark pl-4">
+                        <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-2">男性</p>
+                        <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.male}%</p>
+                      </div>
+                      <div className="border-l-2 border-kiwi-dark pl-4">
+                        <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-2">女性</p>
+                        <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.female}%</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Disclaimer */}
+                  <div className="max-w-2xl mx-auto mt-12 p-6 bg-gray-50 border-l-4 border-gray-300">
+                    <p className="text-xs md:text-sm text-gray-600 leading-relaxed font-serif">
+                      ⓘ 稀有度是參考指標，用來提供共鳴與視角，不代表稀有=更好，也不代表人格固定不變。數值會因資料來源、地區、年齡與量表不同而有差異。
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 09. RESONANCE ARCHETYPES (CELEBRITY) */}
+            {(() => {
+              const archetypes = getCelebrityArchetypes(resultData.id);
+              if (archetypes.length === 0) return null;
+
+              return (
+                <div className="py-16 md:py-24 border-b border-gray-100">
+                  <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-8 md:mb-12 font-mono uppercase">RESONANCE ARCHETYPES 共鳴原型</h3>
+
+                  <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
+                    這不是你=他們，而是你可能與他們在思考風格、工作節奏、價值傾向有相似點
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto px-6">
+                    {archetypes.map((archetype, index) => (
+                      <div key={index} className="border border-gray-200 overflow-hidden hover:border-kiwi-dark transition-all duration-300">
+                        <div className="p-8 md:p-10 bg-white">
+                          {/* Name */}
+                          <div className="mb-6 border-b border-gray-100 pb-4">
+                            <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-1">
+                              {archetype.name}
+                            </h4>
+                            <p className="text-sm md:text-base text-gray-500 font-mono">
+                              {archetype.nameEn}
+                            </p>
+                            <p className="text-[10px] font-mono text-gray-400 tracking-wider uppercase mt-2">
+                              {archetype.profession}
+                            </p>
+                          </div>
+
+                          {/* Resonance Traits */}
+                          <div>
+                            <h5 className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-4">
+                              共鳴特徵
+                            </h5>
+                            <ul className="space-y-3">
+                              {archetype.resonanceTraits.map((trait, i) => (
+                                <li key={i} className="flex items-start gap-3 text-gray-700">
+                                  <span className="text-kiwi-dark font-mono text-xs mt-1">•</span>
+                                  <span className="text-sm md:text-base font-serif leading-relaxed">{trait}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 10. SOUL REFLECTION - 響應式字體 */}
             <div className="py-16 md:py-24 border-b border-gray-100 bg-gray-50/20">
               <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-16 md:mb-24 font-mono">SOUL REFLECTION 靈魂拷問</h3>
               <div className="space-y-8 md:space-y-12 max-w-3xl mx-auto px-0 md:px-4">
