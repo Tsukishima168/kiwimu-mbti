@@ -1,48 +1,63 @@
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import admin from 'firebase-admin';
 
-// Initialize Firebase Admin if not already initialized
-if (!admin.apps.length) {
-    // Check if we are in a production environment where env vars are set properly
-    // For local development, you might need to point to a serviceAccountKey.json file
-    // or set these environment variables in .env.local
+// Initialize Firebase Admin (only once)
+function initAdmin() {
+    if (admin.apps.length) return;
 
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
-    // If parsing failed or empty (no env var), and we are local, you might want to handle it.
-    // But usually we expect the user to provide the JSON string in env vars.
-
-    if (Object.keys(serviceAccount).length > 0) {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
-    } else {
-        console.error("FIREBASE_SERVICE_ACCOUNT environment variable is missing or invalid.");
+    if (!projectId || !clientEmail || !privateKey) {
+        console.error('Missing Firebase Admin env vars');
+        return;
     }
+
+    admin.initializeApp({
+        credential: admin.credential.cert({
+            projectId,
+            clientEmail,
+            privateKey,
+        }),
+    });
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Method not allowed' });
+    // CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(204).end();
     }
 
-    const { code } = req.query;
+    if (req.method !== 'POST') {
+        return res.status(405).json({ ok: false, error: 'Method not allowed - use POST' });
+    }
 
-    if (!code || typeof code !== 'string') {
-        return res.status(400).json({ error: 'Missing auth code' });
+    const { code, redirectUri } = req.body;
+
+    if (!code || !redirectUri) {
+        return res.status(400).json({
+            ok: false,
+            error: 'Missing code or redirectUri in request body'
+        });
     }
 
     const clientId = process.env.LINE_CHANNEL_ID;
     const clientSecret = process.env.LINE_CHANNEL_SECRET;
-    const redirectUri = process.env.LINE_REDIRECT_URI; // e.g., https://your-site.vercel.app/callback
 
-    if (!clientId || !clientSecret || !redirectUri) {
-        return res.status(500).json({ error: 'Server configuration missing' });
+    if (!clientId || !clientSecret) {
+        return res.status(500).json({
+            ok: false,
+            error: 'Server configuration missing - check LINE env vars'
+        });
     }
 
     try {
-        // 1. Exchange code for access token
+        // 1. Exchange code for LINE access token
         const tokenResponse = await fetch('https://api.line.me/oauth2/v2.1/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -58,37 +73,57 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const tokenData = await tokenResponse.json();
 
         if (!tokenResponse.ok) {
-            console.error('LINE Token Error:', tokenData);
-            return res.status(400).json({ error: 'Failed to verify code with LINE', details: tokenData });
+            console.error('LINE token exchange failed:', tokenData);
+            return res.status(400).json({
+                ok: false,
+                error: 'Failed to exchange code with LINE',
+                details: tokenData,
+                redirectUriUsed: redirectUri
+            });
         }
 
-        // 2. Get User Profile
+        // 2. Get LINE user profile
         const profileResponse = await fetch('https://api.line.me/v2/profile', {
             headers: { Authorization: `Bearer ${tokenData.access_token}` },
         });
 
-        const profileData = await profileResponse.json();
-        if (!profileResponse.ok) {
-            return res.status(400).json({ error: 'Failed to get LINE profile' });
+        const profile = await profileResponse.json();
+
+        if (!profileResponse.ok || !profile.userId) {
+            return res.status(400).json({
+                ok: false,
+                error: 'Failed to get LINE profile',
+                details: profile
+            });
         }
 
-        const { userId, displayName, pictureUrl } = profileData;
+        // 3. Create Firebase custom token
+        initAdmin();
 
-        // 3. Create Firebase Custom Token
-        // We use the LINE userId as the Firebase uid
-        const firebaseUid = `line:${userId}`;
-        const additionalClaims = {
-            displayName: displayName,
-            photoURL: pictureUrl
-        };
+        const firebaseUid = `line:${profile.userId}`;
+        const customToken = await admin.auth().createCustomToken(firebaseUid, {
+            provider: 'line',
+            displayName: profile.displayName || '',
+            pictureUrl: profile.pictureUrl || '',
+        });
 
-        const customToken = await admin.auth().createCustomToken(firebaseUid, additionalClaims);
-
-        // 4. Return token to client
-        return res.status(200).json({ customToken });
+        // 4. Return success with Firebase token
+        return res.status(200).json({
+            ok: true,
+            firebaseCustomToken: customToken,
+            lineProfile: {
+                userId: profile.userId,
+                displayName: profile.displayName,
+                pictureUrl: profile.pictureUrl,
+            },
+        });
 
     } catch (error: any) {
-        console.error('Handler Error:', error);
-        return res.status(500).json({ error: 'Internal server error', details: error.message });
+        console.error('LINE auth error:', error);
+        return res.status(500).json({
+            ok: false,
+            error: 'Internal server error',
+            details: error.message
+        });
     }
 }
