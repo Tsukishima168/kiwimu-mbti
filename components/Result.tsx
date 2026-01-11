@@ -176,6 +176,13 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
   return (
     <div className="min-h-screen bg-kiwi-bg pb-24 fade-in select-none">
+      {/* Floating UserMenu */}
+      {onLogin && onLogout && (
+        <div className="fixed top-6 right-6 z-50">
+          <UserMenu user={user} onLogin={onLogin} onLogout={onLogout} />
+        </div>
+      )}
+
       <div ref={resultRef} className="bg-white">
         <div id="full-report-container" className="bg-white px-2 py-4 md:px-0 md:py-0">
 

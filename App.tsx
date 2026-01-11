@@ -125,12 +125,40 @@ const App: React.FC = () => {
   };
 
   const handleRetest = () => {
+    if (user && !user.isAnonymous) {
+      // Logged-in users: go back to result page to retest immediately
+      setStage('result');
+    } else {
+      // Anonymous users: clear results and restart from intro
+      setStage('intro');
+    }
     setResultData(null);
     setScores(null);
     sessionStorage.removeItem('last_quiz_result');
     sessionStorage.removeItem('last_quiz_scores');
-    sessionStorage.removeItem('flow_stage');
-    setStage('intro');
+    sessionStorage.removeItem('flow_stage'); // Keep this from original retest
+  };
+
+  const handleLogin = () => {
+    if (resultData && scores) {
+      sessionStorage.setItem('last_quiz_result', JSON.stringify(resultData));
+      sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+      sessionStorage.setItem('flow_stage', 'login');
+    }
+    setStage('login');
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      // After logout, Firebase will auto-create a new anonymous user via onAuthStateChanged
+      setResultData(null);
+      setScores(null);
+      sessionStorage.clear();
+      setStage('intro');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const handleViewArchive = () => {
@@ -169,9 +197,11 @@ const App: React.FC = () => {
           resultData={resultData}
           rawScores={scores}
           onRetest={handleRetest}
-          onOpenConsultant={() => { }}
+          onOpenConsultant={() => console.log('Open consultant modal')}
           onViewArchive={handleViewArchive}
           user={user}
+          onLogin={handleLogin}
+          onLogout={handleLogout}
         />
       )}
       {stage === 'archive' && user && (
