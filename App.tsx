@@ -17,6 +17,9 @@ import Manifesto from './components/Manifesto';
 import Login from './components/Login';
 import LoginCallback from './components/LoginCallback'; // Import Callback component
 import MyArchive from './components/MyArchive';
+import UserMenu from './components/UserMenu';
+import ProfileSetupModal from './components/ProfileSetupModal';
+import { doc, getDoc } from 'firebase/firestore'; // firestore utils needed
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive';
 
@@ -26,9 +29,54 @@ const App: React.FC = () => {
   const [resultData, setResultData] = useState<MbtiResultData | null>(null);
   const [scores, setScores] = useState<Score | null>(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [loading, setLoading] = useState(true); // Added loading state for initial auth check
 
   // Firestore sync hook
   const { saveCompletedTest, saveToCloud } = useFirestoreSync(user);
+
+  // Initial load handling
+  useEffect(() => {
+    const init = async () => {
+      await auth.authStateReady();
+      setLoading(false);
+    };
+    init();
+  }, []);
+
+  // Check profile status when user changes
+  useEffect(() => {
+    const checkProfile = async () => {
+      // Only show for logged in, non-anonymous users
+      if (user && !user.isAnonymous) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            // Show setup if 'isProfileSetup' flag is missing or false
+            // OR if displayName is empty (legacy users)
+            if (!data.isProfileSetup || !data.displayName) {
+              setShowProfileSetup(true);
+            }
+          } else {
+            // New user doc might not exist yet if created via save-user api implies async
+            // But usually we want to force profile setup
+            setShowProfileSetup(true);
+          }
+        } catch (err) {
+          console.error("Error checking profile:", err);
+        }
+      } else {
+        setShowProfileSetup(false);
+      }
+    };
+
+    if (!loading) { // Only check profile once initial auth state is ready
+      checkProfile();
+    }
+  }, [user, loading]);
 
   useEffect(() => {
     // Check for existing auth state
@@ -186,29 +234,53 @@ const App: React.FC = () => {
 
   return (
     <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
-      {stage === 'callback' && <LoginCallback onLoginSuccess={handleLoginSuccess} />}
-      {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
-      {stage === 'intro' && <Intro onStart={goToManifesto} />}
-      {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
-      {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
-      {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
-      {stage === 'result' && resultData && scores && (
-        <Result
-          resultData={resultData}
-          rawScores={scores}
-          onRetest={handleRetest}
-          onOpenConsultant={() => console.log('Open consultant modal')}
-          onViewArchive={handleViewArchive}
-          user={user}
-          onLogin={handleLogin}
-          onLogout={handleLogout}
-        />
-      )}
-      {stage === 'archive' && user && (
-        <MyArchive user={user} onBack={handleBackFromArchive} />
-      )}
-    </div>
-  );
+      <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''
+        } overflow-x-hidden`}>
+        {/* User Menu (Top Right) */}
+        {stage !== 'intro' && stage !== 'splash' && stage !== 'manifesto' && (
+          <div className="fixed top-6 right-6 z-50">
+            <UserMenu user={user} onLogin={handleLogin} onLogout={handleLogout} />
+          </div>
+        )}
+
+        {showProfileSetup && user && (
+          <ProfileSetupModal
+            user={user}
+            onComplete={handleProfileSetupComplete}
+            isOpen={showProfileSetup}
+          />
+        )}
+
+        {stage === 'callback' && <LoginCallback onLoginSuccess={handleLoginSuccess} />}
+        {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
+        {stage === 'intro' && <Intro onStart={goToManifesto} />}
+        {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
+        {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
+        {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
+        {stage === 'result' && resultData && scores && (
+          <Result
+            resultData={resultData}
+            rawScores={scores}
+            onRetest={handleRetest}
+            onOpenConsultant={() => console.log('Open consultant modal')}
+            onViewArchive={handleViewArchive}
+            user={user}
+            onLogin={handleLogin}
+            onLogout={handleLogout}
+          />
+        )}
+        {stage === 'archive' && user && (
+          <MyArchive user={user} onBack={handleBackFromArchive} />
+        )}
+        {/* Assuming 'splash' stage would render something here if it were fully implemented */}
+        {stage === 'splash' && (
+          <div className="flex items-center justify-center min-h-screen">
+            {/* Splash screen content */}
+            <p>Welcome to the Splash Screen!</p>
+          </div>
+        )}
+      </div>
+      );
 };
 
-export default App;
+      export default App;
