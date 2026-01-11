@@ -26,18 +26,31 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
             try {
                 setStatus('Verifying with LINE...');
 
-                // Call our Vercel Serverless Function
-                const response = await fetch(`/api/line-auth?code=${code}`);
+                // Build redirect URI dynamically
+                const redirectUri = `${window.location.origin}/callback`;
+
+                // Call our Vercel Serverless Function with POST
+                const response = await fetch('/api/line-auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        redirectUri: redirectUri,
+                    }),
+                });
+
                 const data = await response.json();
 
-                if (!response.ok) {
+                if (!response.ok || !data.ok) {
                     throw new Error(data.error || 'Failed to exchange token');
                 }
 
                 setStatus('Linking account...');
 
                 // Use account linking to preserve anonymous data
-                await linkAnonymousAccount(data.customToken);
+                await linkAnonymousAccount(data.firebaseCustomToken);
 
                 setStatus('Finalizing...');
 
@@ -51,7 +64,7 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
                             body: JSON.stringify({
                                 uid: currentUser.uid,
                                 email: currentUser.email,
-                                displayName: currentUser.displayName,
+                                displayName: currentUser.displayName || data.lineProfile?.displayName,
                                 method: 'line'
                             })
                         });
