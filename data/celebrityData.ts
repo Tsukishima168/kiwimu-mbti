@@ -5,6 +5,9 @@ export interface CelebrityArchetype {
     era: 'classic' | 'contemporary';  // Classic or contemporary
     resonanceTraits: string[];  // 3 resonance characteristics
     profession: string;     // Professional field
+    lifestyleStyle: string; // Personality style (not diet)
+    dessertPairing: string; // Recommended KIWIMU dessert
+    pairingReason: string;  // Why this dessert fits their personality
 }
 
 // Celebrity archetypes for each MBTI type
@@ -20,7 +23,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '長期戰略思維與願景規劃',
                 '系統化解決複雜問題',
                 '不受傳統框架限制的創新'
-            ]
+            ],
+            lifestyleStyle: '極致效率、高濃度思考、5分鐘時間管理',
+            dessertPairing: '北海道經典巴斯克',
+            pairingReason: '濃烈直接的焦糖風味，不拖泥帶水，如同他極致效率的工作哲學'
         },
         {
             name: '克里斯多福·諾蘭',
@@ -31,7 +37,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '複雜敘事結構設計',
                 '追求完美的執行力',
                 '深度思考時間與空間概念'
-            ]
+            ],
+            lifestyleStyle: '多層架構、精準計算、完美主義者',
+            dessertPairing: '檸檬柚子千層蛋糕',
+            pairingReason: '如同電影的多層敘事，每一層都精準計算、層次分明'
         }
     ],
 
@@ -45,7 +54,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '洞察人性深層動機',
                 '追求心靈成長與整合',
                 '直覺理解象徵與原型'
-            ]
+            ],
+            lifestyleStyle: '深度內省、象徵思維、靈性探索',
+            dessertPairing: '茶香巴斯克',
+            pairingReason: '沈穩茶韻如同他對潛意識的深層探索，帶你潛入最深的內在宇宙'
         },
         {
             name: 'Lady Gaga',
@@ -56,7 +68,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '透過藝術表達深層情感',
                 '倡導弱勢族群權益',
                 '真實性與脆弱的勇氣'
-            ]
+            ],
+            lifestyleStyle: '勇敢表達、藝術創作、深度情感',
+            dessertPairing: '抹茶提拉米蘇',
+            pairingReason: '表面強悍內心細膩的層次感，如同她透過表演傳遞深層的愛與真實'
         }
     ],
 
@@ -70,7 +85,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '抽象理論建構',
                 '質疑既有框架的勇氣',
                 '長時間獨立思考'
-            ]
+            ],
+            lifestyleStyle: '理論推演、孤獨思考、打破常規',
+            dessertPairing: '檸檬巴斯克',
+            pairingReason: '清亮的酸度打破濃郁，如同他顛覆牛頓物理學的革命性思維'
         },
         {
             name: '馬克·祖克柏',
@@ -81,7 +99,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '系統性問題解決',
                 '邏輯驅動的決策模式',
                 '持續優化與迭代思維'
-            ]
+            ],
+            lifestyleStyle: '持續迭代、邏輯至上、系統思維',
+            dessertPairing: '經典十勝原味千層',
+            pairingReason: '結構精準、層次分明，如同他對平台架構的持續優化'
         }
     ],
 
@@ -95,7 +116,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '深刻的內在情感探索',
                 '透過創作表達理想',
                 '保持個人獨特世界觀'
-            ]
+            ],
+            lifestyleStyle: '早晨儀式、文青pure、內在探索',
+            dessertPairing: '北海道十勝戚風蛋糕',
+            pairingReason: '輕盈但深刻的純粹，就像他早晨4點的寫作儀式一樣澄澈'
         },
         {
             name: 'Johnny Depp',
@@ -106,7 +130,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '選擇非主流角色',
                 '藝術性高於商業考量',
                 '忠於內在真實感受'
-            ]
+            ],
+            lifestyleStyle: '藝術至上、非主流、真實自我',
+            dessertPairing: '經典烤布丁',
+            pairingReason: '最純粹直接的安撫，如同他對角色選擇的忠於內心'
         }
     ],
 
@@ -120,7 +147,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '願景驅動的領導風格',
                 '追求卓越與完美',
                 '果斷的戰略決策'
-            ]
+            ],
+            lifestyleStyle: '完美主義、願景領導、絕不妥協',
+            dessertPairing: '鹹蛋黃巴斯克',
+            pairingReason: '獨特且強悍的風味組合，如同他對產品設計的絕不妥協'
         },
         {
             name: '瑪格麗特·柴契爾',
@@ -131,7 +161,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '堅定的目標執行力',
                 '不畏反對的領導勇氣',
                 '系統性改革思維'
-            ]
+            ],
+            lifestyleStyle: '鋼鐵意志、果斷決策、改革魄力',
+            dessertPairing: '奶酒提拉米蘇',
+            pairingReason: '微醺的權力展演，苦甜之間盡是掌控局勢的餘韻'
         }
     ],
 
@@ -145,7 +178,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '機智幽默的即興反應',
                 '挑戰傳統角色詮釋',
                 '從失敗中重新崛起'
-            ]
+            ],
+            lifestyleStyle: '即興創意、機智幽默、挑戰傳統',
+            dessertPairing: '柚子蘋果提拉米蘇',
+            pairingReason: '打破常規的驚喜風味，在每一次味覺挑戰中看見邊界'
         },
         {
             name: '伊隆·馬斯克',
@@ -156,7 +192,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '顛覆性創新思維',
                 '多領域跨界探索',
                 '挑戰不可能的目標'
-            ]
+            ],
+            lifestyleStyle: '跨界探索、顛覆思維、無限可能',
+            dessertPairing: '巧克力布朗尼千層',
+            pairingReason: '濃郁且多層次的爆發，如同他從電動車到火箭的跨界衝擊'
         }
     ],
 
@@ -170,7 +209,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '啟發他人成長的天賦',
                 '真誠的情感連結',
                 '倡導社會正向改變'
-            ]
+            ],
+            lifestyleStyle: '啟發他人、真誠連結、正向影響',
+            dessertPairing: '檸檬蘋果戚風蛋糕',
+            pairingReason: '明亮如陽光的清新力量，溫暖並照亮每一個被遺忘的角落'
         },
         {
             name: '馬丁·路德·金',
@@ -181,7 +223,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '理想主義的社會願景',
                 '感召他人的演說魅力',
                 '為信念奮鬥的決心'
-            ]
+            ],
+            lifestyleStyle: '願景感召、演說魅力、堅定信念',
+            dessertPairing: '莓果戚風蛋糕',
+            pairingReason: '溫和友善的包覆感，如同他用演說凝聚人心的力量'
         }
     ],
 
@@ -195,7 +240,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '充滿活力的創造力',
                 '深刻的情感表達',
                 '鼓舞他人的熱情'
-            ]
+            ],
+            lifestyleStyle: '活力創造、深刻情感、鼓舞熱情',
+            dessertPairing: '草莓莓果千層蛋糕',
+            pairingReason: '層次繽紛且富有生命力，裝滿奇奇怪怪且閃亮的靈感碎片'
         },
         {
             name: '艾倫·狄珍妮絲',
@@ -206,7 +254,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '自然的社交魅力',
                 '樂觀積極的人生態度',
                 '真實做自己的勇氣'
-            ]
+            ],
+            lifestyleStyle: '樂觀積極、社交魅力、真實自我',
+            dessertPairing: '蜜香紅茶千層蛋糕',
+            pairingReason: '溫暖香甜的療癒感，如同她帶給大家的歡笑與正能量'
         }
     ],
 
@@ -220,7 +271,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '長期穩健的投資策略',
                 '重視數據與事實',
                 '紀律嚴謹的決策流程'
-            ]
+            ],
+            lifestyleStyle: '數據至上、紀律嚴謹、長期思維',
+            dessertPairing: '經典十勝原味千層',
+            pairingReason: '結構的絕對精準與對承諾的執著，最值得信賴的味覺基石'
         },
         {
             name: '安潔拉·梅克爾',
@@ -231,7 +285,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '務實的問題解決',
                 '穩定可靠的領導',
                 '數據驅動的決策'
-            ]
+            ],
+            lifestyleStyle: '務實穩健、數據驅動、可靠領導',
+            dessertPairing: '經典提拉米蘇',
+            pairingReason: '冷靜大膽的口感平衡，如同她穩定歐洲的務實決策'
         }
     ],
 
@@ -245,7 +302,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '無私的服務精神',
                 '對他人需求的敏感',
                 '堅持實際行動幫助'
-            ]
+            ],
+            lifestyleStyle: '無私服務、實際行動、溫柔堅持',
+            dessertPairing: '經典烤布丁',
+            pairingReason: '安全感的終極錨點，最純粹直接的溫柔安撫與回歸'
         },
         {
             name: '凱特·米道頓',
@@ -256,21 +316,27 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '傳統價值的守護者',
                 '溫暖體貼的關懷',
                 '穩定支持的角色'
-            ]
+            ],
+            lifestyleStyle: '優雅傳統、溫暖體貼、穩定支持',
+            dessertPairing: '北海道十勝戚風蛋糕',
+            pairingReason: '輕盈柔軟的著陸點，在銳利的世界裡提供一場溫柔的安放'
         }
     ],
 
     'ESTJ': [
         {
             name: '傑克·威爾許',
-            nameEn: '傑克·威爾許',
+            nameEn: 'Jack Welch',
             era: 'contemporary',
             profession: '企業管理者',
             resonanceTraits: [
                 '高效的組織管理',
                 '明確的目標導向',
                 '果斷的執行力'
-            ]
+            ],
+            lifestyleStyle: '高效執行、目標導向、果斷決策',
+            dessertPairing: '鹹蛋黃巴斯克',
+            pairingReason: '鋼鐵意志與濃郁核心的結合，穩健中帶有不容忽視的力量'
         },
         {
             name: '米雪兒·歐巴馬',
@@ -281,7 +347,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '有序的計劃執行',
                 '實務導向的社會參與',
                 '堅定的價值觀'
-            ]
+            ],
+            lifestyleStyle: '有序計劃、實務導向、堅定價值',
+            dessertPairing: '茶香巴斯克',
+            pairingReason: '沈穩茶韻收斂而有餘韻，如同她對社會議題的堅定倡議'
         }
     ],
 
@@ -295,7 +364,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '與粉絲建立深厚連結',
                 '重視人際關係和諧',
                 '關注他人感受'
-            ]
+            ],
+            lifestyleStyle: '情感連結、關懷他人、社群經營',
+            dessertPairing: '莓果戚風蛋糕',
+            pairingReason: '溫和友善的包覆感，與摯愛分享這份純粹快樂的本質'
         },
         {
             name: '珍妮佛·加納',
@@ -306,7 +378,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '溫暖的公眾形象',
                 '家庭與社群價值',
                 '實際幫助他人'
-            ]
+            ],
+            lifestyleStyle: '溫暖親和、家庭優先、實際幫助',
+            dessertPairing: '綜合水果戚風蛋糕',
+            pairingReason: '點亮全場的色彩盛宴，如同她對家庭與社區的溫暖付出'
         }
     ],
 
@@ -320,7 +395,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '沉著冷靜的行動力',
                 '實用主義的問題解決',
                 '獨立自主的風格'
-            ]
+            ],
+            lifestyleStyle: '冷靜沉著、實用主義、獨立自主',
+            dessertPairing: '經典提拉米蘇',
+            pairingReason: '冷靜大膽的口感平衡，無需多言的硬派實力展現'
         },
         {
             name: '麥可·喬丹',
@@ -331,7 +409,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '即時反應的專注力',
                 '技術精湛的執行',
                 '危機下的冷靜決斷'
-            ]
+            ],
+            lifestyleStyle: '極致專注、技術精湛、關鍵時刻',
+            dessertPairing: '巧克力布朗尼千層',
+            pairingReason: '極致感官的爆發體驗，如同他關鍵時刻的致勝一擊'
         }
     ],
 
@@ -345,7 +426,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '細膩的情感表達',
                 '美學與藝術追求',
                 '內斂的創作風格'
-            ]
+            ],
+            lifestyleStyle: '細膩情感、美學追求、內斂創作',
+            dessertPairing: '抹茶提拉米蘇',
+            pairingReason: '細膩美感的微苦回甘，用最溫柔的方式對抗世界的喧囂'
         },
         {
             name: '碧昂絲',
@@ -356,7 +440,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '透過表演展現真我',
                 '藝術性的自我表達',
                 '情感豐富的創作'
-            ]
+            ],
+            lifestyleStyle: '藝術表達、情感豐富、真我展現',
+            dessertPairing: '草莓莓果千層蛋糕',
+            pairingReason: '透過層次豐富的莓果，展現最真實的藝術情感'
         }
     ],
 
@@ -370,7 +457,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '大膽的冒險決策',
                 '即時反應與機會把握',
                 '實用主義的談判'
-            ]
+            ],
+            lifestyleStyle: '大膽冒險、即時反應、實用談判',
+            dessertPairing: '鹹蛋黃巴斯克',
+            pairingReason: '大膽創新的風味組合，如同他顛覆傳統的商業手法'
         },
         {
             name: '布魯斯·威利',
@@ -381,7 +471,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '行動導向的個性',
                 '危機處理的冷靜',
                 '直接了當的溝通'
-            ]
+            ],
+            lifestyleStyle: '行動至上、危機處理、直接溝通',
+            dessertPairing: '巧克力布朗尼千層',
+            pairingReason: '極致感官的爆發體驗，追求速度與最直白的生命熱情'
         }
     ],
 
@@ -395,7 +488,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '自然的魅力與表演天賦',
                 '活在當下的生活態度',
                 '感染他人的熱情'
-            ]
+            ],
+            lifestyleStyle: '魅力四射、活在當下、感染熱情',
+            dessertPairing: '綜合水果戚風蛋糕',
+            pairingReason: '點亮全場的色彩盛宴，將每一刻都轉化為永恆的快樂慶典'
         },
         {
             name: '威爾·史密斯',
@@ -406,7 +502,10 @@ export const CELEBRITY_ARCHETYPES: Record<string, CelebrityArchetype[]> = {
                 '充滿活力的表演力',
                 '樂觀積極的人生觀',
                 '與人自然互動的魅力'
-            ]
+            ],
+            lifestyleStyle: '活力四射、樂觀積極、自然互動',
+            dessertPairing: '草莓莓果千層蛋糕',
+            pairingReason: '層次繽紛且充滿活力，如同他感染人心的樂觀能量'
         }
     ],
 };
