@@ -3,7 +3,8 @@
 // Deployment trigger: 2026-01-08-23-10
 import React, { useState, useEffect } from 'react';
 import { User } from 'firebase/auth'; // Import User type
-import { auth, db } from './firebase'; // Import auth and db
+import { auth } from './firebase';
+import { db } from './firestore.config';
 import { Option, MbtiResultData, Score } from './types';
 import { calculateResults, getVariant } from './utils/logic';
 import { getResultData } from './constants';
