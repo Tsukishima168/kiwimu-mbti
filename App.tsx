@@ -227,6 +227,12 @@ const App: React.FC = () => {
     }
   };
 
+
+  const handleProfileSetupComplete = () => {
+    setShowProfileSetup(false);
+    // Optionally refresh user menu or show toast
+  };
+
   if (loadingAuth && stage !== 'callback') {
     // Don't show generic loading if we are handling callback (which has its own loading)
     return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;
