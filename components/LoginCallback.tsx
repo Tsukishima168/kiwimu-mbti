@@ -16,20 +16,27 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
         const processLogin = async () => {
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code');
-            const state = params.get('state');
 
             if (!code) {
                 setError('No code found in URL');
                 return;
             }
 
+            // Check if we've already processed this code
+            const processedCode = sessionStorage.getItem('processed_line_code');
+            if (processedCode === code) {
+                console.log('Code already processed, skipping...');
+                return;
+            }
+
             try {
                 setStatus('Verifying with LINE...');
 
-                // Build redirect URI dynamically
+                // Mark code as processing immediately to prevent duplicate requests
+                sessionStorage.setItem('processed_line_code', code);
+
                 const redirectUri = `${window.location.origin}/callback`;
 
-                // Call our Vercel Serverless Function with POST
                 const response = await fetch('/api/line-auth', {
                     method: 'POST',
                     headers: {
@@ -44,17 +51,17 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
                 const data = await response.json();
 
                 if (!response.ok || !data.ok) {
+                    // Clean up the processed code marker on error
+                    sessionStorage.removeItem('processed_line_code');
                     throw new Error(data.error || 'Failed to exchange token');
                 }
 
                 setStatus('Linking account...');
 
-                // Use account linking to preserve anonymous data
                 await linkAnonymousAccount(data.firebaseCustomToken);
 
                 setStatus('Finalizing...');
 
-                // Log user to Google Sheets
                 const currentUser = auth.currentUser;
                 if (currentUser) {
                     try {
@@ -73,6 +80,8 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
                     }
                 }
 
+                // Clear the processed code after successful login
+                sessionStorage.removeItem('processed_line_code');
                 onLoginSuccess();
 
             } catch (err: any) {
