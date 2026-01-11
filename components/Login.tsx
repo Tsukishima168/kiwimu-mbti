@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { auth, googleProvider } from '../firebase';
 import { signInWithPopup, User } from 'firebase/auth';
+import { linkGoogleAccount } from '../utils/accountLinking';
 
 interface LoginProps {
     onLoginSuccess: (user: User) => void;
@@ -23,7 +23,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) =
 
     const handleGoogleLogin = async () => {
         try {
-            const result = await signInWithPopup(auth, googleProvider);
+            // Use our helper to attempt linking first
+            const result = await linkGoogleAccount();
 
             // Log user to Google Sheets
             try {
