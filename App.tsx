@@ -130,10 +130,14 @@ const App: React.FC = () => {
     setResultData(data);
     sessionStorage.setItem('last_quiz_result', JSON.stringify(data));
     sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
-    if (user) {
-      await saveCompletedTest(type, variant, scores);
-    }
     setStage('loading');
+
+    // Save to cloud in background - don't block UI
+    if (user) {
+      saveCompletedTest(type, variant, scores).catch(err => {
+        console.error('Failed to save test results:', err);
+      });
+    }
   };
 
   const handleLoadingFinished = () => {
