@@ -1,57 +1,125 @@
-
-import {
-    linkWithPopup,
-    signInWithPopup,
-    GoogleAuthProvider,
-    User,
-    AuthCredential,
-    linkWithCredential,
-    UserCredential
-} from 'firebase/auth';
+import { signInWithPopup, signInWithCustomToken, UserCredential } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase';
+import { collection, query, where, getDocs, writeBatch, doc } from 'firebase/firestore';
+import { db } from '../firestore.config';
 
+/**
+ * Google account login with data preservation
+ * Uses signInWithPopup instead of linkWithPopup to avoid popup-blocked errors
+ */
 export const linkGoogleAccount = async (): Promise<UserCredential> => {
     const currentUser = auth.currentUser;
+    const anonymousUid = currentUser?.isAnonymous ? currentUser.uid : null;
 
-    if (currentUser && currentUser.isAnonymous) {
-        try {
-            console.log('Attempting to link Google account to anonymous session...');
-            return await linkWithPopup(currentUser, googleProvider);
-        } catch (error: any) {
-            if (error.code === 'auth/credential-already-in-use') {
-                // The Google account is already linked to another user.
-                // In this case, we must sign in with the existing account.
-                // TODO: We technically "lose" the current anonymous data unless we merge it manually.
-                // For MVP, we'll just sign in to the existing account.
-                console.warn('Google account already exists. Signing in instead of linking.');
-                return await signInWithPopup(auth, googleProvider);
-            }
-            throw error;
+    try {
+        console.log('Google login initiated...', { isAnonymous: currentUser?.isAnonymous });
+
+        const result = await signInWithPopup(auth, googleProvider);
+
+        // If we had anonymous data, migrate it
+        if (anonymousUid && result.user.uid !== anonymousUid) {
+            console.log('Migrating data from anonymous to Google account...', {
+                from: anonymousUid,
+                to: result.user.uid
+            });
+            await migrateUserData(anonymousUid, result.user.uid);
         }
-    } else {
-        return await signInWithPopup(auth, googleProvider);
+
+        return result;
+    } catch (error: any) {
+        console.error('Google login failed:', error);
+        throw error;
     }
 };
 
-// For LINE, we use custom token, so we need linkWithCredential
-export const linkAnonymousAccount = async (customToken: string) => {
-    // This is handled in LoginCallback usually, but good to have helper
-    // Note: linkWithCredential requires an AuthCredential, but signInWithCustomToken gives us a User.
-    // Firebase doesn't support "linkWithCustomToken" directly in the same way.
-    // Workaround: Sign in with custom token to get the "target" user, then we might need to merge data manually?
-    // OR: Since we are using custom auth for LINE, we can't easily "link" it to an anonymous firebase user 
-    // without a custom token that represents the CREDENTIAL, not the USER.
-    // 
-    // Actually, sign in with custom token signs you in as that user.
-    // If we want to merge, we have to do it at database level.
+/**
+ * LINE account login with custom token
+ * Creates Firebase user from LINE custom token and migrates anonymous data
+ */
+export const linkAnonymousAccount = async (customToken: string): Promise<void> => {
+    const currentUser = auth.currentUser;
+    const anonymousUid = currentUser?.isAnonymous ? currentUser.uid : null;
 
-    // For now, let's just sign in. Data merging is a "Nice to have" for LINE if linking is hard.
-    // But wait, the objective is "Data Retention".
+    console.log('LINE login: signing in with custom token...', {
+        isAnonymous: currentUser?.isAnonymous,
+        anonymousUid
+    });
 
-    // If we can't link credentials easily for Custom Token, we rely on the logic:
-    // 1. Sign in as LINE user (new UID)
-    // 2. Copy data from Anonymous UID (saved in local/session) to New UID
+    try {
+        // Sign in with LINE custom token
+        const result = await signInWithCustomToken(auth, customToken);
+        console.log('LINE login successful:', { uid: result.user.uid });
 
-    // We will handle this data copy in the components.
-    return;
+        // Migrate anonymous data if exists
+        if (anonymousUid && result.user.uid !== anonymousUid) {
+            console.log('Migrating data from anonymous to LINE account...', {
+                from: anonymousUid,
+                to: result.user.uid
+            });
+            await migrateUserData(anonymousUid, result.user.uid);
+        }
+    } catch (error) {
+        console.error('LINE account linking failed:', error);
+        throw error;
+    }
+};
+
+/**
+ * Migrate all user data from old UID to new UID
+ */
+async function migrateUserData(oldUid: string, newUid: string): Promise<void> {
+    const batch = writeBatch(db);
+
+    try {
+        // 1. Migrate quiz_progress
+        const progressQuery = query(
+            collection(db, 'quiz_progress'),
+            where('uid', '==', oldUid)
+        );
+        const progressSnapshot = await getDocs(progressQuery);
+
+        progressSnapshot.forEach((progressDoc) => {
+            const data = progressDoc.data();
+            const newDocId = progressDoc.id.replace(oldUid, newUid);
+            const newDocRef = doc(db, 'quiz_progress', newDocId);
+            batch.set(newDocRef, { ...data, uid: newUid });
+            batch.delete(progressDoc.ref);
+        });
+
+        // 2. Migrate test_runs
+        const runsQuery = query(
+            collection(db, 'test_runs'),
+            where('uid', '==', oldUid)
+        );
+        const runsSnapshot = await getDocs(runsQuery);
+
+        runsSnapshot.forEach((runDoc) => {
+            batch.update(runDoc.ref, { uid: newUid });
+        });
+
+        // 3. Commit all changes
+        await batch.commit();
+
+        console.log(`Migration complete: ${progressSnapshot.size} progress records, ${runsSnapshot.size} test runs`);
+    } catch (error) {
+        console.error('Data migration failed:', error);
+        // Don't throw - partial migration is better than no migration
+    }
+}
+
+/**
+ * Check if current user is anonymous
+ */
+export const isAnonymousUser = (): boolean => {
+    return auth.currentUser?.isAnonymous || false;
+};
+
+/**
+ * Get display text for account status
+ */
+export const getAccountStatus = (): string => {
+    const user = auth.currentUser;
+    if (!user) return '未登入';
+    if (user.isAnonymous) return '訪客模式';
+    return '已登入';
 };

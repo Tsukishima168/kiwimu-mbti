@@ -141,9 +141,22 @@ const App: React.FC = () => {
   };
 
   const handleLoginSuccess = () => {
-    if (resultData) {
+    console.log('Login successful! Checking for saved results...');
+
+    // Try to restore previous results from session storage
+    const savedResult = sessionStorage.getItem('last_quiz_result');
+    const savedScores = sessionStorage.getItem('last_quiz_scores');
+
+    if (savedResult && savedScores) {
+      console.log('Restoring saved results...');
+      setResultData(JSON.parse(savedResult));
+      setScores(JSON.parse(savedScores));
       setStage('result');
+
+      // Clear flow_stage marker
+      sessionStorage.removeItem('flow_stage');
     } else {
+      console.log('No saved results, going to intro');
       setStage('intro');
     }
   };
