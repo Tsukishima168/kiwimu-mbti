@@ -186,10 +186,16 @@ const App: React.FC = () => {
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      setResultData(null);
-      setScores(null);
-      sessionStorage.clear();
-      setStage('intro');
+      // After logout, Firebase will auto-create a new anonymous user via onAuthStateChanged
+      // Don't clear sessionStorage here - user might want to see their results
+      // Only clear auth-related data
+      sessionStorage.removeItem('flow_stage');
+      sessionStorage.removeItem('processed_line_code');
+
+      // If on result page, stay there. Otherwise go to intro
+      if (stage !== 'result') {
+        setStage('intro');
+      }
     } catch (error) {
       console.error('Logout failed:', error);
     }
@@ -239,7 +245,7 @@ const App: React.FC = () => {
 
         {stage === 'callback' && <LoginCallback onLoginSuccess={handleLoginSuccess} />}
         {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
-        {stage === 'intro' && <Intro onStart={goToManifesto} />}
+        {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} />}
         {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
         {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
         {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}

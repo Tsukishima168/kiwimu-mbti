@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { User } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firestore.config';
 
 interface ProfileSetupModalProps {
@@ -55,21 +55,19 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ user, onComplete,
         try {
             const userRef = doc(db, 'users', user.uid);
 
-            await updateDoc(userRef, {
+            // Use setDoc with merge to create document if it doesn't exist
+            await setDoc(userRef, {
                 displayName: nickname,
                 birthday: birthday || null,
                 city: city || null,
                 interests: interests,
                 isProfileSetup: true,
+                email: user.email || null,
+                createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
-            });
+            }, { merge: true });
 
-            // Also update Auth profile if nickname changed
-            if (nickname !== user.displayName) {
-                // We can't easily update auth profile on client for all providers, 
-                // but we can try. For now, Firestore is the source of truth.
-            }
-
+            console.log('Profile saved successfully!', { uid: user.uid, nickname });
             onComplete();
         } catch (err: any) {
             console.error('Failed to update profile:', err);
@@ -145,8 +143,8 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ user, onComplete,
                                     type="button"
                                     onClick={() => toggleInterest(interest)}
                                     className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${interests.includes(interest)
-                                            ? 'bg-kiwi-dark text-white shadow-md transform scale-105'
-                                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                        ? 'bg-kiwi-dark text-white shadow-md transform scale-105'
+                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                                         }`}
                                 >
                                     {interest}
