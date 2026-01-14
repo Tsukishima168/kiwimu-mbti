@@ -137,14 +137,21 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   /* 
    * DOWNLOAD IG STORY FUNCTIONALITY 
    */
+  /* 
+   * DOWNLOAD IG STORY FUNCTIONALITY 
+   */
   const handleDownloadIG = async () => {
     const element = document.getElementById('ig-story-container');
     if (!element) return;
 
     try {
+      // Small delay to ensure images render
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 1.5, // Better quality without crashing mobile
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#F9F7F5',
         width: 1080,
         height: 1920,
@@ -153,10 +160,18 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         scrollX: 0,
         scrollY: 0,
         x: 0,
-        y: 0
+        y: 0,
+        onclone: (doc) => {
+          // Force fonts in cloned document if needed
+          const hiddenDiv = doc.getElementById('ig-story-container');
+          if (hiddenDiv) {
+            hiddenDiv.style.display = 'flex';
+            hiddenDiv.style.transform = 'none';
+          }
+        }
       });
 
-      const dataUrl = canvas.toDataURL('image/png');
+      const dataUrl = canvas.toDataURL('image/png', 0.9); // 0.9 quality
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       if (!isMobile) {
@@ -171,6 +186,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
       }
     } catch (err) {
       console.error('Failed to save IG story:', err);
+      alert('產生圖片失敗，請重試或截圖分享');
     }
   };
 
@@ -785,50 +801,148 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           )
         }
 
-        {/* HIDDEN IG STORY CONTAINER (1080x1920) */}
+        {/* HIDDEN IG STORY CONTAINER (1080x1920) - STRICT INLINE STYLES */}
         <div
           id="ig-story-container"
-          className="fixed top-0 left-0 -z-50 bg-[#F9F7F5] flex flex-col items-center justify-center p-[80px] text-center"
-          style={{ width: '1080px', height: '1920px', transform: 'translateX(-9999px)' }}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: '-9999px',
+            width: '1080px',
+            height: '1920px',
+            backgroundColor: '#F9F7F5',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '100px 60px',
+            fontFamily: '"Times New Roman", serif',
+            zIndex: -50,
+            boxSizing: 'border-box'
+          }}
         >
-          {/* Header */}
-          <div className="flex flex-col items-center w-full mb-12">
-            <p className="text-[28px] font-mono tracking-[0.4em] uppercase text-gray-400 mb-6 font-bold">KIWIMU MBTI LAB</p>
-            <div className="w-[60px] h-[2px] bg-black mb-12"></div>
-            <div className="flex flex-col items-center mt-4">
-              <h1 className="text-[110px] font-display font-bold text-kiwi-dark leading-none tracking-tighter mb-6">{resultData.id}-{identitySuffix}</h1>
-              <p className="text-[32px] font-serif italic text-gray-500">{resultData.title}</p>
-            </div>
+          {/* 1. Header Area */}
+          <div style={{ width: '100%', textAlign: 'center', marginBottom: '60px' }}>
+            <p style={{
+              fontSize: '28px',
+              letterSpacing: '0.4em',
+              color: '#9CA3AF',
+              fontFamily: 'monospace',
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              marginBottom: '30px'
+            }}>
+              KIWIMU LAB
+            </p>
+            <div style={{ width: '60px', height: '2px', background: '#000', margin: '0 auto' }}></div>
           </div>
 
-          {/* Main Visual (Icon/Image) */}
-          <div className="w-[500px] h-[500px] relative flex items-center justify-center mb-12">
-            <div className="absolute inset-0 border-[2px] border-black/10 rounded-full"></div>
-            <img src={resultData.characterImage} alt={resultData.id} className="max-w-full max-h-full object-contain drop-shadow-2xl" style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '100%' }} />
-          </div>
-
-          {/* Core Essence for IG */}
-          <div className="w-full max-w-[700px] mb-12 text-center">
-            <p className="text-[24px] font-serif text-gray-800 leading-relaxed italic px-8">
-              {resultData.coreAnalysis}
+          {/* 2. Identity Block */}
+          <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+            <h1 style={{
+              fontSize: '140px',
+              lineHeight: '1',
+              fontWeight: '800',
+              color: '#4B5563',
+              margin: '0 0 20px 0',
+              fontFamily: 'serif'
+            }}>
+              {resultData.id}
+            </h1>
+            <p style={{
+              fontSize: '40px',
+              fontStyle: 'italic',
+              color: '#6B7280',
+              fontFamily: 'serif',
+              margin: 0
+            }}>
+              {identityChinese} ・ {resultData.title.split(' ')[1] || resultData.title}
             </p>
           </div>
 
-          {/* Description */}
-          <div className="w-full max-w-[780px] mb-16 bg-white p-10 shadow-xl border border-gray-100 rounded-2xl relative">
-            <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-black text-white px-6 py-2 text-[20px] font-mono font-bold tracking-widest uppercase rounded-full">CHARACTERISTICS</div>
-            <p className="text-[36px] leading-snug font-serif text-gray-800 font-medium pt-4">
-              {resultData.quote}
-            </p>
+          {/* 3. Soul Dessert Image (Key Visual) */}
+          <div style={{
+            width: '800px',
+            height: '800px',
+            position: 'relative',
+            marginBottom: '80px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '40px',
+              left: '40px',
+              right: '40px',
+              bottom: '40px',
+              border: '1px solid rgba(0,0,0,0.08)',
+              borderRadius: '50%'
+            }} />
+
+            {/* Use Dessert Image for "Soul Dessert" Feel, or Character if preferred. Proposal said "Soul Dessert". */}
+            <img
+              src={resultData.dessert.imageUrl}
+              alt="Soul Dessert"
+              crossOrigin="anonymous"
+              style={{
+                width: '90%',
+                height: '90%',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))'
+              }}
+            />
           </div>
 
-          {/* Footer */}
-          <div className="mt-auto">
-            <div className="flex items-center gap-3 justify-center mb-5">
-              <span className="text-[28px] font-bold text-kiwi-dark">KIWIMU</span>
-              <span className="text-[28px] text-gray-400">×</span>
-              <span className="text-[28px] font-bold text-kiwi-dark">月島甜點店</span>
+          {/* 4. Soul Anchor Text */}
+          <div style={{ textAlign: 'center', marginBottom: 'auto', padding: '0 40px' }}>
+            <p style={{
+              fontSize: '24px',
+              fontFamily: 'monospace',
+              color: '#9CA3AF',
+              letterSpacing: '0.2em',
+              marginBottom: '20px',
+              textTransform: 'uppercase'
+            }}>
+              YOUR SOUL DESSERT
+            </p>
+            <h3 style={{
+              fontSize: '56px',
+              fontFamily: 'serif',
+              fontWeight: 'bold',
+              color: '#1F2937',
+              margin: '0 0 30px 0'
+            }}>
+              {anchor.name}
+            </h3>
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {resultData.keywords.slice(0, 3).map(k => (
+                <span key={k} style={{
+                  padding: '12px 30px',
+                  border: '2px solid #E5E7EB',
+                  fontSize: '24px',
+                  color: '#6B7280',
+                  borderRadius: '100px',
+                  fontFamily: 'monospace',
+                  fontWeight: 'bold'
+                }}>
+                  #{k}
+                </span>
+              ))}
             </div>
+          </div>
+
+          {/* 5. Footer / Link */}
+          <div style={{
+            width: '100%',
+            padding: '40px',
+            borderTop: '2px solid #F3F4F6',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '60px'
+          }}>
+            <span style={{ fontSize: '24px', fontFamily: 'monospace', color: '#D1D5DB' }}>kiwimu-lab.vercel.app</span>
+            <span style={{ fontSize: '24px', fontFamily: 'monospace', fontWeight: 'bold', color: '#000' }}>KIWIMU</span>
           </div>
         </div>
 
