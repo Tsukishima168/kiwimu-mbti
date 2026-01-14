@@ -859,7 +859,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </p>
           </div>
 
-          {/* 3. Soul Dessert Image (Key Visual) */}
+          {/* 3. Character Image (Key Visual) */}
           <div style={{
             width: '800px',
             height: '800px',
@@ -879,10 +879,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               borderRadius: '50%'
             }} />
 
-            {/* Use Dessert Image for "Soul Dessert" Feel, or Character if preferred. Proposal said "Soul Dessert". */}
             <img
-              src={resultData.dessert.imageUrl}
-              alt="Soul Dessert"
+              src={resultData.characterImage}
+              alt="Character"
               crossOrigin="anonymous"
               style={{
                 width: '90%',
