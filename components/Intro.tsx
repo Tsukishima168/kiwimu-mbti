@@ -59,7 +59,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin }) => {
 
         <button
           onClick={onStart}
-          className="px-12 py-4 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 font-bold tracking-[0.2em] text-sm uppercase"
+          className="px-12 py-4 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 font-bold tracking-[0.2em] text-sm uppercase hover:scale-105 active:scale-95 hover:shadow-lg"
         >
           Start 開始旅程
         </button>

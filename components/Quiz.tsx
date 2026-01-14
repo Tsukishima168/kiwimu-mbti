@@ -170,12 +170,12 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                                     <button
                                         key={idx}
                                         onClick={() => handleOptionSelect(option)}
-                                        className="group relative w-full p-6 md:p-8 text-center border border-gray-200 hover:border-kiwi-dark hover:bg-white transition-all duration-300 active:scale-[0.99] bg-white/50"
+                                        className="group relative w-full p-6 md:p-8 text-center border border-gray-200 hover:border-kiwi-dark hover:bg-white transition-all duration-300 active:scale-[0.99] hover:scale-[1.01] hover:shadow-xl bg-white/50"
                                     >
                                         <span className="absolute top-4 left-4 text-[10px] font-mono text-gray-300 group-hover:text-kiwi-dark transition-colors uppercase tracking-widest">
                                             {String.fromCharCode(65 + idx)}
                                         </span>
-                                        <span className="block text-base md:text-lg text-gray-700 font-light leading-relaxed group-hover:text-black group-hover:font-normal">
+                                        <span className="block text-base md:text-lg text-gray-700 font-light leading-relaxed group-hover:text-black group-hover:font-normal transition-all">
                                             {option.label}
                                         </span>
                                     </button>
