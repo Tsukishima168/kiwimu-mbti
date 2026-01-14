@@ -96,7 +96,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 clearProgress(); // Clear progress when quiz is completed
                 onComplete(newAnswers);
             }
-        }, 400);
+        }, 600);
     };
 
     const handlePrevious = () => {
