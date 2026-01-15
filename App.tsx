@@ -274,7 +274,7 @@ const App: React.FC = () => {
           />
         )}
         {stage === 'archive' && user && (
-          <MyArchive user={user} onBack={handleBackFromArchive} />
+          <MyArchive key={Date.now()} user={user} onBack={handleBackFromArchive} />
         )}
 
         {/* Toast Notification for Save Status */}
