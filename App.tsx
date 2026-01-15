@@ -30,6 +30,7 @@ const App: React.FC = () => {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showSaveToast, setShowSaveToast] = useState<{ show: boolean; success: boolean; message: string }>({ show: false, success: true, message: '' });
 
   const { saveCompletedTest, saveToCloud } = useFirestoreSync(user);
 
@@ -133,10 +134,17 @@ const App: React.FC = () => {
     setStage('loading');
 
     // Save to cloud in background - don't block UI
-    if (user) {
-      saveCompletedTest(type, variant, scores).catch(err => {
-        console.error('Failed to save test results:', err);
-      });
+    if (user && !user.isAnonymous) {
+      saveCompletedTest(type, variant, scores)
+        .then(() => {
+          setShowSaveToast({ show: true, success: true, message: '✅ 測驗結果已安全儲存' });
+          setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 3000);
+        })
+        .catch(err => {
+          console.error('Failed to save test results:', err);
+          setShowSaveToast({ show: true, success: false, message: '⚠️ 結果已保存在此裝置，請稍後登入同步' });
+          setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4000);
+        });
     }
   };
 
@@ -267,6 +275,15 @@ const App: React.FC = () => {
         )}
         {stage === 'archive' && user && (
           <MyArchive user={user} onBack={handleBackFromArchive} />
+        )}
+
+        {/* Toast Notification for Save Status */}
+        {showSaveToast.show && (
+          <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[200] fade-in">
+            <div className={`${showSaveToast.success ? 'bg-green-600' : 'bg-orange-500'} text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3`}>
+              <span className="text-sm font-medium">{showSaveToast.message}</span>
+            </div>
+          </div>
         )}
       </div>
     </div>

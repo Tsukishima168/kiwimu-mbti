@@ -96,12 +96,31 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
     if (error) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 text-center">
-                <div className="bg-white p-8 rounded-xl shadow-lg">
-                    <h2 className="text-xl font-bold text-red-600 mb-4">Login Failed</h2>
-                    <p className="text-gray-700 mb-6">{error}</p>
-                    <button onClick={() => window.location.href = '/'} className="px-4 py-2 bg-kiwi-green text-white rounded">
-                        Return to Home
-                    </button>
+                <div className="bg-white p-8 rounded-xl shadow-lg max-w-md">
+                    <h2 className="text-xl font-bold text-red-600 mb-4">登入失敗</h2>
+                    <p className="text-gray-700 mb-2">
+                        {error.includes('code') ? '驗證碼無效或已過期' :
+                            error.includes('token') ? 'LINE 帳號連結失敗' :
+                                '登入過程發生錯誤'}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-6">請重新嘗試登入</p>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => {
+                                sessionStorage.removeItem('processed_line_code');
+                                window.location.href = '/';
+                            }}
+                            className="flex-1 px-4 py-3 bg-kiwi-dark text-white rounded-lg font-medium hover:bg-black transition-all"
+                        >
+                            重新登入
+                        </button>
+                        <button
+                            onClick={() => window.location.href = '/'}
+                            className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                        >
+                            返回首頁
+                        </button>
+                    </div>
                 </div>
             </div>
         );

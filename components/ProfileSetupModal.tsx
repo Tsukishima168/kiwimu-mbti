@@ -159,13 +159,23 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ user, onComplete,
                         </div>
                     )}
 
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="w-full bg-kiwi-dark text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isSubmitting ? '建立檔案中...' : '完成設定'}
-                    </button>
+                    <div className="space-y-3">
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-full bg-kiwi-dark text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isSubmitting ? '建立檔案中...' : '完成設定'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={onComplete}
+                            className="w-full bg-gray-100 text-gray-600 font-medium py-3 rounded-xl hover:bg-gray-200 transition-all"
+                        >
+                            稍後再填
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
