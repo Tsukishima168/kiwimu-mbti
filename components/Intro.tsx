@@ -53,8 +53,11 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin }) => {
           KIWIMU 的 MBTI宇宙
         </h1>
 
-        <p className="text-xs font-mono text-gray-500 mb-12 tracking-[0.3em] uppercase">
+        <p className="text-xs font-mono text-gray-500 mb-2 tracking-[0.3em] uppercase">
           Discover Your Inner Self 探索內在自我
+        </p>
+        <p className="text-sm font-serif text-gray-400 mb-12 italic leading-relaxed px-4">
+          像鮮奶油一樣柔軟地理解自己
         </p>
 
         <button

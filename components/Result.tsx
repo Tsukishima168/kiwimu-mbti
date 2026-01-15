@@ -87,6 +87,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [showMenu, setShowMenu] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
   const identitySuffix = resultAT;
@@ -719,6 +720,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           {/* DISCLAIMER & FOOTER */}
           <div className="text-center max-w-2xl mx-auto py-16 md:py-24 border-t border-gray-100 px-6">
             <p className="text-[10px] md:text-[11px] font-mono text-gray-300 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-6 font-bold">DISCLAIMER 免責聲明</p>
+            <p className="text-sm md:text-base font-serif text-gray-400 leading-relaxed mb-8 italic">
+              人格測驗提供的是一面鏡子，而非標籤。<br className="hidden md:block" />
+              你永遠可以選擇成為不同的樣子。
+            </p>
             <div className="flex flex-col items-center py-12 md:py-20">
               <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase font-mono font-bold">KIWIMU MBTI LAB © 2026</p>
             </div>
@@ -789,7 +794,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.origin);
-                      alert('已複製網址到剪貼簿！');
+                      setShowToast(true);
+                      setTimeout(() => setShowToast(false), 2000);
                     }}
                     className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-lg text-xs font-bold"
                   >
@@ -1014,6 +1020,18 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </div>
             </div>
           )}
+
+        {/* Toast Notification */}
+        {showToast && (
+          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[200] fade-in">
+            <div className="bg-black text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="text-sm font-medium">已複製連結到剪貼簿</span>
+            </div>
+          </div>
+        )}
       </div>
     </div >
   );
