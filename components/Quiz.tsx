@@ -17,6 +17,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     const [answers, setAnswers] = useState<Option[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
     const [showResumeModal, setShowResumeModal] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     const { hasProgress, saveProgress, loadProgress, clearProgress } = useProgressStorage();
 
@@ -38,13 +39,19 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
         }
     }, []);
 
-    // Image Preloading Logic
+    // Image Preloading Logic - Enhanced to preload 2 images ahead
     useEffect(() => {
-        const nextQuestion = QUESTIONS[currentIndex + 1];
-        if (nextQuestion && nextQuestion.imageUrl) {
+        setImageLoaded(false);
+        const imagesToPreload = [
+            QUESTIONS[currentIndex]?.imageUrl,
+            QUESTIONS[currentIndex + 1]?.imageUrl,
+            QUESTIONS[currentIndex + 2]?.imageUrl
+        ].filter(Boolean);
+
+        imagesToPreload.forEach(url => {
             const img = new Image();
-            img.src = nextQuestion.imageUrl;
-        }
+            img.src = url;
+        });
     }, [currentIndex]);
 
     // Auto-save progress after each answer (local + cloud)
@@ -123,14 +130,22 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 {/* Header */}
                 <div className="fixed top-0 left-0 right-0 z-50 bg-kiwi-bg/95 backdrop-blur-sm">
                     <div className="max-w-3xl mx-auto px-6 h-20 flex items-end justify-between pb-4">
-                        <h1 className="text-sm font-display font-bold text-kiwi-dark tracking-[0.2em] uppercase">
-                            Kiwimu Lab
-                        </h1>
-                        <div className="flex items-center gap-3 text-xs font-mono tracking-wider text-gray-400">
-                            <span>{String(currentIndex + 1).padStart(2, '0')}</span>
-                            <span className="w-12 h-[1px] bg-gray-300"></span>
-                            <span>{String(QUESTIONS.length).padStart(2, '0')}</span>
+                        <div className="flex items-center gap-4">
+                            <h1 className="text-sm font-display font-bold text-kiwi-dark tracking-[0.2em] uppercase">
+                                Kiwimu Lab
+                            </h1>
+                            {currentIndex > 0 && (
+                                <button
+                                    onClick={handlePrevious}
+                                    className="text-xs text-gray-400 hover:text-kiwi-dark transition-colors tracking-wider uppercase"
+                                >
+                                    ← Previous
+                                </button>
+                            )}
                         </div>
+                        <span className="text-xs font-mono text-gray-400 tracking-wider">
+                            {currentIndex + 1} / {QUESTIONS.length}
+                        </span>
                     </div>
                     <div className="h-[1px] bg-gray-100 w-full">
                         <div
@@ -149,10 +164,14 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
 
                             {/* Atmospheric Image Block */}
                             <div className="w-full aspect-[21/9] mb-10 relative overflow-hidden bg-gray-100">
+                                {!imageLoaded && (
+                                    <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                                )}
                                 <img
                                     src={currentQuestion.imageUrl}
                                     alt="Atmosphere"
-                                    className="w-full h-full object-cover grayscale opacity-90 transition-transform duration-1000 ease-out hover:scale-105"
+                                    onLoad={() => setImageLoaded(true)}
+                                    className={`w-full h-full object-cover grayscale opacity-90 transition-all duration-500 ease-out hover:scale-105 ${imageLoaded ? 'opacity-90' : 'opacity-0'}`}
                                 />
                                 <div className="absolute inset-0 border border-black/5 pointer-events-none"></div>
                             </div>
@@ -181,25 +200,6 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                                     </button>
                                 ))}
                             </div>
-
-                            {/* Previous Button */}
-                            <div className="flex justify-center">
-                                <button
-                                    onClick={handlePrevious}
-                                    disabled={currentIndex === 0 || isAnimating}
-                                    className={`
-                                flex items-center gap-3 px-6 py-3 text-[10px] font-mono tracking-[0.2em] uppercase transition-all duration-300 rounded-full border border-transparent hover:border-gray-200
-                                ${currentIndex === 0
-                                            ? 'opacity-0 pointer-events-none'
-                                            : 'text-gray-400 hover:text-kiwi-dark cursor-pointer'
-                                        }
-                            `}
-                                >
-                                    <span>←</span>
-                                    <span>BACK</span>
-                                </button>
-                            </div>
-
                         </div>
                     </div>
                 </div>
