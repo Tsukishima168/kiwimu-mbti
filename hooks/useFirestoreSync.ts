@@ -11,6 +11,7 @@ import {
     getTestRuns,
 } from '../services/firestore.service';
 import { useProgressStorage } from './useProgressStorage';
+import { getResultData } from '../constants';
 
 export const useFirestoreSync = (user: User | null) => {
     const [isSyncing, setIsSyncing] = useState(false);
@@ -119,6 +120,21 @@ export const useFirestoreSync = (user: User | null) => {
             // Clear progress after saving test run
             await clearCloudProgress();
             clearLocalProgress();
+
+            // Notify Discord (Fire and forget)
+            try {
+                const personalityData = getResultData(resultType, suffix);
+                fetch('/api/notify-discord', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        resultType: `${resultType}-${suffix}`,
+                        personalityName: personalityData.title
+                    })
+                }).catch(err => console.error('Failed to notify Discord:', err));
+            } catch (e) {
+                console.warn('Error preparing Discord notification:', e);
+            }
 
             return runId;
         } catch (error) {
