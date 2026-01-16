@@ -88,6 +88,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
   const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
   const identitySuffix = resultAT;
@@ -102,7 +103,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [selectedOtherType]);
+  }, [selectedOtherType, activeTab]); // Scroll to top when tab changes
 
   /* 
    * SAVE REPORT FUNCTIONALITY (Download as Image)
@@ -217,7 +218,34 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
           </div>
 
-          {/* 2. OVERVIEW - 響應式佈局 (Mobile: Column, Desktop: Row) */}
+          {/* TABS NAVIGATION */}
+          <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
+            <div className="max-w-4xl mx-auto px-6">
+              <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+                {[
+                  { id: 'overview', label: '總覽', en: 'Overview' },
+                  { id: 'analysis', label: '深度分析', en: 'Analysis' },
+                  { id: 'soul', label: '靈魂甜點', en: 'Soul Food' },
+                  { id: 'life', label: '職涯 & 關係', en: 'Life' },
+                  { id: 'archetypes', label: '名人原型', en: 'Archetypes' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex-shrink-0 px-4 md:px-6 py-4 text-xs md:text-sm font-mono tracking-wider transition-all ${activeTab === tab.id
+                        ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
+                        : 'text-gray-400 hover:text-gray-600'
+                      }`}
+                  >
+                    <span className="hidden md:inline">{tab.en}</span>
+                    <span className="md:hidden">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* TAB CONTENT */}
           <div className="max-w-4xl mx-auto px-6 py-12 md:py-20 md:px-12">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 border-b border-gray-100 pb-12 md:pb-20">
               <div className="md:col-span-5">
