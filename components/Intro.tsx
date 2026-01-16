@@ -43,7 +43,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
                 onClick={onViewArchive}
                 className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100"
               >
-                📁 我的檔案館
+                我的檔案館
               </button>
             )}
             {onLogout && (
