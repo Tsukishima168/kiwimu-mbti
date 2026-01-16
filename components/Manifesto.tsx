@@ -19,18 +19,15 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
                 {/* Polished Content */}
                 <div className="space-y-8">
                     <h2 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark leading-snug">
-                        生命並非定稿，<br />而是一場持續的覺察。
+                        生命像鮮奶油一樣，<br />柔軟而流動。
                     </h2>
 
                     <div className="space-y-6 text-gray-600 font-serif text-lg leading-relaxed text-center md:text-justify max-w-lg mx-auto">
                         <p>
-                            人格測驗是一面鏡子，照見當下的你，而非定義永恆的你。
+                            這不是一場尋找答案的測驗，而是一面鏡子，映照此刻的你。
                         </p>
                         <p>
-                            請不要將結果視為侷限，而是看作一把鑰匙，去開啟那些你尚未察覺的潛能與驚喜。
-                        </p>
-                        <p>
-                            越是深刻地理解自己，越能溫柔地擁抱世界。願這份報告，能成為你探索旅程中的一點微光。
+                            請帶著好奇與開放，讓 KIWIMU 陪你探索那些尚未察覺的可能性。
                         </p>
                     </div>
                 </div>
