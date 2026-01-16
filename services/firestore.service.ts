@@ -107,7 +107,6 @@ export const saveTestRun = async (
 };
 
 export const getTestRuns = async (uid: string): Promise<TestRun[]> => {
-    console.log('[DEBUG] getTestRuns: Querying Firestore for uid:', uid);
     const runsCollection = collection(db, 'test_runs');
 
     // TEMPORARY: Removed orderBy to bypass index requirement
@@ -119,7 +118,6 @@ export const getTestRuns = async (uid: string): Promise<TestRun[]> => {
     );
 
     const snapshot = await getDocs(q);
-    console.log('[DEBUG] getTestRuns: Found', snapshot.docs.length, 'documents');
     const runs = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
@@ -128,7 +126,6 @@ export const getTestRuns = async (uid: string): Promise<TestRun[]> => {
     // Manual sort in-memory since we can't use orderBy yet
     runs.sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
 
-    console.log('[DEBUG] getTestRuns: Returning runs:', runs);
     return runs;
 };
 
