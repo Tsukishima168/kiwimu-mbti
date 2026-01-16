@@ -88,6 +88,17 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [activeSection, setActiveSection] = useState('overview');
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const yOffset = -80; // Offset for sticky header
+      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+      setActiveSection(sectionId);
+    }
+  };
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
   const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
@@ -221,6 +232,33 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           {/* TABS NAVIGATION */}
           <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
             <div className="max-w-4xl mx-auto px-6">
+              <div className="flex gap-1 overflow-x-auto scrollbar-hide">
+                {[
+                  { id: 'overview', label: '總覽', en: 'Overview' },
+                  { id: 'analysis', label: '深度分析', en: 'Analysis' },
+                  { id: 'soul', label: '靈魂甜點', en: 'Soul Food' },
+                  { id: 'life', label: '職涯 & 關係', en: 'Life' },
+                  { id: 'archetypes', label: '名人原型', en: 'Archetypes' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex-shrink-0 px-4 md:px-6 py-4 text-xs md:text-sm font-mono tracking-wider transition-all ${activeTab === tab.id
+                      ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
+                      : 'text-gray-400 hover:text-gray-600'
+                      }`}
+                  >
+                    <span className="hidden md:inline">{tab.en}</span>
+                    <span className="md:hidden">{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* TABS NAVIGATION - Anchor System */}
+          <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
+            <div className="max-w-4xl mx-auto px-6">
               <div className="flex justify-between">
                 {[
                   { id: 'overview', label: '總覽' },
@@ -231,8 +269,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 ].map(tab => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex-1 py-4 text-xs md:text-sm font-mono tracking-wider transition-all ${activeTab === tab.id
+                    onClick={() => scrollToSection(tab.id)}
+                    className={`flex-1 py-4 text-xs md:text-sm font-mono tracking-wider transition-all ${activeSection === tab.id
                       ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
                       : 'text-gray-400 hover:text-gray-600'
                       }`}
@@ -247,314 +285,311 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           {/* TAB CONTENT */}
           <div className="max-w-4xl mx-auto px-6 py-12 md:py-20 md:px-12">
 
-            {/* TAB 1: OVERVIEW */}
-            {activeTab === 'overview' && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 border-b border-gray-100 pb-12 md:pb-20">
-                  <div className="md:col-span-5">
-                    <div className="aspect-[3/4] bg-white relative overflow-hidden border border-gray-100 shadow-xl mx-auto max-w-sm md:max-w-none">
-                      <img src={resultData.characterImage} alt={resultData.id} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="mt-6 md:mt-8 pt-6 border-t border-gray-100 flex justify-between items-end">
-                      <div className="space-y-1 text-left">
-                        <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase font-mono">IDENTITY</p>
-                        <p className="text-xs md:text-sm font-display font-bold text-kiwi-dark tracking-widest italic uppercase">{identityChinese} ({identitySuffix})</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase font-mono">TYPE</p>
-                        <p className="text-xs md:text-sm font-display font-bold text-kiwi-dark tracking-widest italic uppercase">{resultData.id}-{identitySuffix}</p>
-                      </div>
-                    </div>
+            {/* SECTION 1: OVERVIEW */}
+            <div id="overview">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 border-b border-gray-100 pb-12 md:pb-20">
+                <div className="md:col-span-5">
+                  <div className="aspect-[3/4] bg-white relative overflow-hidden border border-gray-100 shadow-xl mx-auto max-w-sm md:max-w-none">
+                    <img src={resultData.characterImage} alt={resultData.id} className="w-full h-full object-cover" />
                   </div>
-                  <div className="md:col-span-7 flex flex-col justify-center text-left">
-                    <div className="mb-8 md:mb-10">
-                      <span className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.5em] border-b-2 border-kiwi-dark pb-2 mb-6 md:mb-8 inline-block uppercase text-gray-400 font-mono">CORE ESSENCE 核心本質</span>
-                      <p className="text-gray-800 leading-relaxed font-serif text-xl md:text-2xl lg:text-3xl font-medium text-justify md:text-left">{resultData.coreAnalysis}</p>
+                  <div className="mt-6 md:mt-8 pt-6 border-t border-gray-100 flex justify-between items-end">
+                    <div className="space-y-1 text-left">
+                      <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase font-mono">IDENTITY</p>
+                      <p className="text-xs md:text-sm font-display font-bold text-kiwi-dark tracking-widest italic uppercase">{identityChinese} ({identitySuffix})</p>
                     </div>
-                    <div className="flex flex-wrap gap-3 md:gap-4">
-                      {resultData.keywords.map(k => (
-                        <span key={k} className="px-4 py-1.5 md:px-5 border border-gray-200 text-gray-400 text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-mono font-bold">{k}</span>
-                      ))}
+                    <div className="text-right">
+                      <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase font-mono">TYPE</p>
+                      <p className="text-xs md:text-sm font-display font-bold text-kiwi-dark tracking-widest italic uppercase">{resultData.id}-{identitySuffix}</p>
                     </div>
                   </div>
                 </div>
-              </>
-            )}
-
-            {/* TAB 2: ANALYSIS */}
-            {activeTab === 'analysis' && (
-              <>
-                {/* 3. COGNITIVE SPECTRUM - 優化手機版顯示 */}
-                <div className="py-12 md:py-20 border-b border-gray-100">
-                  <h3 className="text-center text-lg md:text-xl font-display font-bold mb-12 md:mb-20 tracking-[0.3em] md:tracking-[0.4em] uppercase text-kiwi-dark">COGNITIVE SPECTRUM <br className="md:hidden" /> 認知光譜</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
-                    <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc="在領導與開拓中獲取能量。" rightDesc="在深度反思中沈澱力量。" />
-                    <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc="關注現實Facts與實務。" rightDesc="洞悉Pattern與未來機遇。" />
-                    <SpectrumBar leftLabel="THINKING (T)" rightLabel="FEELING (F)" leftScore={percentages.T} rightScore={percentages.F} leftDesc="極度理性與目標導向。" rightDesc="關注核心價值與感性連結。" />
-                    <SpectrumBar leftLabel="JUDGING (J)" rightLabel="PERCEIVING (P)" leftScore={percentages.J} rightScore={percentages.P} leftDesc="果斷決策，追求確定感。" rightDesc="靈活開放，擁抱彈性。" />
-                    <div className="md:col-span-2">
-                      <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc="自信穩定，心理韌性強。" rightDesc="精益求精，對環境高度敏感。" />
-                    </div>
+                <div className="md:col-span-7 flex flex-col justify-center text-left">
+                  <div className="mb-8 md:mb-10">
+                    <span className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.5em] border-b-2 border-kiwi-dark pb-2 mb-6 md:mb-8 inline-block uppercase text-gray-400 font-mono">CORE ESSENCE 核心本質</span>
+                    <p className="text-gray-800 leading-relaxed font-serif text-xl md:text-2xl lg:text-3xl font-medium text-justify md:text-left">{resultData.coreAnalysis}</p>
                   </div>
-                </div>
-
-                {/* 4. IDENTITY ANALYSIS (維度解析盒) - 響應式重構 */}
-                <div className="py-16 md:py-24 border-b border-gray-100">
-                  <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start text-left">
-                    <div className="w-full md:w-1/3 border-l-4 border-kiwi-dark pl-6 md:pl-10 py-2">
-                      <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2">IDENTITY <br /> 維度解析</h3>
-                      <p className="text-[10px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-6 font-bold">THE 32ND VARIANCE</p>
-                      <span className="px-4 py-2 md:px-6 bg-kiwi-dark text-white text-[10px] md:text-[11px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase shadow-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{identityChinese}</span>
-                    </div>
-                    <div className="w-full md:w-2/3">
-                      <h4 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold mb-6 md:mb-8 text-kiwi-dark">「銳敏、卓越與情緒能量」</h4>
-                      <p className="text-lg md:text-xl lg:text-2xl font-serif text-gray-700 leading-relaxed text-justify">
-                        身為 <span className="font-bold border-b-2 border-kiwi-dark">{resultData.id}-{identitySuffix}</span>，你代表了極高的自我驅動力與特質。在你的世界裡，追求完美並非負擔，而是你與生俱來的使命。雖然你對環境的微小變化與他人的感受有著超乎常人的敏銳度，但也請記得，這種「高度敏感」正是你不斷進步的燃料，讓你在專業領域能達到令人難以企及的深度。
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 5. GLOSSARY - 手機版優化 */}
-                <div className="py-12 md:py-20 border-b border-gray-100 bg-gray-50/40">
-                  <h3 className="text-center text-xs md:text-sm font-display font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-400 uppercase mb-12 md:mb-20 font-bold">THEORETICAL FRAMEWORK & DEFINITIONS <br className="md:hidden" /> 詞彙表指南</h3>
-                  <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
-                    {DIMENSION_EXPLANATIONS.map(dim => (
-                      <div key={dim.key} className="flex flex-col md:flex-row gap-4 md:gap-10 text-left items-start group border-b border-gray-100/50 pb-8 md:pb-10 last:border-0">
-                        <div className="w-full md:w-24 flex items-baseline md:block gap-3 md:gap-0">
-                          <span className="text-3xl md:text-4xl font-display font-bold text-kiwi-dark transition-colors group-hover:text-gray-400">{dim.key}</span>
-                          <span className="block text-[9px] font-mono text-gray-400 uppercase tracking-widest mt-0 md:mt-2">{dim.label}</span>
-                        </div>
-                        <p className="flex-1 text-base md:text-lg text-gray-600 font-serif leading-relaxed text-justify opacity-80 group-hover:opacity-100 transition-opacity">{dim.text}</p>
-                      </div>
+                  <div className="flex flex-wrap gap-3 md:gap-4">
+                    {resultData.keywords.map(k => (
+                      <span key={k} className="px-4 py-1.5 md:px-5 border border-gray-200 text-gray-400 text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-mono font-bold">{k}</span>
                     ))}
                   </div>
                 </div>
+              </div>
+            </div> {/* End Overview Section */}
 
-                {/* 06. LIFE INSIGHTS */}
-                <div className="py-16 md:py-24 border-b border-gray-100">
-                  <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-12 md:mb-20 font-mono uppercase">LIFE INSIGHTS 生活洞見</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 text-left">
-                    <section>
-                      <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
-                        <span className="text-4xl md:text-5xl font-display font-bold text-gray-100">01</span>
-                        <div>
-                          <h3 className="text-xl md:text-2xl font-display font-bold text-kiwi-dark tracking-widest uppercase">Career</h3>
-                          <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase">職涯策略</p>
-                        </div>
-                      </div>
-                      <div className="space-y-8 md:space-y-12">
-                        <div className="border-l-2 border-kiwi-dark pl-6">
-                          <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">WORK STYLE</h4>
-                          <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.career.style}</p>
-                        </div>
-                        <div className="border-l-2 border-kiwi-dark pl-6">
-                          <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">STRATEGIC ADVICE</h4>
-                          <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.career.advice}</p>
-                        </div>
-                      </div>
-                    </section>
-                    <section>
-                      <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
-                        <span className="text-4xl md:text-5xl font-display font-bold text-gray-100">02</span>
-                        <div>
-                          <h3 className="text-xl md:text-2xl font-display font-bold text-kiwi-dark tracking-widest uppercase">Relationships</h3>
-                          <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase">關係哲學</p>
-                        </div>
-                      </div>
-                      <div className="space-y-8 md:space-y-12">
-                        <div className="border-l-2 border-kiwi-dark pl-6">
-                          <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">LOVE PHILOSOPHY</h4>
-                          <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.relationships.style}</p>
-                        </div>
-                        <div className="border-l-2 border-kiwi-dark pl-6">
-                          <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">NAVIGATIONAL ADVICE</h4>
-                          <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.relationships.advice}</p>
-                        </div>
-                      </div>
-                    </section>
+            {/* SECTION 2: ANALYSIS */}
+            <div id="analysis">
+              {/* 3. COGNITIVE SPECTRUM - 優化手機版顯示 */}
+              <div className="py-12 md:py-20 border-b border-gray-100">
+                <h3 className="text-center text-lg md:text-xl font-display font-bold mb-12 md:mb-20 tracking-[0.3em] md:tracking-[0.4em] uppercase text-kiwi-dark">COGNITIVE SPECTRUM <br className="md:hidden" /> 認知光譜</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
+                  <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc="在領導與開拓中獲取能量。" rightDesc="在深度反思中沈澱力量。" />
+                  <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc="關注現實Facts與實務。" rightDesc="洞悉Pattern與未來機遇。" />
+                  <SpectrumBar leftLabel="THINKING (T)" rightLabel="FEELING (F)" leftScore={percentages.T} rightScore={percentages.F} leftDesc="極度理性與目標導向。" rightDesc="關注核心價值與感性連結。" />
+                  <SpectrumBar leftLabel="JUDGING (J)" rightLabel="PERCEIVING (P)" leftScore={percentages.J} rightScore={percentages.P} leftDesc="果斷決策，追求確定感。" rightDesc="靈活開放，擁抱彈性。" />
+                  <div className="md:col-span-2">
+                    <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc="自信穩定，心理韌性強。" rightDesc="精益求精，對環境高度敏感。" />
                   </div>
                 </div>
+              </div>
 
-                {/* 7. RELATIONSHIP NAVIGATION - 響應式 Box */}
-                <div className="py-16 md:py-24 border-b border-gray-100">
-                  <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-12 md:mb-16 font-mono">RELATIONSHIP NAVIGATION <br className="md:hidden" /> 人際導航</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
-                    <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
-                      <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark font-mono">SUPERPOWER 關係強項</h4>
-                      <p className="text-gray-800 text-lg md:text-xl font-serif leading-relaxed">{resultData.relationships.strengths}</p>
-                    </div>
-                    <div className="bg-kiwi-dark text-white p-8 md:p-14 lg:p-20">
-                      <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-gray-400 font-mono">GROWTH AREA 關係盲點與建議</h4>
-                      <p className="text-gray-100 text-lg md:text-xl font-serif leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{resultData.relationships.advice}</p>
-                    </div>
+              {/* 4. IDENTITY ANALYSIS (維度解析盒) - 響應式重構 */}
+              <div className="py-16 md:py-24 border-b border-gray-100">
+                <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start text-left">
+                  <div className="w-full md:w-1/3 border-l-4 border-kiwi-dark pl-6 md:pl-10 py-2">
+                    <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2">IDENTITY <br /> 維度解析</h3>
+                    <p className="text-[10px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-6 font-bold">THE 32ND VARIANCE</p>
+                    <span className="px-4 py-2 md:px-6 bg-kiwi-dark text-white text-[10px] md:text-[11px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase shadow-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{identityChinese}</span>
+                  </div>
+                  <div className="w-full md:w-2/3">
+                    <h4 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold mb-6 md:mb-8 text-kiwi-dark">「銳敏、卓越與情緒能量」</h4>
+                    <p className="text-lg md:text-xl lg:text-2xl font-serif text-gray-700 leading-relaxed text-justify">
+                      身為 <span className="font-bold border-b-2 border-kiwi-dark">{resultData.id}-{identitySuffix}</span>，你代表了極高的自我驅動力與特質。在你的世界裡，追求完美並非負擔，而是你與生俱來的使命。雖然你對環境的微小變化與他人的感受有著超乎常人的敏銳度，但也請記得，這種「高度敏感」正是你不斷進步的燃料，讓你在專業領域能達到令人難以企及的深度。
+                    </p>
                   </div>
                 </div>
+              </div>
 
-                {/* 08. PERSONALITY RARITY */}
-                {(() => {
-                  const rarityData = getRarityData(resultData.id);
-                  if (!rarityData) return null;
-
-                  const rarityLabel = getRarityLabel(rarityData.rank);
-                  const rarityMessage = getRarityMessage(rarityData.rank);
-
-                  return (
-                    <div className="py-16 md:py-24 border-b border-gray-100">
-                      <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-12 md:mb-20 font-mono uppercase">PERSONALITY RARITY 人格稀有度</h3>
-
-                      <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
-                        <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
-                          在人群中的出現率
-                        </p>
-
-                        {/* Rarity Bar */}
-                        <div className="relative h-2 bg-gray-100 w-full mb-8 rounded-full overflow-hidden">
-                          <div
-                            className="absolute top-0 left-0 h-full bg-kiwi-dark transition-all duration-1000 ease-out"
-                            style={{ width: `${rarityData.totalPopulation}%` }}
-                          />
-                        </div>
-
-                        <div className="text-5xl md:text-7xl font-display font-bold text-kiwi-dark mb-4">
-                          {rarityData.totalPopulation}%
-                        </div>
-
-                        <div className="inline-block px-6 py-2 bg-gray-50 border border-gray-200 rounded-full mb-6">
-                          <span className="text-xs font-mono text-gray-500 tracking-wider">
-                            稀有度排名：{rarityData.rank} / 16
-                          </span>
-                        </div>
-
-                        <p className="text-xl md:text-2xl font-serif text-kiwi-dark mb-12">
-                          {rarityMessage}
-                        </p>
-
-                        {/* Gender Breakdown */}
-                        <div className="grid grid-cols-2 gap-8 max-w-md mx-auto text-left">
-                          <div className="border-l-2 border-kiwi-dark pl-4">
-                            <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-2">男性</p>
-                            <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.male}%</p>
-                          </div>
-                          <div className="border-l-2 border-kiwi-dark pl-4">
-                            <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-2">女性</p>
-                            <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.female}%</p>
-                          </div>
-                        </div>
+              {/* 5. GLOSSARY - 手機版優化 */}
+              <div className="py-12 md:py-20 border-b border-gray-100 bg-gray-50/40">
+                <h3 className="text-center text-xs md:text-sm font-display font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-400 uppercase mb-12 md:mb-20 font-bold">THEORETICAL FRAMEWORK & DEFINITIONS <br className="md:hidden" /> 詞彙表指南</h3>
+                <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
+                  {DIMENSION_EXPLANATIONS.map(dim => (
+                    <div key={dim.key} className="flex flex-col md:flex-row gap-4 md:gap-10 text-left items-start group border-b border-gray-100/50 pb-8 md:pb-10 last:border-0">
+                      <div className="w-full md:w-24 flex items-baseline md:block gap-3 md:gap-0">
+                        <span className="text-3xl md:text-4xl font-display font-bold text-kiwi-dark transition-colors group-hover:text-gray-400">{dim.key}</span>
+                        <span className="block text-[9px] font-mono text-gray-400 uppercase tracking-widest mt-0 md:mt-2">{dim.label}</span>
                       </div>
+                      <p className="flex-1 text-base md:text-lg text-gray-600 font-serif leading-relaxed text-justify opacity-80 group-hover:opacity-100 transition-opacity">{dim.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-                      {/* Disclaimer */}
-                      <div className="max-w-2xl mx-auto mt-12 p-6 bg-gray-50 border-l-4 border-gray-300">
-                        <p className="text-xs md:text-sm text-gray-600 leading-relaxed font-serif">
-                          ⓘ 稀有度是參考指標，用來提供共鳴與視角，不代表稀有=更好，也不代表人格固定不變。數值會因資料來源、地區、年齡與量表不同而有差異。
-                        </p>
+              {/* 06. LIFE INSIGHTS */}
+              <div className="py-16 md:py-24 border-b border-gray-100">
+                <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-12 md:mb-20 font-mono uppercase">LIFE INSIGHTS 生活洞見</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 text-left">
+                  <section>
+                    <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
+                      <span className="text-4xl md:text-5xl font-display font-bold text-gray-100">01</span>
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-display font-bold text-kiwi-dark tracking-widest uppercase">Career</h3>
+                        <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase">職涯策略</p>
                       </div>
                     </div>
-                  );
-                })()}
+                    <div className="space-y-8 md:space-y-12">
+                      <div className="border-l-2 border-kiwi-dark pl-6">
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">WORK STYLE</h4>
+                        <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.career.style}</p>
+                      </div>
+                      <div className="border-l-2 border-kiwi-dark pl-6">
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">STRATEGIC ADVICE</h4>
+                        <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.career.advice}</p>
+                      </div>
+                    </div>
+                  </section>
+                  <section>
+                    <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
+                      <span className="text-4xl md:text-5xl font-display font-bold text-gray-100">02</span>
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-display font-bold text-kiwi-dark tracking-widest uppercase">Relationships</h3>
+                        <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase">關係哲學</p>
+                      </div>
+                    </div>
+                    <div className="space-y-8 md:space-y-12">
+                      <div className="border-l-2 border-kiwi-dark pl-6">
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">LOVE PHILOSOPHY</h4>
+                        <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.relationships.style}</p>
+                      </div>
+                      <div className="border-l-2 border-kiwi-dark pl-6">
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">NAVIGATIONAL ADVICE</h4>
+                        <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.relationships.advice}</p>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
 
-                {/* 09. RESONANCE ARCHETYPES (CELEBRITY) */}
-                {(() => {
-                  const archetypes = getCelebrityArchetypes(resultData.id);
-                  if (archetypes.length === 0) return null;
+              {/* 7. RELATIONSHIP NAVIGATION - 響應式 Box */}
+              <div className="py-16 md:py-24 border-b border-gray-100">
+                <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-12 md:mb-16 font-mono">RELATIONSHIP NAVIGATION <br className="md:hidden" /> 人際導航</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
+                  <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
+                    <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark font-mono">SUPERPOWER 關係強項</h4>
+                    <p className="text-gray-800 text-lg md:text-xl font-serif leading-relaxed">{resultData.relationships.strengths}</p>
+                  </div>
+                  <div className="bg-kiwi-dark text-white p-8 md:p-14 lg:p-20">
+                    <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-gray-400 font-mono">GROWTH AREA 關係盲點與建議</h4>
+                    <p className="text-gray-100 text-lg md:text-xl font-serif leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{resultData.relationships.advice}</p>
+                  </div>
+                </div>
+              </div>
 
-                  return (
-                    <div className="py-16 md:py-24 border-b border-gray-100">
-                      <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-8 md:mb-12 font-mono uppercase">RESONANCE ARCHETYPES 共鳴原型</h3>
+              {/* 08. PERSONALITY RARITY */}
+              {(() => {
+                const rarityData = getRarityData(resultData.id);
+                if (!rarityData) return null;
 
-                      <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
-                        這不是你=他們，而是你可能與他們在思考風格、工作節奏、價值傾向有相似點
+                const rarityLabel = getRarityLabel(rarityData.rank);
+                const rarityMessage = getRarityMessage(rarityData.rank);
+
+                return (
+                  <div className="py-16 md:py-24 border-b border-gray-100">
+                    <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-12 md:mb-20 font-mono uppercase">PERSONALITY RARITY 人格稀有度</h3>
+
+                    <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
+                      <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
+                        在人群中的出現率
                       </p>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto px-6">
-                        {archetypes.map((archetype, index) => (
-                          <div key={index} className="border border-gray-200 overflow-hidden hover:border-kiwi-dark transition-all duration-300">
-                            <div className="p-8 md:p-10 bg-white">
-                              {/* Name */}
-                              <div className="mb-6 border-b border-gray-100 pb-4">
-                                <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-1">
-                                  {archetype.name}
-                                </h4>
-                                <p className="text-sm md:text-base text-gray-500 font-mono">
-                                  {archetype.nameEn}
-                                </p>
-                                <p className="text-[10px] font-mono text-gray-400 tracking-wider uppercase mt-2">
-                                  {archetype.profession}
-                                </p>
-                              </div>
+                      {/* Rarity Bar */}
+                      <div className="relative h-2 bg-gray-100 w-full mb-8 rounded-full overflow-hidden">
+                        <div
+                          className="absolute top-0 left-0 h-full bg-kiwi-dark transition-all duration-1000 ease-out"
+                          style={{ width: `${rarityData.totalPopulation}%` }}
+                        />
+                      </div>
 
-                              {/* Resonance Traits */}
-                              <div>
-                                <h5 className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-4">
-                                  共鳴特徵
-                                </h5>
-                                <ul className="space-y-3">
-                                  {archetype.resonanceTraits.map((trait, i) => (
-                                    <li key={i} className="flex items-start gap-3 text-gray-700">
-                                      <span className="text-kiwi-dark font-mono text-xs mt-1">•</span>
-                                      <span className="text-sm md:text-base font-serif leading-relaxed">{trait}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
+                      <div className="text-5xl md:text-7xl font-display font-bold text-kiwi-dark mb-4">
+                        {rarityData.totalPopulation}%
+                      </div>
+
+                      <div className="inline-block px-6 py-2 bg-gray-50 border border-gray-200 rounded-full mb-6">
+                        <span className="text-xs font-mono text-gray-500 tracking-wider">
+                          稀有度排名：{rarityData.rank} / 16
+                        </span>
+                      </div>
+
+                      <p className="text-xl md:text-2xl font-serif text-kiwi-dark mb-12">
+                        {rarityMessage}
+                      </p>
+
+                      {/* Gender Breakdown */}
+                      <div className="grid grid-cols-2 gap-8 max-w-md mx-auto text-left">
+                        <div className="border-l-2 border-kiwi-dark pl-4">
+                          <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-2">男性</p>
+                          <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.male}%</p>
+                        </div>
+                        <div className="border-l-2 border-kiwi-dark pl-4">
+                          <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-2">女性</p>
+                          <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.female}%</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Disclaimer */}
+                    <div className="max-w-2xl mx-auto mt-12 p-6 bg-gray-50 border-l-4 border-gray-300">
+                      <p className="text-xs md:text-sm text-gray-600 leading-relaxed font-serif">
+                        ⓘ 稀有度是參考指標，用來提供共鳴與視角，不代表稀有=更好，也不代表人格固定不變。數值會因資料來源、地區、年齡與量表不同而有差異。
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 09. RESONANCE ARCHETYPES (CELEBRITY) */}
+              {(() => {
+                const archetypes = getCelebrityArchetypes(resultData.id);
+                if (archetypes.length === 0) return null;
+
+                return (
+                  <div className="py-16 md:py-24 border-b border-gray-100">
+                    <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-8 md:mb-12 font-mono uppercase">RESONANCE ARCHETYPES 共鳴原型</h3>
+
+                    <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
+                      這不是你=他們，而是你可能與他們在思考風格、工作節奏、價值傾向有相似點
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto px-6">
+                      {archetypes.map((archetype, index) => (
+                        <div key={index} className="border border-gray-200 overflow-hidden hover:border-kiwi-dark transition-all duration-300">
+                          <div className="p-8 md:p-10 bg-white">
+                            {/* Name */}
+                            <div className="mb-6 border-b border-gray-100 pb-4">
+                              <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-1">
+                                {archetype.name}
+                              </h4>
+                              <p className="text-sm md:text-base text-gray-500 font-mono">
+                                {archetype.nameEn}
+                              </p>
+                              <p className="text-[10px] font-mono text-gray-400 tracking-wider uppercase mt-2">
+                                {archetype.profession}
+                              </p>
+                            </div>
+
+                            {/* Resonance Traits */}
+                            <div>
+                              <h5 className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-4">
+                                共鳴特徵
+                              </h5>
+                              <ul className="space-y-3">
+                                {archetype.resonanceTraits.map((trait, i) => (
+                                  <li key={i} className="flex items-start gap-3 text-gray-700">
+                                    <span className="text-kiwi-dark font-mono text-xs mt-1">•</span>
+                                    <span className="text-sm md:text-base font-serif leading-relaxed">{trait}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  );
-                })()}
+                  </div>
+                );
+              })()}
 
-                {/* 10. SOUL REFLECTION - 響應式字體 */}
-                <div className="py-16 md:py-24 border-b border-gray-100 bg-gray-50/20">
-                  <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-16 md:mb-24 font-mono">SOUL REFLECTION 靈魂拷問</h3>
-                  <div className="space-y-8 md:space-y-12 max-w-3xl mx-auto px-0 md:px-4">
-                    {resultData.soulQuestions.map((q, idx) => (
-                      <div key={idx} className="bg-white border border-gray-100 p-8 md:p-12 text-center group transition-all duration-700 hover:bg-kiwi-dark hover:text-white hover:shadow-xl">
-                        <span className="text-4xl md:text-5xl font-display font-bold text-gray-100 group-hover:text-white/20 transition-colors block mb-4 md:mb-6">0{idx + 1}</span>
-                        <p className="text-xl md:text-2xl lg:text-3xl font-serif leading-relaxed italic px-2 md:px-6">{q}</p>
-                      </div>
+              {/* 10. SOUL REFLECTION - 響應式字體 */}
+              <div className="py-16 md:py-24 border-b border-gray-100 bg-gray-50/20">
+                <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-16 md:mb-24 font-mono">SOUL REFLECTION 靈魂拷問</h3>
+                <div className="space-y-8 md:space-y-12 max-w-3xl mx-auto px-0 md:px-4">
+                  {resultData.soulQuestions.map((q, idx) => (
+                    <div key={idx} className="bg-white border border-gray-100 p-8 md:p-12 text-center group transition-all duration-700 hover:bg-kiwi-dark hover:text-white hover:shadow-xl">
+                      <span className="text-4xl md:text-5xl font-display font-bold text-gray-100 group-hover:text-white/20 transition-colors block mb-4 md:mb-6">0{idx + 1}</span>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-serif leading-relaxed italic px-2 md:px-6">{q}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 9. STRENGTHS & BLIND SPOTS - 手機單欄 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 py-16 md:py-24 border-b border-gray-100 text-left px-0 md:px-4">
+                <div>
+                  <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-8 md:mb-10 border-l-8 border-kiwi-dark pl-6">STRENGTHS 優勢</h4>
+                  <ul className="space-y-4 md:space-y-6">
+                    {resultData.strengths.map((s, i) => (
+                      <li key={i} className="flex items-start gap-4 text-gray-700 font-serif">
+                        <span className="text-[11px] font-mono text-gray-300 font-bold mt-1">0{i + 1}.</span>
+                        <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
-
-                {/* 9. STRENGTHS & BLIND SPOTS - 手機單欄 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 py-16 md:py-24 border-b border-gray-100 text-left px-0 md:px-4">
-                  <div>
-                    <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-8 md:mb-10 border-l-8 border-kiwi-dark pl-6">STRENGTHS 優勢</h4>
-                    <ul className="space-y-4 md:space-y-6">
-                      {resultData.strengths.map((s, i) => (
-                        <li key={i} className="flex items-start gap-4 text-gray-700 font-serif">
-                          <span className="text-[11px] font-mono text-gray-300 font-bold mt-1">0{i + 1}.</span>
-                          <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="text-2xl md:text-3xl font-serif font-bold text-gray-400 mb-8 md:mb-10 border-l-8 border-gray-100 pl-6">BLIND SPOTS 盲點</h4>
-                    <ul className="space-y-4 md:space-y-6">
-                      {resultData.blindSpots.map((s, i) => (
-                        <li key={i} className="flex items-start gap-4 text-gray-400 font-serif opacity-60">
-                          <span className="text-[11px] font-mono text-gray-200 font-bold mt-1">0{i + 1}.</span>
-                          <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <div>
+                  <h4 className="text-2xl md:text-3xl font-serif font-bold text-gray-400 mb-8 md:mb-10 border-l-8 border-gray-100 pl-6">BLIND SPOTS 盲點</h4>
+                  <ul className="space-y-4 md:space-y-6">
+                    {resultData.blindSpots.map((s, i) => (
+                      <li key={i} className="flex items-start gap-4 text-gray-400 font-serif opacity-60">
+                        <span className="text-[11px] font-mono text-gray-200 font-bold mt-1">0{i + 1}.</span>
+                        <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
+              </div>
 
-                {/* 10. QUOTE */}
-                <div className="py-24 md:py-40 text-center">
-                  <div className="text-gray-100 text-[100px] md:text-[180px] font-display opacity-40 mb-[-40px] md:mb-[-90px] select-none font-bold">“</div>
-                  <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif font-bold text-kiwi-dark leading-snug italic max-w-4xl mx-auto px-6 relative z-10">
-                    越是深刻地理解自己，越能溫柔地擁抱世界。
-                  </h2>
-                </div>
+              {/* 10. QUOTE */}
+              <div className="py-24 md:py-40 text-center">
+                <div className="text-gray-100 text-[100px] md:text-[180px] font-display opacity-40 mb-[-40px] md:mb-[-90px] select-none font-bold">“</div>
+                <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif font-bold text-kiwi-dark leading-snug italic max-w-4xl mx-auto px-6 relative z-10">
+                  越是深刻地理解自己，越能溫柔地擁抱世界。
+                </h2>
+              </div>
 
-                {/* 11. SOUL DESSERT HEART ANCHOR MODULE - 重寫 CSS 使其完整響應 */}
-                <div className="soul-module mb-32 md:mb-48 px-0 md:px-12">
-                  <style>{`
+              {/* 11. SOUL DESSERT HEART ANCHOR MODULE - 重寫 CSS 使其完整響應 */}
+              <div className="soul-module mb-32 md:mb-48 px-0 md:px-12">
+                <style>{`
                 .soul-card { border: 1px solid #121212; display: flex; flex-direction: column; background: #fff; padding: 0; position: relative; }
                 @media (min-width: 768px) { .soul-card { flex-direction: row; } }
                 
@@ -599,40 +634,40 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 @media (min-width: 768px) { .soul-alt-box { padding: 50px; } }
               `}</style>
 
-                  <div className="soul-card shadow-2xl overflow-hidden">
-                    <div className="soul-img-box">
-                      <img src={resultData.dessert.imageUrl} alt="Soul Dessert" />
+                <div className="soul-card shadow-2xl overflow-hidden">
+                  <div className="soul-img-box">
+                    <img src={resultData.dessert.imageUrl} alt="Soul Dessert" />
+                  </div>
+                  <div className="soul-info-box">
+                    <span className="soul-label">SOUL DESSERT 靈魂甜點</span>
+                    <h3 className="soul-name">{anchor.name}</h3>
+                    <p className="soul-hook">{anchor.hook}</p>
+                    <div className="soul-chips">
+                      <span className="soul-chip">系列：{anchor.series}</span>
+                      <span className="soul-chip">象限：{anchor.quad}</span>
                     </div>
-                    <div className="soul-info-box">
-                      <span className="soul-label">SOUL DESSERT 靈魂甜點</span>
-                      <h3 className="soul-name">{anchor.name}</h3>
-                      <p className="soul-hook">{anchor.hook}</p>
-                      <div className="soul-chips">
-                        <span className="soul-chip">系列：{anchor.series}</span>
-                        <span className="soul-chip">象限：{anchor.quad}</span>
+                    <div className="soul-drink-section">
+                      <p className="soul-drink-label">你的狀態加成飲品推薦</p>
+                      <div className={`soul-drink-row ${resultAT === 'A' ? 'active' : ''}`}>
+                        <span className="tracking-widest">A（穩定型）最佳推薦</span>
+                        <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkA}</span>
                       </div>
-                      <div className="soul-drink-section">
-                        <p className="soul-drink-label">你的狀態加成飲品推薦</p>
-                        <div className={`soul-drink-row ${resultAT === 'A' ? 'active' : ''}`}>
-                          <span className="tracking-widest">A（穩定型）最佳推薦</span>
-                          <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkA}</span>
-                        </div>
-                        <div className={`soul-drink-row ${resultAT === 'T' ? 'active' : ''}`}>
-                          <span className="tracking-widest">T（敏感型）最佳推薦</span>
-                          <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkT}</span>
-                        </div>
+                      <div className={`soul-drink-row ${resultAT === 'T' ? 'active' : ''}`}>
+                        <span className="tracking-widest">T（敏感型）最佳推薦</span>
+                        <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkT}</span>
                       </div>
-                      <div className="soul-btns" style={{ flexDirection: 'column' }} data-html2canvas-ignore>
-                        <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>跟 KIWIMU 當朋友，抽幸運甜點</a>
-                        <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
-                          <button className="soul-btn" onClick={() => setShowAlt(!showAlt)} style={{ flex: 1 }}>{showAlt ? '收起建議' : '同象限替換'}</button>
-                          <button className="soul-btn soul-btn-black" onClick={() => setShowMenu(true)} style={{ flex: 1 }}>完整菜單</button>
-                        </div>
+                    </div>
+                    <div className="soul-btns" style={{ flexDirection: 'column' }} data-html2canvas-ignore>
+                      <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>跟 KIWIMU 當朋友，抽幸運甜點</a>
+                      <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
+                        <button className="soul-btn" onClick={() => setShowAlt(!showAlt)} style={{ flex: 1 }}>{showAlt ? '收起建議' : '同象限替換'}</button>
+                        <button className="soul-btn soul-btn-black" onClick={() => setShowMenu(true)} style={{ flex: 1 }}>完整菜單</button>
                       </div>
                     </div>
                   </div>
-                </div> {/* closes soul-module */}
-              </div> {/* closes full-report-container */}
+                </div>
+              </div> {/* closes soul-module */}
+            </div> {/* closes full-report-container */}
 
             {showAlt && (
               <div className="soul-alt-box border-x border-b border-black fade-in text-left">
