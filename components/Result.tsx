@@ -215,6 +215,23 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </h1>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-light text-kiwi-dark tracking-[0.15em] md:tracking-[0.2em] mb-6 md:mb-10 font-serif italic">{resultData.title}</h2>
               <p className="text-lg md:text-xl lg:text-2xl text-gray-500 font-serif leading-relaxed italic max-w-2xl mx-auto px-4">「{resultData.quote.replace(/[「」]/g, '')}」</p>
+
+              {/* Share CTAs - Prominent Position */}
+              <div className="mt-8 md:mt-12 flex flex-wrap items-center justify-center gap-3 md:gap-4">
+                <button
+                  onClick={handleDownloadIG}
+                  className="group px-6 md:px-8 py-3 md:py-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                  <span>IG Story 分享</span>
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-6 md:px-8 py-3 md:py-4 rounded-full bg-white hover:bg-gray-50 text-kiwi-dark font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 border-2 border-kiwi-dark"
+                >
+                  完整報告分享
+                </button>
+              </div>
             </div>
           </div>
 
@@ -233,8 +250,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex-shrink-0 px-4 md:px-6 py-4 text-xs md:text-sm font-mono tracking-wider transition-all ${activeTab === tab.id
-                        ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
-                        : 'text-gray-400 hover:text-gray-600'
+                      ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
+                      : 'text-gray-400 hover:text-gray-600'
                       }`}
                   >
                     <span className="hidden md:inline">{tab.en}</span>
