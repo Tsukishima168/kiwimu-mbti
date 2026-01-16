@@ -98,13 +98,11 @@ export const deleteProgress = async (
 export const saveTestRun = async (
     run: Omit<TestRun, 'id'>
 ): Promise<string> => {
-    console.log('[DEBUG] saveTestRun: Writing to Firestore', { uid: run.uid, resultType: run.resultType, suffix: run.suffix });
     const runsCollection = collection(db, 'test_runs');
     const docRef = await addDoc(runsCollection, {
         ...run,
         finishedAt: Date.now(),
     });
-    console.log('[DEBUG] saveTestRun: Success, doc ID:', docRef.id);
     return docRef.id;
 };
 

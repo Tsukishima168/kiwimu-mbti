@@ -102,12 +102,7 @@ export const useFirestoreSync = (user: User | null) => {
         suffix: 'A' | 'T',
         scores: Score
     ): Promise<string | null> => {
-        if (!user) {
-            console.log('[DEBUG] saveCompletedTest: No user, skipping save');
-            return null;
-        }
-
-        console.log('[DEBUG] saveCompletedTest: Saving for user', user.uid, 'Type:', resultType, suffix);
+        if (!user) return null;
 
         try {
             const runId = await saveTestRun({
@@ -121,15 +116,13 @@ export const useFirestoreSync = (user: User | null) => {
                 finishedAt: Date.now(),
             });
 
-            console.log('[DEBUG] saveCompletedTest: Successfully saved with ID:', runId);
-
             // Clear progress after saving test run
             await clearCloudProgress();
             clearLocalProgress();
 
             return runId;
         } catch (error) {
-            console.error('[ERROR] saveCompletedTest failed:', error);
+            console.error('Error saving test run:', error);
             return null;
         }
     };
@@ -138,19 +131,13 @@ export const useFirestoreSync = (user: User | null) => {
      * Get all test runs for current user
      */
     const getUserTestRuns = async (): Promise<TestRun[]> => {
-        if (!user) {
-            console.log('[DEBUG] getUserTestRuns: No user');
-            return [];
-        }
-
-        console.log('[DEBUG] getUserTestRuns: Fetching for user', user.uid);
+        if (!user) return [];
 
         try {
             const runs = await getTestRuns(user.uid);
-            console.log('[DEBUG] getUserTestRuns: Retrieved', runs.length, 'runs');
             return runs;
         } catch (error) {
-            console.error('[ERROR] getUserTestRuns failed:', error);
+            console.error('Error getting test runs:', error);
             return [];
         }
     };
