@@ -105,29 +105,40 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     window.scrollTo(0, 0);
   }, [selectedOtherType, activeTab]); // Scroll to top when tab changes
 
-  /* 
-   * SAVE REPORT FUNCTIONALITY (Download as Image)
-   */
+   * SAVE REPORT FUNCTIONALITY(Download as Image)
+    */
   const handleSave = async () => {
-    const element = document.getElementById('full-report-container');
+    // Switch to capturing the compact summary card instead of the full page
+    const element = document.getElementById('summary-card-container');
     if (!element) return;
 
     try {
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 2, // High quality
         useCORS: true,
         backgroundColor: '#F9F7F5',
+        width: 1200,
+        height: 1500, // 4:5 Aspect Ratio (IG Portrait)
+        windowWidth: 1200,
+        windowHeight: 1500,
+        onclone: (doc) => {
+          const hiddenDiv = doc.getElementById('summary-card-container');
+          if (hiddenDiv) {
+            hiddenDiv.style.display = 'flex';
+          }
+        }
       });
 
       const dataUrl = canvas.toDataURL('image/png');
-      setShareImage({ url: dataUrl, title: '完整測驗報告' });
+      setShareImage({ url: dataUrl, title: 'KIWIMU 靈魂識別證' });
 
       if (navigator.share) {
         try {
           await navigator.share({
             title: 'Kiwimu MBTI Lab',
-            text: '來看看我的靈魂甜點是什麼！',
+            text: `我的靈魂甜點是 ${anchor.name}，你呢？`,
             url: window.location.origin,
+            files: [new File([await (await fetch(dataUrl)).blob()], 'kiwimu-result.png', { type: 'image/png' })]
           });
         } catch (e) { console.log('Native share failed', e); }
       }
@@ -1086,13 +1097,19 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span className="text-sm font-medium">已複製連結到剪貼簿</span>
+
+              {/* QR Code Placeholder / Brand */}
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ width: '100px', height: '100px', background: '#000', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ color: 'white', fontSize: '12px' }}>QR CODE</span>
+                </div>
+                <p style={{ fontSize: '14px', letterSpacing: '0.1em' }}>kiwimu.com</p>
+              </div>
             </div>
           </div>
-        )}
-      </div>
+
     </div >
-  );
+      );
 };
 
-export default Result;
+      export default Result;
