@@ -257,7 +257,7 @@ const App: React.FC = () => {
 
         {stage === 'callback' && <LoginCallback onLoginSuccess={handleLoginSuccess} />}
         {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
-        {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} />}
+        {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} onViewArchive={handleViewArchive} onLogout={handleLogout} />}
         {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
         {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
         {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}

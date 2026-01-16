@@ -6,9 +6,11 @@ interface IntroProps {
   onStart: () => void;
   user: User | null;
   onLogin: () => void;
+  onViewArchive?: () => void;
+  onLogout?: () => void;
 }
 
-const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin }) => {
+const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, onLogout }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 fade-in relative overflow-hidden">
 
@@ -21,8 +23,38 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin }) => {
           登入
         </button>
       ) : (
-        <div className="absolute top-6 right-6 flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-md z-50">
-          <span className="text-sm font-medium">{user.displayName || user.email}</span>
+        <div className="absolute top-6 right-6 z-50 group">
+          <button className="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all">
+            <span className="text-sm font-medium">{user.displayName || user.email}</span>
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {/* Dropdown Menu */}
+          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+            <button
+              onClick={onStart}
+              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100"
+            >
+              開始測驗
+            </button>
+            {onViewArchive && (
+              <button
+                onClick={onViewArchive}
+                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100"
+              >
+                📁 我的檔案館
+              </button>
+            )}
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors text-gray-700"
+              >
+                登出
+              </button>
+            )}
+          </div>
         </div>
       )}
 
