@@ -105,8 +105,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     window.scrollTo(0, 0);
   }, [selectedOtherType, activeTab]); // Scroll to top when tab changes
 
+  /* 
    * SAVE REPORT FUNCTIONALITY(Download as Image)
-    */
+   */
   const handleSave = async () => {
     // Switch to capturing the compact summary card instead of the full page
     const element = document.getElementById('summary-card-container');
@@ -1020,6 +1021,73 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           </div>
         </div>
 
+        {/* HIDDEN SUMMARY CARD CONTAINER (1200x1500 - 4:5 Ratio) */}
+        <div
+          id="summary-card-container"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: '-9999px',
+            width: '1200px',
+            height: '1500px',
+            backgroundColor: resultData.bgColor || '#F9F7F5',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '80px 60px',
+            fontFamily: '"Times New Roman", serif',
+            zIndex: -50,
+            boxSizing: 'border-box',
+            border: '20px solid white'
+          }}
+        >
+          {/* Header */}
+          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid rgba(0,0,0,0.1)', paddingBottom: '30px' }}>
+            <span style={{ fontSize: '24px', letterSpacing: '0.2em', fontFamily: 'monospace', fontWeight: 'bold' }}>NO.{resultData.id}</span>
+            <span style={{ fontSize: '24px', letterSpacing: '0.2em', fontFamily: 'monospace', fontWeight: 'bold' }}>KIWIMU MBTI LAB</span>
+          </div>
+
+          {/* Main Visual */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+            <h1 style={{ fontSize: '150px', lineHeight: '1', fontWeight: '800', margin: '0 0 20px 0', fontFamily: 'serif', color: '#1F2937' }}>
+              {resultData.id}
+            </h1>
+            <p style={{ fontSize: '48px', margin: '0 0 60px 0', fontFamily: 'serif', fontStyle: 'italic', color: '#4B5563' }}>
+              {identityChinese} ・ {resultData.title.split(' ')[1] || resultData.title}
+            </p>
+            <div style={{ width: '600px', height: '600px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img
+                src={resultData.characterImage}
+                alt="Character"
+                crossOrigin="anonymous"
+                style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.1))' }}
+              />
+            </div>
+          </div>
+
+          {/* Footer Info */}
+          <div style={{ width: '100%', background: 'white', padding: '40px', borderRadius: '30px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+            <div>
+              <p style={{ fontSize: '20px', letterSpacing: '0.2em', color: '#9CA3AF', marginBottom: '10px' }}>SOUL DESSERT</p>
+              <p style={{ fontSize: '36px', fontWeight: 'bold', color: '#1F2937', marginBottom: '20px' }}>{anchor.name}</p>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {resultData.keywords.slice(0, 3).map(k => (
+                  <span key={k} style={{ padding: '8px 20px', background: '#F3F4F6', borderRadius: '50px', fontSize: '18px', color: '#4B5563' }}>#{k}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* QR Code Placeholder / Brand */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ width: '100px', height: '100px', background: '#000', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: 'white', fontSize: '12px' }}>QR CODE</span>
+              </div>
+              <p style={{ fontSize: '14px', letterSpacing: '0.1em' }}>kiwimu.com</p>
+            </div>
+          </div>
+        </div>
+
         {/* MODAL ARCHIVE (Fully Responsive) */}
         {
           selectedOtherType && (
@@ -1098,17 +1166,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
 
-              {/* QR Code Placeholder / Brand */}
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ width: '100px', height: '100px', background: '#000', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ color: 'white', fontSize: '12px' }}>QR CODE</span>
-                </div>
-                <p style={{ fontSize: '14px', letterSpacing: '0.1em' }}>kiwimu.com</p>
-              </div>
+              <span className="text-sm font-medium">已複製連結到剪貼簿</span>
             </div>
           </div>
+        )}
 
-    </div >
+      </div >
       );
 };
 
