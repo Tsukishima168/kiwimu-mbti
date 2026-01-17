@@ -8,6 +8,7 @@ import { getRarityData, getRarityLabel, getRarityMessage } from '../data/rarityD
 import { getCelebrityArchetypes } from '../data/celebrityData';
 import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
+import CollapsibleSection from './CollapsibleSection';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -319,8 +320,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
 
             {/* 3. COGNITIVE SPECTRUM - 優化手機版顯示 */}
-            <div className="py-12 md:py-20 border-b border-gray-100">
-              <h3 className="text-center text-lg md:text-xl font-display font-bold mb-12 md:mb-20 tracking-[0.3em] md:tracking-[0.4em] uppercase text-kiwi-dark">COGNITIVE SPECTRUM <br className="md:hidden" /> 認知光譜</h3>
+            <CollapsibleSection title="COGNITIVE SPECTRUM" subtitle="認知光譜" defaultOpen={true}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
                 <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc="在領導與開拓中獲取能量。" rightDesc="在深度反思中沈澱力量。" />
                 <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc="關注現實Facts與實務。" rightDesc="洞悉Pattern與未來機遇。" />
@@ -330,13 +330,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc="自信穩定，心理韌性強。" rightDesc="精益求精，對環境高度敏感。" />
                 </div>
               </div>
-            </div>
+            </CollapsibleSection>
 
             {/* 4. IDENTITY ANALYSIS (維度解析盒) - 響應式重構 */}
-            <div className="py-16 md:py-24 border-b border-gray-100">
+            <CollapsibleSection title="IDENTITY" subtitle="維度解析" defaultOpen={true}>
               <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start text-left">
                 <div className="w-full md:w-1/3 border-l-4 border-kiwi-dark pl-6 md:pl-10 py-2">
-                  <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2">IDENTITY <br /> 維度解析</h3>
                   <p className="text-[10px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-6 font-bold">THE 32ND VARIANCE</p>
                   <span className="px-4 py-2 md:px-6 bg-kiwi-dark text-white text-[10px] md:text-[11px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase shadow-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{identityChinese}</span>
                 </div>
@@ -347,11 +346,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   </p>
                 </div>
               </div>
-            </div>
+            </CollapsibleSection>
 
             {/* 5. GLOSSARY - 手機版優化 */}
-            <div className="py-12 md:py-20 border-b border-gray-100 bg-gray-50/40">
-              <h3 className="text-center text-xs md:text-sm font-display font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-400 uppercase mb-12 md:mb-20 font-bold">THEORETICAL FRAMEWORK & DEFINITIONS <br className="md:hidden" /> 詞彙表指南</h3>
+            <CollapsibleSection title="DEFINITIONS" subtitle="詞彙表指南" className="bg-gray-50/40">
               <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
                 {DIMENSION_EXPLANATIONS.map(dim => (
                   <div key={dim.key} className="flex flex-col md:flex-row gap-4 md:gap-10 text-left items-start group border-b border-gray-100/50 pb-8 md:pb-10 last:border-0">
@@ -363,11 +361,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   </div>
                 ))}
               </div>
-            </div>
+            </CollapsibleSection>
 
             {/* 06. LIFE INSIGHTS */}
-            <div className="py-16 md:py-24 border-b border-gray-100">
-              <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-12 md:mb-20 font-mono uppercase">LIFE INSIGHTS 生活洞見</h3>
+            <CollapsibleSection title="LIFE INSIGHTS" subtitle="生活洞見" defaultOpen={true}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 text-left">
                 <section>
                   <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
@@ -408,11 +405,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   </div>
                 </section>
               </div>
-            </div>
+            </CollapsibleSection>
 
             {/* 7. RELATIONSHIP NAVIGATION - 響應式 Box */}
-            <div className="py-16 md:py-24 border-b border-gray-100">
-              <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-12 md:mb-16 font-mono">RELATIONSHIP NAVIGATION <br className="md:hidden" /> 人際導航</h3>
+            <CollapsibleSection title="NAVIGATION" subtitle="人際導航">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
                 <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
                   <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark font-mono">SUPERPOWER 關係強項</h4>
@@ -423,7 +419,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   <p className="text-gray-100 text-lg md:text-xl font-serif leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{resultData.relationships.advice}</p>
                 </div>
               </div>
-            </div>
+            </CollapsibleSection>
 
             {/* 08. PERSONALITY RARITY */}
             {(() => {
@@ -434,9 +430,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               const rarityMessage = getRarityMessage(rarityData.rank);
 
               return (
-                <div className="py-16 md:py-24 border-b border-gray-100">
-                  <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-12 md:mb-20 font-mono uppercase">PERSONALITY RARITY 人格稀有度</h3>
-
+                <CollapsibleSection title="RARITY" subtitle="人格稀有度">
                   <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
                     <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
                       在人群中的出現率
@@ -483,7 +477,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                       ⓘ 稀有度是參考指標，用來提供共鳴與視角，不代表稀有=更好，也不代表人格固定不變。數值會因資料來源、地區、年齡與量表不同而有差異。
                     </p>
                   </div>
-                </div>
+                </CollapsibleSection>
               );
             })()}
 
@@ -493,9 +487,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               if (archetypes.length === 0) return null;
 
               return (
-                <div className="py-16 md:py-24 border-b border-gray-100">
-                  <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-8 md:mb-12 font-mono uppercase">RESONANCE ARCHETYPES 共鳴原型</h3>
-
+                <CollapsibleSection title="ARCHETYPES" subtitle="共鳴原型" defaultOpen={true}>
                   <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
                     這不是你=他們，而是你可能與他們在思考風格、工作節奏、價值傾向有相似點
                   </p>
