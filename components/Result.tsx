@@ -99,6 +99,32 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
+  // Onboarding Tour State
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
+
+  useEffect(() => {
+    // Check if user has seen the onboarding
+    const hasSeenOnboarding = localStorage.getItem('kiwimu_has_seen_result_tour');
+    if (!hasSeenOnboarding) {
+      setTimeout(() => setShowOnboarding(true), 1500);
+    }
+  }, []);
+
+  const handleOnboardingNext = () => {
+    if (onboardingStep === 2) {
+      localStorage.setItem('kiwimu_has_seen_result_tour', 'true');
+      setShowOnboarding(false);
+    } else {
+      setOnboardingStep(prev => prev + 1);
+    }
+  };
+
+  const handleOnboardingSkip = () => {
+    localStorage.setItem('kiwimu_has_seen_result_tour', 'true');
+    setShowOnboarding(false);
+  };
+
   const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
   const identitySuffix = resultAT;
   const identityChinese = resultAT === 'A' ? '堅定型' : '動盪型';
