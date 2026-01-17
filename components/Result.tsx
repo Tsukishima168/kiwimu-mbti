@@ -1140,7 +1140,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
       </div>
     </div>
-    </div >
+    </div>
   );
 };
 
