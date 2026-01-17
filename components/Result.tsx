@@ -9,6 +9,9 @@ import { getCelebrityArchetypes } from '../data/celebrityData';
 import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
 import CollapsibleSection from './CollapsibleSection';
+import LanguageToggle from './LanguageToggle';
+import { useLanguage } from '../contexts/LanguageContext';
+import { resultTranslations } from '../i18n/resultTranslations';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -89,6 +92,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
+
+  const { language } = useLanguage();
+  const t = resultTranslations[language];
+
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
   const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
@@ -208,14 +215,36 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           {/* 1. HEADER - 響應式字體與間距 */}
           <div className="w-full py-12 md:py-20 border-b border-gray-100 transition-colors duration-1000" style={{ backgroundColor: resultData.bgColor }}>
             <div className="max-w-4xl mx-auto px-6 text-center">
+              {/* Language Toggle */}
+              <div className="flex justify-end mb-4">
+                <LanguageToggle />
+              </div>
+
               <div className="border border-kiwi-dark px-4 py-1.5 mb-6 md:mb-8 inline-block bg-white shadow-sm">
-                <p className="text-[10px] font-mono tracking-[0.2em] md:tracking-[0.4em] uppercase font-bold text-kiwi-dark">COMPREHENSIVE ANALYSIS 綜合分析</p>
+                <p className="text-[10px] font-mono tracking-[0.2em] md:tracking-[0.4em] uppercase font-bold text-kiwi-dark">{t.comprehensive_analysis}</p>
               </div>
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-kiwi-dark tracking-tighter mb-2 md:mb-4 leading-none md:leading-tight">
                 {resultData.id}-{identitySuffix}
               </h1>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-light text-kiwi-dark tracking-[0.15em] md:tracking-[0.2em] mb-6 md:mb-10 font-serif italic">{resultData.title}</h2>
               <p className="text-lg md:text-xl lg:text-2xl text-gray-500 font-serif leading-relaxed italic max-w-2xl mx-auto px-4">「{resultData.quote.replace(/[「」]/g, '')}」</p>
+
+              {/* Share CTAs - Prominent Position */}
+              <div className="mt-8 md:mt-12 flex flex-wrap items-center justify-center gap-3 md:gap-4">
+                <button
+                  onClick={handleDownloadIG}
+                  className="group px-6 md:px-8 py-3 md:py-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 flex items-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                  <span>{t.ig_story_share}</span>
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="px-6 md:px-8 py-3 md:py-4 rounded-full bg-white hover:bg-gray-50 text-kiwi-dark font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 border-2 border-kiwi-dark"
+                >
+                  {t.full_report_share}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -278,20 +307,20 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
 
             {/* 3. COGNITIVE SPECTRUM */}
-            <CollapsibleSection title="COGNITIVE SPECTRUM" subtitle="認知光譜" defaultOpen={true}>
+            <CollapsibleSection title="COGNITIVE SPECTRUM" subtitle={t.cognitive_spectrum} defaultOpen={true}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
-                <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc="在領導與開拓中獲取能量。" rightDesc="在深度反思中沈澱力量。" />
-                <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc="關注現實Facts與實務。" rightDesc="洞悉Pattern與未來機遇。" />
-                <SpectrumBar leftLabel="THINKING (T)" rightLabel="FEELING (F)" leftScore={percentages.T} rightScore={percentages.F} leftDesc="極度理性與目標導向。" rightDesc="關注核心價值與感性連結。" />
-                <SpectrumBar leftLabel="JUDGING (J)" rightLabel="PERCEIVING (P)" leftScore={percentages.J} rightScore={percentages.P} leftDesc="果斷決策，追求確定感。" rightDesc="靈活開放，擁抱彈性。" />
+                <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc={t.extrovert} rightDesc={t.introvert} />
+                <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc={t.sensing} rightDesc={t.intuition} />
+                <SpectrumBar leftLabel="THINKING (T)" rightLabel="FEELING (F)" leftScore={percentages.T} rightScore={percentages.F} leftDesc={t.thinking} rightDesc={t.feeling} />
+                <SpectrumBar leftLabel="JUDGING (J)" rightLabel="PERCEIVING (P)" leftScore={percentages.J} rightScore={percentages.P} leftDesc={t.judging} rightDesc={t.perceiving} />
                 <div className="md:col-span-2">
-                  <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc="自信穩定，心理韌性強。" rightDesc="精益求精，對環境高度敏感。" />
+                  <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc={t.assertive} rightDesc={t.turbulent} />
                 </div>
               </div>
             </CollapsibleSection>
 
             {/* 4. IDENTITY ANALYSIS */}
-            <CollapsibleSection title="IDENTITY" subtitle="維度解析" defaultOpen={true}>
+            <CollapsibleSection title="IDENTITY" subtitle={t.identity} defaultOpen={true}>
               <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start text-left">
                 <div className="w-full md:w-1/3 border-l-4 border-kiwi-dark pl-6 md:pl-10 py-2">
                   <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2">IDENTITY <br /> 維度解析</h3>
@@ -308,7 +337,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </CollapsibleSection>
 
             {/* 5. GLOSSARY */}
-            <CollapsibleSection title="DEFINITIONS" subtitle="詞彙表指南" className="bg-gray-50/40">
+            <CollapsibleSection title="DEFINITIONS" subtitle={t.definitions} className="bg-gray-50/40">
               <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
                 {DIMENSION_EXPLANATIONS.map(dim => (
                   <div key={dim.key} className="flex flex-col md:flex-row gap-4 md:gap-10 text-left items-start group border-b border-gray-100/50 pb-8 md:pb-10 last:border-0">
@@ -323,7 +352,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </CollapsibleSection>
 
             {/* 06. LIFE INSIGHTS */}
-            <CollapsibleSection title="LIFE INSIGHTS" subtitle="生活洞見" defaultOpen={true}>
+            <CollapsibleSection title="LIFE INSIGHTS" subtitle={t.life_insights} defaultOpen={true}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 text-left">
                 <section>
                   <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
@@ -367,7 +396,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </CollapsibleSection>
 
             {/* 7. RELATIONSHIP NAVIGATION */}
-            <CollapsibleSection title="NAVIGATION" subtitle="人際導航">
+            <CollapsibleSection title="NAVIGATION" subtitle={t.navigation}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
                 <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
                   <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark font-mono">SUPERPOWER 關係強項</h4>
@@ -389,7 +418,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               const rarityMessage = getRarityMessage(rarityData.rank);
 
               return (
-                <CollapsibleSection title="RARITY" subtitle="人格稀有度">
+                <CollapsibleSection title="RARITY" subtitle={t.rarity}>
 
                   <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
                     <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
@@ -447,7 +476,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               if (archetypes.length === 0) return null;
 
               return (
-                <CollapsibleSection title="ARCHETYPES" subtitle="共鳴原型" defaultOpen={true}>
+                <CollapsibleSection title="ARCHETYPES" subtitle={t.archetypes} defaultOpen={true}>
 
                   <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
                     這不是你=他們，而是你可能與他們在思考風格、工作節奏、價值傾向有相似點

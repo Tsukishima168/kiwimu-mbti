@@ -19,6 +19,7 @@ import MyArchive from './components/MyArchive';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
 import { doc, getDoc } from 'firebase/firestore';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 import NotFound from './components/NotFound';
 
@@ -244,61 +245,64 @@ const App: React.FC = () => {
     return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;
   }
 
+
   return (
-    <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
-      <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>
-        {stage !== 'intro' && stage !== 'manifesto' && (
-          <div className="fixed top-6 right-6 z-50">
-            <UserMenu user={user} onLogin={handleLogin} onLogout={handleLogout} />
-          </div>
-        )}
-
-        {showProfileSetup && user && (
-          <ProfileSetupModal
-            user={user}
-            onComplete={handleProfileSetupComplete}
-            isOpen={showProfileSetup}
-          />
-        )}
-
-        {stage === 'callback' && <LoginCallback onLoginSuccess={handleLoginSuccess} />}
-        {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
-        {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} onViewArchive={handleViewArchive} onLogout={handleLogout} />}
-        {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
-        {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
-        {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
-        {stage === 'result' && resultData && scores && (
-          <Result
-            resultData={resultData}
-            rawScores={scores}
-            onRetest={handleRetest}
-            onOpenConsultant={() => console.log('Open consultant modal')}
-            onViewArchive={handleViewArchive}
-            user={user}
-            onLogin={handleLogin}
-            onLogout={handleLogout}
-          />
-        )}
-        {stage === 'archive' && user && (
-          <MyArchive key={Date.now()} user={user} onBack={handleBackFromArchive} />
-        )}
-        {stage === '404' && (
-          <NotFound onHome={() => {
-            window.history.pushState({}, '', '/'); // Reset URL
-            setStage('intro');
-          }} />
-        )}
-
-        {/* Toast Notification for Save Status */}
-        {showSaveToast.show && (
-          <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[200] fade-in">
-            <div className={`${showSaveToast.success ? 'bg-green-600' : 'bg-orange-500'} text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3`}>
-              <span className="text-sm font-medium">{showSaveToast.message}</span>
+    <LanguageProvider>
+      <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
+        <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>
+          {stage !== 'intro' && stage !== 'manifesto' && (
+            <div className="fixed top-6 right-6 z-50">
+              <UserMenu user={user} onLogin={handleLogin} onLogout={handleLogout} />
             </div>
-          </div>
-        )}
+          )}
+
+          {showProfileSetup && user && (
+            <ProfileSetupModal
+              user={user}
+              onComplete={handleProfileSetupComplete}
+              isOpen={showProfileSetup}
+            />
+          )}
+
+          {stage === 'callback' && <LoginCallback onLoginSuccess={handleLoginSuccess} />}
+          {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
+          {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} onViewArchive={handleViewArchive} onLogout={handleLogout} />}
+          {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
+          {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
+          {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
+          {stage === 'result' && resultData && scores && (
+            <Result
+              resultData={resultData}
+              rawScores={scores}
+              onRetest={handleRetest}
+              onOpenConsultant={() => console.log('Open consultant modal')}
+              onViewArchive={handleViewArchive}
+              user={user}
+              onLogin={handleLogin}
+              onLogout={handleLogout}
+            />
+          )}
+          {stage === 'archive' && user && (
+            <MyArchive key={Date.now()} user={user} onBack={handleBackFromArchive} />
+          )}
+          {stage === '404' && (
+            <NotFound onHome={() => {
+              window.history.pushState({}, '', '/'); // Reset URL
+              setStage('intro');
+            }} />
+          )}
+
+          {/* Toast Notification for Save Status */}
+          {showSaveToast.show && (
+            <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[200] fade-in">
+              <div className={`${showSaveToast.success ? 'bg-green-600' : 'bg-orange-500'} text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3`}>
+                <span className="text-sm font-medium">{showSaveToast.message}</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </LanguageProvider>
   );
 };
 
