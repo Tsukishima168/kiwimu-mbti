@@ -1138,8 +1138,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           </div>
         )}
 
-      </div >
+      </div>
+    </div>
+    </div >
       );
 };
 
-      export default Result;
+export default Result;
