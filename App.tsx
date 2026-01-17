@@ -18,6 +18,7 @@ import LoginCallback from './components/LoginCallback';
 import MyArchive from './components/MyArchive';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
+import { doc, getDoc } from 'firebase/firestore';
 
 import NotFound from './components/NotFound';
 
