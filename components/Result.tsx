@@ -280,15 +280,24 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             <div className="max-w-4xl mx-auto px-6">
               <div className="flex gap-1 overflow-x-auto scrollbar-hide">
                 {[
-                  { id: 'overview', label: '總覽', en: 'Overview' },
-                  { id: 'analysis', label: '深度分析', en: 'Analysis' },
-                  { id: 'soul', label: '靈魂甜點', en: 'Soul Food' },
-                  { id: 'life', label: '職涯 & 關係', en: 'Life' },
-                  { id: 'archetypes', label: '名人原型', en: 'Archetypes' }
+                  { id: 'overview', label: '總覽', en: 'Overview', scrollPercent: 0 },
+                  { id: 'analysis', label: '深度分析', en: 'Analysis', scrollPercent: 15 },
+                  { id: 'soul', label: '靈魂甜點', en: 'Soul Food', scrollPercent: 45 },
+                  { id: 'life', label: '職涯 & 關係', en: 'Life', scrollPercent: 60 },
+                  { id: 'archetypes', label: '名人原型', en: 'Archetypes', scrollPercent: 80 }
                 ].map(tab => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
+                    onClick={() => {
+                      setActiveTab(tab.id as any);
+                      // Smooth scroll to approximate section position
+                      const contentHeight = document.documentElement.scrollHeight - window.innerHeight;
+                      const targetPosition = contentHeight * (tab.scrollPercent / 100);
+                      window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                      });
+                    }}
                     className={`flex-shrink-0 px-4 md:px-6 py-4 text-xs md:text-sm font-mono tracking-wider transition-all ${activeTab === tab.id
                       ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
                       : 'text-gray-400 hover:text-gray-600'
