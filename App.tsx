@@ -18,9 +18,10 @@ import LoginCallback from './components/LoginCallback';
 import MyArchive from './components/MyArchive';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
-import { doc, getDoc } from 'firebase/firestore';
 
-type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive';
+import NotFound from './components/NotFound';
+
+type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | '404';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -104,6 +105,10 @@ const App: React.FC = () => {
 
       if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
         setStage('callback');
+      } else if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+        // Simple 404 detection: If path is not root/index and not callback, show 404
+        // Note: This works because we are using hashing/state routing for the app content itself
+        setStage('404');
       }
 
       setLoadingAuth(false);
@@ -275,6 +280,12 @@ const App: React.FC = () => {
         )}
         {stage === 'archive' && user && (
           <MyArchive key={Date.now()} user={user} onBack={handleBackFromArchive} />
+        )}
+        {stage === '404' && (
+          <NotFound onHome={() => {
+            window.history.pushState({}, '', '/'); // Reset URL
+            setStage('intro');
+          }} />
         )}
 
         {/* Toast Notification for Save Status */}
