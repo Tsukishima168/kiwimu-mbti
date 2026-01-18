@@ -13,7 +13,7 @@ interface MyArchiveProps {
     onBack?: () => void;
 }
 
-type ViewMode = 'timeline' | 'comparison' | 'detail' | 'stats' | 'settings';
+type ViewMode = 'timeline' | 'comparison' | 'detail' | 'stats' | 'settings' | 'explore';
 
 export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
     const [testRuns, setTestRuns] = useState<TestRun[]>([]);
