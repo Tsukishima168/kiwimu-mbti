@@ -3,11 +3,49 @@ import React from 'react';
 interface LineCTAProps {
     className?: string;
     variant?: 'default' | 'compact';
+    mbtiType?: string; // 例如：'INFP-T'
 }
+
+// MBTI 類型個人化訊息
+const getPersonalizedMessage = (mbtiType?: string): { title: string; subtitle: string } => {
+    if (!mbtiType) {
+        return {
+            title: '加入 LINE 獲取完整報告',
+            subtitle: '與數千位用戶一起探索性格奧秘'
+        };
+    }
+
+    const type = mbtiType.split('-')[0]; // 取得基礎類型（例如 INFP）
+
+    const messages: Record<string, { title: string; subtitle: string }> = {
+        'INFP': { title: '🌈 加入 INFP 專屬社群', subtitle: 'INFP 們都在這裡找到共鳴' },
+        'ENFP': { title: '✨ 與其他 ENFP 一起探險', subtitle: '充滿創意的靈魂聚集地' },
+        'INTJ': { title: '🎯 INTJ 策略者之家', subtitle: '與同樣追求卓越的人交流' },
+        'ENTJ': { title: '👑 ENTJ 領導者社群', subtitle: '與其他領導者共同成長' },
+        'INTP': { title: '🔬 INTP 思考者天堂', subtitle: '深度思考者的聚集地' },
+        'ENTP': { title: '💡 ENTP 創新者聯盟', subtitle: '挑戰常規的思想家們' },
+        'INFJ': { title: '🦉 INFJ 洞察者圈子', subtitle: '稀有靈魂的溫暖之家' },
+        'ENFJ': { title: '🌟 ENFJ 引導者社群', subtitle: '啟發他人的力量' },
+        'ISTJ': { title: '📋 ISTJ 守護者聯盟', subtitle: '可靠的基石們聚在一起' },
+        'ESTJ': { title: '⚖️ ESTJ 執行者群組', subtitle: '高效管理者的交流平台' },
+        'ISFJ': { title: '🤗 ISFJ 守護者之家', subtitle: '溫暖關懷者的港灣' },
+        'ESFJ': { title: '💝 ESFJ 照顧者社群', subtitle: '用心連結每一個人' },
+        'ISTP': { title: '🔧 ISTP 實踐者工坊', subtitle: '動手創造者的天地' },
+        'ESTP': { title: '⚡ ESTP 行動派群組', subtitle: '活力四射的冒險家們' },
+        'ISFP': { title: '🎨 ISFP 藝術家聚落', subtitle: '自由靈魂的創作空間' },
+        'ESFP': { title: '🎭 ESFP 表演者舞台', subtitle: '讓生活充滿歡樂' }
+    };
+
+    return messages[type] || {
+        title: `加入 ${type} 專屬社群`,
+        subtitle: '與同類型的人一起成長'
+    };
+};
 
 export const LineCTA: React.FC<LineCTAProps> = ({
     className = '',
-    variant = 'default'
+    variant = 'default',
+    mbtiType
 }) => {
     // LINE 官方帳號 ID
     const LINE_OFFICIAL_ID = '@kiwimu'; // KIWIMU 官方帳號（付費）
@@ -16,16 +54,19 @@ export const LineCTA: React.FC<LineCTAProps> = ({
     // 訂閱數（可以從 Firestore 動態獲取）
     const subscriberCount = 0; // TODO: 連接實際數據
 
+    // 獲取個人化訊息
+    const personalizedMsg = getPersonalizedMessage(mbtiType);
+
     if (variant === 'compact') {
         return (
             <div className={`bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200 ${className}`}>
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">
-                            加入 LINE 獲取完整報告 📊
+                            {personalizedMsg.title} 📊
                         </p>
                         <p className="text-xs text-gray-600 mt-1">
-                            免費 PDF + 每週洞見推播
+                            {personalizedMsg.subtitle}
                         </p>
                     </div>
                     <a
@@ -69,7 +110,7 @@ export const LineCTA: React.FC<LineCTAProps> = ({
                     🎁 免費獲取完整報告
                 </h3>
                 <p className="text-gray-600">
-                    加入 LINE 官方帳號，立即收到專屬性格分析
+                    {personalizedMsg.subtitle}
                 </p>
             </div>
 
