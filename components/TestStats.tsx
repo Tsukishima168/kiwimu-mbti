@@ -107,7 +107,7 @@ export const TestStats: React.FC<TestStatsProps> = ({ testRuns }) => {
             {/* Stability Indicator (optional) */}
             {stats.total >= 3 && (
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="text-sm font-bold text-blue-900 mb-2">🎯 穩定度指標</h4>
+                    <h4 className="text-sm font-bold text-blue-900 mb-2">穩定度指標</h4>
                     <p className="text-xs text-blue-700">
                         {stats.evolution.slice(-3).every(t => t === stats.mostCommon)
                             ? '✅ 最近 3 次測驗結果一致，性格穩定度高'
