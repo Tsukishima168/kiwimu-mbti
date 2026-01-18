@@ -115,19 +115,19 @@ export const LineCTA: React.FC<LineCTAProps> = ({
                     </p>
                 </div>
 
-                {/* Gift items - minimal list */}
+                {/* Gift items - honest current offerings */}
                 <div className="mb-6 space-y-2">
                     <div className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="text-lg">📄</span>
-                        <span>完整性格報告（PDF）</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-700">
-                        <span className="text-lg">🎨</span>
-                        <span>專屬性格貼圖抽獎資格</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-700">
                         <span className="text-lg">💬</span>
-                        <span>每週性格洞見</span>
+                        <span>加入性格探索社群</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                        <span className="text-lg">🌟</span>
+                        <span>搶先得知新功能上線</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                        <span className="text-lg">🎯</span>
+                        <span>參與未來抽獎活動</span>
                     </div>
                 </div>
 
