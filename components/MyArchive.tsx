@@ -7,6 +7,7 @@ import RunDetail from './RunDetail';
 import Comparison from './Comparison';
 import TestStats from './TestStats';
 import UserSettings from './UserSettings';
+import ExploreMore from './ExploreMore';
 
 interface MyArchiveProps {
     user: User;
@@ -131,6 +132,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                     {/* Content Area */}
                     <div className="max-w-4xl mx-auto px-6 py-8">
                         {viewMode === 'stats' && <TestStats testRuns={testRuns} />}
+                        {viewMode === 'explore' && <ExploreMore />}
                         {viewMode === 'timeline' && <RunTimeline runs={testRuns} onSelect={handleSelectRun} onBack={onBack} user={user} />}
                         {viewMode === 'comparison' && <Comparison runs={testRuns} />}
                     </div>
