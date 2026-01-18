@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { User } from 'firebase/auth';
+import ExitIntentPopup from './ExitIntentPopup';
 import { Option, Question } from '../types';
 import { QUESTIONS } from '../constants';
 import { useProgressStorage } from '../hooks/useProgressStorage';
@@ -143,6 +144,19 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                                 </button>
                             )}
                         </div>
+      {/* Exit Intent Popup */}
+      <ExitIntentPopup
+        currentQuestionIndex={currentQuestionIndex}
+        totalQuestions={questions.length}
+        onContinue={() => {}}
+        onSaveProgress={() => {
+          sessionStorage.setItem('quiz_progress', JSON.stringify({
+            answers,
+            currentQuestionIndex
+          }));
+          alert('進度已儲存！下次訪問時可以繼續');
+        }}
+      />
                         <span className="text-xs font-mono text-gray-400 tracking-wider">
                             {currentIndex + 1} / {QUESTIONS.length}
                         </span>

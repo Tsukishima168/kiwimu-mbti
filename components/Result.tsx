@@ -289,6 +289,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
           </div>
 
+              {/* LINE Official Account CTA */}
+              <LineCTA className="mt-8" mbtiType={resultData.id} />
+
 
           {/* TAB CONTENT */}
           <div className="max-w-4xl mx-auto px-6 py-12 md:py-20 md:px-12">
