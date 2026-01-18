@@ -9,8 +9,8 @@ export const LineCTA: React.FC<LineCTAProps> = ({
     className = '',
     variant = 'default'
 }) => {
-    // TODO: 替換為你的實際 LINE 官方帳號 ID
-    const LINE_OFFICIAL_ID = '@YOUR_LINE_ID'; // 例如：@123abcde
+    // LINE 官方帳號 ID
+    const LINE_OFFICIAL_ID = '@kiwimu'; // KIWIMU 官方帳號（付費）
     const LINE_ADD_FRIEND_URL = `https://line.me/R/ti/p/${LINE_OFFICIAL_ID}`;
 
     // 訂閱數（可以從 Firestore 動態獲取）
