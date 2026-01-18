@@ -99,6 +99,31 @@ export interface TestRun {
   finishedAt: number; // timestamp
 }
 
+/** User Profile（用戶個人檔案） */
+export interface UserProfile {
+  displayName?: string;
+  avatar?: string;
+
+  preferences: {
+    language: 'zh' | 'en';
+    notifications: {
+      newFeatures: boolean;
+      weeklyInsights: boolean;
+    };
+    privacy: {
+      profileVisibility: 'public' | 'private';
+      shareResults: boolean;
+    };
+  };
+
+  stats?: {
+    totalTests: number;
+    firstTestDate: number;
+    mostCommonType: string;
+    lastTestDate: number;
+  };
+}
+
 /** User Document（用戶基本資料） */
 export interface UserDocument {
   uid: string;
@@ -106,4 +131,5 @@ export interface UserDocument {
   email?: string;
   createdAt: number;
   lastActiveAt: number;
+  profile?: UserProfile;
 }

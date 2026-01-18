@@ -5,13 +5,15 @@ import { useFirestoreSync } from '../hooks/useFirestoreSync';
 import RunTimeline from './RunTimeline';
 import RunDetail from './RunDetail';
 import Comparison from './Comparison';
+import TestStats from './TestStats';
+import UserSettings from './UserSettings';
 
 interface MyArchiveProps {
     user: User;
     onBack?: () => void;
 }
 
-type ViewMode = 'timeline' | 'comparison' | 'detail';
+type ViewMode = 'timeline' | 'comparison' | 'detail' | 'stats' | 'settings';
 
 export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
     const [testRuns, setTestRuns] = useState<TestRun[]>([]);
@@ -62,19 +64,25 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
 
     return (
         <div className="min-h-screen bg-kiwi-bg">
+            {/* Settings View */}
+            {viewMode === 'settings' && (
+                <UserSettings user={user} onBack={() => handleViewChange('timeline')} />
+            )}
+
+            {/* Detail View */}
             {viewMode === 'detail' && selectedRun ? (
                 <RunDetail run={selectedRun} onBack={handleBackToTimeline} />
-            ) : (
+            ) : viewMode !== 'settings' ? (
                 <>
                     {/* Tab Navigation */}
                     {testRuns.length > 0 && (
                         <div className="max-w-4xl mx-auto px-6 pt-12 pb-6">
-                            <div className="flex gap-2 border-b border-gray-200">
+                            <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
                                 <button
                                     onClick={() => handleViewChange('timeline')}
-                                    className={`px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'timeline'
-                                            ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
-                                            : 'text-gray-400 hover:text-gray-600'
+                                    className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'timeline'
+                                        ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
+                                        : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
                                     時間線
@@ -82,11 +90,11 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                 <button
                                     onClick={() => handleViewChange('comparison')}
                                     disabled={testRuns.length < 2}
-                                    className={`px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'comparison'
-                                            ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
-                                            : testRuns.length < 2
-                                                ? 'text-gray-300 cursor-not-allowed'
-                                                : 'text-gray-400 hover:text-gray-600'
+                                    className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'comparison'
+                                        ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
+                                        : testRuns.length < 2
+                                            ? 'text-gray-300 cursor-not-allowed'
+                                            : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
                                     對比分析
@@ -94,19 +102,40 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         <span className="ml-2 text-xs">（需 2+ 筆）</span>
                                     )}
                                 </button>
+                                <button
+                                    onClick={() => handleViewChange('stats')}
+                                    className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'stats'
+                                        ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
+                                        : 'text-gray-400 hover:text-gray-600'
+                                        }`}
+                                >
+                                    📊 統計
+                                </button>
+                                <button
+                                    onClick={() => handleViewChange('settings')}
+                                    className="flex-shrink-0 px-6 py-3 font-serif text-lg font-medium text-gray-400 hover:text-gray-600 transition-all ml-auto"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1">
+                                        <circle cx="12" cy="12" r="3" />
+                                        <path d="M12 1v6m0 6v6" />
+                                        <path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24" />
+                                        <path d="M1 12h6m6 0h6" />
+                                        <path d="m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24" />
+                                    </svg>
+                                    設定
+                                </button>
                             </div>
                         </div>
                     )}
 
-                    {viewMode === 'timeline' && (
-                        <RunTimeline runs={testRuns} onSelect={handleSelectRun} onBack={onBack} user={user} />
-                    )}
-
-                    {viewMode === 'comparison' && (
-                        <Comparison runs={testRuns} onBack={() => handleViewChange('timeline')} />
-                    )}
+                    {/* Content Area */}
+                    <div className="max-w-4xl mx-auto px-6 py-8">
+                        {viewMode === 'stats' && <TestStats testRuns={testRuns} />}
+                        {viewMode === 'timeline' && <RunTimeline runs={testRuns} onSelect={handleSelectRun} onBack={onBack} user={user} />}
+                        {viewMode === 'comparison' && <Comparison runs={testRuns} />}
+                    </div>
                 </>
-            )}
+            ) : null}
         </div>
     );
 };
