@@ -131,6 +131,23 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
         >
           Start 開始旅程
         </button>
+
+        {/* Social Proof - Gentle & Minimal */}
+        <div className="mt-10 space-y-2 opacity-70 hover:opacity-100 transition-opacity">
+          <p className="text-xs text-gray-500 tracking-wider font-serif">
+            已幫助 <span className="font-semibold text-gray-700">10,000+</span> 位用戶探索性格奧秘
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            <div className="flex gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <svg key={i} className="w-2.5 h-2.5 fill-current text-yellow-400" viewBox="0 0 20 20">
+                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                </svg>
+              ))}
+            </div>
+            <span className="text-xs font-mono text-gray-400">4.9/5.0</span>
+          </div>
+        </div>
       </div>
     </div>
   );
