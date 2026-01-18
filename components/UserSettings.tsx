@@ -106,7 +106,7 @@ export const UserSettings: React.FC<UserSettingsProps> = ({ user, onBack }) => {
                     {/* Language Setting */}
                     <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            <span>🌐</span> 語言 / Language
+                            語言 / Language
                         </h2>
                         <div className="space-y-3">
                             <label className="flex items-center gap-3 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-kiwi-dark transition-colors">
@@ -141,7 +141,7 @@ export const UserSettings: React.FC<UserSettingsProps> = ({ user, onBack }) => {
                     {/* Notification Preferences */}
                     <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            <span>🔔</span> 通知偏好
+                            通知偏好
                         </h2>
                         <div className="space-y-4">
                             <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
@@ -187,7 +187,7 @@ export const UserSettings: React.FC<UserSettingsProps> = ({ user, onBack }) => {
                     {/* Privacy Settings */}
                     <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
                         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            <span>🔒</span> 隱私
+                            隱私
                         </h2>
                         <div className="space-y-4">
                             <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">

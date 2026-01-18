@@ -38,7 +38,7 @@ export const TestStats: React.FC<TestStatsProps> = ({ testRuns }) => {
     if (testRuns.length === 0) {
         return (
             <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-200 text-center">
-                <div className="text-6xl mb-4">📊</div>
+                <div className="text-6xl mb-4">-</div>
                 <h2 className="text-xl font-bold text-gray-800 mb-2">還沒有測驗記錄</h2>
                 <p className="text-gray-500">完成測驗後，這裡會顯示你的性格演變軌跡</p>
             </div>
@@ -56,7 +56,7 @@ export const TestStats: React.FC<TestStatsProps> = ({ testRuns }) => {
     return (
         <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 border-2 border-kiwi-dark">
             <h2 className="text-2xl md:text-3xl font-bold mb-6 font-display flex items-center gap-2">
-                <span>📊</span> 你的測驗足跡
+                你的測驗足跡
             </h2>
 
             {/* Stats Grid */}
@@ -85,7 +85,7 @@ export const TestStats: React.FC<TestStatsProps> = ({ testRuns }) => {
             {/* Evolution Path */}
             <div className="border-t border-gray-200 pt-6">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <span>📈</span> 人格演變軌跡
+                    人格演變軌跡
                 </h3>
                 <div className="flex items-center gap-2 overflow-x-auto pb-2">
                     {stats.evolution.map((type, i) => (
@@ -100,7 +100,7 @@ export const TestStats: React.FC<TestStatsProps> = ({ testRuns }) => {
                     ))}
                 </div>
                 <p className="text-xs text-gray-500 mt-4">
-                    💡 顯示最近 5 次測驗的演變軌跡
+                    顯示最近 5 次測驗的演變軌跡
                 </p>
             </div>
 

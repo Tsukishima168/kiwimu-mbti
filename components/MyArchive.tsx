@@ -109,7 +109,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
-                                    📊 統計
+                                    統計
                                 </button>
                                 <button
                                     onClick={() => handleViewChange('settings')}
