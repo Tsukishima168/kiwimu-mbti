@@ -31,21 +31,54 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
             </svg>
           </button>
           {/* Dropdown Menu */}
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+            {/* User Info Header */}
+            <div className="px-4 py-3 border-b border-gray-100">
+              <p className="text-xs text-gray-500">已登入</p>
+              <p className="text-sm font-medium text-gray-800 truncate">
+                {user.displayName || user.email || `用戶 ${user.uid.slice(0, 8)}`}
+              </p>
+            </div>
             <button
               onClick={onStart}
-              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100"
+              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center gap-3"
             >
-              開始測驗
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              <span>開始測驗</span>
             </button>
             {onViewArchive && (
               <button
                 onClick={onViewArchive}
                 className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100"
               >
-                我的檔案館
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+                    </svg>
+                    <span>我的檔案館</span>
+                  </div>
+                  <span className="px-2 py-0.5 bg-kiwi-dark text-white text-xs rounded-full font-mono">0</span>
+                </div>
               </button>
             )}
+            {/* Settings Shortcut */}
+            <button
+              onClick={() => { if (onViewArchive) onViewArchive(); }}
+              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center gap-3"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 1v6m0 6v6" />
+                <path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24" />
+                <path d="M1 12h6m6 0h6" />
+                <path d="m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24" />
+              </svg>
+              <span>設定</span>
+            </button>
             {onLogout && (
               <button
                 onClick={onLogout}
