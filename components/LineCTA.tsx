@@ -32,6 +32,16 @@ export const LineCTA: React.FC<LineCTAProps> = ({
                         href={LINE_ADD_FRIEND_URL}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => {
+                            // Google Analytics 追蹤
+                            if (typeof gtag !== 'undefined') {
+                                gtag('event', 'line_cta_click', {
+                                    event_category: 'conversion',
+                                    event_label: 'result_page_compact',
+                                    value: 1
+                                });
+                            }
+                        }}
                         className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-[#00B900] text-white rounded-full font-bold hover:bg-[#00A000] transition-all shadow-md hover:shadow-lg text-sm"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -85,6 +95,16 @@ export const LineCTA: React.FC<LineCTAProps> = ({
                 href={LINE_ADD_FRIEND_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => {
+                    // Google Analytics 追蹤
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'line_cta_click', {
+                            event_category: 'conversion',
+                            event_label: 'result_page',
+                            value: 1
+                        });
+                    }
+                }}
                 className="block w-full"
             >
                 <button className="w-full bg-[#00B900] hover:bg-[#00A000] text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center gap-3 text-lg">
