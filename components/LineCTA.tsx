@@ -96,101 +96,86 @@ export const LineCTA: React.FC<LineCTAProps> = ({
     }
 
     return (
-        <div className={`bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-2xl p-6 md:p-8 border-2 border-green-200 shadow-lg ${className}`}>
-            {/* Header */}
-            <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-full text-sm font-bold mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-                        <path d="M10 17l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" fill="white" />
-                    </svg>
-                    <span>100% 免費</span>
-                </div>
-                <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                    🎁 免費獲取完整報告
-                </h3>
-                <p className="text-gray-600">
-                    {personalizedMsg.subtitle}
-                </p>
-            </div>
+        <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-pink-50 p-8 border border-amber-200/50 ${className}`}>
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-200/30 to-orange-200/30 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-200/30 to-purple-200/30 rounded-full blur-3xl" />
 
-            {/* Benefits */}
-            <div className="space-y-3 mb-6">
-                {[
-                    { icon: '📄', text: '完整 32 變體深度報告（PDF）' },
-                    { icon: '📅', text: '每週性格洞見推播' },
-                    { icon: '🎨', text: '搶先體驗新功能（貼圖、主題）' },
-                    { icon: '👥', text: '加入專屬社群討論' }
-                ].map((benefit, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-white/60 rounded-lg">
-                        <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-lg">
-                            {benefit.icon}
-                        </div>
-                        <span className="text-gray-800 font-medium">{benefit.text}</span>
+            <div className="relative">
+                {/* Header with gift emoji */}
+                <div className="text-center mb-6">
+                    <div className="inline-block text-6xl mb-4 animate-bounce-slow">
+                        🎁
                     </div>
-                ))}
-            </div>
+                    <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-800 mb-2">
+                        專屬禮物等你領取
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                        {personalizedMsg.subtitle}
+                    </p>
+                </div>
 
-            {/* CTA Button */}
-            <a
-                href={LINE_ADD_FRIEND_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => {
-                    // Google Analytics 追蹤
-                    if (typeof gtag !== 'undefined') {
-                        gtag('event', 'line_cta_click', {
-                            event_category: 'conversion',
-                            event_label: 'result_page',
-                            value: 1
-                        });
+                {/* Gift items - minimal list */}
+                <div className="mb-6 space-y-2">
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                        <span className="text-lg">📄</span>
+                        <span>完整性格報告（PDF）</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                        <span className="text-lg">🎨</span>
+                        <span>專屬性格貼圖抽獎資格</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-gray-700">
+                        <span className="text-lg">💬</span>
+                        <span>每週性格洞見</span>
+                    </div>
+                </div>
+
+                {/* Gentle CTA */}
+                <a
+                    href={LINE_ADD_FRIEND_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => {
+                        if (typeof gtag !== 'undefined') {
+                            gtag('event', 'line_cta_click', {
+                                event_category: 'conversion',
+                                event_label: 'result_page',
+                                value: 1
+                            });
+                        }
+                    }}
+                    className="block w-full"
+                >
+                    <button className="w-full bg-white hover:bg-gradient-to-r hover:from-green-400 hover:to-emerald-500 text-gray-800 hover:text-white font-medium py-3 px-6 rounded-xl border-2 border-gray-200 hover:border-transparent transition-all duration-300 shadow-sm hover:shadow-lg flex items-center justify-center gap-2 group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="group-hover:scale-110 transition-transform">
+                            <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
+                        </svg>
+                        <span>領取專屬禮物</span>
+                    </button>
+                </a>
+
+                {/* Subtle social proof */}
+                <p className="text-center text-xs text-gray-500 mt-4">
+                    {subscriberCount > 0
+                        ? `已有 ${subscriberCount.toLocaleString()} 位用戶領取`
+                        : '加入數千位用戶，探索性格奧秘'
                     }
-                }}
-                className="block w-full"
-            >
-                <button className="w-full bg-[#00B900] hover:bg-[#00A000] text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center gap-3 text-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" />
-                    </svg>
-                    立即加入 LINE 官方帳號
-                </button>
-            </a>
-
-            {/* Social Proof */}
-            <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                    {subscriberCount > 0 ? (
-                        <>已有 <span className="font-bold text-green-600">{subscriberCount.toLocaleString()}</span> 位用戶訂閱</>
-                    ) : (
-                        <>加入數千位用戶，一起探索性格奧秘</>
-                    )}
-                    {' '}
-                    <span className="text-yellow-500">⭐⭐⭐⭐⭐</span>
                 </p>
-            </div>
 
-            {/* Trust Indicators */}
-            <div className="mt-4 pt-4 border-t border-green-200">
-                <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                {/* Trust badge - very subtle */}
+                <div className="flex items-center justify-center gap-4 mt-3 text-xs text-gray-400">
                     <span className="flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" />
+                        </svg>
+                        可隨時退訂
+                    </span>
+                    <span className="flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                         </svg>
                         隱私保護
-                    </span>
-                    <span className="flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                        </svg>
-                        隨時可退訂
-                    </span>
-                    <span className="flex items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="m9 12 2 2 4-4" />
-                        </svg>
-                        永不推銷
                     </span>
                 </div>
             </div>
