@@ -12,6 +12,7 @@ import CollapsibleSection from './CollapsibleSection';
 import LanguageToggle from './LanguageToggle';
 import OnboardingTooltip from './OnboardingTooltip';
 import { useLanguage } from '../contexts/LanguageContext';
+import LineCTA from './LineCTA';
 import { resultTranslations } from '../i18n/resultTranslations';
 
 interface ResultProps {
