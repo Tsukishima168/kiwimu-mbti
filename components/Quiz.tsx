@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { User } from 'firebase/auth';
+import { Option, Question } from '../types';
 import { QUESTIONS } from '../constants';
 import { useProgressStorage } from '../hooks/useProgressStorage';
 import ResumeModal from './ResumeModal';
