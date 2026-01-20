@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
 const admin = require('firebase-admin');
-const serviceAccount = require('../firebase-adminsdk-key.json');
+const serviceAccount = require('./firebase-adminsdk-key.json');
 
 // 初始化 Firebase
 if (!admin.apps.length) {
