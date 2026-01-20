@@ -57,7 +57,7 @@ const MBTI_ROLE_MAPPING = {
     'ESTJ-T': '⚖️ ESTJ 執行者'
 };
 
-// Slash Command Definition
+// Slash Command Definitions
 const commands = [
     new SlashCommandBuilder()
         .setName('verify')
@@ -67,6 +67,29 @@ const commands = [
                 .setName('userid')
                 .setDescription('你的 Firebase User ID（在測驗結果頁面可以找到）')
                 .setRequired(true)
+        ),
+    new SlashCommandBuilder()
+        .setName('state')
+        .setDescription('分享你今天的航行狀態')
+        .addStringOption(option =>
+            option
+                .setName('status')
+                .setDescription('今天的狀態')
+                .setRequired(true)
+                .addChoices(
+                    { name: '🌊 平靜航行中', value: 'calm' },
+                    { name: '⛈️ 正在風暴裡', value: 'storm' },
+                    { name: '🌅 看見曙光了', value: 'dawn' },
+                    { name: '🗺️ 有點迷航', value: 'lost' },
+                    { name: '💭 在思考人生', value: 'thinking' },
+                    { name: '🎨 創作模式中', value: 'creative' }
+                )
+        )
+        .addStringOption(option =>
+            option
+                .setName('note')
+                .setDescription('想說的話（選填）')
+                .setRequired(false)
         )
 ].map(command => command.toJSON());
 
@@ -174,6 +197,7 @@ client.once('ready', async () => {
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
 
+    // /verify 指令
     if (interaction.commandName === 'verify') {
         await interaction.deferReply({ ephemeral: true });
 
@@ -208,14 +232,14 @@ client.on('interactionCreate', async interaction => {
             // 成功訊息
             await interaction.editReply({
                 content:
-                    `✅ **驗證成功！歡迎來到 KIWIMU 性格宇宙！**\n\n` +
-                    `🎯 **你的性格類型：** ${result.mbtiType}\n` +
+                    `✅ **驗證成功！歡迎登船，航行者！**\n\n` +
+                    `⛵ **你的性格類型：** ${result.mbtiType}\n` +
                     `🎨 **已獲得身分組：** ${result.role}\n\n` +
                     `**現在你可以：**\n` +
                     `• 存取你的專屬族群頻道\n` +
-                    `• 與同類型的夥伴交流\n` +
-                    `• 參與專屬活動和抽獎\n\n` +
-                    `開始探索吧！🚀`
+                    `• 使用 \`/state\` 分享你的航行狀態\n` +
+                    `• 與同在航行的夥伴交流\n\n` +
+                    `開始你的自由航行吧！🚀`
             });
 
             // 在公告頻道發歡迎訊息
@@ -225,7 +249,7 @@ client.on('interactionCreate', async interaction => {
 
             if (welcomeChannel) {
                 welcomeChannel.send(
-                    `🎉 歡迎 ${interaction.member} 加入 ${result.role} 大家庭！`
+                    `⛵ 新的航行者登船了！歡迎 ${interaction.member} 加入 ${result.role} 的航行！`
                 );
             }
 
@@ -235,6 +259,57 @@ client.on('interactionCreate', async interaction => {
                 content: '❌ 發生錯誤，請稍後再試，或聯繫管理員。'
             });
         }
+    }
+
+    // /state 指令 - 每日狀態打卡
+    if (interaction.commandName === 'state') {
+        const status = interaction.options.getString('status');
+        const note = interaction.options.getString('note');
+
+        const stateEmojis = {
+            'calm': '🌊',
+            'storm': '⛈️',
+            'dawn': '🌅',
+            'lost': '🗺️',
+            'thinking': '💭',
+            'creative': '🎨'
+        };
+
+        const stateMessages = {
+            'calm': '平靜航行中',
+            'storm': '正在風暴裡',
+            'dawn': '看見曙光了',
+            'lost': '有點迷航',
+            'thinking': '在思考人生',
+            'creative': '創作模式中'
+        };
+
+        // 找到狀態分享頻道
+        const stateChannel = interaction.guild.channels.cache.find(
+            ch => ch.name === '💬-跨類型閒聊'
+        );
+
+        if (!stateChannel) {
+            return interaction.reply({
+                content: '找不到狀態分享頻道',
+                ephemeral: true
+            });
+        }
+
+        // 發布狀態
+        const message = note
+            ? `${stateEmojis[status]} **${interaction.user.username}** 今天：${stateMessages[status]}\n💬 "${note}"`
+            : `${stateEmojis[status]} **${interaction.user.username}** 今天：${stateMessages[status]}`;
+
+        await stateChannel.send(message);
+
+        // 回覆用戶
+        await interaction.reply({
+            content: `✅ 已分享你的航行狀態！\n\n${message}\n\n繼續你的航行吧！⛵`,
+            ephemeral: true
+        });
+
+        // TODO: 儲存到數據庫用於統計
     }
 });
 
