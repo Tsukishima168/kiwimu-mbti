@@ -321,12 +321,14 @@ client.on('guildMemberAdd', async member => {
 
     if (welcomeChannel) {
         welcomeChannel.send(
-            `👋 歡迎 ${member} 來到 **KIWIMU 性格宇宙**！\n\n` +
-            `🎯 **快速開始：**\n` +
-            `1️⃣ 前往 https://kiwimu-mbti.vercel.app 完成性格測驗\n` +
-            `2️⃣ 測驗完成後，回到這裡使用 \`/verify 你的UserID\` 獲得專屬身份組\n` +
-            `3️⃣ 解鎖你的專屬族群頻道，開始交流！\n\n` +
-            `有任何問題請到 <#📝-意見箱> 留言 💬`
+            `⛵ 歡迎 ${member} 登船！\n\n` +
+            `這裡不只是性格測驗社群，更是一群正在尋找自由的航行者的基地。\n\n` +
+            `**🚀 快速開始：**\n` +
+            `1️⃣ 前往 https://kiwimu-mbti.vercel.app 完成測驗\n` +
+            `2️⃣ 使用 \`/verify 你的UserID\` 獲得專屬身份組\n` +
+            `3️⃣ 使用 \`/state\` 分享你今天的航行狀態\n\n` +
+            `在這裡，每個人都在航行，都在尋找自己的自由。\n` +
+            `歡迎你，航行者。💫`
         );
     }
 });
