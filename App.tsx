@@ -6,6 +6,7 @@ import { db } from './firestore.config';
 import { Option, MbtiResultData, Score } from './types';
 import { calculateResults, getVariant } from './utils/logic';
 import { getResultData } from './constants';
+import { loadResultData } from './utils/dataLoader';
 import { useFirestoreSync } from './hooks/useFirestoreSync';
 import { signInAnonymously } from 'firebase/auth';
 import Intro from './components/Intro';
@@ -19,6 +20,7 @@ import MyArchive from './components/MyArchive';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
 import { doc, getDoc } from 'firebase/firestore';
+import { trackPageView, trackQuizComplete, trackUserLogin } from './utils/analytics';
 import { LanguageProvider } from './contexts/LanguageContext';
 
 import NotFound from './components/NotFound';
@@ -120,6 +122,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Track virtual page view
+    // Map stage to a path structure
+    let path = `/${stage}`;
+    if (stage === 'intro') path = '/';
+
+    trackPageView(path);
   }, [stage]);
 
   const goToManifesto = () => {
@@ -133,11 +141,18 @@ const App: React.FC = () => {
   const handleQuizComplete = async (answers: Option[]) => {
     const { type, scores } = calculateResults(answers);
     const variant = getVariant(scores);
-    const data = getResultData(type, variant);
+    
+    // 優先從 Supabase 載入，fallback 到 constants
+    const data = await loadResultData(type, variant) || getResultData(type, variant);
+    
     setScores(scores);
     setResultData(data);
     sessionStorage.setItem('last_quiz_result', JSON.stringify(data));
     sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+
+    // Track Completion
+    trackQuizComplete(type, 0, user?.uid || undefined);
+
     setStage('loading');
 
     // Save to cloud in background - don't block UI
@@ -161,6 +176,10 @@ const App: React.FC = () => {
 
   const handleLoginSuccess = () => {
     console.log('Login successful! Checking for saved results...');
+
+    if (user) {
+      trackUserLogin('google', user.uid); // Assuming google/default for now or check provider
+    }
 
     // Try to restore previous results from session storage
     const savedResult = sessionStorage.getItem('last_quiz_result');

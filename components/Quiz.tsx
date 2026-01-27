@@ -3,8 +3,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { User } from 'firebase/auth';
 import { Option, Question } from '../types';
 import { QUESTIONS } from '../constants';
+import { loadQuestions } from '../utils/dataLoader';
 import { useProgressStorage } from '../hooks/useProgressStorage';
 import ResumeModal from './ResumeModal';
+import { trackQuizStart, trackQuizProgress, trackQuizComplete } from '../utils/analytics';
 
 interface QuizProps {
     user: User | null;
@@ -18,14 +20,34 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [showResumeModal, setShowResumeModal] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [questions, setQuestions] = useState<Question[]>(QUESTIONS); // 預設使用 constants
+    const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
     const { hasProgress, saveProgress, loadProgress, clearProgress } = useProgressStorage();
 
-    const currentQuestion: Question = QUESTIONS[currentIndex];
-    const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
-
-    // Check for existing progress on mount
+    // 載入題目（優先從 Supabase）
     useEffect(() => {
+        const fetchQuestions = async () => {
+            const loadedQuestions = await loadQuestions();
+            if (loadedQuestions && loadedQuestions.length > 0) {
+                setQuestions(loadedQuestions);
+            }
+            setQuestionsLoaded(true);
+        };
+        fetchQuestions();
+    }, []);
+
+    const currentQuestion: Question | undefined = questions[currentIndex];
+    const progress = questionsLoaded && currentQuestion ? ((currentIndex + 1) / questions.length) * 100 : 0;
+
+    // Track quiz start and check for existing progress on mount
+    useEffect(() => {
+        // Track quiz start
+        const urlParams = new URLSearchParams(window.location.search);
+        const source = urlParams.get('source') || urlParams.get('utm_source');
+        const campaignId = urlParams.get('campaign') || urlParams.get('utm_campaign');
+        trackQuizStart(source || undefined, campaignId || undefined);
+
         if (hasProgress) {
             const saved = loadProgress();
             // Only show resume modal if user has answered at least 10 questions (25% progress)
@@ -95,8 +117,11 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
         const newAnswers = [...answers, option];
         setAnswers(newAnswers);
 
+        // Track progress
+        trackQuizProgress(currentIndex + 1, questions.length);
+
         setTimeout(() => {
-            if (currentIndex < QUESTIONS.length - 1) {
+            if (currentIndex < questions.length - 1) {
                 setCurrentIndex(prev => prev + 1);
                 setIsAnimating(false);
             } else {
@@ -122,7 +147,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 <ResumeModal
                     onResume={handleResume}
                     onRestart={handleRestart}
-                    progress={{ currentIndex: answers.length, total: QUESTIONS.length }}
+                    progress={{ currentIndex: answers.length, total: questions.length }}
                 />
             )}
 
@@ -144,7 +169,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                             )}
                         </div>
                         <span className="text-xs font-mono text-gray-400 tracking-wider">
-                            {currentIndex + 1} / {QUESTIONS.length}
+                            {questionsLoaded && currentQuestion ? `${currentIndex + 1} / ${questions.length}` : '載入中...'}
                         </span>
                     </div>
                     <div className="h-[1px] bg-gray-100 w-full">
@@ -158,9 +183,13 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 {/* Content */}
                 <div className="flex-1 flex flex-col pt-24 pb-12 px-6 justify-center">
                     <div className="max-w-2xl mx-auto w-full">
-
-                        {/* Question Container */}
-                        <div className={`transition-all duration-500 transform ${isAnimating ? 'opacity-0 translate-y-[-10px]' : 'opacity-100 translate-y-0'}`}>
+                        {!questionsLoaded || !currentQuestion ? (
+                            <div className="text-center py-20">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kiwi-dark mx-auto mb-4"></div>
+                                <p className="text-gray-500">載入題目中...</p>
+                            </div>
+                        ) : (
+                            <div className={`transition-all duration-500 transform ${isAnimating ? 'opacity-0 translate-y-[-10px]' : 'opacity-100 translate-y-0'}`}>
 
                             {/* Atmospheric Image Block */}
                             <div className="w-full aspect-[21/9] mb-10 relative overflow-hidden bg-gray-100">
@@ -201,6 +230,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                                 ))}
                             </div>
                         </div>
+                        )}
                     </div>
                 </div>
             </div>
