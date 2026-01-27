@@ -14,6 +14,7 @@ import OnboardingTooltip from './OnboardingTooltip';
 import { useLanguage } from '../contexts/LanguageContext';
 import LineCTA from './LineCTA';
 import { resultTranslations } from '../i18n/resultTranslations';
+import { trackResultView, trackResultShare, trackResultDownload } from '../utils/analytics';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -137,6 +138,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
+  // Track result view on mount
+  useEffect(() => {
+    trackResultView(resultData.id, user?.uid);
+  }, [resultData.id, user]);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [selectedOtherType, activeTab]); // Scroll to top when tab changes
@@ -158,6 +164,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
       const dataUrl = canvas.toDataURL('image/png');
       setShareImage({ url: dataUrl, title: '完整測驗報告' });
 
+      // Track download
+      trackResultDownload('full', resultData.id);
+
       if (navigator.share) {
         try {
           await navigator.share({
@@ -165,6 +174,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             text: '來看看我的靈魂甜點是什麼！',
             url: window.location.origin,
           });
+          // Track share (if successfully shared)
+          trackResultShare('link', resultData.id, user?.uid);
         } catch (e) { console.log('Native share failed', e); }
       }
     } catch (err) {
@@ -289,8 +300,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
           </div>
 
-              {/* LINE Official Account CTA */}
-              <LineCTA className="mt-8" mbtiType={resultData.id} />
+          {/* LINE Official Account CTA */}
+          <LineCTA className="mt-8" mbtiType={resultData.id} />
 
 
           {/* TAB CONTENT */}
@@ -785,6 +796,33 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 );
               })}
             </div>
+          </div>
+
+          {/* MOON ISLAND DESSERT SHOP CTA */}
+          <div className="text-center max-w-3xl mx-auto py-20 md:py-32 border-t border-gray-100 px-6">
+            <div className="mb-8 md:mb-10">
+              <p className="text-[10px] md:text-[11px] font-mono text-gray-400 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-4 font-bold">NEXT STEP 下一站</p>
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-kiwi-dark mb-4 md:mb-6 leading-tight">
+                帶著你的測驗結果<br />前往月島領取甜點處方
+              </h3>
+              <p className="text-base md:text-lg text-gray-600 font-serif leading-relaxed mb-10 md:mb-12 max-w-xl mx-auto">
+                月島甜點店已為你準備好專屬的甜點處方，點擊下方按鈕，讓我們一起展開這趟療癒之旅。
+              </p>
+            </div>
+            <a
+              href={`https://moon-map-original.vercel.app/?mbti=${resultData.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-10 md:px-14 py-5 md:py-6 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:from-amber-600 hover:via-orange-600 hover:to-pink-600 text-white font-bold text-base md:text-lg tracking-wider shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-95 hover:scale-105 group"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform duration-300">
+                <path d="M12 2v20M5 12l7-7 7 7" />
+              </svg>
+              <span>前往月島，領取我的甜點處方</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-300">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
           </div>
 
           {/* DISCLAIMER & FOOTER */}

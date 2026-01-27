@@ -75,9 +75,43 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                 <RunDetail run={selectedRun} onBack={handleBackToTimeline} />
             ) : viewMode !== 'settings' ? (
                 <>
-                    {/* Tab Navigation */}
+                    {/* Moon Island Cross-Site Link */}
                     {testRuns.length > 0 && (
                         <div className="max-w-4xl mx-auto px-6 pt-12 pb-6">
+                            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-6 md:p-8 shadow-lg">
+                                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-2xl">🏝️</span>
+                                            <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-800">島嶼連結</h3>
+                                        </div>
+                                        <p className="text-sm md:text-base text-gray-600 mb-2">
+                                            💡 您的測驗結果已同步至月島品牌資料庫
+                                        </p>
+                                        <p className="text-xs md:text-sm text-gray-500">
+                                            前往甜點店可查看您的島民檔案與專屬甜點處方
+                                        </p>
+                                    </div>
+                                    <a
+                                        href={`https://moon-map-original.vercel.app/?mbti=${testRuns[0]?.result || ''}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 hover:from-amber-500 hover:via-yellow-500 hover:to-orange-500 text-gray-900 font-bold text-base md:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap"
+                                    >
+                                        <span className="text-xl">🍰</span>
+                                        <span>前往月島甜點店</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-300">
+                                            <path d="M5 12h14M12 5l7 7-7 7" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tab Navigation */}
+                    {testRuns.length > 0 && (
+                        <div className="max-w-4xl mx-auto px-6 pt-6 pb-6">
                             <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
                                 <button
                                     onClick={() => handleViewChange('timeline')}

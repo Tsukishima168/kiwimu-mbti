@@ -93,16 +93,43 @@ export const deleteProgress = async (
 };
 
 /**
+ * Generate a unique share ID for test results
+ */
+const generateShareId = (): string => {
+    const timestamp = Date.now().toString(36);
+    const random = Math.random().toString(36).substring(2, 8);
+    return `${timestamp}${random}`.toUpperCase();
+};
+
+/**
  * Test Run operations
  */
 export const saveTestRun = async (
     run: Omit<TestRun, 'id'>
 ): Promise<string> => {
     const runsCollection = collection(db, 'test_runs');
+
+    // Generate share ID for this test
+    const shareId = generateShareId();
+    const shareUrl = `https://kiwimu-mbti.vercel.app/r/${shareId}`;
+
     const docRef = await addDoc(runsCollection, {
         ...run,
         finishedAt: Date.now(),
+        shareId,
+        shareUrl,
+        isPublic: true, // Allow sharing by default
     });
+
+    // Create share link mapping
+    const shareLinkRef = doc(db, 'share_links', shareId);
+    await setDoc(shareLinkRef, {
+        uid: run.uid,
+        testId: docRef.id,
+        mbtiType: run.mbtiType,
+        createdAt: Date.now(),
+    });
+
     return docRef.id;
 };
 
@@ -159,4 +186,34 @@ export const getLatestTestRun = async (uid: string): Promise<TestRun | null> => 
         } as TestRun;
     }
     return null;
+};
+
+/**
+ * Get shared test result by share ID
+ */
+export const getSharedTestResult = async (shareId: string): Promise<TestRun | null> => {
+    try {
+        // First, get the share link mapping
+        const shareLinkRef = doc(db, 'share_links', shareId);
+        const shareLinkDoc = await getDoc(shareLinkRef);
+
+        if (!shareLinkDoc.exists()) {
+            return null;
+        }
+
+        const { testId } = shareLinkDoc.data();
+
+        // Then get the actual test run
+        const testRun = await getTestRunById(testId);
+
+        // Only return if test is public
+        if (testRun && testRun.isPublic !== false) {
+            return testRun;
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error getting shared test result:', error);
+        return null;
+    }
 };

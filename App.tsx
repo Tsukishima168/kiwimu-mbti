@@ -1,4 +1,4 @@
-// Deployment trigger: 2026-01-11-23-32
+// Deployment trigger: 2026-01-27-moon-island
 import React, { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { auth } from './firebase';
@@ -23,6 +23,13 @@ import { doc, getDoc } from 'firebase/firestore';
 import { trackPageView, trackQuizComplete, trackUserLogin } from './utils/analytics';
 import { LanguageProvider } from './contexts/LanguageContext';
 
+// 行銷像素追蹤
+import { initAllPixels, trackMarketingEvent, MARKETING_EVENTS, createCustomAudience } from './utils/marketingPixels';
+import { initSession, trackAction, saveUserBehavior } from './utils/userDataCollector';
+
+// Moon Island 整合
+import { saveMBTIToMoonIsland } from './utils/moonIslandSync';
+
 import NotFound from './components/NotFound';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | '404';
@@ -43,6 +50,16 @@ const App: React.FC = () => {
     const init = async () => {
       await auth.authStateReady();
       setLoading(false);
+
+      // 初始化行銷像素（新增）
+      initAllPixels();
+
+      // 初始化用戶 Session（新增）
+      initSession();
+
+      // 追蹤頁面進入（新增）
+      trackMarketingEvent(MARKETING_EVENTS.PAGE_VIEW);
+      trackAction('app_init', { timestamp: Date.now() });
     };
     init();
   }, []);
@@ -131,27 +148,45 @@ const App: React.FC = () => {
   }, [stage]);
 
   const goToManifesto = () => {
+    trackAction('view_manifesto'); // 【新增】追蹤查看宣言
     setStage('manifesto');
   };
 
   const startQuiz = () => {
+    // 【新增】追蹤開始測驗
+    trackMarketingEvent(MARKETING_EVENTS.START_QUIZ);
+    trackAction('start_quiz');
+
     setStage('quiz');
   };
 
   const handleQuizComplete = async (answers: Option[]) => {
     const { type, scores } = calculateResults(answers);
     const variant = getVariant(scores);
-    
+
     // 優先從 Supabase 載入，fallback 到 constants
     const data = await loadResultData(type, variant) || getResultData(type, variant);
-    
+
     setScores(scores);
     setResultData(data);
     sessionStorage.setItem('last_quiz_result', JSON.stringify(data));
     sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
 
-    // Track Completion
+    // Track Completion (現有的 GA4)
     trackQuizComplete(type, 0, user?.uid || undefined);
+
+    // 【新增】追蹤行銷轉換事件
+    trackMarketingEvent(MARKETING_EVENTS.COMPLETE_QUIZ, {
+      mbtiType: type,
+      variant: variant,
+      value: 100 // 虛擬轉換價值，可依需求調整
+    });
+
+    // 【新增】建立自訂受眾（用於再行銷）
+    createCustomAudience(type, variant);
+
+    // 【新增】記錄用戶行為
+    trackAction('complete_quiz', { mbtiType: type, variant });
 
     setStage('loading');
 
@@ -167,10 +202,34 @@ const App: React.FC = () => {
           setShowSaveToast({ show: true, success: false, message: '⚠️ 結果已保存在此裝置，請稍後登入同步' });
           setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4000);
         });
+
+      // 儲存用戶行為資料到 Firebase
+      saveUserBehavior(user.uid, type, variant).catch(console.error);
+
+      // 【新增】同步 MBTI 結果到月島品牌資料庫
+      const userEmail = user.email || user.providerData[0]?.email;
+      if (userEmail) {
+        saveMBTIToMoonIsland(
+          userEmail,
+          type,
+          user.displayName || undefined,
+          user.photoURL || undefined
+        ).catch(err => console.error('Failed to sync to Moon Island:', err));
+      } else {
+        console.warn('⚠️ User email not available, skipping Moon Island sync');
+      }
     }
   };
 
   const handleLoadingFinished = () => {
+    // 【新增】追蹤查看結果
+    if (resultData) {
+      trackMarketingEvent(MARKETING_EVENTS.VIEW_RESULT, {
+        mbtiType: resultData.id,
+      });
+      trackAction('view_result', { mbtiType: resultData.id });
+    }
+
     setStage('result');
   };
 
@@ -179,6 +238,10 @@ const App: React.FC = () => {
 
     if (user) {
       trackUserLogin('google', user.uid); // Assuming google/default for now or check provider
+
+      // 【新增】追蹤登入事件
+      trackMarketingEvent(MARKETING_EVENTS.LOGIN);
+      trackAction('login', { provider: user.providerData[0]?.providerId || 'unknown' });
     }
 
     // Try to restore previous results from session storage
@@ -200,6 +263,10 @@ const App: React.FC = () => {
   };
 
   const handleRetest = () => {
+    // 【新增】追蹤重測事件
+    trackMarketingEvent(MARKETING_EVENTS.RETEST);
+    trackAction('retest', { previousType: resultData?.id });
+
     if (user && !user.isAnonymous) {
       setStage('result');
     } else {
@@ -240,6 +307,10 @@ const App: React.FC = () => {
   };
 
   const handleViewArchive = () => {
+    // 【新增】追蹤查看檔案
+    trackMarketingEvent(MARKETING_EVENTS.VIEW_ARCHIVE);
+    trackAction('view_archive');
+
     if (!user || user.isAnonymous) {
       sessionStorage.setItem('flow_stage', 'result');
       setStage('login');

@@ -90,6 +90,7 @@ export interface QuizProgress {
 export interface TestRun {
   id?: string; // Firestore document ID
   uid: string;
+  mbtiType?: string; // Full MBTI type (e.g., "INTJ-A") for sharing
   resultType: string; // e.g., "INTJ"
   suffix: 'A' | 'T';
   scores: Score;
@@ -97,6 +98,9 @@ export interface TestRun {
   scoringVersion: string;
   dessertCatalogVersion: string;
   finishedAt: number; // timestamp
+  shareId?: string; // Unique share ID
+  shareUrl?: string; // Full shareable URL
+  isPublic?: boolean; // Whether result can be publicly shared
 }
 
 /** User Profile（用戶個人檔案） */
