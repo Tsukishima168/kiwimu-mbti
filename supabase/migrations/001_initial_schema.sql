@@ -105,13 +105,17 @@ CREATE TABLE IF NOT EXISTS mbti_character_images (
   version TEXT, -- 圖片版本號
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(mbti_type, is_active) WHERE is_active = true -- 每個類型只能有一個啟用的圖片
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 索引
 CREATE INDEX IF NOT EXISTS idx_char_images_type ON mbti_character_images(mbti_type);
 CREATE INDEX IF NOT EXISTS idx_char_images_active ON mbti_character_images(is_active);
+
+-- 每個類型只能有一個啟用的圖片（partial unique index）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_char_images_unique_active 
+  ON mbti_character_images(mbti_type) 
+  WHERE is_active = true;
 
 -- ============================================
 -- 5. 甜點配對表 (mbti_dessert_mappings)
@@ -130,13 +134,17 @@ CREATE TABLE IF NOT EXISTS mbti_dessert_mappings (
   alternative_desserts TEXT[], -- 替代甜點陣列
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(mbti_type, is_active) WHERE is_active = true
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- 索引
 CREATE INDEX IF NOT EXISTS idx_dessert_type ON mbti_dessert_mappings(mbti_type);
 CREATE INDEX IF NOT EXISTS idx_dessert_active ON mbti_dessert_mappings(is_active);
+
+-- 每個類型只能有一個啟用的甜點配對（partial unique index）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_dessert_unique_active 
+  ON mbti_dessert_mappings(mbti_type) 
+  WHERE is_active = true;
 
 -- ============================================
 -- 6. 維度說明表 (dimension_explanations)

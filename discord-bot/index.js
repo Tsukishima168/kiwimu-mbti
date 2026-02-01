@@ -1,7 +1,8 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes } = require('discord.js');
+const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, EmbedBuilder } = require('discord.js');
 const admin = require('firebase-admin');
 const serviceAccount = require('./firebase-adminsdk-key.json');
+const { CHANNEL_NAMES, MBTI_TO_CHANNEL, findChannel } = require('./channelConfig');
 
 // 初始化 Firebase
 if (!admin.apps.length) {
@@ -11,6 +12,21 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+
+// Helper to log analytics events
+async function logAnalyticsEvent(eventName, eventData) {
+    try {
+        await db.collection('analytics_events').add({
+            eventName,
+            ...eventData,
+            platform: 'discord',
+            timestamp: Date.now(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (error) {
+        console.error(`Failed to log ${eventName}:`, error);
+    }
+}
 
 // 創建 Discord Client
 const client = new Client({
@@ -56,6 +72,21 @@ const MBTI_ROLE_MAPPING = {
     'ESTJ-A': '⚖️ ESTJ 鐵血執行長',
     'ESTJ-T': '⚖️ ESTJ 鐵血執行長'
 };
+
+// ========================================
+// 跨產品連結產生器（加入 UTM 追蹤）
+// ========================================
+function buildProductLinks(source = 'bot', campaign = 'community') {
+    const baseParams = `utm_source=discord&utm_medium=${source}&utm_campaign=${campaign}`;
+    return {
+        mbti: `https://kiwimu-mbti.vercel.app?${baseParams}`,
+        moonMap: `https://moon-map-original.vercel.app?${baseParams}`,
+        passport: `https://moonmoon-dessert-passport.vercel.app?${baseParams}`,
+        // Dessert Booking 尚未部署，使用月島地圖代替
+        dessertBooking: `https://moon-map-original.vercel.app?${baseParams}&redirect=dessert`
+    };
+}
+
 
 // Slash Command Definitions
 const commands = [
@@ -229,29 +260,77 @@ client.on('interactionCreate', async interaction => {
                 });
             }
 
-            // 成功訊息
+            // 成功訊息（加入跨產品導流）
+            const links = buildProductLinks('verify', 'community');
             await interaction.editReply({
                 content:
-                    `✅ **驗證成功！歡迎登船，航行者！**\n\n` +
+                    `✅ **驗證成功！歡迎來到 Moon Moon 社群！**\n\n` +
                     `⛵ **你的性格類型：** ${result.mbtiType}\n` +
                     `🎨 **已獲得身分組：** ${result.role}\n\n` +
                     `**現在你可以：**\n` +
-                    `• 存取你的專屬族群頻道\n` +
-                    `• 使用 \`/state\` 分享你的航行狀態\n` +
-                    `• 與同在航行的夥伴交流\n\n` +
+                    `• 存取你的專屬 MBTI 族群頻道\n` +
+                    `• 使用 \`/state\` 分享你的狀態\n` +
+                    `• 與同類型的夥伴交流\n` +
+                    `• 累積積分兌換福利\n\n` +
+                    `🌍 **繼續探索 Moon Moon 宇宙：**\n` +
+                    `🗺️ [月島地圖](${links.moonMap})\n` +
+                    `🎨 [甜點護照](${links.passport})\n\n` +
                     `開始你的自由航行吧！🚀`
             });
 
-            // 在公告頻道發歡迎訊息
-            const welcomeChannel = interaction.guild.channels.cache.find(
-                ch => ch.name === '📣-最新消息'
-            );
+            // 在 results 頻道發歡迎訊息（優化版）
+            const resultsChannel = findChannel(interaction.guild, [
+                CHANNEL_NAMES.RESULTS,
+                'results',
+                '📊-測驗結果', // 向後兼容舊名稱
+                '📯-最新消息',
+                '📣-最新消息'
+            ]);
 
-            if (welcomeChannel) {
-                welcomeChannel.send(
-                    `⛵ 新的航行者登船了！歡迎 ${interaction.member} 加入 ${result.role} 的航行！`
-                );
+            if (resultsChannel) {
+                const links = buildProductLinks('results', 'community');
+                const embed = new EmbedBuilder()
+                    .setTitle(`🎉 新的航行者：${result.mbtiType}`)
+                    .setDescription(`歡迎 ${interaction.member} 加入 ${result.role.name} 的航行！`)
+                    .setColor(0xD8E038) // Kiwi yellow
+                    .setFooter({ text: '點擊下方按鈕探索更多' })
+                    .setTimestamp();
+
+                resultsChannel.send({
+                    embeds: [embed],
+                    components: [{
+                        type: 1,
+                        components: [
+                            {
+                                type: 2,
+                                style: 5,
+                                label: '🧪 查看完整報告',
+                                url: `${links.mbti}&mbti=${result.mbtiType}`
+                            },
+                            {
+                                type: 2,
+                                style: 5,
+                                label: '🗺️ 月島地圖',
+                                url: links.moonMap
+                            },
+                            {
+                                type: 2,
+                                style: 5,
+                                label: '🎨 甜點護照',
+                                url: links.passport
+                            }
+                        ]
+                    }]
+                });
             }
+
+            // Track Verification
+            await logAnalyticsEvent('discord_verify_complete', {
+                userId: userId, // Firebase UID
+                discord_id: interaction.user.id,
+                discord_username: interaction.user.username,
+                mbti_type: mbtiType
+            });
 
         } catch (error) {
             console.error('分配身份組失敗:', error);
@@ -284,14 +363,18 @@ client.on('interactionCreate', async interaction => {
             'creative': '創作模式中'
         };
 
-        // 找到狀態分享頻道
-        const stateChannel = interaction.guild.channels.cache.find(
-            ch => ch.name === '💬-跨類型閒聊'
-        );
+        // 找到狀態分享頻道（優化版，支援新舊名稱）
+        const stateChannel = findChannel(interaction.guild, [
+            CHANNEL_NAMES.DAILY_STATE,
+            'daily-state',
+            '💬-跨類型閒聊', // 向後兼容
+            CHANNEL_NAMES.GENERAL,
+            'general'
+        ]);
 
         if (!stateChannel) {
             return interaction.reply({
-                content: '找不到狀態分享頻道',
+                content: '❌ 找不到狀態分享頻道，請聯繫管理員設定 `#daily-state` 頻道',
                 ephemeral: true
             });
         }
@@ -303,6 +386,15 @@ client.on('interactionCreate', async interaction => {
 
         await stateChannel.send(message);
 
+        // Track State Share
+        await logAnalyticsEvent('discord_state_share', {
+            discord_id: interaction.user.id,
+            discord_username: interaction.user.username,
+            emotional_state: status,
+            state_message: stateMessages[status],
+            note: note || null
+        });
+
         // 回覆用戶
         await interaction.reply({
             content: `✅ 已分享你的航行狀態！\n\n${message}\n\n繼續你的航行吧！⛵`,
@@ -313,24 +405,72 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-// 新成員加入事件
+// 新成員加入事件（優化版）
 client.on('guildMemberAdd', async member => {
-    const welcomeChannel = member.guild.channels.cache.find(
-        ch => ch.name === '📣-最新消息'
-    );
+    // 找到 start-here 頻道（優先新結構，向後兼容）
+    const welcomeChannel = findChannel(member.guild, [
+        CHANNEL_NAMES.START_HERE,
+        'start-here',
+        '📯-最新消息', // 向後兼容
+        '📣-最新消息'
+    ]);
 
     if (welcomeChannel) {
-        welcomeChannel.send(
-            `⛵ 歡迎 ${member} 登船！\n\n` +
-            `這裡不只是性格測驗社群，更是一群正在尋找自由的航行者的基地。\n\n` +
-            `**🚀 快速開始：**\n` +
-            `1️⃣ 前往 https://kiwimu-mbti.vercel.app 完成測驗\n` +
-            `2️⃣ 使用 \`/verify 你的UserID\` 獲得專屬身份組\n` +
-            `3️⃣ 使用 \`/state\` 分享你今天的航行狀態\n\n` +
-            `在這裡，每個人都在航行，都在尋找自己的自由。\n` +
-            `歡迎你，航行者。💫`
-        );
+        const links = buildProductLinks('welcome', 'new_member');
+        const embed = new EmbedBuilder()
+            .setTitle('🌙 歡迎來到 Moon Moon 社群！')
+            .setDescription(`歡迎 ${member} 加入 Moon Moon 品牌社群！`)
+            .setColor(0xD8E038)
+            .addFields(
+                {
+                    name: '🌍 選擇你的探索起點',
+                    value: '🧪 MBTI 測驗 - 探索性格\n🗺️ 月島地圖 - 了解品牌\n🎨 甜點護照 - 趣味測驗',
+                    inline: false
+                },
+                {
+                    name: '🚀 快速開始',
+                    value: '1. 完成 MBTI 測驗\n2. 使用 `/verify` 驗證身份\n3. 獲得專屬身份組\n4. 累積積分兌換福利',
+                    inline: false
+                }
+            )
+            .setFooter({ text: '開始你的探索之旅！' })
+            .setTimestamp();
+
+        welcomeChannel.send({
+            content: `${member}`,
+            embeds: [embed],
+            components: [{
+                type: 1,
+                components: [
+                    {
+                        type: 2,
+                        style: 5,
+                        label: '🧪 MBTI 測驗',
+                        url: links.mbti
+                    },
+                    {
+                        type: 2,
+                        style: 5,
+                        label: '🗺️ 月島地圖',
+                        url: links.moonMap
+                    },
+                    {
+                        type: 2,
+                        style: 5,
+                        label: '🎨 甜點護照',
+                        url: links.passport
+                    }
+                ]
+            }]
+        });
     }
+
+    // Track Join
+    await logAnalyticsEvent('discord_join', {
+        discord_id: member.id,
+        discord_username: member.user.username,
+        platform: 'discord'
+    });
 });
 
 // 登入

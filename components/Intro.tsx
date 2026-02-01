@@ -1,6 +1,6 @@
-
 import React from 'react';
 import { User } from 'firebase/auth';
+import { trackButtonClick } from '../utils/analytics';
 
 interface IntroProps {
   onStart: () => void;
@@ -17,7 +17,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
       {/* Login button in top-right corner */}
       {!user || user.isAnonymous ? (
         <button
-          onClick={onLogin}
+          onClick={() => { trackButtonClick('登入', 'intro_header'); onLogin(); }}
           className="absolute top-6 right-6 px-6 py-2 border border-kiwi-dark text-kiwi-dark hover:bg-kiwi-dark hover:text-white transition-all duration-300 font-bold text-sm z-50"
         >
           登入
@@ -40,7 +40,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
               </p>
             </div>
             <button
-              onClick={onStart}
+              onClick={() => { trackButtonClick('開始測驗', 'intro_dropdown'); onStart(); }}
               className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center gap-3"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -50,7 +50,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
             </button>
             {onViewArchive && (
               <button
-                onClick={onViewArchive}
+                onClick={() => { trackButtonClick('我的檔案館', 'intro_dropdown'); onViewArchive(); }}
                 className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100"
               >
                 <div className="flex items-center justify-between">
@@ -67,7 +67,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
             )}
             {/* Settings Shortcut */}
             <button
-              onClick={() => { if (onViewArchive) onViewArchive(); }}
+              onClick={() => { trackButtonClick('設定', 'intro_dropdown'); if (onViewArchive) onViewArchive(); }}
               className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center gap-3"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -81,7 +81,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
             </button>
             {onLogout && (
               <button
-                onClick={onLogout}
+                onClick={() => { trackButtonClick('登出', 'intro_dropdown'); onLogout(); }}
                 className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors text-gray-700"
               >
                 登出
@@ -101,7 +101,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
         {/* 圓形動畫容器 */}
         <div
           className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden shadow-2xl mb-12 relative group cursor-pointer bg-gray-100"
-          onClick={onStart}
+          onClick={() => { trackButtonClick('進入_圓形', 'intro_main'); onStart(); }}
         >
           <img
             src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif"
@@ -126,7 +126,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
         </p>
 
         <button
-          onClick={onStart}
+          onClick={() => { trackButtonClick('Start_開始旅程', 'intro_main'); onStart(); }}
           className="px-12 py-4 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 font-bold tracking-[0.2em] text-sm uppercase hover:scale-105 active:scale-95 hover:shadow-lg"
         >
           Start 開始旅程

@@ -110,8 +110,8 @@ export const TestStats: React.FC<TestStatsProps> = ({ testRuns }) => {
                     <h4 className="text-sm font-bold text-blue-900 mb-2">穩定度指標</h4>
                     <p className="text-xs text-blue-700">
                         {stats.evolution.slice(-3).every(t => t === stats.mostCommon)
-                            ? '✅ 最近 3 次測驗結果一致，性格穩定度高'
-                            : '🔄 最近測驗結果有變化，可能反映了你的成長或環境影響'
+                            ? '最近 3 次測驗結果一致，性格穩定度高'
+                            : '最近測驗結果有變化，可能反映了你的成長或環境影響'
                         }
                     </p>
                 </div>

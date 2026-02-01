@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { MbtiResultData, Score } from '../types';
 import { calculatePercentages } from '../utils/logic';
-import { DIMENSION_EXPLANATIONS, getResultData } from '../constants';
+import { DIMENSION_EXPLANATIONS, getResultData, MBTI_BG_COLORS } from '../constants';
 import { getRarityData, getRarityLabel, getRarityMessage } from '../data/rarityData';
 import { getCelebrityArchetypes } from '../data/celebrityData';
 import html2canvas from 'html2canvas';
@@ -14,7 +14,9 @@ import OnboardingTooltip from './OnboardingTooltip';
 import { useLanguage } from '../contexts/LanguageContext';
 import LineCTA from './LineCTA';
 import { resultTranslations } from '../i18n/resultTranslations';
-import { trackResultView, trackResultShare, trackResultDownload } from '../utils/analytics';
+import { trackResultView, trackResultShare, trackResultDownload, trackButtonClick } from '../utils/analytics';
+import { buildDessertOrderLink, trackDessertOrderClick } from '../utils/utmTracking';
+import ExploreMore from './ExploreMore';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -78,7 +80,7 @@ const SpectrumBar = ({ leftLabel, rightLabel, leftScore, rightScore, leftDesc, r
       <div className="text-3xl md:text-5xl font-bold text-black tracking-tighter">{leftScore}<span className="text-sm md:text-lg font-normal text-black font-sans ml-1">%</span></div>
       <div className="text-3xl md:text-5xl font-bold text-black text-right tracking-tighter">{rightScore}<span className="text-sm md:text-lg font-normal text-black font-sans ml-1">%</span></div>
     </div>
-    <div className="flex justify-between text-[10px] text-black font-mono tracking-[0.1em] font-medium uppercase">
+    <div className="flex justify-between text-[10px] text-black  tracking-[0.1em] font-medium uppercase">
       <p className="max-w-[140px] md:max-w-[180px] leading-relaxed">{leftDesc}</p>
       <p className="max-w-[140px] md:max-w-[180px] text-right leading-relaxed">{rightDesc}</p>
     </div>
@@ -96,10 +98,58 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
 
+  // 【新增】Discord 身份組自動發放
+  const [showDiscordRoleModal, setShowDiscordRoleModal] = useState(false);
+  const [discordUserId, setDiscordUserId] = useState('');
+  const [roleAssignStatus, setRoleAssignStatus] = useState<'idle' | 'assigning' | 'success' | 'error'>('idle');
+  const [roleAssignMessage, setRoleAssignMessage] = useState('');
+
+  // 【新增】處理 Discord 身份組發放
+  const handleAssignDiscordRole = async () => {
+    if (!discordUserId.trim()) {
+      setRoleAssignMessage('請輸入 Discord User ID');
+      setRoleAssignStatus('error');
+      return;
+    }
+
+    setRoleAssignStatus('assigning');
+    setRoleAssignMessage('正在發放身份組...');
+
+    try {
+      const res = await fetch('/api/discord/assign-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discordUserId: discordUserId.trim(),
+          mbtiType: `${resultData.id}-${identitySuffix}`, // 例如 "INTJ-A"
+          // guildId 會在 API 端從環境變數讀取
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+
+      setRoleAssignStatus('success');
+      setRoleAssignMessage(`✅ 已成功發放身份組：${data.roleName || '成功'}`);
+
+      // 3 秒後關閉 Modal
+      setTimeout(() => {
+        setShowDiscordRoleModal(false);
+        setDiscordUserId('');
+        setRoleAssignStatus('idle');
+        setRoleAssignMessage('');
+      }, 3000);
+    } catch (error: any) {
+      setRoleAssignStatus('error');
+      setRoleAssignMessage(`❌ 失敗：${error.message || '未知錯誤'}`);
+    }
+  };
+
   const { language } = useLanguage();
   const t = resultTranslations[language];
-
-  const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
   // Onboarding Tour State
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -138,14 +188,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
 
-  // Track result view on mount
   useEffect(() => {
+    // Track result view on mount / when type changes，並捲到頂部
     trackResultView(resultData.id, user?.uid);
-  }, [resultData.id, user]);
-
-  useEffect(() => {
     window.scrollTo(0, 0);
-  }, [selectedOtherType, activeTab]); // Scroll to top when tab changes
+  }, [resultData.id, user, selectedOtherType]);
 
   /* 
    * SAVE REPORT FUNCTIONALITY (Download as Image)
@@ -193,15 +240,17 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     const element = document.getElementById('ig-story-container');
     if (!element) return;
 
+    setIsGenerating(true);
+
     try {
-      // Small delay to ensure images render
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Longer delay for better image loading
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       const canvas = await html2canvas(element, {
-        scale: 1.5, // Better quality without crashing mobile
+        scale: 2.5, // Higher quality
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#F9F7F5',
+        backgroundColor: '#FFFFFF', // Pure white
         width: 1080,
         height: 1920,
         windowWidth: 1080,
@@ -210,8 +259,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         scrollY: 0,
         x: 0,
         y: 0,
+        logging: false,
         onclone: (doc) => {
-          // Force fonts in cloned document if needed
           const hiddenDiv = doc.getElementById('ig-story-container');
           if (hiddenDiv) {
             hiddenDiv.style.display = 'flex';
@@ -220,22 +269,34 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         }
       });
 
-      const dataUrl = canvas.toDataURL('image/png', 0.9); // 0.9 quality
+      const dataUrl = canvas.toDataURL('image/png', 1.0); // Maximum quality
+
+      // Track download
+      trackResultDownload('ig_story', resultData.id);
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (!isMobile) {
+
+      if (isMobile) {
+        // Mobile: Try to open Instagram Story directly
+        setShareImage({ url: dataUrl, title: 'Instagram Story' });
+
+        // Attempt to open Instagram app (may not work on all devices)
+        setTimeout(() => {
+          const instagramUrl = 'instagram://story-camera';
+          window.location.href = instagramUrl;
+        }, 500);
+      } else {
         // Desktop: Direct download
         const link = document.createElement('a');
-        link.download = `KIWIMU_STORY_${resultData.id}.png`;
+        link.download = `KIWIMU_${resultData.id}_Story.png`;
         link.href = dataUrl;
         link.click();
-      } else {
-        // Mobile: Show modal for long-press
-        setShareImage({ url: dataUrl, title: 'Instagram Story' });
       }
     } catch (err) {
       console.error('Failed to save IG story:', err);
       alert('產生圖片失敗，請重試或截圖分享');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -251,8 +312,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
       <div ref={resultRef} className="bg-white">
         <div id="full-report-container" className="bg-white px-2 py-4 md:px-0 md:py-0">
 
-          {/* 1. HEADER - 響應式字體與間距 */}
-          <div className="w-full py-12 md:py-20 border-b border-gray-100 transition-colors duration-1000" style={{ backgroundColor: resultData.bgColor }}>
+          {/* 1. HEADER - 響應式字體與間距（改為固定低飽和背景） */}
+          <div className="w-full py-12 md:py-20 border-b border-gray-100 bg-[#f8f5f0]">
             <div className="max-w-4xl mx-auto px-6 text-center">
               {/* Language Toggle */}
               <div className="flex justify-end mb-4">
@@ -260,33 +321,33 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </div>
 
               <div className="border border-kiwi-dark px-4 py-1.5 mb-6 md:mb-8 inline-block bg-white shadow-sm">
-                <p className="text-[10px] font-mono tracking-[0.2em] md:tracking-[0.4em] uppercase font-bold text-kiwi-dark">{t.comprehensive_analysis}</p>
+                <p className="text-[10px]  tracking-[0.2em] md:tracking-[0.4em] uppercase font-bold text-kiwi-dark">{t.comprehensive_analysis}</p>
               </div>
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-kiwi-dark tracking-tighter mb-2 md:mb-4 leading-none md:leading-tight">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-black tracking-tighter mb-2 md:mb-4 leading-none md:leading-tight">
                 {resultData.id}-{identitySuffix}
               </h1>
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-light text-kiwi-dark tracking-[0.15em] md:tracking-[0.2em] mb-6 md:mb-10 font-serif italic">{resultData.title}</h2>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-light text-black tracking-[0.15em] md:tracking-[0.2em] mb-6 md:mb-10 font-serif italic">{resultData.title}</h2>
               <p className="text-lg md:text-xl lg:text-2xl text-gray-500 font-serif leading-relaxed italic max-w-2xl mx-auto px-4">「{resultData.quote.replace(/[「」]/g, '')}」</p>
 
               {/* Share CTAs - Prominent Position */}
               <div className="mt-8 md:mt-12 flex flex-wrap items-center justify-center gap-3 md:gap-4">
                 <button
                   onClick={handleDownloadIG}
-                  className="group px-6 md:px-8 py-3 md:py-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 flex items-center gap-2"
+                  className="group px-6 md:px-8 py-3 md:py-4 rounded-full bg-black hover:bg-gray-900 text-white font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 flex items-center gap-2"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                   <span>{t.ig_story_share}</span>
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-6 md:px-8 py-3 md:py-4 rounded-full bg-white hover:bg-gray-50 text-kiwi-dark font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 border-2 border-kiwi-dark"
+                  className="px-6 md:px-8 py-3 md:py-4 rounded-full bg-white hover:bg-gray-50 text-black font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 border-2 border-black"
                 >
                   {t.full_report_share}
                 </button>
               </div>
 
-              {/* Discord Join CTA */}
-              <div className="mt-6 flex justify-center">
+              {/* Discord Join CTA + Auto Role Assignment */}
+              <div className="mt-6 flex flex-col items-center gap-3">
                 <a
                   href="https://discord.gg/WJMQEAXx"
                   target="_blank"
@@ -296,310 +357,337 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.42zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.42z" /></svg>
                   <span>{t.join_discord}</span>
                 </a>
+
+                {/* 【新增】自動取得身份組按鈕 */}
+                <button
+                  onClick={() => { trackButtonClick('自動取得_Discord_身份組', 'result_header'); setShowDiscordRoleModal(true); }}
+                  className="text-xs text-gray-500 hover:text-kiwi-dark underline  tracking-wider transition-colors"
+                >
+                  自動取得 Discord 身份組
+                </button>
               </div>
             </div>
           </div>
 
-          {/* LINE Official Account CTA */}
-          <LineCTA className="mt-8" mbtiType={resultData.id} />
+          {/* LINE Official Account CTA - 已移除 */}
 
 
-          {/* TAB CONTENT */}
+          {/* 主要內容 */}
           <div className="max-w-4xl mx-auto px-6 py-12 md:py-20 md:px-12">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 border-b border-gray-100 pb-12 md:pb-20">
               <div className="md:col-span-5">
-                <div className="aspect-[3/4] bg-white relative overflow-hidden border border-gray-100 shadow-xl mx-auto max-w-sm md:max-w-none">
+                <div
+                  className="aspect-[3/4] relative overflow-hidden border border-gray-100 shadow-xl mx-auto max-w-sm md:max-w-none"
+                  style={{ backgroundColor: MBTI_BG_COLORS[resultData.id] ?? '#f5f5f5' }}
+                >
                   <img src={resultData.characterImage} alt={resultData.id} className="w-full h-full object-cover" />
                 </div>
                 <div className="mt-6 md:mt-8 pt-6 border-t border-gray-100 flex justify-between items-end">
                   <div className="space-y-1 text-left">
-                    <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase font-mono">IDENTITY</p>
+                    <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase ">IDENTITY</p>
                     <p className="text-xs md:text-sm font-display font-bold text-kiwi-dark tracking-widest italic uppercase">{identityChinese} ({identitySuffix})</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase font-mono">TYPE</p>
+                    <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase ">TYPE</p>
                     <p className="text-xs md:text-sm font-display font-bold text-kiwi-dark tracking-widest italic uppercase">{resultData.id}-{identitySuffix}</p>
                   </div>
                 </div>
               </div>
               <div className="md:col-span-7 flex flex-col justify-center text-left">
                 <div className="mb-8 md:mb-10">
-                  <span className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.5em] border-b-2 border-kiwi-dark pb-2 mb-6 md:mb-8 inline-block uppercase text-gray-400 font-mono">CORE ESSENCE 核心本質</span>
+                  <span className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.5em] border-b-2 border-kiwi-dark pb-2 mb-6 md:mb-8 inline-block uppercase text-gray-400 ">CORE ESSENCE 核心本質</span>
                   <p className="text-gray-800 leading-relaxed font-serif text-xl md:text-2xl lg:text-3xl font-medium text-justify md:text-left">{resultData.coreAnalysis}</p>
                 </div>
                 <div className="flex flex-wrap gap-3 md:gap-4">
                   {resultData.keywords.map(k => (
-                    <span key={k} className="px-4 py-1.5 md:px-5 border border-gray-200 text-gray-400 text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-mono font-bold">{k}</span>
+                    <span key={k} className="px-4 py-1.5 md:px-5 border border-gray-200 text-gray-400 text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase  font-bold">{k}</span>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* 3. COGNITIVE SPECTRUM */}
-            <CollapsibleSection title="COGNITIVE SPECTRUM" subtitle={t.cognitive_spectrum} defaultOpen={true}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
-                <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc={t.extrovert} rightDesc={t.introvert} />
-                <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc={t.sensing} rightDesc={t.intuition} />
-                <SpectrumBar leftLabel="THINKING (T)" rightLabel="FEELING (F)" leftScore={percentages.T} rightScore={percentages.F} leftDesc={t.thinking} rightDesc={t.feeling} />
-                <SpectrumBar leftLabel="JUDGING (J)" rightLabel="PERCEIVING (P)" leftScore={percentages.J} rightScore={percentages.P} leftDesc={t.judging} rightDesc={t.perceiving} />
-                <div className="md:col-span-2">
-                  <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc={t.assertive} rightDesc={t.turbulent} />
-                </div>
-              </div>
-            </CollapsibleSection>
+          </div> {/* closes full-report-container */}
 
-            {/* 4. IDENTITY ANALYSIS */}
-            <CollapsibleSection title="IDENTITY" subtitle={t.identity} defaultOpen={true}>
-              <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start text-left">
-                <div className="w-full md:w-1/3 border-l-4 border-kiwi-dark pl-6 md:pl-10 py-2">
-                  <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2">IDENTITY <br /> 維度解析</h3>
-                  <p className="text-[10px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-6 font-bold">THE 32ND VARIANCE</p>
-                  <span className="px-4 py-2 md:px-6 bg-kiwi-dark text-white text-[10px] md:text-[11px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase shadow-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{identityChinese}</span>
-                </div>
-                <div className="w-full md:w-2/3">
-                  <h4 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold mb-6 md:mb-8 text-kiwi-dark">「銳敏、卓越與情緒能量」</h4>
-                  <p className="text-lg md:text-xl lg:text-2xl font-serif text-gray-700 leading-relaxed text-justify">
-                    身為 <span className="font-bold border-b-2 border-kiwi-dark">{resultData.id}-{identitySuffix}</span>，你代表了極高的自我驅動力與特質。在你的世界裡，追求完美並非負擔，而是你與生俱來的使命。雖然你對環境的微小變化與他人的感受有著超乎常人的敏銳度，但也請記得，這種「高度敏感」正是你不斷進步的燃料，讓你在專業領域能達到令人難以企及的深度。
-                  </p>
-                </div>
-              </div>
-            </CollapsibleSection>
+          {/* 詳細內容區塊 */}
+          <div className="max-w-6xl mx-auto">
+            <div id="section-overview" className="scroll-mt-32 py-8">
+              <p className="text-center text-sm text-gray-500 font-serif mb-16">
+                已顯示：核心分析、關鍵字、靈魂甜點
+              </p>
+            </div>
 
-            {/* 5. GLOSSARY */}
-            <CollapsibleSection title="DEFINITIONS" subtitle={t.definitions} className="bg-gray-50/40">
-              <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
-                {DIMENSION_EXPLANATIONS.map(dim => (
-                  <div key={dim.key} className="flex flex-col md:flex-row gap-4 md:gap-10 text-left items-start group border-b border-gray-100/50 pb-8 md:pb-10 last:border-0">
-                    <div className="w-full md:w-24 flex items-baseline md:block gap-3 md:gap-0">
-                      <span className="text-3xl md:text-4xl font-display font-bold text-kiwi-dark transition-colors group-hover:text-gray-400">{dim.key}</span>
-                      <span className="block text-[9px] font-mono text-gray-400 uppercase tracking-widest mt-0 md:mt-2">{dim.label}</span>
-                    </div>
-                    <p className="flex-1 text-base md:text-lg text-gray-600 font-serif leading-relaxed text-justify opacity-80 group-hover:opacity-100 transition-opacity">{dim.text}</p>
+            <div id="section-spectrum" className="scroll-mt-32">
+              {/* 3. COGNITIVE SPECTRUM */}
+              <CollapsibleSection title="COGNITIVE SPECTRUM" subtitle={t.cognitive_spectrum} defaultOpen={true}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
+                  <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc={t.extrovert} rightDesc={t.introvert} />
+                  <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc={t.sensing} rightDesc={t.intuition} />
+                  <SpectrumBar leftLabel="THINKING (T)" rightLabel="FEELING (F)" leftScore={percentages.T} rightScore={percentages.F} leftDesc={t.thinking} rightDesc={t.feeling} />
+                  <SpectrumBar leftLabel="JUDGING (J)" rightLabel="PERCEIVING (P)" leftScore={percentages.J} rightScore={percentages.P} leftDesc={t.judging} rightDesc={t.perceiving} />
+                  <div className="md:col-span-2">
+                    <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc={t.assertive} rightDesc={t.turbulent} />
                   </div>
-                ))}
-              </div>
-            </CollapsibleSection>
-
-            {/* 06. LIFE INSIGHTS */}
-            <CollapsibleSection title="LIFE INSIGHTS" subtitle={t.life_insights} defaultOpen={true}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 text-left">
-                <section>
-                  <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
-                    <span className="text-4xl md:text-5xl font-display font-bold text-gray-100">01</span>
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-display font-bold text-kiwi-dark tracking-widest uppercase">Career</h3>
-                      <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase">職涯策略</p>
-                    </div>
-                  </div>
-                  <div className="space-y-8 md:space-y-12">
-                    <div className="border-l-2 border-kiwi-dark pl-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">WORK STYLE</h4>
-                      <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.career.style}</p>
-                    </div>
-                    <div className="border-l-2 border-kiwi-dark pl-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">STRATEGIC ADVICE</h4>
-                      <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.career.advice}</p>
-                    </div>
-                  </div>
-                </section>
-                <section>
-                  <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
-                    <span className="text-4xl md:text-5xl font-display font-bold text-gray-100">02</span>
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-display font-bold text-kiwi-dark tracking-widest uppercase">Relationships</h3>
-                      <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase">關係哲學</p>
-                    </div>
-                  </div>
-                  <div className="space-y-8 md:space-y-12">
-                    <div className="border-l-2 border-kiwi-dark pl-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">LOVE PHILOSOPHY</h4>
-                      <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.relationships.style}</p>
-                    </div>
-                    <div className="border-l-2 border-kiwi-dark pl-6">
-                      <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 font-mono">NAVIGATIONAL ADVICE</h4>
-                      <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.relationships.advice}</p>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </CollapsibleSection>
-
-            {/* 7. RELATIONSHIP NAVIGATION */}
-            <CollapsibleSection title="NAVIGATION" subtitle={t.navigation}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
-                <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
-                  <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark font-mono">SUPERPOWER 關係強項</h4>
-                  <p className="text-gray-800 text-lg md:text-xl font-serif leading-relaxed">{resultData.relationships.strengths}</p>
                 </div>
-                <div className="bg-kiwi-dark text-white p-8 md:p-14 lg:p-20">
-                  <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-gray-400 font-mono">GROWTH AREA 關係盲點與建議</h4>
-                  <p className="text-gray-100 text-lg md:text-xl font-serif leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{resultData.relationships.advice}</p>
-                </div>
-              </div>
-            </CollapsibleSection>
+              </CollapsibleSection>
+            </div>
 
-            {/* 08. PERSONALITY RARITY */}
-            {(() => {
-              const rarityData = getRarityData(resultData.id);
-              if (!rarityData) return null;
-
-              const rarityLabel = getRarityLabel(rarityData.rank);
-              const rarityMessage = getRarityMessage(rarityData.rank);
-
-              return (
-                <CollapsibleSection title="RARITY" subtitle={t.rarity}>
-
-                  <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
-                    <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
-                      在人群中的出現率
+            <div id="section-identity" className="scroll-mt-32">
+              {/* 4. IDENTITY ANALYSIS */}
+              <CollapsibleSection title="IDENTITY" subtitle={t.identity} defaultOpen={true}>
+                <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start text-left">
+                  <div className="w-full md:w-1/3 border-l-4 border-kiwi-dark pl-6 md:pl-10 py-2">
+                    <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2">IDENTITY <br /> 維度解析</h3>
+                    <p className="text-[10px]  tracking-[0.3em] uppercase text-gray-400 mb-6 font-bold">THE 32ND VARIANCE</p>
+                    <span className="px-4 py-2 md:px-6 bg-kiwi-dark text-white text-[10px] md:text-[11px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase shadow-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{identityChinese}</span>
+                  </div>
+                  <div className="w-full md:w-2/3">
+                    <h4 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold mb-6 md:mb-8 text-kiwi-dark">「銳敏、卓越與情緒能量」</h4>
+                    <p className="text-lg md:text-xl lg:text-2xl font-serif text-gray-700 leading-relaxed text-justify">
+                      身為 <span className="font-bold border-b-2 border-kiwi-dark">{resultData.id}-{identitySuffix}</span>，你代表了極高的自我驅動力與特質。在你的世界裡，追求完美並非負擔，而是你與生俱來的使命。雖然你對環境的微小變化與他人的感受有著超乎常人的敏銳度，但也請記得，這種「高度敏感」正是你不斷進步的燃料，讓你在專業領域能達到令人難以企及的深度。
                     </p>
+                  </div>
+                </div>
+              </CollapsibleSection>
 
-                    {/* Rarity Bar */}
-                    <div className="relative h-2 bg-gray-100 w-full mb-8 rounded-full overflow-hidden">
-                      <div
-                        className="absolute top-0 left-0 h-full bg-kiwi-dark transition-all duration-1000 ease-out"
-                        style={{ width: `${rarityData.totalPopulation}%` }}
-                      />
-                    </div>
-
-                    <div className="text-5xl md:text-7xl font-display font-bold text-kiwi-dark mb-4">
-                      {rarityData.totalPopulation}%
-                    </div>
-
-                    <div className="inline-block px-6 py-2 bg-gray-50 border border-gray-200 rounded-full mb-6">
-                      <span className="text-xs font-mono text-gray-500 tracking-wider">
-                        稀有度排名：{rarityData.rank} / 16
-                      </span>
-                    </div>
-
-                    <p className="text-xl md:text-2xl font-serif text-kiwi-dark mb-12">
-                      {rarityMessage}
-                    </p>
-
-                    {/* Gender Breakdown */}
-                    <div className="grid grid-cols-2 gap-8 max-w-md mx-auto text-left">
-                      <div className="border-l-2 border-kiwi-dark pl-4">
-                        <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-2">男性</p>
-                        <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.male}%</p>
+              {/* 5. GLOSSARY */}
+              <CollapsibleSection title="DEFINITIONS" subtitle={t.definitions} className="bg-gray-50/40" defaultOpen={true}>
+                <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
+                  {DIMENSION_EXPLANATIONS.map(dim => (
+                    <div key={dim.key} className="flex flex-col md:flex-row gap-4 md:gap-10 text-left items-start group border-b border-gray-100/50 pb-8 md:pb-10 last:border-0">
+                      <div className="w-full md:w-24 flex items-baseline md:block gap-3 md:gap-0">
+                        <span className="text-3xl md:text-4xl font-display font-bold text-kiwi-dark transition-colors group-hover:text-gray-400">{dim.key}</span>
+                        <span className="block text-[9px]  text-gray-400 uppercase tracking-widest mt-0 md:mt-2">{dim.label}</span>
                       </div>
-                      <div className="border-l-2 border-kiwi-dark pl-4">
-                        <p className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-2">女性</p>
-                        <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.female}%</p>
+                      <p className="flex-1 text-base md:text-lg text-gray-600 font-serif leading-relaxed text-justify opacity-80 group-hover:opacity-100 transition-opacity">{dim.text}</p>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleSection>
+            </div>
+
+            <div id="section-life" className="scroll-mt-32">
+              {/* 06. LIFE INSIGHTS */}
+              <CollapsibleSection title="LIFE INSIGHTS" subtitle={t.life_insights} defaultOpen={true}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 text-left">
+                  <section>
+                    <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
+                      <span className="text-4xl md:text-5xl font-display font-bold text-gray-100">01</span>
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-display font-bold text-kiwi-dark tracking-widest uppercase">Career</h3>
+                        <p className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase">職涯策略</p>
                       </div>
                     </div>
+                    <div className="space-y-8 md:space-y-12">
+                      <div className="border-l-2 border-kiwi-dark pl-6">
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">WORK STYLE</h4>
+                        <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.career.style}</p>
+                      </div>
+                      <div className="border-l-2 border-kiwi-dark pl-6">
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">STRATEGIC ADVICE</h4>
+                        <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.career.advice}</p>
+                      </div>
+                    </div>
+                  </section>
+                  <section>
+                    <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
+                      <span className="text-4xl md:text-5xl font-display font-bold text-gray-100">02</span>
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-display font-bold text-kiwi-dark tracking-widest uppercase">Relationships</h3>
+                        <p className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase">關係哲學</p>
+                      </div>
+                    </div>
+                    <div className="space-y-8 md:space-y-12">
+                      <div className="border-l-2 border-kiwi-dark pl-6">
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">LOVE PHILOSOPHY</h4>
+                        <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.relationships.style}</p>
+                      </div>
+                      <div className="border-l-2 border-kiwi-dark pl-6">
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">NAVIGATIONAL ADVICE</h4>
+                        <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.relationships.advice}</p>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </CollapsibleSection>
+
+              {/* 7. RELATIONSHIP NAVIGATION */}
+              <CollapsibleSection title="NAVIGATION" subtitle={t.navigation} defaultOpen={true}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
+                  <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
+                    <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark ">SUPERPOWER 關係強項</h4>
+                    <p className="text-gray-800 text-lg md:text-xl font-serif leading-relaxed">{resultData.relationships.strengths}</p>
                   </div>
-
-                  {/* Disclaimer */}
-                  <div className="max-w-2xl mx-auto mt-12 p-6 bg-gray-50 border-l-4 border-gray-300">
-                    <p className="text-xs md:text-sm text-gray-600 leading-relaxed font-serif">
-                      ⓘ 稀有度是參考指標，用來提供共鳴與視角，不代表稀有=更好，也不代表人格固定不變。數值會因資料來源、地區、年齡與量表不同而有差異。
-                    </p>
+                  <div className="bg-kiwi-dark text-white p-8 md:p-14 lg:p-20">
+                    <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-gray-400 ">GROWTH AREA 關係盲點與建議</h4>
+                    <p className="text-gray-100 text-lg md:text-xl font-serif leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{resultData.relationships.advice}</p>
                   </div>
-                </CollapsibleSection>
-              );
-            })()}
+                </div>
+              </CollapsibleSection>
+            </div>
 
-            {/* 09. RESONANCE ARCHETYPES (CELEBRITY) */}
-            {(() => {
-              const archetypes = getCelebrityArchetypes(resultData.id);
-              if (archetypes.length === 0) return null;
+            <div id="section-insights" className="scroll-mt-32">
+              {/* 08. PERSONALITY RARITY */}
+              {(() => {
+                const rarityData = getRarityData(resultData.id);
+                if (!rarityData) return null;
 
-              return (
-                <CollapsibleSection title="ARCHETYPES" subtitle={t.archetypes} defaultOpen={true}>
+                const rarityLabel = getRarityLabel(rarityData.rank);
+                const rarityMessage = getRarityMessage(rarityData.rank);
 
-                  <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
-                    這不是你=他們，而是你可能與他們在思考風格、工作節奏、價值傾向有相似點
-                  </p>
+                return (
+                  <CollapsibleSection title="RARITY" subtitle={t.rarity} defaultOpen={true}>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto px-6">
-                    {archetypes.map((archetype, index) => (
-                      <div key={index} className="border border-gray-200 overflow-hidden hover:border-kiwi-dark transition-all duration-300">
-                        <div className="p-8 md:p-10 bg-white">
-                          {/* Name */}
-                          <div className="mb-6 border-b border-gray-100 pb-4">
-                            <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-1">
-                              {archetype.name}
-                            </h4>
-                            <p className="text-sm md:text-base text-gray-500 font-mono">
-                              {archetype.nameEn}
-                            </p>
-                            <p className="text-[10px] font-mono text-gray-400 tracking-wider uppercase mt-2">
-                              {archetype.profession}
-                            </p>
-                          </div>
+                    <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
+                      <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
+                        在人群中的出現率
+                      </p>
 
-                          {/* Resonance Traits */}
-                          <div>
-                            <h5 className="text-[10px] font-mono font-bold text-gray-400 tracking-widest uppercase mb-4">
-                              共鳴特徵
-                            </h5>
-                            <ul className="space-y-3">
-                              {archetype.resonanceTraits.map((trait, i) => (
-                                <li key={i} className="flex items-start gap-3 text-gray-700">
-                                  <span className="text-kiwi-dark font-mono text-xs mt-1">•</span>
-                                  <span className="text-sm md:text-base font-serif leading-relaxed">{trait}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                      {/* Rarity Bar */}
+                      <div className="relative h-2 bg-gray-100 w-full mb-8 rounded-full overflow-hidden">
+                        <div
+                          className="absolute top-0 left-0 h-full bg-kiwi-dark transition-all duration-1000 ease-out"
+                          style={{ width: `${rarityData.totalPopulation}%` }}
+                        />
+                      </div>
+
+                      <div className="text-5xl md:text-7xl font-display font-bold text-kiwi-dark mb-4">
+                        {rarityData.totalPopulation}%
+                      </div>
+
+                      <div className="inline-block px-6 py-2 bg-gray-50 border border-gray-200 rounded-full mb-6">
+                        <span className="text-xs  text-gray-500 tracking-wider">
+                          稀有度排名：{rarityData.rank} / 16
+                        </span>
+                      </div>
+
+                      <p className="text-xl md:text-2xl font-serif text-kiwi-dark mb-12">
+                        {rarityMessage}
+                      </p>
+
+                      {/* Gender Breakdown */}
+                      <div className="grid grid-cols-2 gap-8 max-w-md mx-auto text-left">
+                        <div className="border-l-2 border-kiwi-dark pl-4">
+                          <p className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase mb-2">男性</p>
+                          <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.male}%</p>
+                        </div>
+                        <div className="border-l-2 border-kiwi-dark pl-4">
+                          <p className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase mb-2">女性</p>
+                          <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.female}%</p>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Disclaimer */}
+                    <div className="max-w-2xl mx-auto mt-12 p-6 bg-gray-50 border-l-4 border-gray-300">
+                      <p className="text-xs md:text-sm text-gray-600 leading-relaxed font-serif">
+                        ⓘ 稀有度是參考指標，用來提供共鳴與視角，不代表稀有=更好，也不代表人格固定不變。數值會因資料來源、地區、年齡與量表不同而有差異。
+                      </p>
+                    </div>
+                  </CollapsibleSection>
+                );
+              })()}
+
+              {/* 09. RESONANCE ARCHETYPES (CELEBRITY) */}
+              {(() => {
+                const archetypes = getCelebrityArchetypes(resultData.id);
+                if (archetypes.length === 0) return null;
+
+                return (
+                  <CollapsibleSection title="ARCHETYPES" subtitle={t.archetypes} defaultOpen={true}>
+
+                    <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
+                      這不是你=他們，而是你可能與他們在思考風格、工作節奏、價值傾向有相似點
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto px-6">
+                      {archetypes.map((archetype, index) => (
+                        <div key={index} className="border border-gray-200 overflow-hidden hover:border-kiwi-dark transition-all duration-300">
+                          <div className="p-8 md:p-10 bg-white">
+                            {/* Name */}
+                            <div className="mb-6 border-b border-gray-100 pb-4">
+                              <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-1">
+                                {archetype.name}
+                              </h4>
+                              <p className="text-sm md:text-base text-gray-500 ">
+                                {archetype.nameEn}
+                              </p>
+                              <p className="text-[10px]  text-gray-400 tracking-wider uppercase mt-2">
+                                {archetype.profession}
+                              </p>
+                            </div>
+
+                            {/* Resonance Traits */}
+                            <div>
+                              <h5 className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase mb-4">
+                                共鳴特徵
+                              </h5>
+                              <ul className="space-y-3">
+                                {archetype.resonanceTraits.map((trait, i) => (
+                                  <li key={i} className="flex items-start gap-3 text-gray-700">
+                                    <span className="text-kiwi-dark  text-xs mt-1">•</span>
+                                    <span className="text-sm md:text-base font-serif leading-relaxed">{trait}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleSection>
+                );
+              })()}
+
+              {/* 10. SOUL REFLECTION - 響應式字體 */}
+              <div className="py-16 md:py-24 border-b border-gray-100 bg-gray-50/20">
+                <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-16 md:mb-24 ">SOUL REFLECTION 靈魂拷問</h3>
+                <div className="space-y-8 md:space-y-12 max-w-3xl mx-auto px-0 md:px-4">
+                  {resultData.soulQuestions.map((q, idx) => (
+                    <div key={idx} className="bg-white border border-gray-100 p-8 md:p-12 text-center group transition-all duration-700 hover:bg-kiwi-dark hover:text-white hover:shadow-xl">
+                      <span className="text-4xl md:text-5xl font-display font-bold text-gray-100 group-hover:text-white/20 transition-colors block mb-4 md:mb-6">0{idx + 1}</span>
+                      <p className="text-xl md:text-2xl lg:text-3xl font-serif leading-relaxed italic px-2 md:px-6">{q}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 9. STRENGTHS & BLIND SPOTS - 手機單欄 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 py-16 md:py-24 border-b border-gray-100 text-left px-0 md:px-4">
+                <div>
+                  <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-8 md:mb-10 border-l-8 border-kiwi-dark pl-6">STRENGTHS 優勢</h4>
+                  <ul className="space-y-4 md:space-y-6">
+                    {resultData.strengths.map((s, i) => (
+                      <li key={i} className="flex items-start gap-4 text-gray-700 font-serif">
+                        <span className="text-[11px]  text-gray-300 font-bold mt-1">0{i + 1}.</span>
+                        <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
+                      </li>
                     ))}
-                  </div>
-                </CollapsibleSection>
-              );
-            })()}
-
-            {/* 10. SOUL REFLECTION - 響應式字體 */}
-            <div className="py-16 md:py-24 border-b border-gray-100 bg-gray-50/20">
-              <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-16 md:mb-24 font-mono">SOUL REFLECTION 靈魂拷問</h3>
-              <div className="space-y-8 md:space-y-12 max-w-3xl mx-auto px-0 md:px-4">
-                {resultData.soulQuestions.map((q, idx) => (
-                  <div key={idx} className="bg-white border border-gray-100 p-8 md:p-12 text-center group transition-all duration-700 hover:bg-kiwi-dark hover:text-white hover:shadow-xl">
-                    <span className="text-4xl md:text-5xl font-display font-bold text-gray-100 group-hover:text-white/20 transition-colors block mb-4 md:mb-6">0{idx + 1}</span>
-                    <p className="text-xl md:text-2xl lg:text-3xl font-serif leading-relaxed italic px-2 md:px-6">{q}</p>
-                  </div>
-                ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-2xl md:text-3xl font-serif font-bold text-gray-400 mb-8 md:mb-10 border-l-8 border-gray-100 pl-6">BLIND SPOTS 盲點</h4>
+                  <ul className="space-y-4 md:space-y-6">
+                    {resultData.blindSpots.map((s, i) => (
+                      <li key={i} className="flex items-start gap-4 text-gray-400 font-serif opacity-60">
+                        <span className="text-[11px]  text-gray-200 font-bold mt-1">0{i + 1}.</span>
+                        <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
-            </div>
 
-            {/* 9. STRENGTHS & BLIND SPOTS - 手機單欄 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 py-16 md:py-24 border-b border-gray-100 text-left px-0 md:px-4">
-              <div>
-                <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-8 md:mb-10 border-l-8 border-kiwi-dark pl-6">STRENGTHS 優勢</h4>
-                <ul className="space-y-4 md:space-y-6">
-                  {resultData.strengths.map((s, i) => (
-                    <li key={i} className="flex items-start gap-4 text-gray-700 font-serif">
-                      <span className="text-[11px] font-mono text-gray-300 font-bold mt-1">0{i + 1}.</span>
-                      <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
-                    </li>
-                  ))}
-                </ul>
+              {/* 10. QUOTE */}
+              <div className="py-24 md:py-40 text-center">
+                <div className="text-gray-100 text-[100px] md:text-[180px] font-display opacity-40 mb-[-40px] md:mb-[-90px] select-none font-bold">“</div>
+                <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif font-bold text-kiwi-dark leading-snug italic max-w-4xl mx-auto px-6 relative z-10">
+                  越是深刻地理解自己，越能溫柔地擁抱世界。
+                </h2>
               </div>
-              <div>
-                <h4 className="text-2xl md:text-3xl font-serif font-bold text-gray-400 mb-8 md:mb-10 border-l-8 border-gray-100 pl-6">BLIND SPOTS 盲點</h4>
-                <ul className="space-y-4 md:space-y-6">
-                  {resultData.blindSpots.map((s, i) => (
-                    <li key={i} className="flex items-start gap-4 text-gray-400 font-serif opacity-60">
-                      <span className="text-[11px] font-mono text-gray-200 font-bold mt-1">0{i + 1}.</span>
-                      <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
 
-            {/* 10. QUOTE */}
-            <div className="py-24 md:py-40 text-center">
-              <div className="text-gray-100 text-[100px] md:text-[180px] font-display opacity-40 mb-[-40px] md:mb-[-90px] select-none font-bold">“</div>
-              <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif font-bold text-kiwi-dark leading-snug italic max-w-4xl mx-auto px-6 relative z-10">
-                越是深刻地理解自己，越能溫柔地擁抱世界。
-              </h2>
-            </div>
-
-            {/* 11. SOUL DESSERT HEART ANCHOR MODULE - 重寫 CSS 使其完整響應 */}
-            <div className="soul-module mb-32 md:mb-48 px-0 md:px-12">
-              <style>{`
+              {/* 11. SOUL DESSERT HEART ANCHOR MODULE - 重寫 CSS 使其完整響應 */}
+              <div className="soul-module mb-32 md:mb-48 px-0 md:px-12">
+                <style>{`
                 .soul-card { border: 1px solid #121212; display: flex; flex-direction: column; background: #fff; padding: 0; position: relative; }
                 @media (min-width: 768px) { .soul-card { flex-direction: row; } }
                 
@@ -644,196 +732,227 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 @media (min-width: 768px) { .soul-alt-box { padding: 50px; } }
               `}</style>
 
-              <div className="soul-card shadow-2xl overflow-hidden">
-                <div className="soul-img-box">
-                  <img src={resultData.dessert.imageUrl} alt="Soul Dessert" />
-                </div>
-                <div className="soul-info-box">
-                  <span className="soul-label">SOUL DESSERT 靈魂甜點</span>
-                  <h3 className="soul-name">{anchor.name}</h3>
-                  <p className="soul-hook">{anchor.hook}</p>
-                  <div className="soul-chips">
-                    <span className="soul-chip">系列：{anchor.series}</span>
-                    <span className="soul-chip">象限：{anchor.quad}</span>
+                <div className="soul-card shadow-2xl overflow-hidden">
+                  <div className="soul-img-box">
+                    <img src={resultData.dessert.imageUrl} alt="Soul Dessert" />
                   </div>
-                  <div className="soul-drink-section">
-                    <p className="soul-drink-label">你的狀態加成飲品推薦</p>
-                    <div className={`soul-drink-row ${resultAT === 'A' ? 'active' : ''}`}>
-                      <span className="tracking-widest">A（穩定型）最佳推薦</span>
-                      <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkA}</span>
+                  <div className="soul-info-box">
+                    <span className="soul-label">SOUL DESSERT 靈魂甜點</span>
+                    <h3 className="soul-name">{anchor.name}</h3>
+                    <p className="soul-hook">{anchor.hook}</p>
+                    <div className="soul-chips">
+                      <span className="soul-chip">系列：{anchor.series}</span>
+                      <span className="soul-chip">象限：{anchor.quad}</span>
                     </div>
-                    <div className={`soul-drink-row ${resultAT === 'T' ? 'active' : ''}`}>
-                      <span className="tracking-widest">T（敏感型）最佳推薦</span>
-                      <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkT}</span>
+                    <div className="soul-drink-section">
+                      <p className="soul-drink-label">你的狀態加成飲品推薦</p>
+                      <div className={`soul-drink-row ${resultAT === 'A' ? 'active' : ''}`}>
+                        <span className="tracking-widest">A（穩定型）最佳推薦</span>
+                        <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkA}</span>
+                      </div>
+                      <div className={`soul-drink-row ${resultAT === 'T' ? 'active' : ''}`}>
+                        <span className="tracking-widest">T（敏感型）最佳推薦</span>
+                        <span className="font-serif italic mt-1 md:mt-0">{anchor.drinkT}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="soul-btns" style={{ flexDirection: 'column' }} data-html2canvas-ignore>
-                    <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>跟 KIWIMU 當朋友，抽幸運甜點</a>
-                    <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
-                      <button className="soul-btn" onClick={() => setShowAlt(!showAlt)} style={{ flex: 1 }}>{showAlt ? '收起建議' : '同象限替換'}</button>
-                      <button className="soul-btn soul-btn-black" onClick={() => setShowMenu(true)} style={{ flex: 1 }}>完整菜單</button>
+                    <div className="soul-btns" style={{ flexDirection: 'column' }} data-html2canvas-ignore>
+                      {/* 【新增】立即訂購按鈕 - 優先級最高 */}
+                      <a
+                        href={buildDessertOrderLink(resultData.id, identitySuffix)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="soul-btn soul-btn-black"
+                        style={{
+                          backgroundColor: '#111111',
+                          color: '#ffffff',
+                          border: '2px solid #111111',
+                          width: '100%',
+                          fontWeight: '800',
+                          letterSpacing: '0.15em'
+                        }}
+                        onClick={() => trackDessertOrderClick(resultData.id, identitySuffix)}
+                      >
+                        立即訂購靈魂甜點
+                      </a>
+
+                      {/* 原有的 LINE 按鈕 */}
+                      <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>跟 KIWIMU 當朋友，抽幸運甜點</a>
+
+                      {/* 原有的按鈕組 */}
+                      <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
+                        <button className="soul-btn" onClick={() => { trackButtonClick('同象限替換', 'result_soul'); setShowAlt(!showAlt); }} style={{ flex: 1 }}>{showAlt ? '收起建議' : '同象限替換'}</button>
+                        <button className="soul-btn soul-btn-black" onClick={() => { trackButtonClick('完整菜單', 'result_soul'); setShowMenu(true); }} style={{ flex: 1 }}>完整菜單</button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div> {/* closes soul-module */}
-          </div> {/* closes full-report-container */}
+              </div> {/* closes soul-module */}
 
-          {showAlt && (
-            <div className="soul-alt-box border-x border-b border-black fade-in text-left">
-              <p className="text-[10px] font-mono tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-300 mb-6 md:mb-8 font-bold">Alternative Selection 替換建議（同系同象限）</p>
-              <div className="flex flex-col md:flex-row gap-8 md:gap-10">
-                {anchor.alt.map((item: string) => (
-                  <div key={item} className="flex flex-col">
-                    <span className="font-serif text-xl md:text-2xl text-kiwi-dark font-bold border-b-2 border-kiwi-dark pb-2 mb-2">{item}</span>
-                    <span className="text-[9px] text-gray-400 uppercase tracking-widest">OPTIMAL MATCH</span>
+              {showAlt && (
+                <div className="soul-alt-box border-x border-b border-black fade-in text-left">
+                  <p className="text-[10px]  tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-300 mb-6 md:mb-8 font-bold">Alternative Selection 替換建議（同系同象限）</p>
+                  <div className="flex flex-col md:flex-row gap-8 md:gap-10">
+                    {anchor.alt.map((item: string) => (
+                      <div key={item} className="flex flex-col">
+                        <span className="font-serif text-xl md:text-2xl text-kiwi-dark font-bold border-b-2 border-kiwi-dark pb-2 mb-2">{item}</span>
+                        <span className="text-[9px] text-gray-400 uppercase tracking-widest">OPTIMAL MATCH</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* MODAL MENU - 全螢幕響應式 */}
-          {showMenu && (
-            <div className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center p-4 md:p-16 transition-all fade-in" onClick={() => setShowMenu(false)}>
-              <div className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-16 relative rounded-sm shadow-2xl border border-white/20" onClick={e => e.stopPropagation()}>
-                <button onClick={() => setShowMenu(false)} className="sticky top-0 right-0 float-right ml-4 text-4xl md:text-5xl font-light hover:rotate-90 transition-transform duration-300 z-50">&times;</button>
-                <div className="mb-8 md:mb-12 mt-4 md:mt-0">
-                  <h3 className="font-display text-3xl md:text-5xl font-bold mb-4 tracking-tighter">THE FULL MENU</h3>
-                  <p className="text-gray-400 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-bold border-b border-gray-100 pb-4">把人格解析轉化為一份靈魂心錨</p>
                 </div>
+              )}
 
-                <div className="space-y-4">
-                  <p className="text-[10px] font-mono font-bold text-kiwi-dark tracking-widest uppercase mb-6 bg-gray-50 px-4 py-2">Desserts 甜點類別</p>
-                  {MENU_DATA.desserts.map(cat => (
-                    <div key={cat.title} className="border-b border-gray-100 last:border-0">
-                      <button className="w-full text-left py-4 md:py-6 font-serif text-xl md:text-2xl font-bold flex justify-between items-center group" onClick={() => setOpenAccordion(openAccordion === cat.title ? null : cat.title)}>
-                        <span className="group-hover:pl-4 transition-all duration-300">{cat.title}</span>
-                        <span className="font-light text-2xl md:text-3xl">{openAccordion === cat.title ? '−' : '+'}</span>
-                      </button>
-                      {openAccordion === cat.title && (
-                        <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
-                          <p className="text-xs md:text-sm italic text-gray-400 mb-6 border-l-4 border-kiwi-dark pl-4 md:pl-6 leading-relaxed">{cat.desc}</p>
-                          <div className="grid gap-3 md:gap-4">
-                            {cat.items.map(i => (
-                              <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
-                                <span>{i}</span>
-                                <span className="text-[9px] font-mono text-gray-300 tracking-widest hidden md:inline">AVAILABLE</span>
+              {/* MODAL MENU - 全螢幕響應式 */}
+              {showMenu && (
+                <div className="fixed inset-0 z-[1000] bg-black/95 flex items-center justify-center p-4 md:p-16 transition-all fade-in" onClick={() => setShowMenu(false)}>
+                  <div className="bg-white max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-16 relative rounded-sm shadow-2xl border border-white/20" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => setShowMenu(false)} className="sticky top-0 right-0 float-right ml-4 text-4xl md:text-5xl font-light hover:rotate-90 transition-transform duration-300 z-50">&times;</button>
+                    <div className="mb-8 md:mb-12 mt-4 md:mt-0">
+                      <h3 className="font-display text-3xl md:text-5xl font-bold mb-4 tracking-tighter">THE FULL MENU</h3>
+                      <p className="text-gray-400 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-bold border-b border-gray-100 pb-4">把人格解析轉化為一份靈魂心錨</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <p className="text-[10px]  font-bold text-kiwi-dark tracking-widest uppercase mb-6 bg-gray-50 px-4 py-2">Desserts 甜點類別</p>
+                      {MENU_DATA.desserts.map(cat => (
+                        <div key={cat.title} className="border-b border-gray-100 last:border-0">
+                          <button className="w-full text-left py-4 md:py-6 font-serif text-xl md:text-2xl font-bold flex justify-between items-center group" onClick={() => setOpenAccordion(openAccordion === cat.title ? null : cat.title)}>
+                            <span className="group-hover:pl-4 transition-all duration-300">{cat.title}</span>
+                            <span className="font-light text-2xl md:text-3xl">{openAccordion === cat.title ? '−' : '+'}</span>
+                          </button>
+                          {openAccordion === cat.title && (
+                            <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
+                              <p className="text-xs md:text-sm italic text-gray-400 mb-6 border-l-4 border-kiwi-dark pl-4 md:pl-6 leading-relaxed">{cat.desc}</p>
+                              <div className="grid gap-3 md:gap-4">
+                                {cat.items.map(i => (
+                                  <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
+                                    <span>{i}</span>
+                                    <span className="text-[9px]  text-gray-300 tracking-widest hidden md:inline">AVAILABLE</span>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  <p className="text-[10px] font-mono font-bold text-kiwi-dark tracking-widest uppercase mb-6 bg-gray-50 px-4 py-2 mt-8 md:mt-12">Drinks 飲品類別</p>
-                  {MENU_DATA.drinks.map(cat => (
-                    <div key={cat.title} className="border-b border-gray-100 last:border-0">
-                      <button className="w-full text-left py-4 md:py-6 font-serif text-xl md:text-2xl font-bold flex justify-between items-center group" onClick={() => setOpenAccordion(openAccordion === cat.title ? null : cat.title)}>
-                        <span className="group-hover:pl-4 transition-all duration-300">{cat.title}</span>
-                        <span className="font-light text-2xl md:text-3xl">{openAccordion === cat.title ? '−' : '+'}</span>
-                      </button>
-                      {openAccordion === cat.title && (
-                        <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
-                          {/* Category Image */}
-                          {cat.imageUrl && (
-                            <div className="w-full h-48 md:h-64 mb-6 rounded-lg overflow-hidden border border-gray-100 shadow-sm">
-                              <img src={cat.imageUrl} alt={cat.title} className="w-full h-full object-cover" />
                             </div>
                           )}
-                          <div className="grid gap-3 md:gap-4">
-                            {cat.items.map(i => (
-                              <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
-                                <span>{i}</span>
-                                <span className="text-[9px] font-mono text-gray-300 tracking-widest hidden md:inline">CRAFTED</span>
-                              </div>
-                            ))}
-                          </div>
                         </div>
-                      )}
+                      ))}
+
+                      <p className="text-[10px]  font-bold text-kiwi-dark tracking-widest uppercase mb-6 bg-gray-50 px-4 py-2 mt-8 md:mt-12">Drinks 飲品類別</p>
+                      {MENU_DATA.drinks.map(cat => (
+                        <div key={cat.title} className="border-b border-gray-100 last:border-0">
+                          <button className="w-full text-left py-4 md:py-6 font-serif text-xl md:text-2xl font-bold flex justify-between items-center group" onClick={() => setOpenAccordion(openAccordion === cat.title ? null : cat.title)}>
+                            <span className="group-hover:pl-4 transition-all duration-300">{cat.title}</span>
+                            <span className="font-light text-2xl md:text-3xl">{openAccordion === cat.title ? '−' : '+'}</span>
+                          </button>
+                          {openAccordion === cat.title && (
+                            <div className="pb-8 md:pb-10 space-y-6 fade-in px-2 md:px-4">
+                              {/* Category Image */}
+                              {cat.imageUrl && (
+                                <div className="w-full h-48 md:h-64 mb-6 rounded-lg overflow-hidden border border-gray-100 shadow-sm">
+                                  <img src={cat.imageUrl} alt={cat.title} className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              <div className="grid gap-3 md:gap-4">
+                                {cat.items.map(i => (
+                                  <div key={i} className="flex justify-between items-center text-lg md:text-xl font-serif border-b border-gray-50 pb-2">
+                                    <span>{i}</span>
+                                    <span className="text-[9px]  text-gray-300 tracking-widest hidden md:inline">CRAFTED</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                </div>
+              )}
+
+              {/* BRAND INTRO & GIF */}
+              <div className="flex flex-col items-center py-20 md:py-32 border-t border-gray-100 bg-white/30">
+                <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener noreferrer" className="group relative w-20 h-20 md:w-24 md:h-24 mb-10 rounded-full overflow-hidden border border-gray-100 shadow-2xl hover:scale-110 transition-all duration-500">
+                  <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="KIWIMU Brand" className="w-full h-full object-cover" />
+                </a>
+                <div className="max-w-md px-6 text-center">
+                  <h4 className="text-xl md:text-2xl font-serif font-bold text-kiwi-dark mb-4 tracking-tight">探索內在與美味的邊界</h4>
+                  <p className="text-xs md:text-sm text-gray-500 leading-loose font-serif italic">
+                    KIWIMU 是一個致力於將人格探索與生活美學結合的創作品牌。<br className="hidden md:block" />
+                    我們相信每一種靈魂都有其獨特的風味，期待與你在這趟奇幻之旅中相遇。
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* BRAND INTRO & GIF */}
-          <div className="flex flex-col items-center py-20 md:py-32 border-t border-gray-100 bg-white/30">
-            <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener noreferrer" className="group relative w-20 h-20 md:w-24 md:h-24 mb-10 rounded-full overflow-hidden border border-gray-100 shadow-2xl hover:scale-110 transition-all duration-500">
-              <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif" alt="KIWIMU Brand" className="w-full h-full object-cover" />
-            </a>
-            <div className="max-w-md px-6 text-center">
-              <h4 className="text-xl md:text-2xl font-serif font-bold text-kiwi-dark mb-4 tracking-tight">探索內在與美味的邊界</h4>
-              <p className="text-xs md:text-sm text-gray-500 leading-loose font-serif italic">
-                KIWIMU 是一個致力於將人格探索與生活美學結合的創作品牌。<br className="hidden md:block" />
-                我們相信每一種靈魂都有其獨特的風味，期待與你在這趟奇幻之旅中相遇。
-              </p>
-            </div>
-          </div>
+              {/* 12. ARCHIVE - 2 columns on mobile, 4 on desktop */}
+              <div className="border-t border-gray-100 pt-20 md:pt-32">
+                <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.6em] md:tracking-[0.8em] uppercase mb-20 md:mb-32 text-gray-300 ">PERSONALITY ARCHIVE <br className="md:hidden" /> 深度檔案館</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12 mb-20 md:mb-32">
+                  {ALL_TYPES.map(type => {
+                    const data = getResultData(type);
+                    return (
+                      <button key={type} onClick={() => setSelectedOtherType(data)} className="group flex flex-col text-left transition-all duration-700 bg-white p-3 md:p-6 hover:shadow-2xl border border-gray-100 relative hover:-translate-y-2">
+                        <div
+                          className="w-full aspect-square overflow-hidden mb-4 md:mb-8 border border-gray-100 shadow-sm relative"
+                          style={{ backgroundColor: MBTI_BG_COLORS[type] ?? '#f5f5f5' }}
+                        >
+                          <img src={data.characterImage} alt={type} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                          {/* Overlay for aesthetic */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500"></div>
+                        </div>
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-baseline mb-1 md:mb-2">
+                          <span className="font-display font-bold text-xl md:text-3xl text-kiwi-dark">{type}</span>
+                          <span className="text-[8px] md:text-[9px]  text-gray-300 uppercase tracking-widest font-bold group-hover:text-black transition-colors hidden md:inline">INSPECT</span>
+                        </div>
+                        <span className="text-xs md:text-sm font-serif text-gray-500 italic font-medium truncate w-full">{data.title}</span>
+                        <p className="mt-2 md:mt-4 text-[10px] md:text-[11px] text-gray-400 line-clamp-2 leading-relaxed opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block">{data.summary}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          {/* 12. ARCHIVE - 2 columns on mobile, 4 on desktop */}
-          <div className="border-t border-gray-100 pt-20 md:pt-32">
-            <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.6em] md:tracking-[0.8em] uppercase mb-20 md:mb-32 text-gray-300 font-mono">PERSONALITY ARCHIVE <br className="md:hidden" /> 深度檔案館</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12 mb-20 md:mb-32">
-              {ALL_TYPES.map(type => {
-                const data = getResultData(type);
-                return (
-                  <button key={type} onClick={() => setSelectedOtherType(data)} className="group flex flex-col text-left transition-all duration-700 bg-white p-3 md:p-6 hover:shadow-2xl border border-gray-100 relative hover:-translate-y-2">
-                    <div className="w-full aspect-square overflow-hidden bg-gray-50 mb-4 md:mb-8 border border-gray-100 shadow-sm relative">
-                      <img src={data.characterImage} alt={type} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
-                      {/* Overlay for aesthetic */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500"></div>
-                    </div>
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-baseline mb-1 md:mb-2">
-                      <span className="font-display font-bold text-xl md:text-3xl text-kiwi-dark">{type}</span>
-                      <span className="text-[8px] md:text-[9px] font-mono text-gray-300 uppercase tracking-widest font-bold group-hover:text-black transition-colors hidden md:inline">INSPECT</span>
-                    </div>
-                    <span className="text-xs md:text-sm font-serif text-gray-500 italic font-medium truncate w-full">{data.title}</span>
-                    <p className="mt-2 md:mt-4 text-[10px] md:text-[11px] text-gray-400 line-clamp-2 leading-relaxed opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-500 hidden md:block">{data.summary}</p>
-                  </button>
-                );
-              })}
+              {/* MOON ISLAND DESSERT SHOP CTA */}
+              <div className="text-center max-w-3xl mx-auto py-20 md:py-32 border-t border-gray-100 px-6">
+                <div className="mb-8 md:mb-10">
+                  <p className="text-[10px] md:text-[11px]  text-gray-400 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-4 font-bold">NEXT STEP 下一站</p>
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-kiwi-dark mb-4 md:mb-6 leading-tight">
+                    帶著你的測驗結果<br />前往月島領取甜點處方
+                  </h3>
+                  <p className="text-base md:text-lg text-gray-600 font-serif leading-relaxed mb-10 md:mb-12 max-w-xl mx-auto">
+                    月島甜點店已為你準備好專屬的甜點處方，點擊下方按鈕，讓我們一起展開這趟療癒之旅。
+                  </p>
+                </div>
+                <a
+                  href={`https://moon-map-original.vercel.app/?mbti=${resultData.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 px-10 md:px-14 py-5 md:py-6 rounded-full bg-gradient-to-r from-teal-400 via-cyan-500 to-emerald-400 hover:from-teal-500 hover:via-cyan-600 hover:to-emerald-500 text-white font-bold text-base md:text-lg tracking-wider shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-95 hover:scale-105 group"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform duration-300">
+                    <path d="M12 2v20M5 12l7-7 7 7" />
+                  </svg>
+                  <span>前往月島，領取我的甜點處方</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-300">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </a>
+              </div>
             </div>
-          </div>
+          </div> {/* 關閉 max-w-6xl container */}
 
-          {/* MOON ISLAND DESSERT SHOP CTA */}
-          <div className="text-center max-w-3xl mx-auto py-20 md:py-32 border-t border-gray-100 px-6">
-            <div className="mb-8 md:mb-10">
-              <p className="text-[10px] md:text-[11px] font-mono text-gray-400 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-4 font-bold">NEXT STEP 下一站</p>
-              <h3 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-kiwi-dark mb-4 md:mb-6 leading-tight">
-                帶著你的測驗結果<br />前往月島領取甜點處方
-              </h3>
-              <p className="text-base md:text-lg text-gray-600 font-serif leading-relaxed mb-10 md:mb-12 max-w-xl mx-auto">
-                月島甜點店已為你準備好專屬的甜點處方，點擊下方按鈕，讓我們一起展開這趟療癒之旅。
-              </p>
-            </div>
-            <a
-              href={`https://moon-map-original.vercel.app/?mbti=${resultData.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-3 px-10 md:px-14 py-5 md:py-6 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 hover:from-amber-600 hover:via-orange-600 hover:to-pink-600 text-white font-bold text-base md:text-lg tracking-wider shadow-2xl hover:shadow-3xl transition-all duration-300 active:scale-95 hover:scale-105 group"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform duration-300">
-                <path d="M12 2v20M5 12l7-7 7 7" />
-              </svg>
-              <span>前往月島，領取我的甜點處方</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-300">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </a>
+          {/* 【新增】交叉導流區塊 - EXPLORE MORE */}
+          <div className="border-t border-gray-100">
+            <ExploreMore mbtiType={resultData.id} variant={identitySuffix} />
           </div>
 
           {/* DISCLAIMER & FOOTER */}
           <div className="text-center max-w-2xl mx-auto py-16 md:py-24 border-t border-gray-100 px-6">
-            <p className="text-[10px] md:text-[11px] font-mono text-gray-300 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-6 font-bold">DISCLAIMER 免責聲明</p>
+            <p className="text-[10px] md:text-[11px]  text-gray-300 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-6 font-bold">DISCLAIMER 免責聲明</p>
             <p className="text-sm md:text-base font-serif text-gray-400 leading-relaxed mb-8 italic">
               人格測驗提供的是一面鏡子，而非標籤。<br className="hidden md:block" />
               你永遠可以選擇成為不同的樣子。
             </p>
             <div className="flex flex-col items-center py-12 md:py-20">
-              <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase font-mono font-bold">KIWIMU MBTI LAB © 2026</p>
+              <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase  font-bold">KIWIMU MBTI LAB © 2026</p>
             </div>
           </div>
         </div>
@@ -844,12 +963,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
           </a>
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
-          <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95">Retest 重測</button>
+          <button onClick={() => { trackButtonClick('Retest_重測', 'result_floating_bar'); onRetest(); }} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95">Retest 重測</button>
           {onViewArchive && !isArchiveMode && (
             <>
               <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
               <button
-                onClick={onViewArchive}
+                onClick={() => { trackButtonClick(user?.isAnonymous ? '綁定帳號' : 'Archive_檔案館', 'result_floating_bar'); onViewArchive(); }}
                 className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
                 title={user?.isAnonymous ? '綁定帳號以永久保存' : '查看檔案館'}
               >
@@ -871,7 +990,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 p-4 md:p-8 select-none" onClick={() => setShareImage(null)}>
               <div className="w-full max-w-lg bg-white rounded-2xl overflow-hidden flex flex-col shadow-2xl slide-up" onClick={e => e.stopPropagation()}>
                 <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-                  <span className="font-mono text-[10px] tracking-[0.2em] font-bold text-gray-400 uppercase">{shareImage.title}</span>
+                  <span className=" text-[10px] tracking-[0.2em] font-bold text-gray-400 uppercase">{shareImage.title}</span>
                   <button onClick={() => setShareImage(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-black hover:text-white transition-colors">&times;</button>
                 </div>
 
@@ -915,7 +1034,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           )
         }
 
-        {/* HIDDEN IG STORY CONTAINER (1080x1920) - STRICT INLINE STYLES */}
+        {/* HIDDEN IG STORY CONTAINER (1080x1920) - REDESIGNED V2 */}
         <div
           id="ig-story-container"
           style={{
@@ -924,138 +1043,194 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             left: '-9999px',
             width: '1080px',
             height: '1920px',
-            backgroundColor: '#F9F7F5',
+            backgroundColor: '#FAFAF8',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            padding: '100px 60px',
-            fontFamily: '"Times New Roman", serif',
+            fontFamily: '"Noto Serif TC", serif',
             zIndex: -50,
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            overflow: 'hidden'
           }}
         >
-          {/* 1. Header Area */}
-          <div style={{ width: '100%', textAlign: 'center', marginBottom: '60px' }}>
+          {/* Top Section - Brand & Type */}
+          <div style={{ padding: '60px 70px 40px', backgroundColor: '#1A1A1A', color: '#FFFFFF' }}>
             <p style={{
-              fontSize: '28px',
-              letterSpacing: '0.4em',
-              color: '#9CA3AF',
+              fontSize: '16px',
+              letterSpacing: '0.6em',
               fontFamily: 'monospace',
               fontWeight: 'bold',
-              textTransform: 'uppercase',
-              marginBottom: '30px'
+              margin: '0 0 50px 0',
+              textAlign: 'center',
+              opacity: 0.6
             }}>
               KIWIMU LAB
             </p>
-            <div style={{ width: '60px', height: '2px', background: '#000', margin: '0 auto' }}></div>
-          </div>
 
-          {/* 2. Identity Block */}
-          <div style={{ textAlign: 'center', marginBottom: '80px' }}>
+            {/* MBTI Type */}
             <h1 style={{
-              fontSize: '140px',
-              lineHeight: '1',
-              fontWeight: '800',
-              color: '#4B5563',
-              margin: '0 0 20px 0',
-              fontFamily: 'serif'
+              fontSize: '160px',
+              lineHeight: '0.85',
+              fontWeight: '900',
+              margin: '0 0 30px 0',
+              fontFamily: 'serif',
+              letterSpacing: '-0.03em',
+              textAlign: 'center'
             }}>
               {resultData.id}
             </h1>
+
+            {/* Identity */}
             <p style={{
-              fontSize: '40px',
-              fontStyle: 'italic',
-              color: '#6B7280',
-              fontFamily: 'serif',
-              margin: 0
-            }}>
-              {identityChinese} ・ {resultData.title.split(' ')[1] || resultData.title}
-            </p>
-          </div>
-
-          {/* 3. Character Image (Key Visual) */}
-          <div style={{
-            width: '800px',
-            height: '800px',
-            position: 'relative',
-            marginBottom: '80px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <div style={{
-              position: 'absolute',
-              top: '40px',
-              left: '40px',
-              right: '40px',
-              bottom: '40px',
-              border: '1px solid rgba(0,0,0,0.08)',
-              borderRadius: '50%'
-            }} />
-
-            <img
-              src={resultData.characterImage}
-              alt="Character"
-              crossOrigin="anonymous"
-              style={{
-                width: '90%',
-                height: '90%',
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))'
-              }}
-            />
-          </div>
-
-          {/* 4. Soul Anchor Text */}
-          <div style={{ textAlign: 'center', marginBottom: 'auto', padding: '0 40px' }}>
-            <p style={{
-              fontSize: '24px',
-              fontFamily: 'monospace',
-              color: '#9CA3AF',
-              letterSpacing: '0.2em',
-              marginBottom: '20px',
-              textTransform: 'uppercase'
-            }}>
-              YOUR SOUL DESSERT
-            </p>
-            <h3 style={{
-              fontSize: '56px',
+              fontSize: '28px',
               fontFamily: 'serif',
               fontWeight: 'bold',
-              color: '#1F2937',
-              margin: '0 0 30px 0'
+              margin: 0,
+              letterSpacing: '0.15em',
+              textAlign: 'center',
+              paddingBottom: '50px'
             }}>
-              {anchor.name}
-            </h3>
-            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {resultData.keywords.slice(0, 3).map(k => (
-                <span key={k} style={{
-                  padding: '12px 30px',
-                  border: '2px solid #E5E7EB',
-                  fontSize: '24px',
-                  color: '#6B7280',
-                  borderRadius: '100px',
-                  fontFamily: 'monospace',
-                  fontWeight: 'bold'
-                }}>
-                  #{k}
-                </span>
-              ))}
+              {identityChinese}
+            </p>
+          </div>
+
+          {/* Middle Section - Character & Core */}
+          <div style={{ padding: '70px 70px 50px', textAlign: 'center' }}>
+            {/* Character Image - 保持原比例，不壓縮 */}
+            <div style={{
+              width: '520px',
+              height: '520px',
+              margin: '0 auto 50px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative'
+            }}>
+              {/* Background Circle - 角色對應色塊 */}
+              <div style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                backgroundColor: MBTI_BG_COLORS[resultData.id] ?? '#f5f5f5',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.08)'
+              }}></div>
+
+              <img
+                src={resultData.characterImage}
+                alt="Character"
+                crossOrigin="anonymous"
+                style={{
+                  width: '480px',
+                  height: '480px',
+                  objectFit: 'contain',
+                  position: 'relative',
+                  zIndex: 1
+                }}
+              />
+            </div>
+
+            {/* Core Analysis - 核心本質 */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              padding: '40px 50px',
+              borderLeft: '4px solid #1A1A1A',
+              textAlign: 'left',
+              marginBottom: '40px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.06)'
+            }}>
+              <p style={{
+                fontSize: '12px',
+                fontFamily: 'monospace',
+                color: '#999',
+                letterSpacing: '0.4em',
+                marginBottom: '20px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase'
+              }}>
+                CORE ESSENCE / 核心本質
+              </p>
+              <p style={{
+                fontSize: '22px',
+                fontFamily: 'serif',
+                color: '#1A1A1A',
+                lineHeight: '1.8',
+                margin: 0,
+                fontWeight: 500
+              }}>
+                {resultData.coreAnalysis.length > 120
+                  ? resultData.coreAnalysis.substring(0, 120) + '...'
+                  : resultData.coreAnalysis}
+              </p>
+            </div>
+
+            {/* Soul Dessert */}
+            <div style={{ marginBottom: '40px' }}>
+              <p style={{
+                fontSize: '14px',
+                fontFamily: 'monospace',
+                color: '#999',
+                letterSpacing: '0.3em',
+                marginBottom: '15px',
+                fontWeight: 'bold'
+              }}>
+                YOUR SOUL DESSERT
+              </p>
+              <h2 style={{
+                fontSize: '42px',
+                fontFamily: 'serif',
+                fontWeight: 'bold',
+                color: '#1A1A1A',
+                margin: '0 0 30px 0',
+                lineHeight: '1.3'
+              }}>
+                {anchor.name}
+              </h2>
+
+              {/* Keywords */}
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                {resultData.keywords.slice(0, 3).map(k => (
+                  <span key={k} style={{
+                    padding: '12px 28px',
+                    backgroundColor: '#1A1A1A',
+                    color: '#FFFFFF',
+                    fontSize: '18px',
+                    fontFamily: 'serif',
+                    fontWeight: 'bold',
+                    letterSpacing: '0.05em'
+                  }}>
+                    {k}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* 5. Footer / Link */}
+          {/* Bottom CTA */}
           <div style={{
-            width: '100%',
-            padding: '40px',
-            borderTop: '2px solid #F3F4F6',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '60px'
+            marginTop: 'auto',
+            padding: '40px 70px 60px',
+            textAlign: 'center',
+            borderTop: '1px solid #E5E5E5'
           }}>
-            <span style={{ fontSize: '24px', fontFamily: 'monospace', color: '#D1D5DB' }}>kiwimu-lab.vercel.app</span>
-            <span style={{ fontSize: '24px', fontFamily: 'monospace', fontWeight: 'bold', color: '#000' }}>KIWIMU</span>
+            <p style={{
+              fontSize: '16px',
+              color: '#999',
+              marginBottom: '15px',
+              fontFamily: 'serif',
+              letterSpacing: '0.05em'
+            }}>
+              完整測驗報告
+            </p>
+            <p style={{
+              fontSize: '24px',
+              fontFamily: 'monospace',
+              fontWeight: 'bold',
+              color: '#1A1A1A',
+              letterSpacing: '0.05em',
+              margin: 0
+            }}>
+              kiwimu-lab.vercel.app
+            </p>
           </div>
         </div>
 
@@ -1073,8 +1248,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   <span className="text-xl md:text-2xl font-light">&times;</span>
                 </button>
 
-                {/* Left: Compact Image Column */}
-                <div className="w-full md:w-1/3 bg-gray-50 relative group h-[200px] md:h-auto shrink-0">
+                {/* Left: Compact Image Column - 角色對應色塊 */}
+                <div
+                  className="w-full md:w-1/3 relative group h-[200px] md:h-auto shrink-0"
+                  style={{ backgroundColor: MBTI_BG_COLORS[selectedOtherType.id] ?? '#f5f5f5' }}
+                >
                   <img src={selectedOtherType.characterImage} className="w-full h-full object-cover absolute inset-0" alt={selectedOtherType.id} />
                   <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 bg-gradient-to-t from-black/80 to-transparent">
                     <h3 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tighter">{selectedOtherType.id}</h3>
@@ -1086,7 +1264,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 <div className="w-full md:w-2/3 p-6 md:p-12 text-kiwi-dark text-left overflow-y-auto">
                   <div className="mb-6 md:mb-8 pb-6 md:pb-8 border-b border-gray-100">
                     <div className="border border-kiwi-dark/20 px-3 py-1 inline-block mb-4 md:mb-6 bg-white shadow-sm">
-                      <p className="text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase font-bold text-gray-500">ARCHIVE DATA</p>
+                      <p className="text-[8px] md:text-[9px]  tracking-[0.3em] uppercase font-bold text-gray-500">ARCHIVE DATA</p>
                     </div>
                     <h4 className="text-xl md:text-3xl font-serif font-bold text-gray-800 leading-snug mb-3 md:mb-4">
                       {selectedOtherType.summary}
@@ -1098,14 +1276,14 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
                   <div className="space-y-6 md:space-y-8">
                     <div>
-                      <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-2 md:mb-3 font-bold">CORE ANALYSIS</span>
+                      <span className="block text-[8px] md:text-[9px]  tracking-[0.3em] uppercase text-gray-400 mb-2 md:mb-3 font-bold">CORE ANALYSIS</span>
                       <p className="text-gray-700 leading-relaxed font-serif text-sm md:text-base text-justify">
                         {selectedOtherType.coreAnalysis}
                       </p>
                     </div>
 
                     <div>
-                      <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-2 md:mb-3 font-bold">KEYWORDS</span>
+                      <span className="block text-[8px] md:text-[9px]  tracking-[0.3em] uppercase text-gray-400 mb-2 md:mb-3 font-bold">KEYWORDS</span>
                       <div className="flex flex-wrap gap-2">
                         {selectedOtherType.keywords.map(k => (
                           <span key={k} className="px-2 md:px-3 py-1 bg-gray-50 text-gray-500 text-[9px] md:text-[10px] tracking-widest font-bold uppercase">{k}</span>
@@ -1115,11 +1293,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
                     <div className="grid grid-cols-2 gap-4 md:gap-6 pt-2 md:pt-4">
                       <div>
-                        <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">WORK</span>
+                        <span className="block text-[8px] md:text-[9px]  tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">WORK</span>
                         <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed">{selectedOtherType.career.style}</p>
                       </div>
                       <div>
-                        <span className="block text-[8px] md:text-[9px] font-mono tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">LOVE</span>
+                        <span className="block text-[8px] md:text-[9px]  tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">LOVE</span>
                         <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed">{selectedOtherType.relationships.style}</p>
                       </div>
                     </div>
@@ -1137,6 +1315,77 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <span className="text-sm font-medium">已複製連結到剪貼簿</span>
+            </div>
+          </div>
+        )}
+
+        {/* 【新增】Discord 身份組 Modal */}
+        {showDiscordRoleModal && (
+          <div className="fixed inset-0 z-[500] bg-black/60 flex items-center justify-center p-6" onClick={() => setShowDiscordRoleModal(false)}>
+            <div className="bg-white w-full max-w-md border border-gray-200 shadow-2xl p-8 text-center" onClick={(e) => e.stopPropagation()}>
+              <p className="text-[10px]  tracking-[0.5em] uppercase text-gray-400 font-bold mb-6">
+                DISCORD ROLE
+              </p>
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-4">
+                自動取得身份組
+              </h2>
+              <p className="text-sm text-gray-600 font-serif leading-relaxed mb-6">
+                輸入你的 Discord User ID，我們會自動為你發放對應的身份組。
+              </p>
+
+              {/* 如何取得 Discord User ID 說明 */}
+              <div className="bg-gray-50 p-4 mb-6 text-left rounded border border-gray-200">
+                <p className="text-xs  text-gray-500 mb-2 font-bold uppercase tracking-wider">
+                  如何取得 Discord User ID？
+                </p>
+                <ol className="text-xs text-gray-600 space-y-1 list-decimal list-inside">
+                  <li>Discord 設定 → 進階 → 開啟「開發者模式」</li>
+                  <li>在 Discord 中，右鍵你的頭像</li>
+                  <li>點擊「複製使用者 ID」</li>
+                </ol>
+              </div>
+
+              {/* 輸入框 */}
+              <input
+                type="text"
+                value={discordUserId}
+                onChange={(e) => setDiscordUserId(e.target.value)}
+                placeholder="輸入 Discord User ID（例如：123456789012345678）"
+                className="w-full px-4 py-3 border-2 border-gray-200 focus:border-kiwi-dark outline-none text-sm  mb-6"
+                disabled={roleAssignStatus === 'assigning'}
+              />
+
+              {/* 狀態訊息 */}
+              {roleAssignMessage && (
+                <div className={`mb-6 text-sm font-serif ${roleAssignStatus === 'success' ? 'text-green-600' :
+                  roleAssignStatus === 'error' ? 'text-red-600' :
+                    'text-gray-600'
+                  }`}>
+                  {roleAssignMessage}
+                </div>
+              )}
+
+              {/* 按鈕 */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAssignDiscordRole}
+                  disabled={roleAssignStatus === 'assigning' || !discordUserId.trim()}
+                  className="flex-1 px-6 py-3 border-2 border-kiwi-dark bg-kiwi-dark text-white hover:bg-white hover:text-kiwi-dark transition-colors  text-xs tracking-widest uppercase font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {roleAssignStatus === 'assigning' ? '發放中...' : '發放身份組'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDiscordRoleModal(false);
+                    setDiscordUserId('');
+                    setRoleAssignStatus('idle');
+                    setRoleAssignMessage('');
+                  }}
+                  className="px-6 py-3 border border-gray-300 text-gray-600 hover:border-kiwi-dark hover:text-kiwi-dark transition-colors  text-xs tracking-widest uppercase font-bold"
+                >
+                  取消
+                </button>
+              </div>
             </div>
           </div>
         )}

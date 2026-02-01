@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kiwimu MBTI Lab V2 | 深度人格分析與靈魂甜點</title>
   <meta name="description" content="Kiwimu MBTI Lab V2 - 探索你的真實性格，發現專屬於你的靈魂甜點。">
+  <link rel="canonical" href="https://kiwimu-mbti.vercel.app/">
   <!-- DEPLOY_ID: 20260108-2315 -->
 
   <!-- Favicon -->
@@ -17,18 +18,19 @@
     href="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp">
 
   <!-- Open Graph / Facebook -->
+  <meta property="og:url" content="https://kiwimu-mbti.vercel.app/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Kiwimu MBTI Lab | 深度人格分析">
   <meta property="og:description" content="探索你的真實性格，發現專屬於你的靈魂甜點。">
-  <meta property="og:image"
-    content="https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438026/mbti_ISFP_tptbuj.png">
+  <meta property="og:image" content="https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438026/mbti_ISFP_tptbuj.png">
 
   <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:title" content="Kiwimu MBTI Lab | 深度人格分析">
-  <meta property="twitter:description" content="探索你的真實性格，發現專屬於你的靈魂甜點。">
-  <meta property="twitter:image"
-    content="https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438026/mbti_ISFP_tptbuj.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="twitter:domain" content="kiwimu-mbti.vercel.app">
+  <meta property="twitter:url" content="https://kiwimu-mbti.vercel.app/">
+  <meta name="twitter:title" content="Kiwimu MBTI Lab | 深度人格分析">
+  <meta name="twitter:description" content="探索你的真實性格，發現專屬於你的靈魂甜點。">
+  <meta name="twitter:image" content="https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438026/mbti_ISFP_tptbuj.png">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -125,17 +127,42 @@
     }
   </style>
 
-  <!-- Google Analytics (GA4) Placeholder -->
-  <!-- 請將 G-XXXXXXXXXX 替換成您的 GA4 評估 ID -->
-  <!--
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX');
-    </script>
-    -->
+  <!-- Google Analytics (GA4) - 與 Firebase measurementId 同資源 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NBWRX24YR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2NBWRX24YR');
+  </script>
+
+  <!-- 結構化資料 (JSON-LD) - AI SEO 可理解、可引用 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "name": "Kiwimu MBTI Lab",
+        "url": "https://kiwimu-mbti.vercel.app",
+        "description": "探索你的真實性格，發現專屬於你的靈魂甜點。深度人格分析與 MBTI 測驗。",
+        "inLanguage": "zh-TW",
+        "publisher": { "@id": "#organization" }
+      },
+      {
+        "@type": "Organization",
+        "@id": "#organization",
+        "name": "Moon Moon Dessert / Kiwimu",
+        "url": "https://kiwimu-mbti.vercel.app",
+        "logo": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp",
+        "sameAs": [
+          "https://lin.ee/r19wTnY",
+          "https://www.instagram.com/moon_moon_dessert/"
+        ]
+      }
+    ]
+  }
+  </script>
 
   <script type="importmap">
 {

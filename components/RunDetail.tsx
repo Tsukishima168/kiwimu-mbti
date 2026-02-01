@@ -71,7 +71,7 @@ export const RunDetail: React.FC<RunDetailProps> = ({ run, onBack }) => {
                 <div className="max-w-4xl mx-auto px-6 pb-6">
                     <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6 shadow-sm">
                         <div className="flex items-start gap-4">
-                            <div className="flex-shrink-0 text-3xl">🍰</div>
+                            <div className="flex-shrink-0 text-3xl"></div>
                             <div className="flex-1">
                                 <h3 className="text-lg font-serif font-semibold text-purple-900 mb-2">
                                     新甜點已上架！

@@ -434,6 +434,29 @@ export const trackPageView = (
 };
 
 /**
+ * Track 各頁停留時間（螢幕參與時間）
+ * GA4 報表可依 screen_name 看「哪一頁停留最久」
+ */
+export const trackScreenEngagement = (
+    screenName: string,
+    engagementTimeSeconds: number
+) => {
+    if (engagementTimeSeconds <= 0) return;
+
+    const eventData = {
+        screen_name: screenName,
+        engagement_time_seconds: engagementTimeSeconds,
+        page_name: screenName,
+    };
+
+    if (analytics) {
+        logEvent(analytics, 'screen_engagement', eventData);
+    }
+
+    logToFirestore('screen_engagement', eventData);
+};
+
+/**
  * Track button/link clicks
  */
 export const trackButtonClick = (
@@ -451,9 +474,9 @@ export const trackButtonClick = (
         logEvent(analytics, 'button_click', eventData);
     }
 
-    // Only log important buttons to Firestore
-    const importantButtons = ['download', 'share', 'join', 'login', 'signup'];
-    if (importantButtons.some(btn => buttonName.toLowerCase().includes(btn))) {
+    // Log important buttons to Firestore for 按鈕點擊分析
+    const importantButtons = ['download', 'share', 'join', 'login', 'signup', 'retest', 'archive', 'discord', '訂購', '開始', '重測', '檔案館', '設定', '登出', '時間線', '對比', '統計', '返回', '月島', '完整菜單', '同象限', 'Discord', '我準備好了'];
+    if (importantButtons.some(btn => buttonName.toLowerCase().includes(btn) || buttonName.includes(btn))) {
         logToFirestore('button_click', eventData);
     }
 };
@@ -598,5 +621,6 @@ export default {
     trackUserSignup,
     trackProfileUpdate,
     trackPageView,
+    trackScreenEngagement,
     trackButtonClick,
 };

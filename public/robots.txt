@@ -1,0 +1,11 @@
+# Kiwimu MBTI Lab - robots.txt
+# 允許搜尋引擎與 AI 爬蟲抓取公開內容
+
+User-agent: *
+Allow: /
+
+# 若有需保護的路徑（例如後台）可在此加入 Disallow
+# Disallow: /admin
+
+# Sitemap 位置（請依實際網域替換）
+Sitemap: https://kiwimu-mbti.vercel.app/sitemap.xml

@@ -1,6 +1,7 @@
 import React from 'react';
 import { User } from 'firebase/auth';
 import { TestRun } from '../types';
+import { trackButtonClick } from '../utils/analytics';
 
 interface RunTimelineProps {
     runs: TestRun[];
@@ -33,7 +34,7 @@ export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack
             <div className="mb-12">
                 {onBack && (
                     <button
-                        onClick={onBack}
+                        onClick={() => { trackButtonClick('返回_檔案館', 'archive_timeline'); onBack(); }}
                         className="mb-6 flex items-center gap-2 text-sm font-mono text-gray-400 hover:text-kiwi-dark transition-colors tracking-wider uppercase"
                     >
                         <span>←</span>
@@ -58,7 +59,7 @@ export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack
                     <p className="text-gray-500 mb-8">完成第一次測驗，開始建立你的人格檔案</p>
                     {onBack && (
                         <button
-                            onClick={onBack}
+                            onClick={() => { trackButtonClick('開始探索_檔案館', 'archive_empty'); onBack(); }}
                             className="px-8 py-3 bg-kiwi-dark text-white hover:bg-opacity-90 transition-all font-medium tracking-wide"
                         >
                             開始探索

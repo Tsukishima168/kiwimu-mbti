@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
 import { TestRun } from '../types';
 import { useFirestoreSync } from '../hooks/useFirestoreSync';
+import { trackButtonClick } from '../utils/analytics';
 import RunTimeline from './RunTimeline';
 import RunDetail from './RunDetail';
 import Comparison from './Comparison';
@@ -96,6 +97,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         href={`https://moon-map-original.vercel.app/?mbti=${testRuns[0]?.result || ''}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        onClick={() => trackButtonClick('前往月島甜點店', 'archive_cross_site', 'https://moon-map-original.vercel.app/')}
                                         className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 hover:from-amber-500 hover:via-yellow-500 hover:to-orange-500 text-gray-900 font-bold text-base md:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap"
                                     >
                                         <span className="text-xl">🍰</span>
@@ -114,7 +116,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                         <div className="max-w-4xl mx-auto px-6 pt-6 pb-6">
                             <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
                                 <button
-                                    onClick={() => handleViewChange('timeline')}
+                                    onClick={() => { trackButtonClick('時間線', 'archive_tabs'); handleViewChange('timeline'); }}
                                     className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'timeline'
                                         ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
                                         : 'text-gray-400 hover:text-gray-600'
@@ -123,7 +125,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                     時間線
                                 </button>
                                 <button
-                                    onClick={() => handleViewChange('comparison')}
+                                    onClick={() => { trackButtonClick('對比分析', 'archive_tabs'); handleViewChange('comparison'); }}
                                     disabled={testRuns.length < 2}
                                     className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'comparison'
                                         ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
@@ -138,7 +140,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                     )}
                                 </button>
                                 <button
-                                    onClick={() => handleViewChange('stats')}
+                                    onClick={() => { trackButtonClick('統計', 'archive_tabs'); handleViewChange('stats'); }}
                                     className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'stats'
                                         ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
                                         : 'text-gray-400 hover:text-gray-600'
@@ -147,7 +149,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                     統計
                                 </button>
                                 <button
-                                    onClick={() => handleViewChange('settings')}
+                                    onClick={() => { trackButtonClick('設定', 'archive_tabs'); handleViewChange('settings'); }}
                                     className="flex-shrink-0 px-6 py-3 font-serif text-lg font-medium text-gray-400 hover:text-gray-600 transition-all ml-auto"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1">

@@ -465,6 +465,14 @@ const MBTI_IMAGE_MAP: Record<string, string> = {
   ESFP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438020/mbti_ESFP_hsuas1.png",
 };
 
+/** 角色插畫背後色塊：依網路上最常見的四象限分類（NT / NF / SJ / SP） */
+export const MBTI_BG_COLORS: Record<string, string> = {
+  INTJ: "#F3E5F5", INTP: "#F3E5F5", ENTJ: "#F3E5F5", ENTP: "#F3E5F5",
+  INFJ: "#E8F5E9", INFP: "#E8F5E9", ENFJ: "#E8F5E9", ENFP: "#E8F5E9",
+  ISTJ: "#E3F2FD", ISFJ: "#E3F2FD", ESTJ: "#E3F2FD", ESFJ: "#E3F2FD",
+  ISTP: "#FFF3E0", ISFP: "#FFF3E0", ESTP: "#FFF3E0", ESFP: "#FFF3E0",
+};
+
 // 請將以下的 Placeholder URL 替換成您實際的圖片網址
 const DESSERT_IMAGES: Record<string, string> = {
   BASQUE_CLASSIC: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866456/BASQUE_CLASSIC_c6fb92.webp",

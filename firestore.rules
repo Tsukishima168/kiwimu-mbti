@@ -14,13 +14,20 @@ service cloud.firestore {
     }
     
     // Users can read/write their own test runs
+    // Public can read test runs marked as public
     match /test_runs/{runId} {
-      allow read: if request.auth != null && 
-                     resource.data.uid == request.auth.uid;
+      allow read: if (request.auth != null && resource.data.uid == request.auth.uid) ||
+                     (resource.data.isPublic == true);
       allow write: if request.auth != null && 
                       resource.data.uid == request.auth.uid;
       allow create: if request.auth != null && 
                        request.resource.data.uid == request.auth.uid;
+    }
+    
+    // Anyone can read share links (needed for public sharing)
+    match /share_links/{shareId} {
+      allow read: if true;
+      allow write: if false; // Only server can write
     }
   }
 }

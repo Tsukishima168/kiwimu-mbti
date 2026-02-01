@@ -1,16 +1,18 @@
-# 🎉 歡迎來到 KIWIMU 性格宇宙
+# 🌙 歡迎來到 Moon Moon 品牌社群
 
-親愛的 KIWIMU 夥伴，
+親愛的社群夥伴，
 
-這裡是探索性格、與靈魂伴侶相遇的溫暖社群！🌈
+這裡是探索性格、品嚐甜點、航向自由的溫暖港灣！🌈
 
 ## 🚀 快速開始 3 步驟
 
-### Step 1: 完成測驗
-前往 **https://kiwimu-mbti.vercel.app** 完成你的性格測驗
+### Step 1: 選擇你的探索方式
+- **🧪 MBTI 測驗** - https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **🗺️ 月島地圖** - https://moon-map-original.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **🎨 甜點護照** - https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
 
-### Step 2: 獲得身份組
-測驗完成後，在這裡輸入：
+### Step 2: 獲得身份組（完成 MBTI 測驗後）
+在這裡輸入：
 ```
 /verify 你的UserID
 ```
@@ -19,10 +21,30 @@
 
 ### Step 3: 開始探索
 獲得身份組後，你可以：
-- 存取你的專屬族群頻道（NF/NT/SF/ST）
+- 存取你的專屬MBTI 族群頻道（NF/NT/SF/ST）
 - 與同類型的夥伴深度交流
 - 參與專屬活動和抽獎
-- 獲得甜點店折扣優惠
+- 累積積分兌換福利
+
+---
+
+## 🌍 探索 Moon Moon 宇宙
+
+### 🧪 MBTI 性格測驗
+探索你的內在性格，找到你的靈魂甜點
+👉 完成測驗可獲得 **100 積分**
+
+### 🗺️ 月島品牌地圖
+探索完整的 Moon Moon 世界觀與品牌故事
+👉 了解品牌生態與產品連結
+
+### 🎨 甜點護照測驗
+趣味測驗，獲得你的甜點角色貼紙
+👉 完成測驗可獲得 **50 積分**
+
+### 🛒 訂購靈魂甜點
+根據你的性格，訂購專屬甜點
+👉 消費金額 **10% 積分回饋**（即將推出）
 
 ---
 
@@ -43,9 +65,21 @@
 ### 🍰 甜點店
 - **🍰 甜點推薦** - 分享好吃的甜點
 - **📸 打卡分享** - 曬出你的甜點照片
-- **🏪 門市資訊** - KIWIMU 實體店消息
+- **🏪 門市資訊** - Moon Moon 實體店消息
 
-### 💎 會員專區（需解鎖）
+### 💰 積分系統與會員福利
+
+#### 如何累積積分？
+- 🧪 完成 MBTI 測驗：**100 點**
+- 🎨 完成護照測驗：**50 點**
+- 🛒 訂購甜點：**消費金額 10% 回饋**
+- 👥 推薦朋友註冊：**50 點**
+- 👥 推薦朋友完成測驗：**100 點**
+- 📱 加入 LINE@：**30 點**
+- 📸 分享測驗結果：**20 點**
+
+#### 會員等級（Discord 身份組）
+- **🥉 測驗完成者** - 基本會員（完成任一測驗即可）
 - **🥈 LINE會員** - 加入 LINE@ 官方帳號解鎖
 - **🥇 店內消費者** - 到實體店消費解鎖
 - **💎 貼圖收藏家** - 購買 LINE 貼圖解鎖
@@ -81,9 +115,10 @@
 
 ## 📞 聯絡資訊
 
-- **網站**: https://kiwimu-mbti.vercel.app
-- **LINE@**: @kiwimu  
-- **Email**: contact@kiwimu.com
+- **MBTI 測驗**: https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **月島地圖**: https://moon-map-original.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **甜點護照**: https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **LINE@**: @kiwimu
 
 ---
 

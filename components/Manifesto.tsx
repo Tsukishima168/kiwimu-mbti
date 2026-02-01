@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { trackButtonClick } from '../utils/analytics';
 
 interface ManifestoProps {
     onProceed: () => void;
@@ -35,7 +35,7 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
                 {/* Action */}
                 <div className="pt-8">
                     <button
-                        onClick={onProceed}
+                        onClick={() => { trackButtonClick('我準備好了', 'manifesto'); onProceed(); }}
                         className="group relative inline-flex items-center justify-center px-16 py-5 border border-black overflow-hidden transition-all hover:bg-black hover:scale-[1.02] active:scale-95 shadow-md hover:shadow-xl"
                     >
                         <span className="relative z-10 text-xs font-bold tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">

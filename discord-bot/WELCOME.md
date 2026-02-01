@@ -1,29 +1,50 @@
-# 🎉 歡迎來到 KIWIMU 性格宇宙！
+# 🌙 歡迎來到 Moon Moon 品牌社群！
 
-這裡是探索 MBTI 性格、與同類型夥伴交流的專屬社群！
+這裡是探索性格、品嚐甜點、航向自由的溫暖港灣！
+
+## 🌍 探索 Moon Moon 宇宙
+
+選擇你的探索起點，開啟專屬旅程：
+
+### 🧪 MBTI 性格測驗
+探索你的內在性格，找到你的靈魂甜點
+👉 **https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community**
+
+### 🗺️ 月島品牌地圖
+探索完整的 Moon Moon 世界觀與品牌故事
+👉 **https://moon-map-original.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community**
+
+### 🎨 甜點護照測驗
+趣味測驗，獲得你的甜點角色貼紙
+👉 **https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community**
+
+### 🛒 訂購靈魂甜點
+根據你的性格，訂購專屬甜點（即將推出）
+
+---
 
 ## 🚀 快速開始
 
-### 1. 完成性格測驗
-前往 **https://kiwimu-mbti.vercel.app** 完成你的 MBTI 性格測驗
+### 1. 選擇你的探索方式
+完成任一測驗，或直接探索月島地圖
 
-### 2. 獲得專屬身份組
-測驗完成後，使用指令：
+### 2. 驗證身份獲得專屬福利
+完成 MBTI 測驗後，使用指令：
 ```
 /verify 你的UserID
 ```
 
 **如何找到 User ID？**
-- 在測驗結果頁面
+- 在 MBTI 測驗結果頁面
 - 點擊右上角「我的檔案」
 - 複製顯示的 User ID
 
-### 3. 開始探索！
-獲得身份組後，你可以：
-- ✅ 存取你的專屬族群頻道
+### 3. 開始你的社群旅程！
+驗證後，你可以：
+- ✅ 存取你的專屬 MBTI 族群頻道
 - ✅ 與同類型的夥伴深度交流
 - ✅ 參與專屬活動和抽獎
-- ✅ 獲得甜點店折扣優惠
+- ✅ 累積積分兌換福利
 
 ---
 
@@ -89,29 +110,45 @@ A: 在 📝 意見箱留言，或標註 @管理員
 
 ---
 
-## 🎁 福利一覽
+## 💰 積分與會員福利
 
-### 免費福利
-- ✅ 專屬族群頻道存取
+### 如何累積積分？
+完成以下任務即可獲得積分：
+- 🧪 完成 MBTI 測驗：**100 點**
+- 🎨 完成護照測驗：**50 點**
+- 🛒 訂購甜點：**消費金額 10% 回饋**
+- 👥 推薦朋友註冊：**50 點**
+- 👥 推薦朋友完成測驗：**100 點**
+- 📱 加入 LINE@：**30 點**
+- 📸 分享測驗結果：**20 點**
+
+### 會員等級與福利
+
+#### 🥉 測驗完成者（基本會員）
+- ✅ 專屬 MBTI 族群頻道存取
 - ✅ 參與社群討論
-- ✅ LINE@ 性格週報
+- ✅ 查看測驗結果
 
-### LINE 會員福利
-- 🎁 獨家性格洞見
+#### 🥈 LINE 會員
+**解鎖方式**：加入 LINE@ 官方帳號
+- 🎁 獨家性格週報
 - 🎁 優先活動報名
 - 🎁 LINE 貼圖抽獎資格
 
-### 店內消費者福利
+#### 🥇 店內消費者
+**解鎖方式**：到實體店消費一次
 - 🏆 VIP 專屬頻道
-- 🏆 九折優惠
+- 🏆 九折優惠券
 - 🏆 生日專屬甜點
 
-### 貼圖收藏家福利
+#### 💎 貼圖收藏家
+**解鎖方式**：購買 LINE 貼圖
 - 💎 新貼圖搶先預覽
 - 💎 設計投票權
 - 💎 獨家貼圖包
 
-### 超級粉絲福利
+#### 🌟 超級粉絲
+**解鎖方式**：累積消費滿 NT$ 3,000
 - 🌟 所有 VIP 權限
 - 🌟 免費工作坊名額
 - 🌟 一對一性格諮詢
@@ -120,10 +157,11 @@ A: 在 📝 意見箱留言，或標註 @管理員
 
 ## 📞 聯絡我們
 
-- **網站**: https://kiwimu-mbti.vercel.app
+- **MBTI 測驗**: https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community
+- **月島地圖**: https://moon-map-original.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community
+- **甜點護照**: https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community
 - **LINE@**: @kiwimu
 - **Instagram**: @kiwimu.mbti
-- **Email**: contact@kiwimu.com
 
 ---
 
