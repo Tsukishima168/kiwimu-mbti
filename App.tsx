@@ -40,6 +40,7 @@ import { sendResultEmail } from './utils/sendResultEmail';
 
 import NotFound from './components/NotFound';
 import DiscordLinkGate from './components/DiscordLinkGate';
+import { sendDiscordNotification } from './utils/discord';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | '404';
 
@@ -232,6 +233,9 @@ const App: React.FC = () => {
     // Track Completion (現有的 GA4)
     trackQuizComplete(type, 0, user?.uid || undefined);
 
+    // Notify Discord (Always, regardless of user login status)
+    sendDiscordNotification(type, variant);
+
     // 【新增】追蹤行銷轉換事件
     trackMarketingEvent(MARKETING_EVENTS.COMPLETE_QUIZ, {
       mbtiType: type,
@@ -248,7 +252,7 @@ const App: React.FC = () => {
     setStage('loading');
 
     // Save to cloud in background - don't block UI
-    if (user && !user.isAnonymous) {
+    if (user) {
       saveCompletedTest(type, variant, scores)
         .then(() => {
           setShowSaveToast({ show: true, success: true, message: '✅ 測驗結果已安全儲存' });
@@ -281,7 +285,7 @@ const App: React.FC = () => {
           title: data.title,
           summary: data.summary,
           dessert: data.dessert,
-        }).catch(() => {});
+        }).catch(() => { });
       } else {
         console.warn('⚠️ User email not available, skipping Moon Island sync');
       }

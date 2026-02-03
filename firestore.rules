@@ -23,6 +23,19 @@ service cloud.firestore {
       allow create: if request.auth != null && 
                        request.resource.data.uid == request.auth.uid;
     }
+
+    // User behaviors logging
+    match /user_behaviors/{behaviorId} {
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      // Allow reading only own behaviors if needed, or restricting it. 
+      // For now, let's allow read for owner
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    // User stats
+    match /user_stats/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
     
     // Anyone can read share links (needed for public sharing)
     match /share_links/{shareId} {
