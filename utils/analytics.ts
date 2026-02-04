@@ -6,6 +6,13 @@ import { analytics } from '../firebase';
 import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firestore.config';
 
+const SITE_ID = 'mbti_lab';
+
+const withSiteId = (properties: Record<string, any>) => ({
+    site_id: SITE_ID,
+    ...properties,
+});
+
 // ==================== Types ====================
 
 export interface AnalyticsEvent {
@@ -53,7 +60,7 @@ export const trackQuizStart = (source?: string, campaignId?: string) => {
 
     // Log to GA4
     if (analytics) {
-        logEvent(analytics, 'quiz_start', eventData);
+        logEvent(analytics, 'quiz_start', withSiteId(eventData));
     }
 
     // Log to Firestore for detailed analysis
@@ -79,7 +86,7 @@ export const trackQuizProgress = (
 
     // Log all progress to GA4
     if (analytics) {
-        logEvent(analytics, 'quiz_progress', eventData);
+        logEvent(analytics, 'quiz_progress', withSiteId(eventData));
     }
 
     // Log all progress to Firestore
@@ -104,7 +111,7 @@ export const trackQuizAbandon = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'quiz_abandon', eventData);
+        logEvent(analytics, 'quiz_abandon', withSiteId(eventData));
     }
 
     logToFirestore('quiz_abandon', eventData);
@@ -126,7 +133,7 @@ export const trackQuizComplete = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'quiz_complete', eventData);
+        logEvent(analytics, 'quiz_complete', withSiteId(eventData));
     }
 
     logToFirestore('quiz_complete', eventData);
@@ -152,7 +159,7 @@ export const trackResultView = (mbtiType: string, userId?: string) => {
     };
 
     if (analytics) {
-        logEvent(analytics, 'result_view', eventData);
+        logEvent(analytics, 'result_view', withSiteId(eventData));
     }
 
     logToFirestore('result_view', eventData);
@@ -174,7 +181,7 @@ export const trackResultShare = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'result_share', eventData);
+        logEvent(analytics, 'result_share', withSiteId(eventData));
     }
 
     logToFirestore('result_share', eventData);
@@ -193,10 +200,29 @@ export const trackResultDownload = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'result_download', eventData);
+        logEvent(analytics, 'result_download', withSiteId(eventData));
     }
 
     logToFirestore('result_download', eventData);
+};
+
+/**
+ * Track passport stamp claim events
+ */
+export const trackStampClaim = (
+    status: 'issued' | 'failed',
+    data?: Record<string, any>
+) => {
+    const eventData = {
+        status,
+        ...(data || {}),
+    };
+
+    if (analytics) {
+        logEvent(analytics, 'stamp_claim', withSiteId(eventData));
+    }
+
+    logToFirestore('stamp_claim', eventData);
 };
 
 // ==================== Social/Community Events ====================
@@ -215,12 +241,12 @@ export const trackLineCTA = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'line_cta_click', {
+        logEvent(analytics, 'line_cta_click', withSiteId({
             ...eventData,
             event_category: 'conversion',
             event_label: location,
             value: 1,
-        });
+        }));
     }
 
     logToFirestore('line_cta_click', eventData);
@@ -237,7 +263,7 @@ export const trackDiscordJoin = (mbtiType?: string, userId?: string) => {
     };
 
     if (analytics) {
-        logEvent(analytics, 'discord_join', eventData);
+        logEvent(analytics, 'discord_join', withSiteId(eventData));
     }
 
     logToFirestore('discord_join', eventData);
@@ -258,7 +284,7 @@ export const trackDiscordVerify = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'discord_verify_complete', eventData);
+        logEvent(analytics, 'discord_verify_complete', withSiteId(eventData));
     }
 
     logToFirestore('discord_verify_complete', eventData);
@@ -283,7 +309,7 @@ export const trackQRScan = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'qr_code_scan', eventData);
+        logEvent(analytics, 'qr_code_scan', withSiteId(eventData));
     }
 
     logToFirestore('qr_code_scan', eventData);
@@ -304,7 +330,7 @@ export const trackTaskCardGenerate = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'task_card_generate', eventData);
+        logEvent(analytics, 'task_card_generate', withSiteId(eventData));
     }
 
     logToFirestore('task_card_generate', eventData);
@@ -326,7 +352,7 @@ export const trackStoreVisit = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'store_visit', eventData);
+        logEvent(analytics, 'store_visit', withSiteId(eventData));
     }
 
     logToFirestore('store_visit', eventData);
@@ -347,7 +373,7 @@ export const trackRewardRedemption = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'reward_redemption', eventData);
+        logEvent(analytics, 'reward_redemption', withSiteId(eventData));
     }
 
     logToFirestore('reward_redemption', eventData);
@@ -368,7 +394,7 @@ export const trackUserLogin = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'login', eventData);
+        logEvent(analytics, 'login', withSiteId(eventData));
     }
 
     logToFirestore('user_login', eventData);
@@ -387,7 +413,7 @@ export const trackUserSignup = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'sign_up', eventData);
+        logEvent(analytics, 'sign_up', withSiteId(eventData));
     }
 
     logToFirestore('user_signup', eventData);
@@ -406,7 +432,7 @@ export const trackProfileUpdate = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'profile_update', eventData);
+        logEvent(analytics, 'profile_update', withSiteId(eventData));
     }
 
     logToFirestore('profile_update', eventData);
@@ -427,7 +453,7 @@ export const trackPageView = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'page_view', eventData);
+        logEvent(analytics, 'page_view', withSiteId(eventData));
     }
 
     logToFirestore('page_view', eventData);
@@ -450,7 +476,7 @@ export const trackScreenEngagement = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'screen_engagement', eventData);
+        logEvent(analytics, 'screen_engagement', withSiteId(eventData));
     }
 
     logToFirestore('screen_engagement', eventData);
@@ -471,7 +497,7 @@ export const trackButtonClick = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'button_click', eventData);
+        logEvent(analytics, 'button_click', withSiteId(eventData));
     }
 
     // Log important buttons to Firestore for 按鈕點擊分析
@@ -491,11 +517,12 @@ const logToFirestore = async (
     properties: Record<string, any>
 ) => {
     try {
+        const propertiesWithSite = withSiteId(properties);
         const event: AnalyticsEvent = {
             eventName,
             sessionId: getSessionId(),
             timestamp: Date.now(),
-            properties,
+            properties: propertiesWithSite,
             platform: 'web',
             source: getCampaignSource(),
         };

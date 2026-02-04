@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { buildPassportClaimLink } from './utmTracking';
+import { trackStampClaim } from './analytics';
 
 const SUPABASE_URL =
   (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
@@ -35,6 +36,7 @@ function generateClaimCode() {
 
 async function createMbtiClaim(mbtiType: string, variant: string) {
   if (!supabase) {
+    trackStampClaim('failed', { reason: 'unconfigured', mbti_type: mbtiType, variant });
     return null;
   }
 
@@ -48,9 +50,11 @@ async function createMbtiClaim(mbtiType: string, variant: string) {
 
   if (error) {
     console.error('Failed to create MBTI claim:', error.message);
+    trackStampClaim('failed', { reason: 'insert_failed', mbti_type: mbtiType, variant });
     return null;
   }
 
+  trackStampClaim('issued', { mbti_type: mbtiType, variant });
   return code;
 }
 
