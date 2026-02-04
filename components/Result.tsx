@@ -17,6 +17,7 @@ import { resultTranslations } from '../i18n/resultTranslations';
 import { trackResultView, trackResultShare, trackResultDownload, trackButtonClick } from '../utils/analytics';
 import { buildDessertOrderLink, trackDessertOrderClick } from '../utils/utmTracking';
 import ExploreMore from './ExploreMore';
+import { getOrCreatePassportClaimUrl } from '../utils/mbtiClaim';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -97,6 +98,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [passportClaimUrl, setPassportClaimUrl] = useState<string | null>(null);
 
   // 【新增】Discord 身份組自動發放
   const [showDiscordRoleModal, setShowDiscordRoleModal] = useState(false);
@@ -181,6 +183,19 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const identitySuffix = resultAT;
   const identityChinese = resultAT === 'A' ? '堅定型' : '動盪型';
   const anchor = SOUL_ANCHOR_MAP[resultData.id] || SOUL_ANCHOR_MAP["ISFP"];
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const url = await getOrCreatePassportClaimUrl(resultData.id, identitySuffix);
+      if (!cancelled) {
+        setPassportClaimUrl(url);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [resultData.id, identitySuffix]);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowMenu(false); };
@@ -941,7 +956,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
           {/* 【新增】交叉導流區塊 - EXPLORE MORE */}
           <div className="border-t border-gray-100">
-            <ExploreMore mbtiType={resultData.id} variant={identitySuffix} />
+            <ExploreMore
+              mbtiType={resultData.id}
+              variant={identitySuffix}
+              passportClaimUrl={passportClaimUrl}
+            />
           </div>
 
           {/* DISCLAIMER & FOOTER */}

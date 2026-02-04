@@ -159,6 +159,19 @@ export function buildPassportLink(): string {
 }
 
 /**
+ * 護照領章連結（附 claim code）
+ */
+export function buildPassportClaimLink(claimCode: string): string {
+  return buildUTMLink('PASSPORT', 'navigation', {
+    campaign: '2026-q1-integration',
+    content: 'mbti-claim',
+    additionalParams: {
+      claim: claimCode
+    }
+  });
+}
+
+/**
  * Discord 連結（結果頁專用）
  */
 export function buildDiscordLink(): string {

@@ -4,9 +4,10 @@ import { buildDessertOrderLink, buildMoonMapLink, buildPassportLink, trackOutbou
 interface ExploreMoreProps {
   mbtiType?: string;
   variant?: string;
+  passportClaimUrl?: string | null;
 }
 
-export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant }) => {
+export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, passportClaimUrl }) => {
   const products = [
     {
       id: 'dessert-booking',
@@ -20,11 +21,17 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant }) =
     {
       id: 'passport',
       number: '02',
-      title: '甜點護照測驗',
-      subtitle: 'PASSPORT QUIZ',
-      description: '趣味測驗找到你的專屬角色貼紙與幸運甜點',
-      url: buildPassportLink(),
-      onClick: () => trackOutboundClick('PASSPORT', 'navigation', { section: 'explore-more' })
+      title: passportClaimUrl ? '領取護照印章' : '甜點護照測驗',
+      subtitle: passportClaimUrl ? 'PASSPORT STAMP' : 'PASSPORT QUIZ',
+      description: passportClaimUrl
+        ? '完成 MBTI 後可直接領取護照印章'
+        : '趣味測驗找到你的專屬角色貼紙與幸運甜點',
+      url: passportClaimUrl || buildPassportLink(),
+      onClick: () =>
+        trackOutboundClick('PASSPORT', 'navigation', {
+          section: 'explore-more',
+          claim_ready: Boolean(passportClaimUrl)
+        })
     },
     {
       id: 'moon-map',

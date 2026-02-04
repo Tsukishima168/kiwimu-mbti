@@ -5,11 +5,14 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// 月島品牌 Supabase 連線資訊
+// 月島品牌 Supabase 連線資訊（保持與 Vite 慣例相容）
+// 優先使用 VITE_MOON_ISLAND_*，其次嘗試 NEXT_PUBLIC_*（若被注入）
 // @ts-ignore - Vite env variables
-const MOON_ISLAND_SUPABASE_URL = import.meta.env.NEXT_PUBLIC_SUPABASE_URL as string | undefined;
+const MOON_ISLAND_SUPABASE_URL = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_URL) as string | undefined;
 // @ts-ignore - Vite env variables
-const MOON_ISLAND_SUPABASE_ANON_KEY = import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string | undefined;
+const MOON_ISLAND_SUPABASE_ANON_KEY = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_ANON_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) as string | undefined;
 
 // 有效的 MBTI 類型列表
 const VALID_MBTI_TYPES = [
