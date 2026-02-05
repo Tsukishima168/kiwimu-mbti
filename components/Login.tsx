@@ -92,12 +92,12 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) =
                         }
                     </p>
                 </div>
-                {/* Privacy Notice */}
+                {/* Privacy Notice - 強調記錄屬於用戶，非蒐集 */}
                 <p className="text-xs text-gray-400 mb-6">
-                    繼續即表示您同意我們的{' '}
-                    <a href="/privacy.html" target="_blank" className="text-kiwi-dark underline">隱私權政策</a>
-                    {' '}與{' '}
-                    <a href="/privacy.html" target="_blank" className="text-kiwi-dark underline">使用條款</a>
+                    您的記錄僅供您回看與長期追蹤。繼續即表示同意
+                    <a href="/privacy.html" target="_blank" rel="noopener" className="text-kiwi-dark underline ml-1">隱私權政策</a>
+                    <span className="mx-1">與</span>
+                    <a href="/terms.html" target="_blank" rel="noopener" className="text-kiwi-dark underline">使用者條款</a>
                 </p>
 
                 {!isInAppBrowser && (

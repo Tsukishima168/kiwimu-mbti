@@ -1,6 +1,8 @@
 // 統一 UTM 追蹤系統
 // 確保所有外部連結都有正確的 UTM 參數，便於追蹤來源和轉換
 
+import { SITE_ID, compactUtmParams, getUtmParamsFromUrl, trackEvent } from './crossSiteTracking';
+
 interface UTMParams {
   utm_source: string;      // 來源：mbti-lab, moon-map, passport
   utm_medium: string;      // 媒介：result-cta, navigation, share
@@ -14,6 +16,15 @@ interface ExternalLink {
   baseUrl: string;
   defaultSource: string;
 }
+
+const TARGET_SITE_BY_LINK_KEY: Record<string, string> = {
+  DESSERT_BOOKING: 'dessert_booking',
+  MOON_MAP: 'moon_map',
+  PASSPORT: 'passport',
+  LINE_OA: 'external',
+  DISCORD: 'external',
+  INSTAGRAM: 'external',
+};
 
 // ============================================
 // 外部連結配置 - 統一管理所有外部連結
@@ -204,25 +215,39 @@ export function trackOutboundClick(
   additionalData?: Record<string, any>
 ) {
   const link = EXTERNAL_LINKS[linkKey];
-  
-  // GA4 追蹤
-  if (typeof gtag !== 'undefined') {
-    gtag('event', 'outbound_click', {
-      link_domain: new URL(link.baseUrl).hostname,
-      link_name: link.name,
-      link_url: link.baseUrl,
-      utm_source: link.defaultSource,
-      utm_medium: medium,
-      ...additionalData
-    });
+  const { url, link_url, target_site, targetSite, ...rest } = additionalData || {};
+  const trackedUrl = (url || link_url || link.baseUrl) as string;
+  const targetSite = (target_site || targetSite || TARGET_SITE_BY_LINK_KEY[linkKey]) as string;
+
+  const utmParams = compactUtmParams(getUtmParamsFromUrl(trackedUrl));
+  if (!utmParams.utm_source) {
+    utmParams.utm_source = link.defaultSource;
   }
-  
+  if (!utmParams.utm_medium) {
+    utmParams.utm_medium = medium;
+  }
+
+  const payload = {
+    site_id: SITE_ID,
+    source_site: SITE_ID,
+    target_site: targetSite,
+    label: link.name,
+    url: trackedUrl,
+    link_domain: new URL(link.baseUrl).hostname,
+    link_name: link.name,
+    link_url: trackedUrl,
+    ...utmParams,
+    ...rest,
+  };
+
+  trackEvent('outbound_click', payload);
+
   // Console log（開發模式）
   if (import.meta.env.DEV) {
     console.log(`[UTM] Outbound Click:`, {
       link: link.name,
       medium,
-      ...additionalData
+      ...payload,
     });
   }
 }
@@ -231,10 +256,12 @@ export function trackOutboundClick(
  * 追蹤訂購按鈕點擊
  */
 export function trackDessertOrderClick(mbtiType: string, variant: string) {
+  const orderUrl = buildDessertOrderLink(mbtiType, variant);
   trackOutboundClick('DESSERT_BOOKING', 'result-cta', {
     mbti_type: mbtiType,
     variant: variant,
-    conversion_type: 'dessert_order_intent'
+    conversion_type: 'dessert_order_intent',
+    url: orderUrl,
   });
   
   // 行銷像素追蹤（如果已啟用）
@@ -315,8 +342,8 @@ export function initUTMTracking() {
   
   // 追蹤頁面載入（如果有 UTM 參數）
   const params = parseUTMParams();
-  if (params && typeof gtag !== 'undefined') {
-    gtag('event', 'utm_landing', {
+  if (params) {
+    trackEvent('utm_landing', {
       utm_source: params.utm_source,
       utm_medium: params.utm_medium,
       utm_campaign: params.utm_campaign || 'none',

@@ -481,6 +481,15 @@ const App: React.FC = () => {
             }} />
           )}
 
+          {/* 底部法律連結（低調放置） */}
+          {stage !== 'login' && stage !== 'callback' && (
+            <footer className="py-3 text-center text-xs text-gray-400">
+              <a href="/privacy.html" target="_blank" rel="noopener" className="hover:text-kiwi-dark transition-colors">隱私權政策</a>
+              <span className="mx-2">·</span>
+              <a href="/terms.html" target="_blank" rel="noopener" className="hover:text-kiwi-dark transition-colors">使用者條款</a>
+            </footer>
+          )}
+
           {/* Toast Notification for Save Status */}
           {showSaveToast.show && (
             <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[200] fade-in">

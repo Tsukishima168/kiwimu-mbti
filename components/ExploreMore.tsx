@@ -8,6 +8,12 @@ interface ExploreMoreProps {
 }
 
 export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, passportClaimUrl }) => {
+  const dessertUrl = mbtiType
+    ? buildDessertOrderLink(mbtiType, variant || 'A')
+    : 'https://dessert-booking.vercel.app';
+  const passportUrl = passportClaimUrl || buildPassportLink();
+  const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType) : 'https://moon-map-original.vercel.app';
+
   const products = [
     {
       id: 'dessert-booking',
@@ -15,8 +21,13 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
       title: '訂購靈魂甜點',
       subtitle: 'ORDER DESSERT',
       description: '線上預訂你的專屬甜點，到店取貨享受美味',
-      url: mbtiType ? buildDessertOrderLink(mbtiType, variant || 'A') : 'https://dessert-booking.vercel.app',
-      onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { section: 'explore-more', mbti_type: mbtiType })
+      url: dessertUrl,
+      onClick: () =>
+        trackOutboundClick('DESSERT_BOOKING', 'navigation', {
+          section: 'explore-more',
+          mbti_type: mbtiType,
+          url: dessertUrl,
+        })
     },
     {
       id: 'passport',
@@ -26,11 +37,12 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
       description: passportClaimUrl
         ? '完成 MBTI 後可直接領取護照印章'
         : '趣味測驗找到你的專屬角色貼紙與幸運甜點',
-      url: passportClaimUrl || buildPassportLink(),
+      url: passportUrl,
       onClick: () =>
         trackOutboundClick('PASSPORT', 'navigation', {
           section: 'explore-more',
-          claim_ready: Boolean(passportClaimUrl)
+          claim_ready: Boolean(passportClaimUrl),
+          url: passportUrl,
         })
     },
     {
@@ -39,8 +51,13 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
       title: '月島導覽地圖',
       subtitle: 'ISLAND MAP',
       description: '探索 Moon Moon 品牌生態，發現完整的島嶼世界',
-      url: mbtiType ? buildMoonMapLink(mbtiType) : 'https://moon-map-original.vercel.app',
-      onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { section: 'explore-more', mbti_type: mbtiType })
+      url: moonMapUrl,
+      onClick: () =>
+        trackOutboundClick('MOON_MAP', 'navigation', {
+          section: 'explore-more',
+          mbti_type: mbtiType,
+          url: moonMapUrl,
+        })
     }
   ];
 
