@@ -1053,7 +1053,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           )
         }
 
-        {/* HIDDEN IG STORY CONTAINER (1080x1920) - REDESIGNED V2 */}
+        {/* HIDDEN IG STORY CONTAINER (1080x1920) - Creative Editorial Style + 核心摘要 */}
         <div
           id="ig-story-container"
           style={{
@@ -1062,194 +1062,207 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             left: '-9999px',
             width: '1080px',
             height: '1920px',
-            backgroundColor: '#FAFAF8',
+            backgroundColor: '#FFFFFF',
+            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(0,0,0,0.04) 59px, rgba(0,0,0,0.04) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(0,0,0,0.04) 59px, rgba(0,0,0,0.04) 60px)',
             display: 'flex',
             flexDirection: 'column',
-            fontFamily: '"Noto Serif TC", serif',
+            fontFamily: '"Noto Serif TC", "Noto Sans TC", serif',
             zIndex: -50,
             boxSizing: 'border-box',
             overflow: 'hidden'
           }}
         >
-          {/* Top Section - Brand & Type */}
-          <div style={{ padding: '60px 70px 40px', backgroundColor: '#1A1A1A', color: '#FFFFFF' }}>
+          {/* Top Section - Header */}
+          <div style={{
+            padding: '56px 70px 40px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start'
+          }}>
+            <div>
+              <p style={{ fontSize: '12px', letterSpacing: '0.5em', fontFamily: 'monospace', fontWeight: 'bold', color: '#1A1A1A', margin: '0 0 8px 0' }}>
+                SOUL STORY
+              </p>
+              <p style={{ fontSize: '72px', fontWeight: '900', fontFamily: 'serif', color: '#121212', margin: 0, lineHeight: 0.9, letterSpacing: '-0.02em' }}>
+                KIWIMU-MBTI-LAB
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ fontSize: '48px', color: '#121212', marginBottom: '16px' }}>←</span>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                <div style={{ width: '28px', height: '28px', backgroundColor: '#121212' }} />
+                <div style={{ width: '28px', height: '28px', backgroundColor: '#121212' }} />
+                <div style={{ width: '28px', height: '28px', backgroundColor: MBTI_BG_COLORS[resultData.id] ?? '#E8E8E8' }} />
+                <div style={{ width: '28px', height: '28px', backgroundColor: MBTI_BG_COLORS[resultData.id] ?? '#E8E8E8' }} />
+              </div>
+              <p style={{ fontSize: '10px', letterSpacing: '0.4em', fontFamily: 'monospace', fontWeight: 'bold', color: '#757575', margin: 0 }}>
+                PERSONALITY
+              </p>
+            </div>
+          </div>
+
+          {/* Middle - Character Image Full Width */}
+          <div style={{
+            width: '100%',
+            height: '580px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: MBTI_BG_COLORS[resultData.id] ?? '#F5F5F5',
+            padding: '40px',
+            boxSizing: 'border-box'
+          }}>
+            <img
+              src={resultData.characterImage}
+              alt="Character"
+              crossOrigin="anonymous"
+              style={{
+                width: '500px',
+                height: '500px',
+                objectFit: 'contain'
+              }}
+            />
+          </div>
+
+          {/* Middle-Bottom - Full MBTI Type (INTJ-A / INTJ-T) */}
+          <div style={{
+            padding: '30px 70px 40px',
+            textAlign: 'center',
+            borderTop: '1px solid rgba(0,0,0,0.06)'
+          }}>
             <p style={{
-              fontSize: '16px',
-              letterSpacing: '0.6em',
-              fontFamily: 'monospace',
-              fontWeight: 'bold',
-              margin: '0 0 50px 0',
-              textAlign: 'center',
-              opacity: 0.6
-            }}>
-              KIWIMU LAB
-            </p>
-
-            {/* MBTI Type */}
-            <h1 style={{
               fontSize: '160px',
-              lineHeight: '0.85',
               fontWeight: '900',
-              margin: '0 0 30px 0',
               fontFamily: 'serif',
-              letterSpacing: '-0.03em',
-              textAlign: 'center'
+              color: '#121212',
+              margin: 0,
+              lineHeight: 0.9,
+              letterSpacing: '-0.03em'
             }}>
-              {resultData.id}
-            </h1>
-
-            {/* Identity */}
+              {resultData.id}-{identitySuffix}
+            </p>
             <p style={{
               fontSize: '28px',
               fontFamily: 'serif',
-              fontWeight: 'bold',
-              margin: 0,
-              letterSpacing: '0.15em',
-              textAlign: 'center',
-              paddingBottom: '50px'
+              fontWeight: '600',
+              color: '#757575',
+              margin: '12px 0 0 0',
+              letterSpacing: '0.2em'
             }}>
-              {identityChinese}
+              {identityChinese} · {resultData.title}
             </p>
           </div>
 
-          {/* Middle Section - Character & Core */}
-          <div style={{ padding: '70px 70px 50px', textAlign: 'center' }}>
-            {/* Character Image - 保持原比例，不壓縮 */}
-            <div style={{
-              width: '520px',
-              height: '520px',
-              margin: '0 auto 50px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative'
-            }}>
-              {/* Background Circle - 角色對應色塊 */}
+          {/* Bottom - Two Column: Core Summary + Details */}
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            padding: '45px 70px 55px',
+            gap: '70px',
+            minHeight: '420px',
+            boxSizing: 'border-box'
+          }}>
+            {/* Left - Core Headline + CTA */}
+            <div style={{ flex: '0 0 440px' }}>
+              <p style={{
+                fontSize: '68px',
+                fontWeight: '900',
+                fontFamily: 'serif',
+                color: '#121212',
+                lineHeight: 1.2,
+                margin: '0 0 32px 0',
+                letterSpacing: '-0.02em'
+              }}>
+                {(() => {
+                  const core = resultData.coreAnalysis;
+                  const firstSentence = core.indexOf('。') >= 0 ? core.substring(0, core.indexOf('。') + 1) : core.substring(0, 80) + '…';
+                  return firstSentence;
+                })()}
+              </p>
               <div style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                borderRadius: '50%',
-                backgroundColor: MBTI_BG_COLORS[resultData.id] ?? '#f5f5f5',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.08)'
-              }}></div>
-
-              <img
-                src={resultData.characterImage}
-                alt="Character"
-                crossOrigin="anonymous"
-                style={{
-                  width: '480px',
-                  height: '480px',
-                  objectFit: 'contain',
-                  position: 'relative',
-                  zIndex: 1
-                }}
-              />
+                display: 'inline-block',
+                padding: '18px 36px',
+                backgroundColor: '#121212',
+                color: '#FFFFFF',
+                fontSize: '28px',
+                fontFamily: 'serif',
+                fontWeight: 'bold',
+                marginBottom: '24px'
+              }}>
+                {anchor.name}
+              </div>
+              <p style={{ fontSize: '18px', color: '#757575', fontFamily: 'monospace', letterSpacing: '0.12em', margin: 0 }}>
+                lab · kiwimu-mbti.vercel.app
+              </p>
             </div>
 
-            {/* Core Analysis - 核心本質 */}
-            <div style={{
-              backgroundColor: '#FFFFFF',
-              padding: '40px 50px',
-              borderLeft: '4px solid #1A1A1A',
-              textAlign: 'left',
-              marginBottom: '40px',
-              boxShadow: '0 10px 40px rgba(0,0,0,0.06)'
-            }}>
+            {/* Right - Core Analysis Paragraphs */}
+            <div style={{ flex: 1, position: 'relative' }}>
               <p style={{
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                color: '#999',
+                fontSize: '14px',
                 letterSpacing: '0.4em',
+                fontFamily: 'monospace',
+                color: '#757575',
                 marginBottom: '20px',
-                fontWeight: 'bold',
-                textTransform: 'uppercase'
+                fontWeight: 'bold'
               }}>
                 CORE ESSENCE / 核心本質
               </p>
               <p style={{
-                fontSize: '22px',
+                fontSize: '28px',
                 fontFamily: 'serif',
                 color: '#1A1A1A',
-                lineHeight: '1.8',
-                margin: 0,
+                lineHeight: 1.8,
+                margin: '0 0 28px 0',
                 fontWeight: 500
               }}>
-                {resultData.coreAnalysis.length > 120
-                  ? resultData.coreAnalysis.substring(0, 120) + '...'
-                  : resultData.coreAnalysis}
+                {(() => {
+                  const core = resultData.coreAnalysis;
+                  const len = Math.min(core.length, 160);
+                  return core.substring(0, len) + (core.length > 160 ? '…' : '');
+                })()}
               </p>
-            </div>
-
-            {/* Soul Dessert */}
-            <div style={{ marginBottom: '40px' }}>
               <p style={{
-                fontSize: '14px',
-                fontFamily: 'monospace',
-                color: '#999',
-                letterSpacing: '0.3em',
-                marginBottom: '15px',
-                fontWeight: 'bold'
-              }}>
-                YOUR SOUL DESSERT
-              </p>
-              <h2 style={{
-                fontSize: '42px',
+                fontSize: '24px',
                 fontFamily: 'serif',
-                fontWeight: 'bold',
-                color: '#1A1A1A',
-                margin: '0 0 30px 0',
-                lineHeight: '1.3'
+                color: '#757575',
+                lineHeight: 1.75,
+                margin: 0,
+                fontWeight: 400
               }}>
-                {anchor.name}
-              </h2>
-
-              {/* Keywords */}
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                {resultData.keywords.slice(0, 3).map(k => (
-                  <span key={k} style={{
-                    padding: '12px 28px',
-                    backgroundColor: '#1A1A1A',
-                    color: '#FFFFFF',
-                    fontSize: '18px',
-                    fontFamily: 'serif',
-                    fontWeight: 'bold',
-                    letterSpacing: '0.05em'
-                  }}>
-                    {k}
-                  </span>
-                ))}
-              </div>
+                {(() => {
+                  const core = resultData.coreAnalysis;
+                  if (core.length <= 160) return '';
+                  return core.substring(160, Math.min(core.length, 320)) + (core.length > 320 ? '…' : '');
+                })()}
+              </p>
+              <p style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                fontSize: '14px',
+                color: '#999',
+                fontFamily: 'monospace',
+                letterSpacing: '0.12em',
+                margin: 0
+              }}>
+                archive by KIWIMU
+              </p>
+              <p style={{
+                position: 'absolute',
+                top: '50%',
+                right: '20px',
+                transform: 'translateY(-50%)',
+                fontSize: '120px',
+                fontWeight: '900',
+                color: 'rgba(0,0,0,0.03)',
+                fontFamily: 'serif',
+                margin: 0,
+                letterSpacing: '-0.05em'
+              }}>
+                {resultData.id}-{identitySuffix}
+              </p>
             </div>
-          </div>
-
-          {/* Bottom CTA */}
-          <div style={{
-            marginTop: 'auto',
-            padding: '40px 70px 60px',
-            textAlign: 'center',
-            borderTop: '1px solid #E5E5E5'
-          }}>
-            <p style={{
-              fontSize: '16px',
-              color: '#999',
-              marginBottom: '15px',
-              fontFamily: 'serif',
-              letterSpacing: '0.05em'
-            }}>
-              完整測驗報告
-            </p>
-            <p style={{
-              fontSize: '24px',
-              fontFamily: 'monospace',
-              fontWeight: 'bold',
-              color: '#1A1A1A',
-              letterSpacing: '0.05em',
-              margin: 0
-            }}>
-              kiwimu-lab.vercel.app
-            </p>
           </div>
         </div>
 
