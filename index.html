@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kiwimu MBTI Lab V2 | 深度人格分析與靈魂甜點</title>
-  <meta name="description" content="Kiwimu MBTI Lab V2 - 探索你的真實性格，發現專屬於你的靈魂甜點。">
+  <title>Kiwimu MBTI 甜點人格測驗｜發現你的靈魂甜點</title>
+  <meta name="description" content="透過 MBTI 測驗發現你的甜點人格。Kiwimu 16 型人格化身，每型對應獨特的甜點風味與情緒主題。一場 5 分鐘的自我認識之旅。">
   <link rel="canonical" href="https://kiwimu-mbti.vercel.app/">
   <!-- DEPLOY_ID: 20260108-2315 -->
 
@@ -21,18 +21,20 @@
   <meta property="og:url" content="https://kiwimu-mbti.vercel.app/">
   <meta property="og:type" content="website">
   <meta property="fb:app_id" content="YOUR_FACEBOOK_APP_ID">
-  <meta property="og:title" content="Kiwimu MBTI Lab | 深度人格分析">
-  <meta property="og:description" content="探索你的真實性格，發現專屬於你的靈魂甜點。">
-  <meta property="og:image" content="https://res.cloudinary.com/dvizdsv4m/image/upload/v1769920082/index-image_ubxhwo.png">
+  <meta property="og:title" content="Kiwimu MBTI 甜點人格測驗｜Moon Moon">
+  <meta property="og:description" content="透過 MBTI 測驗發現你的甜點人格。Kiwimu 16 型人格化身，每型對應獨特的甜點風味與情緒主題。">
+  <meta property="og:image"
+    content="https://res.cloudinary.com/dvizdsv4m/image/upload/v1769920082/index-image_ubxhwo.png">
   <meta property="og:image:type" content="image/png">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta property="twitter:domain" content="kiwimu-mbti.vercel.app">
   <meta property="twitter:url" content="https://kiwimu-mbti.vercel.app/">
-  <meta name="twitter:title" content="Kiwimu MBTI Lab | 深度人格分析">
-  <meta name="twitter:description" content="探索你的真實性格，發現專屬於你的靈魂甜點。">
-  <meta name="twitter:image" content="https://res.cloudinary.com/dvizdsv4m/image/upload/v1769920082/index-image_ubxhwo.png">
+  <meta name="twitter:title" content="Kiwimu MBTI 甜點人格測驗｜Moon Moon">
+  <meta name="twitter:description" content="透過 MBTI 測驗發現你的甜點人格。Kiwimu 16 型人格化身，每型對應獨特的甜點風味與情緒主題。">
+  <meta name="twitter:image"
+    content="https://res.cloudinary.com/dvizdsv4m/image/upload/v1769920082/index-image_ubxhwo.png">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -127,13 +129,26 @@
     .grayscale-img:hover {
       filter: grayscale(0%);
     }
+
+    /* AI Semantic Layer - Visually Hidden */
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
   </style>
 
   <!-- Google Analytics (GA4) - 與 Firebase measurementId 同資源 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NBWRX24YR"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
     gtag('config', 'G-2NBWRX24YR');
   </script>
@@ -184,6 +199,28 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/main.tsx"></script>
+
+  <!-- ===== Moon Moon AI Semantic Layer ===== -->
+  <section class="visually-hidden" aria-hidden="false">
+    <h1>Kiwimu MBTI 甜點人格測驗</h1>
+    <p>
+      Kiwimu MBTI 測驗是一個互動式敘事工具，屬於 Moon Moon 月島甜點品牌的一部分。
+      這不是純心理測驗，而是透過 MBTI 人格框架與甜點風味連結的情緒敘事體驗。
+    </p>
+    <p>
+      測驗對應 16 種 MBTI 人格，每種對應：
+      一個 Kiwimu 角色視覺化身、一種甜點風味與故事背景、一個情緒主題。
+    </p>
+    <p>
+      通過這個測驗，顧客可以發現自己的「甜點人格」，
+      進而連結到對應的甜點品項與情緒敘事。
+    </p>
+    <p>
+      Moon Moon 月島甜點是一個位於台灣台南市安南區的療癒系甜點品牌。
+      本品牌與日本東京的月島地區無關。
+    </p>
+  </section>
+  <!-- ===== End Semantic Layer ===== -->
 </body>
 
 </html>

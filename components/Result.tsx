@@ -18,6 +18,7 @@ import { trackResultView, trackResultShare, trackResultDownload, trackButtonClic
 import { buildDessertOrderLink, trackDessertOrderClick } from '../utils/utmTracking';
 import ExploreMore from './ExploreMore';
 import { getOrCreatePassportClaimUrl } from '../utils/mbtiClaim';
+import { buildMoonMapUrl, MBTI_EASTER_EGG_CLUES } from '../utils/moonMapTracking';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -802,6 +803,36 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   </div>
                 </div>
               </div> {/* closes soul-module */}
+
+              {/* MBTI EASTER EGG CLUE - 個人化彩蛋線索 */}
+              {MBTI_EASTER_EGG_CLUES[resultData.id] && (
+                <div className="py-16 md:py-24 border-b border-gray-100 bg-gradient-to-br from-purple-50/50 to-pink-50/50">
+                  <div className="max-w-3xl mx-auto px-6 text-center">
+                    <span className="text-[10px] md:text-[11px] font-bold tracking-[0.4em] md:tracking-[0.5em] uppercase text-purple-400 mb-6 block">🔮 HIDDEN MESSAGE 神秘訊息</span>
+                    <h3 className="text-3xl md:text-4xl font-serif font-bold text-gray-800 mb-6">
+                      {MBTI_EASTER_EGG_CLUES[resultData.id].title}
+                    </h3>
+                    <p className="text-lg md:text-xl text-gray-700 leading-relaxed italic mb-8 px-4">
+                      {MBTI_EASTER_EGG_CLUES[resultData.id].clue}
+                    </p>
+                    <a
+                      href={buildMoonMapUrl(resultData.id, identitySuffix)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-8 py-4 bg-black text-white rounded-full hover:bg-gray-800 transition-all shadow-lg hover:scale-105 active:scale-95"
+                      onClick={() => trackButtonClick('前往月島尋找彩蛋', 'result_easter_egg')}
+                    >
+                      <span>🗺 前往月島尋找</span>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </a>
+                    <p className="text-sm text-gray-500 mt-4">
+                      提示：{MBTI_EASTER_EGG_CLUES[resultData.id].moonMapHint}
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {showAlt && (
                 <div className="soul-alt-box border-x border-b border-black fade-in text-left">
