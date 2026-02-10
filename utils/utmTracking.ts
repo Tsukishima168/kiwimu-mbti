@@ -36,35 +36,35 @@ export const EXTERNAL_LINKS: Record<string, ExternalLink> = {
     baseUrl: 'https://dessert-booking.vercel.app',
     defaultSource: 'mbti-lab'
   },
-  
+
   // Moon Map - 導覽地圖
   MOON_MAP: {
     name: '月島導覽地圖',
     baseUrl: 'https://moon-map-original.vercel.app',
     defaultSource: 'mbti-lab'
   },
-  
+
   // Passport - 趣味測驗
   PASSPORT: {
     name: '甜點護照測驗',
     baseUrl: 'https://moonmoon-dessert-passport.vercel.app',
     defaultSource: 'mbti-lab'
   },
-  
+
   // LINE Official Account
   LINE_OA: {
     name: 'LINE 官方帳號',
     baseUrl: 'https://lin.ee/r19wTnY',
     defaultSource: 'mbti-lab'
   },
-  
+
   // Discord
   DISCORD: {
     name: 'Discord 社群',
     baseUrl: 'https://discord.gg/WJMQEAXx',
     defaultSource: 'mbti-lab'
   },
-  
+
   // Instagram
   INSTAGRAM: {
     name: 'Instagram',
@@ -98,32 +98,32 @@ export function buildUTMLink(
     console.error(`Invalid link key: ${linkKey}`);
     return '';
   }
-  
+
   const url = new URL(link.baseUrl);
-  
+
   // 基本 UTM 參數
   const utmParams: UTMParams = {
     utm_source: link.defaultSource,
     utm_medium: medium,
   };
-  
+
   // 可選參數
   if (options?.campaign) utmParams.utm_campaign = options.campaign;
   if (options?.content) utmParams.utm_content = options.content;
   if (options?.term) utmParams.utm_term = options.term;
-  
+
   // 添加 UTM 參數
   Object.entries(utmParams).forEach(([key, value]) => {
     if (value) url.searchParams.set(key, value);
   });
-  
+
   // 添加額外參數（如 MBTI 類型）
   if (options?.additionalParams) {
     Object.entries(options.additionalParams).forEach(([key, value]) => {
       url.searchParams.set(key, value);
     });
   }
-  
+
   return url.toString();
 }
 
@@ -217,7 +217,7 @@ export function trackOutboundClick(
   const link = EXTERNAL_LINKS[linkKey];
   const { url, link_url, target_site, targetSite, ...rest } = additionalData || {};
   const trackedUrl = (url || link_url || link.baseUrl) as string;
-  const targetSite = (target_site || targetSite || TARGET_SITE_BY_LINK_KEY[linkKey]) as string;
+  const finalTargetSite = (target_site || targetSite || TARGET_SITE_BY_LINK_KEY[linkKey]) as string;
 
   const utmParams = compactUtmParams(getUtmParamsFromUrl(trackedUrl));
   if (!utmParams.utm_source) {
@@ -230,7 +230,7 @@ export function trackOutboundClick(
   const payload = {
     site_id: SITE_ID,
     source_site: SITE_ID,
-    target_site: targetSite,
+    target_site: finalTargetSite,
     label: link.name,
     url: trackedUrl,
     link_domain: new URL(link.baseUrl).hostname,
@@ -263,7 +263,7 @@ export function trackDessertOrderClick(mbtiType: string, variant: string) {
     conversion_type: 'dessert_order_intent',
     url: orderUrl,
   });
-  
+
   // 行銷像素追蹤（如果已啟用）
   if (typeof window !== 'undefined' && (window as any).fbq) {
     (window as any).fbq('track', 'InitiateCheckout', {
@@ -283,9 +283,9 @@ export function trackDessertOrderClick(mbtiType: string, variant: string) {
  */
 export function parseUTMParams(): UTMParams | null {
   if (typeof window === 'undefined') return null;
-  
+
   const params = new URLSearchParams(window.location.search);
-  
+
   const utmParams: Partial<UTMParams> = {
     utm_source: params.get('utm_source') || undefined,
     utm_medium: params.get('utm_medium') || undefined,
@@ -293,12 +293,12 @@ export function parseUTMParams(): UTMParams | null {
     utm_content: params.get('utm_content') || undefined,
     utm_term: params.get('utm_term') || undefined,
   };
-  
+
   // 如果沒有任何 UTM 參數，返回 null
   if (!utmParams.utm_source && !utmParams.utm_medium) {
     return null;
   }
-  
+
   return utmParams as UTMParams;
 }
 
@@ -336,10 +336,10 @@ export function getFirstTouchUTM(): (UTMParams & { timestamp: number }) | null {
 // ============================================
 export function initUTMTracking() {
   if (typeof window === 'undefined') return;
-  
+
   // 解析並儲存 UTM 參數
   saveUTMParams();
-  
+
   // 追蹤頁面載入（如果有 UTM 參數）
   const params = parseUTMParams();
   if (params) {
