@@ -170,15 +170,20 @@ export function buildPassportLink(): string {
 }
 
 /**
- * 護照領章連結（附 claim code）
+ * 護照領章連結（附 claim code + MBTI 類型，自動解鎖）
  */
-export function buildPassportClaimLink(claimCode: string): string {
+export function buildPassportClaimLink(claimCode: string, mbtiType?: string, variant?: string): string {
+  const additionalParams: Record<string, string> = {
+    claim: claimCode,
+    auto_unlock: 'true',
+  };
+  if (mbtiType) additionalParams.mbti_type = mbtiType;
+  if (variant) additionalParams.variant = variant;
+
   return buildUTMLink('PASSPORT', 'navigation', {
     campaign: '2026-q1-integration',
     content: 'mbti-claim',
-    additionalParams: {
-      claim: claimCode
-    }
+    additionalParams,
   });
 }
 

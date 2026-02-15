@@ -69,14 +69,15 @@ export async function getOrCreatePassportClaimUrl(
   const key = storageKey(mbtiType, variant);
   const existing = localStorage.getItem(key);
   if (existing) {
-    return buildPassportClaimLink(existing);
+    return buildPassportClaimLink(existing, mbtiType, variant);
   }
 
   const code = await createMbtiClaim(mbtiType, variant);
   if (!code) {
-    return null;
+    // fallback: 即使 claim code 建立失敗，也提供直接跳轉連結
+    return `https://moonmoon-dessert-passport.vercel.app/?mbti_type=${mbtiType}&variant=${variant}&auto_unlock=true`;
   }
 
   localStorage.setItem(key, code);
-  return buildPassportClaimLink(code);
+  return buildPassportClaimLink(code, mbtiType, variant);
 }

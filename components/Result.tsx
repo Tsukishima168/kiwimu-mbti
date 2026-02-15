@@ -16,6 +16,7 @@ import LineCTA from './LineCTA';
 import { resultTranslations } from '../i18n/resultTranslations';
 import { trackResultView, trackResultShare, trackResultDownload, trackButtonClick } from '../utils/analytics';
 import { buildDessertOrderLink, trackDessertOrderClick } from '../utils/utmTracking';
+import { trackAction } from '../utils/userDataCollector';
 import ExploreMore from './ExploreMore';
 import { getOrCreatePassportClaimUrl } from '../utils/mbtiClaim';
 import { buildMoonMapUrl, MBTI_EASTER_EGG_CLUES } from '../utils/moonMapTracking';
@@ -361,6 +362,30 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   {t.full_report_share}
                 </button>
               </div>
+
+              {/* ===== MOON ISLAND PASSPORT CTA ===== */}
+              <div className="mt-8 md:mt-10 p-6 bg-white border-2 border-kiwi-dark rounded-xl max-w-md mx-auto shadow-[4px_4px_0px_#121212] text-center transform transition-transform hover:scale-[1.02]">
+                <div className="flex justify-center mb-3">
+                  <span className="text-3xl">🎫</span>
+                </div>
+                <h3 className="text-lg md:text-xl font-bold text-kiwi-dark mb-2 font-display tracking-widest uppercase">
+                  MOON ISLAND PASSPORT
+                </h3>
+                <p className="text-sm text-gray-600 mb-5 font-serif leading-relaxed">
+                  測驗完成！你的 MBTI 是 <span className="font-bold text-kiwi-dark bg-yellow-200 px-2 py-0.5 rounded mx-1">{resultData.id}-{identitySuffix}</span><br />
+                  點擊下方按鈕直接領取護照徽章 ✨
+                </p>
+                <a
+                  href={passportClaimUrl || `https://moonmoon-dessert-passport.vercel.app/?mbti_type=${resultData.id}&variant=${identitySuffix}&auto_unlock=true`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block w-full py-3 bg-kiwi-dark text-white rounded-lg font-bold tracking-widest uppercase hover:bg-gray-800 transition-all active:scale-95 shadow-lg"
+                  onClick={() => trackAction('click_passport_auto_unlock', { mbtiType: resultData.id, variant: identitySuffix })}
+                >
+                  直接領取 MBTI 徽章
+                </a>
+              </div>
+
 
               {/* Discord Join CTA + Auto Role Assignment */}
               <div className="mt-6 flex flex-col items-center gap-3">
