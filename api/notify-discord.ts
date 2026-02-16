@@ -27,6 +27,12 @@ export default async function handler(
         });
     }
 
+    console.log('[DISCORD] 🔑 Token check:', {
+        length: botToken.length,
+        prefix: botToken.substring(0, 5) + '...',
+        envKeys: Object.keys(process.env).filter(key => key.includes('DISCORD'))
+    });
+
     console.log('[DISCORD] 📤 Preparing to send notification:', {
         channel: CHANNEL_ID,
         resultType,
