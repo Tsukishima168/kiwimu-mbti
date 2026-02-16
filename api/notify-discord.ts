@@ -21,13 +21,14 @@ export default async function handler(
             hasToken: !!botToken,
             channel: CHANNEL_ID,
             env: process.env.NODE_ENV,
+            availableEnvKeys: Object.keys(process.env).filter(key => !key.startsWith('npm_') && !key.startsWith('VERCEL_')), // Filter noise
             timestamp: new Date().toISOString()
         });
-        return response.status(500).json({ 
-            status: 'error', 
+        return response.status(500).json({
+            status: 'error',
             message: 'Bot token not configured',
-            debug: { 
-                hasToken: !!botToken, 
+            debug: {
+                hasToken: !!botToken,
                 channel: CHANNEL_ID,
                 hint: 'Please set DISCORD_TOKEN in Vercel environment variables'
             }
@@ -77,7 +78,7 @@ export default async function handler(
             timestamp: new Date().toISOString()
         });
 
-        return response.status(200).json({ 
+        return response.status(200).json({
             status: 'sent',
             messageId: responseData.id,
             debug: { resultType, personalityName }
@@ -91,8 +92,8 @@ export default async function handler(
             timestamp: new Date().toISOString()
         });
         // Return 200 to front-end to avoid blocking user flow, but log error server-side
-        return response.status(200).json({ 
-            status: 'error', 
+        return response.status(200).json({
+            status: 'error',
             error: error instanceof Error ? error.message : String(error),
             debug: { resultType, personalityName }
         });
