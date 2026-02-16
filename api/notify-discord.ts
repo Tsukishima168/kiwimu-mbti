@@ -30,7 +30,8 @@ export default async function handler(
             debug: {
                 hasToken: !!botToken,
                 channel: CHANNEL_ID,
-                hint: 'Please set DISCORD_TOKEN in Vercel environment variables'
+                hint: 'Please set DISCORD_TOKEN in Vercel environment variables',
+                availableEnvKeys: Object.keys(process.env).filter(key => !key.startsWith('npm_') && !key.startsWith('VERCEL_'))
             }
         });
     }
