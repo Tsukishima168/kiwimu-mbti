@@ -26,7 +26,7 @@ export default async function handler(
         });
         return response.status(500).json({
             status: 'error',
-            message: 'Bot token not configured',
+            message: 'Bot token not configured (DEBUG MODE)',
             debug: {
                 hasToken: !!botToken,
                 channel: CHANNEL_ID,
