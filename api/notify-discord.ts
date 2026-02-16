@@ -12,26 +12,17 @@ export default async function handler(
     }
 
     const { resultType, personalityName } = request.body;
-    const botToken = process.env.DISCORD_TOKEN;
+    const botToken = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN;
 
-    // Enhanced validation with detailed logging
     if (!botToken) {
-        console.error('[DISCORD] ❌ DISCORD_TOKEN not configured in environment variables');
-        console.error('[DISCORD] Debug info:', {
-            hasToken: !!botToken,
-            channel: CHANNEL_ID,
-            env: process.env.NODE_ENV,
-            availableEnvKeys: Object.keys(process.env).filter(key => !key.startsWith('npm_') && !key.startsWith('VERCEL_')), // Filter noise
-            timestamp: new Date().toISOString()
-        });
+        console.error('[DISCORD] ❌ DISCORD_TOKEN or DISCORD_BOT_TOKEN not configured');
         return response.status(500).json({
             status: 'error',
-            message: 'Bot token not configured (DEBUG MODE)',
+            message: 'Bot token not configured',
             debug: {
-                hasToken: !!botToken,
+                hasToken: false,
                 channel: CHANNEL_ID,
-                hint: 'Please set DISCORD_TOKEN in Vercel environment variables',
-                availableEnvKeys: Object.keys(process.env).filter(key => !key.startsWith('npm_') && !key.startsWith('VERCEL_'))
+                hint: 'Please set DISCORD_TOKEN or DISCORD_BOT_TOKEN in Vercel environment variables'
             }
         });
     }
