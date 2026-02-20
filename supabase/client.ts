@@ -42,7 +42,8 @@ export async function getQuestions() {
     }
 
     // 轉換成前端需要的格式
-    return data.map(q => ({
+    const questions = data as any[];
+    return questions.map(q => ({
       id: q.question_id,
       text: q.text,
       imageUrl: q.image_url,
@@ -105,34 +106,39 @@ export async function getResultData(mbtiType: string, variant: 'A' | 'T' = 'A') 
       .eq('is_active', true)
       .single();
 
+    const rData = resultData as any;
+    const vData = variantData as any;
+    const iData = imageData as any;
+    const dData = dessertData as any;
+
     // 組合資料
-    const coreAnalysis = variantData?.nuance_text
-      ? `${resultData.core_analysis}\n\n${variantData.nuance_text}`
-      : resultData.core_analysis;
+    const coreAnalysis = vData?.nuance_text
+      ? `${rData.core_analysis}\n\n${vData.nuance_text}`
+      : rData.core_analysis;
 
     return {
-      id: resultData.id,
-      title: resultData.title,
-      summary: resultData.summary,
-      quote: resultData.quote,
-      keywords: resultData.keywords,
-      bgColor: resultData.bg_color,
+      id: rData.id,
+      title: rData.title,
+      summary: rData.summary,
+      quote: rData.quote,
+      keywords: rData.keywords,
+      bgColor: rData.bg_color,
       coreAnalysis,
-      dimensionAnalysis: resultData.dimension_analysis as any,
-      strengths: resultData.strengths,
-      blindSpots: resultData.blind_spots,
-      career: resultData.career as any,
-      relationships: resultData.relationships as any,
-      socialStyle: resultData.social_style,
-      growthAdvice: resultData.growth_advice,
-      soulQuestions: resultData.soul_questions,
-      characterImage: imageData?.image_url || resultData.character_image_url,
-      dessert: dessertData ? {
-        name: dessertData.dessert_name,
-        description: dessertData.dessert_description,
-        imageUrl: dessertData.dessert_image_url,
-        ctaLink: dessertData.dessert_cta_link
-      } : (resultData.dessert as any)
+      dimensionAnalysis: rData.dimension_analysis as any,
+      strengths: rData.strengths,
+      blindSpots: rData.blind_spots,
+      career: rData.career as any,
+      relationships: rData.relationships as any,
+      socialStyle: rData.social_style,
+      growthAdvice: rData.growth_advice,
+      soulQuestions: rData.soul_questions,
+      characterImage: iData?.image_url || rData.character_image_url,
+      dessert: dData ? {
+        name: dData.dessert_name,
+        description: dData.dessert_description,
+        imageUrl: dData.dessert_image_url,
+        ctaLink: dData.dessert_cta_link
+      } : (rData.dessert as any)
     };
   } catch (error) {
     console.error('Error in getResultData:', error);
@@ -160,7 +166,8 @@ export async function getDimensionExplanations() {
       return null;
     }
 
-    return data.map(d => ({
+    const dimensions = data as any[];
+    return dimensions.map(d => ({
       key: d.dimension_key,
       label: d.label,
       text: d.explanation_text
@@ -191,14 +198,15 @@ export async function getDessertMapping(mbtiType: string) {
       return null;
     }
 
+    const dData = data as any;
     return {
-      name: data.dessert_name,
-      series: data.dessert_series,
-      quad: data.dessert_quad,
-      alt: data.alternative_desserts || [],
-      drinkA: data.drink_a,
-      drinkT: data.drink_t,
-      hook: data.dessert_description
+      name: dData.dessert_name,
+      series: dData.dessert_series,
+      quad: dData.dessert_quad,
+      alt: dData.alternative_desserts || [],
+      drinkA: dData.drink_a,
+      drinkT: dData.drink_t,
+      hook: dData.dessert_description
     };
   } catch (error) {
     console.error('Error in getDessertMapping:', error);

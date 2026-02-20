@@ -1,3 +1,9 @@
+declare global {
+  interface Window {
+    gtag?: any;
+  }
+  function gtag(...args: any[]): void;
+}
 
 export type Dimension = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P' | 'A' | 'Turbulent';
 
