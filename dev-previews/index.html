@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IG Story 預覽 · 32 款一頁看</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a1a;
+      color: #eee;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    h1 { font-size: 1.25rem; margin-bottom: 16px; font-weight: 600; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    label { font-size: 0.875rem; color: #999; }
+    select {
+      padding: 8px 12px;
+      font-size: 0.9375rem;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #2a2a2a;
+      color: #fff;
+      min-width: 140px;
+    }
+    .preview-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .preview-wrap iframe {
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+      background: #111;
+      width: 360px;
+      height: 640px;
+      flex-shrink: 0;
+    }
+    .hint { font-size: 0.75rem; color: #666; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>IG Story 預覽（2K7）· 選一個看</h1>
+  <div class="toolbar">
+    <label for="story">人格類型：</label>
+    <select id="story">
+      <option value="ig-story-INTJ-A.html">INTJ-A</option>
+      <option value="ig-story-INTJ-T.html">INTJ-T</option>
+      <option value="ig-story-INTP-A.html">INTP-A</option>
+      <option value="ig-story-INTP-T.html">INTP-T</option>
+      <option value="ig-story-ENTJ-A.html">ENTJ-A</option>
+      <option value="ig-story-ENTJ-T.html">ENTJ-T</option>
+      <option value="ig-story-ENTP-A.html">ENTP-A</option>
+      <option value="ig-story-ENTP-T.html">ENTP-T</option>
+      <option value="ig-story-INFJ-A.html">INFJ-A</option>
+      <option value="ig-story-INFJ-T.html">INFJ-T</option>
+      <option value="ig-story-INFP-A.html">INFP-A</option>
+      <option value="ig-story-INFP-T.html">INFP-T</option>
+      <option value="ig-story-ENFJ-A.html">ENFJ-A</option>
+      <option value="ig-story-ENFJ-T.html">ENFJ-T</option>
+      <option value="ig-story-ENFP-A.html">ENFP-A</option>
+      <option value="ig-story-ENFP-T.html">ENFP-T</option>
+      <option value="ig-story-ISTJ-A.html">ISTJ-A</option>
+      <option value="ig-story-ISTJ-T.html">ISTJ-T</option>
+      <option value="ig-story-ISFJ-A.html">ISFJ-A</option>
+      <option value="ig-story-ISFJ-T.html">ISFJ-T</option>
+      <option value="ig-story-ESTJ-A.html">ESTJ-A</option>
+      <option value="ig-story-ESTJ-T.html">ESTJ-T</option>
+      <option value="ig-story-ESFJ-A.html">ESFJ-A</option>
+      <option value="ig-story-ESFJ-T.html">ESFJ-T</option>
+      <option value="ig-story-ISTP-A.html">ISTP-A</option>
+      <option value="ig-story-ISTP-T.html">ISTP-T</option>
+      <option value="ig-story-ISFP-A.html">ISFP-A</option>
+      <option value="ig-story-ISFP-T.html">ISFP-T</option>
+      <option value="ig-story-ESTP-A.html">ESTP-A</option>
+      <option value="ig-story-ESTP-T.html">ESTP-T</option>
+      <option value="ig-story-ESFP-A.html">ESFP-A</option>
+      <option value="ig-story-ESFP-T.html">ESFP-T</option>
+    </select>
+  </div>
+  <div class="preview-wrap">
+    <iframe id="frame" src="ig-story-INTJ-A.html" title="IG Story 預覽"></iframe>
+  </div>
+  <p class="hint">畫面為 360×640，可直接用於輸出。若要 32 張 PNG 圖檔請執行：node dev-previews/export-story-images.cjs</p>
+  <script>
+    document.getElementById('story').addEventListener('change', function () {
+      document.getElementById('frame').src = this.value;
+    });
+  </script>
+</body>
+</html>

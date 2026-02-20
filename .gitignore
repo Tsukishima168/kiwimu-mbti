@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# IG Story 匯出圖（可隨時用 export-story-images.cjs 重新產生）
+dev-previews/output

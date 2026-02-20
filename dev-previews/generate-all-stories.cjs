@@ -2,10 +2,14 @@
 /**
  * 產生 16 種人格 × A/T 的獨立 IG Story 預覽 HTML（共 32 檔）
  * 執行: node dev-previews/generate-all-stories.cjs
+ *
+ * 左上角品牌標籤：改 BRAND_LABEL 可換成 2K7 / KIWIMU-MBTI-LAB 等
  */
-
 const fs = require('fs');
 const path = require('path');
+
+// 左上角顯示：'2K7'（年/活動）或 'KIWIMU-MBTI-LAB'
+const BRAND_LABEL = '2K7';
 
 const BG_COLORS = { INTJ:'#F3E5F5',INTP:'#F3E5F5',ENTJ:'#F3E5F5',ENTP:'#F3E5F5', INFJ:'#E8F5E9',INFP:'#E8F5E9',ENFJ:'#E8F5E9',ENFP:'#E8F5E9', ISTJ:'#E3F2FD',ISFJ:'#E3F2FD',ESTJ:'#E3F2FD',ESFJ:'#E3F2FD', ISTP:'#FFF3E0',ISFP:'#FFF3E0',ESTP:'#FFF3E0',ESFP:'#FFF3E0' };
 const IMAGE_MAP = {
@@ -67,16 +71,16 @@ function template(type, variant = 'A') {
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #1a1a1a; padding: 40px; font-family: 'Noto Serif TC', 'Noto Sans TC', serif; }
     .preview-wrapper { box-shadow: 0 0 0 4px rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; }
-    .story-container { width: 360px; height: 640px; background: #FFF; background-image: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(0,0,0,0.04) 19px, rgba(0,0,0,0.04) 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(0,0,0,0.04) 19px, rgba(0,0,0,0.04) 20px); display: flex; flex-direction: column; overflow: hidden; }
+    .story-container { width: 360px; min-width: 360px; max-width: 360px; height: 640px; background: #FFF; background-image: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(0,0,0,0.04) 19px, rgba(0,0,0,0.04) 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(0,0,0,0.04) 19px, rgba(0,0,0,0.04) 20px); display: flex; flex-direction: column; overflow: hidden; }
   </style>
 </head>
 <body>
   <div class="preview-wrapper">
     <div class="story-container">
-      <div style="padding: 19px 23px 13px; display: flex; justify-content: space-between; align-items: flex-start;">
+      <div style="height: 57px; padding: 19px 23px 13px; display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0;">
         <div>
           <p style="font-size: 4px; letter-spacing: 0.5em; font-family: monospace; font-weight: bold; color: #1A1A1A; margin: 0 0 3px 0;">SOUL STORY</p>
-          <p style="font-size: 18px; font-weight: 900; font-family: serif; color: #121212; margin: 0; line-height: 0.9; letter-spacing: -0.02em;">KIWIMU-MBTI-LAB</p>
+          <p style="font-size: 18px; font-weight: 900; font-family: serif; color: #121212; margin: 0; line-height: 0.9; letter-spacing: -0.02em;">${BRAND_LABEL}</p>
         </div>
         <div style="display: flex; flex-direction: column; align-items: flex-end;">
           <span style="font-size: 16px; color: #121212; margin-bottom: 5px;">←</span>
@@ -89,20 +93,20 @@ function template(type, variant = 'A') {
           <p style="font-size: 3px; letter-spacing: 0.4em; font-family: monospace; font-weight: bold; color: #757575; margin: 0;">PERSONALITY</p>
         </div>
       </div>
-      <div style="width: 100%; height: 193px; display: flex; align-items: center; justify-content: center; background: ${bg}; padding: 13px;">
+      <div style="width: 100%; height: 193px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: ${bg}; padding: 13px;">
         <img src="${img}" alt="${type}" style="width: 167px; height: 167px; object-fit: contain;">
       </div>
-      <div style="padding: 10px 23px 13px; text-align: center; border-top: 1px solid rgba(0,0,0,0.06);">
+      <div style="height: 89px; padding: 10px 23px 13px; text-align: center; border-top: 1px solid rgba(0,0,0,0.06); flex-shrink: 0;">
         <p style="font-size: 53px; font-weight: 900; font-family: serif; color: #121212; margin: 0; line-height: 0.9; letter-spacing: -0.03em;">${type}-${variant}</p>
         <p style="font-size: 9px; font-family: serif; font-weight: 600; color: #757575; margin: 4px 0 0 0; letter-spacing: 0.2em;">${identity} · ${d.title}</p>
       </div>
-      <div style="flex: 1; display: flex; padding: 15px 23px 18px; gap: 23px; min-height: 140px;">
+      <div style="height: 301px; display: flex; padding: 15px 23px 18px; gap: 23px; overflow: hidden; flex-shrink: 0;">
         <div style="flex: 0 0 147px;">
           <p style="font-size: 23px; font-weight: 900; font-family: serif; color: #121212; line-height: 1.2; margin: 0 0 11px 0;">${firstSentence}</p>
           <div style="display: inline-block; padding: 6px 12px; background: #121212; color: #FFF; font-size: 9px; font-family: serif; font-weight: bold; margin-bottom: 8px;">${d.dessert}</div>
           <p style="font-size: 6px; color: #757575; font-family: monospace; letter-spacing: 0.12em; margin: 0;">lab · kiwimu-mbti.vercel.app</p>
         </div>
-        <div style="flex: 1; position: relative;">
+        <div style="flex: 1; position: relative; min-width: 0;">
           <p style="font-size: 5px; letter-spacing: 0.4em; font-family: monospace; color: #757575; margin-bottom: 7px; font-weight: bold;">CORE ESSENCE / 核心本質</p>
           <p style="font-size: 9px; font-family: serif; color: #1A1A1A; line-height: 1.8; margin: 0 0 9px 0;">${p1}</p>
           <p style="font-size: 8px; font-family: serif; color: #757575; line-height: 1.75; margin: 0;">${p2}</p>

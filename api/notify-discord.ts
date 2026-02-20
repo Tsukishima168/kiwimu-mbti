@@ -1,7 +1,49 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import * as admin from 'firebase-admin';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
-const CHANNEL_ID = '1466020032310939823'; // #results channel
+const CHANNEL_ID = process.env.DISCORD_CHANNEL_ID || '1466020032310939823'; // #results channel
+
+// 初始化 Firebase（如果還未初始化）
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+    });
+}
+
+const db = admin.firestore();
+
+// 多語言配置
+const LOCALES = {
+    zh: {
+        emoji: '🎉',
+        color: 0xFF6B9D,
+        header: '新成員誕生！',
+        footer: 'KIWIMU MBTI Lab',
+        country: '🇹🇼 台灣',
+    },
+    ja: {
+        emoji: '🌈',
+        color: 0xFF69B4,
+        header: '新しい仲間が誕生しました！',
+        footer: 'KIWIMU MBTI Lab 日本版',
+        country: '🇯🇵 日本',
+    },
+    ko: {
+        emoji: '✨',
+        color: 0xFF1493,
+        header: '새로운 멤버가 탄생했습니다!',
+        footer: 'KIWIMU MBTI Lab 한국판',
+        country: '🇰🇷 韓國',
+    },
+    en: {
+        emoji: '🚀',
+        color: 0x0099FF,
+        header: 'New Member Joined!',
+        footer: 'KIWIMU MBTI Lab',
+        country: '🌍 Global',
+    },
+};
 
 export default async function handler(
     request: VercelRequest,
@@ -11,7 +53,7 @@ export default async function handler(
         return response.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { resultType, personalityName } = request.body;
+    const { resultType, personalityName, locale = 'zh', userId } = request.body;
     const botToken = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN;
 
     if (!botToken) {
@@ -29,19 +71,49 @@ export default async function handler(
 
 
 
+    const localeConfig = (LOCALES as any)[locale] || LOCALES.zh;
+
     console.log('[DISCORD] 📤 Preparing to send notification:', {
         channel: CHANNEL_ID,
         resultType,
         personalityName,
+        locale,
         timestamp: new Date().toISOString()
     });
 
     try {
         const discordPayload = {
-            content: `🎉 **新成員誕生！** \n一位 **${resultType} ${personalityName}** 剛剛完成了測驗，歡迎加入 KIWIMU 宇宙！`,
-            // When using Bot Token, 'username' and 'avatar_url' overrides might not work 
-            // the same way as webhooks depending on permissions, but usually the Bot's identity is used.
-            // We can rely on the Bot's default appearance.
+            embeds: [{
+                title: `${localeConfig.emoji} ${localeConfig.header}`,
+                description: `**${personalityName}** (${resultType})`,
+                color: localeConfig.color,
+                fields: [
+                    {
+                        name: '🌍 Market / 市場',
+                        value: localeConfig.country,
+                        inline: true
+                    },
+                    {
+                        name: '🎯 Type / 類型',
+                        value: resultType,
+                        inline: true
+                    },
+                    {
+                        name: '⏰ Time / 時間',
+                        value: new Date().toLocaleString(),
+                        inline: true
+                    }
+                ],
+                thumbnail: {
+                    url: `https://api.dicebear.com/7.x/identicons/svg?seed=${resultType}`,
+                    height: 100,
+                    width: 100
+                },
+                footer: {
+                    text: localeConfig.footer,
+                },
+                timestamp: new Date().toISOString()
+            }]
         };
 
         const discordRes = await fetch(`${DISCORD_API_URL}/channels/${CHANNEL_ID}/messages`, {
@@ -69,12 +141,32 @@ export default async function handler(
             messageId: responseData.id,
             channel: CHANNEL_ID,
             resultType,
+            locale,
             timestamp: new Date().toISOString()
         });
+
+        // 記錄到 Firestore（用於分析）
+        try {
+            await db.collection('discord_notifications').add({
+                resultType,
+                personalityName,
+                locale,
+                userId: userId || 'anonymous',
+                sentAt: admin.firestore.FieldValue.serverTimestamp(),
+                messageId: responseData.id,
+                channelId: CHANNEL_ID,
+                platform: 'discord',
+                market: localeConfig.country
+            });
+        } catch (firestoreError) {
+            console.warn('[DISCORD] Failed to log to Firestore:', firestoreError);
+            // 不中斷推播流程
+        }
 
         return response.status(200).json({
             status: 'sent',
             messageId: responseData.id,
+            locale,
             debug: { resultType, personalityName }
         });
     } catch (error) {

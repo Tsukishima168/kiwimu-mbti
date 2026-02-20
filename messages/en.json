@@ -1,0 +1,56 @@
+{
+  "common": {
+    "appName": "Kiwi MBTI Lab",
+    "tagline": "Discover Your Personality, Connect With Your Tribe",
+    "language": "English",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try Again",
+    "close": "Close"
+  },
+  "nav": {
+    "home": "Home",
+    "quiz": "Take Quiz",
+    "results": "My Results",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "intro": {
+    "welcome": "Welcome to Your MBTI Journey",
+    "description": "Uncover your personality type and explore what makes you unique. This isn't just a test—it's a discovery of yourself.",
+    "cta": "Start Your Discovery",
+    "trustText": "Trusted by 500K+ users worldwide"
+  },
+  "quiz": {
+    "question": "Question",
+    "of": "of",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "See My Results",
+    "progress": "Progress"
+  },
+  "results": {
+    "congrats": "Here's Your Type",
+    "shareTitle": "I just discovered my MBTI type on Kiwi Lab!",
+    "share": "Share Results",
+    "download": "Download Certificate",
+    "explore": "Explore More",
+    "typeName": "Type",
+    "description": "Description",
+    "strengths": "Strengths",
+    "challenges": "Growth Areas",
+    "compatibility": "Best With"
+  },
+  "archive": {
+    "title": "Your Results History",
+    "empty": "No previous results yet. Take the quiz to get started!",
+    "date": "Date",
+    "type": "Type",
+    "details": "Details"
+  },
+  "errors": {
+    "notFound": "Page not found",
+    "unauthorized": "Please log in to continue",
+    "serverError": "Server error. Please try again later"
+  }
+}

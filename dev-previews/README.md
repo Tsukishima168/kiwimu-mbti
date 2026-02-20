@@ -4,6 +4,8 @@
 
 ## 檔案
 
+- **一頁看全部（推薦）**
+  - `index.html` - 同一個頁面用下拉選單切換 32 款，直接在這裡看
 - **單一／切換預覽**
   - `ig-story-preview.html` - INTJ 單一範例
   - `ig-story-preview-all.html` - 全部 16 種人格（下拉切換）
@@ -13,8 +15,9 @@
   - 檔名格式：`ig-story-{類型}-{A|T}.html`
 
 - **產生腳本**
-  - `generate-all-stories.cjs` - 重新產生上述 32 個 HTML
+  - `generate-all-stories.cjs` - 重新產生上述 32 個 HTML（IG Story 用）
   - 執行：`node dev-previews/generate-all-stories.cjs`
+  - 左上角品牌：在腳本裡改 `BRAND_LABEL`，例如 `'2K7'` 或 `'KIWIMU-MBTI-LAB'`，再執行即可產出對應版本
 
 ## 使用方式
 
@@ -26,3 +29,7 @@
    npx serve dev-previews
    ```
    然後訪問 http://localhost:3000/ 可選任一檔案
+
+**產出 IG 用圖**  
+- **方式一**：執行 `node dev-previews/export-story-images.cjs`，會把 32 張 PNG 存到 **`dev-previews/output/`**（需先 `npm install -D puppeteer`）。  
+- **方式二**：用瀏覽器開 `index.html` 或任一 `ig-story-*.html`，對 Story 區塊截圖（360×640）上傳。
