@@ -1,12 +1,26 @@
 import React from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useLanguage, Language } from '../contexts/LanguageContext';
+
+const LANG_CYCLE: Language[] = ['zh', 'en', 'ja', 'ko'];
+const LANG_LABELS: Record<Language, string> = {
+    zh: '中',
+    en: 'EN',
+    ja: '日',
+    ko: '韓'
+};
 
 const LanguageToggle: React.FC = () => {
     const { language, setLanguage } = useLanguage();
 
+    const handleCycle = () => {
+        const currentIndex = LANG_CYCLE.indexOf(language);
+        const nextIndex = (currentIndex + 1) % LANG_CYCLE.length;
+        setLanguage(LANG_CYCLE[nextIndex]);
+    };
+
     return (
         <button
-            onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
+            onClick={handleCycle}
             className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 hover:bg-white border border-gray-200 hover:border-kiwi-dark transition-all shadow-sm hover:shadow-md"
             aria-label="Toggle Language"
         >
@@ -16,7 +30,7 @@ const LanguageToggle: React.FC = () => {
                 <path d="M2 12h20" />
             </svg>
             <span className="text-xs font-mono font-bold text-gray-600 group-hover:text-kiwi-dark transition-colors tracking-wider">
-                {language === 'zh' ? 'EN' : '中'}
+                {LANG_LABELS[language]}
             </span>
         </button>
     );

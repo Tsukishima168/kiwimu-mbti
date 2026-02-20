@@ -1,12 +1,13 @@
 // Language Context for i18n support
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { resultTranslations, TranslationKey } from '../i18n/resultTranslations';
 
-type Language = 'zh' | 'en';
+export type Language = 'zh' | 'en' | 'ja' | 'ko';
 
 interface LanguageContextType {
     language: Language;
     setLanguage: (lang: Language) => void;
-    t: (key: string) => string;
+    t: (key: TranslationKey) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -17,7 +18,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     useEffect(() => {
         // Load language preference from localStorage
         const savedLang = localStorage.getItem('kiwimu_language') as Language;
-        if (savedLang === 'zh' || savedLang === 'en') {
+        if (savedLang === 'zh' || savedLang === 'en' || savedLang === 'ja' || savedLang === 'ko') {
             setLanguageState(savedLang);
         }
     }, []);
@@ -27,8 +28,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         localStorage.setItem('kiwimu_language', lang);
     };
 
-    const t = (key: string) => {
-        // This will be implemented in individual components
+    const t = (key: TranslationKey): string => {
+        // 從翻譯字典中取得對應語系的字串，若無則降級為英文，再無則回傳 key 本身
+        const langDict = resultTranslations[language] as Record<string, string>;
+        const enDict = resultTranslations['en'] as Record<string, string>;
+
+        if (langDict && langDict[key]) {
+            return langDict[key];
+        }
+        if (enDict && enDict[key]) {
+            return enDict[key];
+        }
         return key;
     };
 

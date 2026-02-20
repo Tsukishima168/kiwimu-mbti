@@ -520,11 +520,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     </div>
                     <div className="space-y-8 md:space-y-12">
                       <div className="border-l-2 border-kiwi-dark pl-6">
-                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">WORK STYLE</h4>
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">{t('work_style')}</h4>
                         <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.career.style}</p>
                       </div>
                       <div className="border-l-2 border-kiwi-dark pl-6">
-                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">STRATEGIC ADVICE</h4>
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">{t('strategic_advice')}</h4>
                         <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.career.advice}</p>
                       </div>
                     </div>
@@ -539,11 +539,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     </div>
                     <div className="space-y-8 md:space-y-12">
                       <div className="border-l-2 border-kiwi-dark pl-6">
-                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">LOVE PHILOSOPHY</h4>
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">{t('love_philosophy')}</h4>
                         <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.relationships.style}</p>
                       </div>
                       <div className="border-l-2 border-kiwi-dark pl-6">
-                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">NAVIGATIONAL ADVICE</h4>
+                        <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">{t('navigational_advice')}</h4>
                         <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.relationships.advice}</p>
                       </div>
                     </div>
@@ -555,11 +555,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               <CollapsibleSection title="NAVIGATION" subtitle={t.navigation} defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
                   <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
-                    <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark ">SUPERPOWER 關係強項</h4>
+                    <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark ">{t('superpower')}</h4>
                     <p className="text-gray-800 text-lg md:text-xl font-serif leading-relaxed">{resultData.relationships.strengths}</p>
                   </div>
                   <div className="bg-kiwi-dark text-white p-8 md:p-14 lg:p-20">
-                    <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-gray-400 ">GROWTH AREA 關係盲點與建議</h4>
+                    <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-gray-400 ">{t('growth_area')}</h4>
                     <p className="text-gray-100 text-lg md:text-xl font-serif leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{resultData.relationships.advice}</p>
                   </div>
                 </div>
@@ -580,7 +580,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
                     <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
                       <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
-                        在人群中的出現率
+                        {t('appearance_rate')}
                       </p>
 
                       {/* Rarity Bar */}
@@ -597,7 +597,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
                       <div className="inline-block px-6 py-2 bg-gray-50 border border-gray-200 rounded-full mb-6">
                         <span className="text-xs  text-gray-500 tracking-wider">
-                          稀有度排名：{rarityData.rank} / 16
+                          {t('rarity_rank')}：{rarityData.rank} / 16
                         </span>
                       </div>
 
@@ -608,11 +608,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                       {/* Gender Breakdown */}
                       <div className="grid grid-cols-2 gap-8 max-w-md mx-auto text-left">
                         <div className="border-l-2 border-kiwi-dark pl-4">
-                          <p className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase mb-2">男性</p>
+                          <p className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase mb-2">{t('male')}</p>
                           <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.male}%</p>
                         </div>
                         <div className="border-l-2 border-kiwi-dark pl-4">
-                          <p className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase mb-2">女性</p>
+                          <p className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase mb-2">{t('female')}</p>
                           <p className="text-3xl md:text-4xl font-display font-bold text-gray-700">{rarityData.female}%</p>
                         </div>
                       </div>
@@ -637,7 +637,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   <CollapsibleSection title="ARCHETYPES" subtitle={t.archetypes} defaultOpen={true}>
 
                     <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
-                      這不是你=他們，而是你可能與他們在思考風格、工作節奏、價值傾向有相似點
+                      {t('archetypes_intro')}
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto px-6">
@@ -681,7 +681,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
               {/* 10. SOUL REFLECTION - 響應式字體 */}
               <div className="py-16 md:py-24 border-b border-gray-100 bg-gray-50/20">
-                <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-16 md:mb-24 ">SOUL REFLECTION 靈魂拷問</h3>
+                <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.6em] uppercase text-gray-400 mb-16 md:mb-24 ">{t('soul_reflection')}</h3>
                 <div className="space-y-8 md:space-y-12 max-w-3xl mx-auto px-0 md:px-4">
                   {resultData.soulQuestions.map((q, idx) => (
                     <div key={idx} className="bg-white border border-gray-100 p-8 md:p-12 text-center group transition-all duration-700 hover:bg-kiwi-dark hover:text-white hover:shadow-xl">
@@ -778,7 +778,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     <img src={resultData.dessert.imageUrl} alt="Soul Dessert" />
                   </div>
                   <div className="soul-info-box">
-                    <span className="soul-label">SOUL DESSERT 靈魂甜點</span>
+                    <span className="soul-label">{t('soul_dessert')}</span>
                     <h3 className="soul-name">{anchor.name}</h3>
                     <p className="soul-hook">{anchor.hook}</p>
                     <div className="soul-chips">
@@ -1058,7 +1058,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
           </a>
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
-          <button onClick={() => { trackButtonClick('Retest_重測', 'result_floating_bar'); onRetest(); }} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95">Retest 重測</button>
+          <button onClick={() => { trackButtonClick('Retest_重測', 'result_floating_bar'); onRetest(); }} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95">{t('retest')}</button>
           {onViewArchive && !isArchiveMode && (
             <>
               <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
@@ -1067,7 +1067,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
                 title={user?.isAnonymous ? '綁定帳號以永久保存' : '查看檔案館'}
               >
-                {user?.isAnonymous ? '🔗 綁定帳號' : 'Archive 檔案館'}
+                {user?.isAnonymous ? '🔗 綁定帳號' : t('view_archive')}
               </button>
             </>
           )}
@@ -1121,7 +1121,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     }}
                     className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-lg text-xs font-bold"
                   >
-                    複製連結
+                    {t('copy_link')}
                   </button>
                 </div>
               </div>
@@ -1401,11 +1401,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
                     <div className="grid grid-cols-2 gap-4 md:gap-6 pt-2 md:pt-4">
                       <div>
-                        <span className="block text-[8px] md:text-[9px]  tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">WORK</span>
+                        <span className="block text-[8px] md:text-[9px]  tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">{t('work')}</span>
                         <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed">{selectedOtherType.career.style}</p>
                       </div>
                       <div>
-                        <span className="block text-[8px] md:text-[9px]  tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">LOVE</span>
+                        <span className="block text-[8px] md:text-[9px]  tracking-[0.2em] uppercase text-gray-300 mb-1 md:mb-2 font-bold">{t('love')}</span>
                         <p className="text-[11px] md:text-xs text-gray-600 leading-relaxed">{selectedOtherType.relationships.style}</p>
                       </div>
                     </div>
@@ -1422,7 +1422,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span className="text-sm font-medium">已複製連結到剪貼簿</span>
+              <span className="text-sm font-medium">已{t('copy_link')}到剪貼簿</span>
             </div>
           </div>
         )}
