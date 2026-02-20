@@ -132,6 +132,15 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
           Start 開始旅程
         </button>
 
+        {(!user || user.isAnonymous) && (
+          <button
+            onClick={() => { trackButtonClick('登入_誘因', 'intro_main'); onLogin(); }}
+            className="mt-4 text-xs font-serif text-kiwi-dark underline decoration-kiwi-dark/30 hover:decoration-kiwi-dark opacity-80 hover:opacity-100 transition-all"
+          >
+            登入以保存每次性格變化的珍貴紀錄
+          </button>
+        )}
+
         {/* Social Proof - Gentle & Minimal */}
         <div className="mt-10 space-y-2 opacity-70 hover:opacity-100 transition-opacity">
           <p className="text-xs text-gray-500 tracking-wider font-serif">

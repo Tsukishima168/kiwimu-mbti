@@ -953,6 +953,26 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 </div>
               </div>
 
+              {/* 【新增】登入保存進度 CTA */}
+              {(!user || user.isAnonymous) && onLogin && (
+                <div className="py-16 md:py-24 border-t border-gray-100 bg-gray-50/50 text-center px-6">
+                  <div className="max-w-2xl mx-auto">
+                    <span className="text-3xl md:text-4xl mb-4 block">☁️</span>
+                    <h3 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-4 tracking-wider">保存你的靈魂切片</h3>
+                    <p className="text-base md:text-lg text-gray-500 font-serif leading-relaxed mb-8">
+                      每一次測驗都是當下靈魂軌跡的紀錄。登入以同步結果至雲端，與未來的自己對照性格的變化與成長。
+                    </p>
+                    <button
+                      onClick={() => { trackButtonClick('登入_結果頁', 'result_save_cta'); onLogin(); }}
+                      className="inline-flex items-center justify-center gap-3 bg-kiwi-dark hover:bg-black text-white px-10 py-4 rounded-full font-bold text-sm tracking-[0.2em] uppercase transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+                      登入 / 註冊保存紀錄
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* 12. ARCHIVE - 2 columns on mobile, 4 on desktop */}
               <div className="border-t border-gray-100 pt-20 md:pt-32">
                 <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.6em] md:tracking-[0.8em] uppercase mb-20 md:mb-32 text-gray-300 ">PERSONALITY ARCHIVE <br className="md:hidden" /> 深度檔案館</h3>

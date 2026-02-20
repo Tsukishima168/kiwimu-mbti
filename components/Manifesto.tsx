@@ -1,13 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { trackButtonClick } from '../utils/analytics';
+import SealedEnvelope from './SealedEnvelope';
 
 interface ManifestoProps {
     onProceed: () => void;
 }
 
 const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
+    const [clickCount, setClickCount] = useState(0);
+    const [showEasterEgg, setShowEasterEgg] = useState(false);
+
+    const handleTitleClick = () => {
+        const newCount = clickCount + 1;
+        setClickCount(newCount);
+        if (newCount >= 5) {
+            setShowEasterEgg(true);
+            setClickCount(0); // reset
+            trackButtonClick('easter_egg_triggered', 'manifesto');
+        }
+    };
+
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-8 fade-in">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-8 fade-in relative">
+            {showEasterEgg && <SealedEnvelope onClose={() => setShowEasterEgg(false)} />}
+
             <div className="max-w-xl w-full text-center space-y-12">
 
                 {/* Decorative Header */}
@@ -18,7 +34,11 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
 
                 {/* Polished Content */}
                 <div className="space-y-8">
-                    <h2 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark leading-snug">
+                    <h2
+                        className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark leading-snug cursor-pointer select-none"
+                        onClick={handleTitleClick}
+                        title="或許...某些文字值得細細敲擊五次？"
+                    >
                         生命像鮮奶油一樣，<br />柔軟而流動。
                     </h2>
 
