@@ -152,8 +152,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     }
   };
 
-  const { language } = useLanguage();
-  const t = resultTranslations[language];
+  const { language, t } = useLanguage();
 
   // Onboarding Tour State
   const [showOnboarding, setShowOnboarding] = useState(false);
