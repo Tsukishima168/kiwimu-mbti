@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { trackButtonClick } from '../utils/analytics';
 import SealedEnvelope from './SealedEnvelope';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ManifestoProps {
     onProceed: () => void;
@@ -9,6 +10,7 @@ interface ManifestoProps {
 const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
     const [clickCount, setClickCount] = useState(0);
     const [showEasterEgg, setShowEasterEgg] = useState(false);
+    const { t } = useLanguage();
 
     const handleTitleClick = () => {
         const newCount = clickCount + 1;
@@ -29,7 +31,7 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
                 {/* Decorative Header */}
                 <div className="space-y-4">
                     <div className="w-12 h-[1px] bg-kiwi-dark mx-auto"></div>
-                    <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-400">Guideline & Philosophy</p>
+                    <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-400">{t('manifesto_guideline')}</p>
                 </div>
 
                 {/* Polished Content */}
@@ -37,17 +39,17 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
                     <h2
                         className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark leading-snug cursor-pointer select-none"
                         onClick={handleTitleClick}
-                        title="或許...某些文字值得細細敲擊五次？"
+                        title={t('manifesto_title_hint')}
                     >
-                        生命像鮮奶油一樣，<br />柔軟而流動。
+                        {t('manifesto_title_1')}<br />{t('manifesto_title_2')}
                     </h2>
 
                     <div className="space-y-6 text-gray-600 font-serif text-lg leading-relaxed text-center md:text-justify max-w-lg mx-auto">
                         <p>
-                            這不是一場尋找答案的測驗，而是一面鏡子，映照此刻的你。
+                            {t('manifesto_desc_1')}
                         </p>
                         <p>
-                            請帶著好奇與開放，讓 KIWIMU 陪你探索那些尚未察覺的可能性。
+                            {t('manifesto_desc_2')}
                         </p>
                     </div>
                 </div>
@@ -55,16 +57,16 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
                 {/* Action */}
                 <div className="pt-8">
                     <button
-                        onClick={() => { trackButtonClick('我準備好了', 'manifesto'); onProceed(); }}
+                        onClick={() => { trackButtonClick('I am ready', 'manifesto'); onProceed(); }}
                         className="group relative inline-flex items-center justify-center px-16 py-5 border border-black overflow-hidden transition-all hover:bg-black hover:scale-[1.02] active:scale-95 shadow-md hover:shadow-xl"
                     >
-                        <span className="relative z-10 text-xs font-bold tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500">
-                            I am ready 我準備好了
+                        <span className="relative z-10 text-xs font-bold tracking-[0.3em] uppercase group-hover:text-white transition-colors duration-500 whitespace-nowrap">
+                            {t('manifesto_ready')}
                         </span>
                         <div className="absolute inset-0 bg-black translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
                     </button>
                     <p className="mt-8 text-[9px] font-mono text-gray-300 tracking-[0.2em] uppercase">
-                        Estimated time: 5 minutes
+                        {t('manifesto_time')}
                     </p>
                 </div>
             </div>

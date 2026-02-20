@@ -1,6 +1,7 @@
 import React from 'react';
 import { User } from 'firebase/auth';
 import { auth } from '../firebase';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface UserMenuProps {
     user: User | null;
@@ -9,6 +10,8 @@ interface UserMenuProps {
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({ user, onLogin, onLogout }) => {
+    const { t } = useLanguage();
+
     if (!user || user.isAnonymous) {
         return (
             <button
@@ -20,7 +23,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogin, onLogout }) => {
                 }}
                 className="px-6 py-3 bg-kiwi-dark text-white text-sm font-mono tracking-wider hover:bg-black transition-colors duration-300 shadow-lg"
             >
-                登入
+                {t('login_btn')}
             </button>
         );
     }
@@ -28,7 +31,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogin, onLogout }) => {
     return (
         <div className="flex items-center gap-4 bg-white shadow-lg border border-gray-200 px-4 py-2">
             <div className="text-right hidden md:block">
-                <p className="text-xs font-mono text-gray-600">{user.email || user.displayName || '已登入用戶'}</p>
+                <p className="text-xs font-mono text-gray-600">{user.email || user.displayName || t('user_logged_in')}</p>
             </div>
             <button
                 onClick={(e) => {
@@ -39,7 +42,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ user, onLogin, onLogout }) => {
                 }}
                 className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-mono tracking-wider hover:bg-gray-50 transition-colors duration-300"
             >
-                登出
+                {t('logout_btn')}
             </button>
         </div>
     );

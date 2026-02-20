@@ -2,6 +2,7 @@ import React from 'react';
 import { User } from 'firebase/auth';
 import { trackButtonClick } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
+import LanguageToggle from './LanguageToggle';
 
 interface IntroProps {
   onStart: () => void;
@@ -16,6 +17,11 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 fade-in relative overflow-hidden">
+
+      {/* Language Toggle in top-left corner */}
+      <div className="absolute top-6 left-6 z-50">
+        <LanguageToggle />
+      </div>
 
       {/* Login button in top-right corner */}
       {!user || user.isAnonymous ? (

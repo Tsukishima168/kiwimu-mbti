@@ -82,6 +82,24 @@ export const resultTranslations = {
         soft_understanding: '像鮮奶油一樣柔軟地理解自己',
         enter: 'ENTER 進入',
         tested_users: '已幫助 <count> 位用戶探索性格奧秘',
+
+        // New keys
+        manifesto_guideline: 'Guideline & Philosophy',
+        manifesto_title_hint: '或許...某些文字值得細細敲擊五次？',
+        manifesto_title_1: '生命像鮮奶油一樣，',
+        manifesto_title_2: '柔軟而流動。',
+        manifesto_desc_1: '這不是一場尋找答案的測驗，而是一面鏡子，映照此刻的你。',
+        manifesto_desc_2: '請帶著好奇與開放，讓 KIWIMU 陪你探索那些尚未察覺的可能性。',
+        manifesto_ready: 'I am ready 我準備好了',
+        manifesto_time: 'Estimated time: 5 minutes',
+
+        loading_processing: 'PROCESSING 資料運算中',
+        loading_analyzing: 'Analysing Cognitive Functions',
+        loading_analyzing_sub: '分析認知功能',
+
+        login_btn: '登入',
+        logout_btn: '登出',
+        user_logged_in: '已登入用戶',
     },
 
     en: {
@@ -166,6 +184,24 @@ export const resultTranslations = {
         soft_understanding: 'Understanding yourself as softly as whipped cream',
         enter: 'ENTER',
         tested_users: 'Helped <count> users explore their personalities',
+
+        // New keys
+        manifesto_guideline: 'Guideline & Philosophy',
+        manifesto_title_hint: 'Maybe... some words are worth tapping 5 times?',
+        manifesto_title_1: 'Life is like whipped cream,',
+        manifesto_title_2: 'soft and flowing.',
+        manifesto_desc_1: 'This isn\'t a test for answers, but a mirror reflecting you at this moment.',
+        manifesto_desc_2: 'Please explore the undiscovered possibilities with KIWIMU out of curiosity and openness.',
+        manifesto_ready: 'I am ready',
+        manifesto_time: 'Estimated time: 5 minutes',
+
+        loading_processing: 'PROCESSING',
+        loading_analyzing: 'Analysing Cognitive Functions',
+        loading_analyzing_sub: 'Analyzing...',
+
+        login_btn: 'Login',
+        logout_btn: 'Logout',
+        user_logged_in: 'Logged-in User',
     },
 
     ja: {
@@ -244,6 +280,24 @@ export const resultTranslations = {
         perceiving: '柔軟でオープン、多様性を受け入れる。',
         assertive: '自信に満ち、精神的な回復力が高い。',
         turbulent: '完璧主義で、環境の変化に敏感。',
+
+        // New keys
+        manifesto_guideline: 'ガイドラインと理念',
+        manifesto_title_hint: 'もしかして…いくつかの言葉は5回タップする価値があるかも？',
+        manifesto_title_1: '人生は生クリームのように、',
+        manifesto_title_2: '柔らかく流動的です。',
+        manifesto_desc_1: 'これは答えを探すテストではなく、今のあなたを映し出す鏡です。',
+        manifesto_desc_2: '好奇心とオープンな気持ちを持って、まだ気づいていない可能性をKIWIMUと一緒に探ってみましょう。',
+        manifesto_ready: '準備完了',
+        manifesto_time: '所要目安時間: 5分',
+
+        loading_processing: 'データ処理中',
+        loading_analyzing: '認知機能を分析中',
+        loading_analyzing_sub: '分析中...',
+
+        login_btn: 'ログイン',
+        logout_btn: 'ログアウト',
+        user_logged_in: 'ログインユーザー',
     },
 
     ko: {
@@ -321,6 +375,24 @@ export const resultTranslations = {
         soft_understanding: '휘핑크림처럼 부드럽게 자신을 이해하기',
         enter: 'ENTER 입장',
         tested_users: '<count>명의 성격 탐구를 도왔습니다',
+
+        // New keys
+        manifesto_guideline: '가이드라인 및 철학',
+        manifesto_title_hint: '어쩌면... 어떤 단어는 5번 탭할 가치가 있을지도?',
+        manifesto_title_1: '삶은 생크림처럼,',
+        manifesto_title_2: '부드럽고 유동적입니다.',
+        manifesto_desc_1: '이것은 답을 찾는 테스트가 아니라, 지금의 당신을 비추는 거울입니다.',
+        manifesto_desc_2: '호기심과 열린 마음으로, 아직 깨닫지 못한 가능성을 KIWIMU와 함께 탐험해 보세요.',
+        manifesto_ready: '준비 완료',
+        manifesto_time: '예상 소요 시간: 5분',
+
+        loading_processing: '데이터 처리 중',
+        loading_analyzing: '인지 기능 분석 중',
+        loading_analyzing_sub: '분석 중...',
+
+        login_btn: '로그인',
+        logout_btn: '로그아웃',
+        user_logged_in: '로그인 사용자',
     }
 };
 

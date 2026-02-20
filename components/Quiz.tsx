@@ -7,6 +7,8 @@ import { loadQuestions } from '../utils/dataLoader';
 import { useProgressStorage } from '../hooks/useProgressStorage';
 import ResumeModal from './ResumeModal';
 import { trackQuizStart, trackQuizProgress, trackQuizComplete } from '../utils/analytics';
+import { useLanguage } from '../contexts/LanguageContext';
+import { questionTranslations } from '../i18n/questionsTranslations';
 
 interface QuizProps {
     user: User | null;
@@ -15,6 +17,7 @@ interface QuizProps {
 }
 
 const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
+    const { language } = useLanguage();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<Option[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -39,6 +42,16 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
 
     const currentQuestion: Question | undefined = questions[currentIndex];
     const progress = questionsLoaded && currentQuestion ? ((currentIndex + 1) / questions.length) * 100 : 0;
+
+    const getQuestionText = (q: Question) => {
+        if (language === 'zh') return q.text;
+        return questionTranslations[q.id]?.[language]?.text || q.text;
+    };
+
+    const getOptionLabel = (qId: number, option: Option) => {
+        if (language === 'zh') return option.label;
+        return questionTranslations[qId]?.[language]?.options[option.value as string] || option.label;
+    };
 
     // Track quiz start and check for existing progress on mount
     useEffect(() => {
@@ -169,7 +182,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                             )}
                         </div>
                         <span className="text-xs font-mono text-gray-400 tracking-wider">
-                            {questionsLoaded && currentQuestion ? `${currentIndex + 1} / ${questions.length}` : '載入中...'}
+                            {questionsLoaded && currentQuestion ? `${currentIndex + 1} / ${questions.length}` : (language === 'zh' ? '載入中...' : 'Loading...')}
                         </span>
                     </div>
                     <div className="h-[1px] bg-gray-100 w-full">
@@ -186,50 +199,50 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                         {!questionsLoaded || !currentQuestion ? (
                             <div className="text-center py-20">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kiwi-dark mx-auto mb-4"></div>
-                                <p className="text-gray-500">載入題目中...</p>
+                                <p className="text-gray-500">{language === 'zh' ? '載入題目中...' : 'Loading...'}</p>
                             </div>
                         ) : (
                             <div className={`transition-all duration-500 transform ${isAnimating ? 'opacity-0 translate-y-[-10px]' : 'opacity-100 translate-y-0'}`}>
 
-                            {/* Atmospheric Image Block */}
-                            <div className="w-full aspect-[21/9] mb-10 relative overflow-hidden bg-gray-100">
-                                {!imageLoaded && (
-                                    <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-                                )}
-                                <img
-                                    src={currentQuestion.imageUrl}
-                                    alt="Atmosphere"
-                                    onLoad={() => setImageLoaded(true)}
-                                    className={`w-full h-full object-cover grayscale opacity-90 transition-all duration-500 ease-out hover:scale-105 ${imageLoaded ? 'opacity-90' : 'opacity-0'}`}
-                                />
-                                <div className="absolute inset-0 border border-black/5 pointer-events-none"></div>
-                            </div>
+                                {/* Atmospheric Image Block */}
+                                <div className="w-full aspect-[21/9] mb-10 relative overflow-hidden bg-gray-100">
+                                    {!imageLoaded && (
+                                        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+                                    )}
+                                    <img
+                                        src={currentQuestion.imageUrl}
+                                        alt="Atmosphere"
+                                        onLoad={() => setImageLoaded(true)}
+                                        className={`w-full h-full object-cover grayscale opacity-90 transition-all duration-500 ease-out hover:scale-105 ${imageLoaded ? 'opacity-90' : 'opacity-0'}`}
+                                    />
+                                    <div className="absolute inset-0 border border-black/5 pointer-events-none"></div>
+                                </div>
 
-                            {/* Text Area */}
-                            <div className="mb-12 md:mb-16">
-                                <h2 className="text-xl md:text-3xl font-serif font-medium text-kiwi-dark text-center leading-relaxed tracking-wide">
-                                    {currentQuestion.text}
-                                </h2>
-                            </div>
+                                {/* Text Area */}
+                                <div className="mb-12 md:mb-16">
+                                    <h2 className="text-xl md:text-3xl font-serif font-medium text-kiwi-dark text-center leading-relaxed tracking-wide">
+                                        {getQuestionText(currentQuestion)}
+                                    </h2>
+                                </div>
 
-                            {/* Options Area */}
-                            <div className="grid gap-5 max-w-xl mx-auto mb-16">
-                                {shuffledOptions.map((option, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => handleOptionSelect(option)}
-                                        className="group relative w-full p-6 md:p-8 text-center border border-gray-200 hover:border-kiwi-dark hover:bg-white transition-all duration-300 active:scale-[0.99] hover:scale-[1.01] hover:shadow-xl bg-white/50"
-                                    >
-                                        <span className="absolute top-4 left-4 text-[10px] font-mono text-gray-300 group-hover:text-kiwi-dark transition-colors uppercase tracking-widest">
-                                            {String.fromCharCode(65 + idx)}
-                                        </span>
-                                        <span className="block text-base md:text-lg text-gray-700 font-light leading-relaxed group-hover:text-black group-hover:font-normal transition-all">
-                                            {option.label}
-                                        </span>
-                                    </button>
-                                ))}
+                                {/* Options Area */}
+                                <div className="grid gap-5 max-w-xl mx-auto mb-16">
+                                    {shuffledOptions.map((option, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => handleOptionSelect(option)}
+                                            className="group relative w-full p-6 md:p-8 text-center border border-gray-200 hover:border-kiwi-dark hover:bg-white transition-all duration-300 active:scale-[0.99] hover:scale-[1.01] hover:shadow-xl bg-white/50"
+                                        >
+                                            <span className="absolute top-4 left-4 text-[10px] font-mono text-gray-300 group-hover:text-kiwi-dark transition-colors uppercase tracking-widest">
+                                                {String.fromCharCode(65 + idx)}
+                                            </span>
+                                            <span className="block text-base md:text-lg text-gray-700 font-light leading-relaxed group-hover:text-black group-hover:font-normal transition-all">
+                                                {getOptionLabel(currentQuestion.id, option)}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
                         )}
                     </div>
                 </div>
