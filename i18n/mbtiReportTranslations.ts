@@ -1,0 +1,427 @@
+// Auto-generated from kiwimu_report_i18n.csv
+
+export type MBTIReportTranslation = {
+  title: string;
+  quote: string;
+  coreAnalysis: string;
+  soulQuestions: string;
+};
+
+export const mbtiReportTranslations: Record<string, Record<'zh' | 'en' | 'ja' | 'ko', MBTIReportTranslation>> = {
+  INTJ: {
+    zh: {
+      title: "戰略策劃家",
+      quote: "「如果這件事沒有邏輯，那它就不應該存在。」",
+      coreAnalysis: "你是天生的架構師。世界對你來說不是隨機的混亂，而是一個可以被拆解、優化和重組的巨大棋盤。你極度看重能力與知識，對權威不屑一顧，除非那個權威能證明他比你聰明。你的孤獨來自於你總是在思考大多數人還沒意識到的未來。",
+      soulQuestions: "你贏了所有的爭論，但你快樂嗎？ | 如果效率不是人生唯一的指標，你會如何重新定義成功？ | 你推開了所有人以保持獨立，但這是強大還是恐懼？",
+    },
+    en: {
+      title: "The Strategic Architect",
+      quote: "If it doesn't make logical sense, it shouldn't exist.",
+      coreAnalysis: "You are a natural architect. The world isn't a random mess to you; it's a giant chessboard waiting to be optimized. You value competence above all and have zero patience for authority that hasn't earned its keep. In a world exhausted by hustle culture, your laser focus is your superpower. Your loneliness stems from seeing the endgame while others are still figuring out the rules.",
+      soulQuestions: "You win every argument, but are you happy? | If efficiency isn't the only metric, how do you define success?",
+    },
+    ja: {
+      title: "孤高の戦略家",
+      quote: "「論理が破綻しているなら、存在する意味がない。」",
+      coreAnalysis: "あなたは生粋のアーキテクト（構築者）です。不条理で非効率な社会ルールや同調圧力（空気を読むこと）に内心うんざりしていませんか？ あなたにとって世界は最適化すべき巨大なシステムです。権威を無条件には信じず、実力と論理だけを重んじます。あなたの孤独は、周りがまだルールを理解していない時に、すでに「結末」を見据えていることから生まれます。",
+      soulQuestions: "すべての議論に勝ったとして、あなたは本当に幸せですか？ | 効率以外の指標があるとすれば、あなたの成功とは何ですか？",
+    },
+    ko: {
+      title: "냉철한 전략설계자",
+      quote: "「논리적이지 않다면, 존재할 이유도 없다.」",
+      coreAnalysis: "당신은 타고난 건축가입니다. 무의미한 눈치 보기와 비효율적인 수직 사회에 진저리를 치며, 오직 '능력'과 '효율'만을 믿습니다. 세상은 당신에게 최적화해야 할 거대한 체스판입니다. 당신이 가끔 고독한 이유는, 남들이 이제 막 규칙을 배우고 있을 때 당신은 이미 게임의 '엔딩'을 보고 있기 때문입니다.",
+      soulQuestions: "모든 논쟁에서 이겼다고 해서, 당신은 진정 행복한가요? | 효율성이 인생의 전부가 아니라면, 성공을 어떻게 재정의할 건가요?",
+    },
+  },
+  INTP: {
+    zh: {
+      title: "邏輯解構者",
+      quote: "「比起答案，我更喜歡那些無解的問題。」",
+      coreAnalysis: "你是思想的遊牧民族。你的大腦24小時都在運作，試圖找出萬物背後的原理。你不在乎世俗的成功標準，只在乎思維是否足夠清晰、邏輯是否足夠優美。你常被認為活在自己的世界裡，但那是因為你的世界比現實更有趣。",
+      soulQuestions: "你的理論總是很完美，但如果從未在現實中測試過，它們真的有意義嗎？ | 如果你解開了所有的謎題，卻發現真相極度孤獨，你會怎麼做？",
+    },
+    en: {
+      title: "The Logic Deconstructor",
+      quote: "I prefer unsolvable questions over obvious answers.",
+      coreAnalysis: "You are an intellectual nomad. Your brain operates 24/7 trying to decode the underlying principles of the universe. You couldn't care less about societal milestones. While others are burning out climbing the corporate ladder, you're deeply absorbed in rabbit holes. People think you live in your own world, but honestly, your world is just much more interesting.",
+      soulQuestions: "If you never test your theories in reality, do they really matter? | What happens when the truth you find is incredibly lonely?",
+    },
+    ja: {
+      title: "真理の探求者",
+      quote: "「分かりきった答えより、解けない問いの方が面白い。」",
+      coreAnalysis: "あなたは知のノマドです。無意味な飲み会や建前だらけの社会に辟易し、24時間頭の中で宇宙の真理を解読しようとしています。世間がもてはやす「成功」には1ミリも興味がありません。自分の世界に閉じこもっていると思われがちですが、現実世界よりもあなたの脳内の方が遥かにエキサイティングなのです。",
+      soulQuestions: "その理論を現実で試さないなら、なんの意味がある？ | 見つけた真理が酷く残酷で孤独なものだったら、どうしますか？",
+    },
+    ko: {
+      title: "논리의 해체주의자",
+      quote: "「뻔한 정답보다는 풀리지 않는 질문이 훨씬 재밌지.」",
+      coreAnalysis: "당신은 지적인 유목민입니다. 획일화된 성공 루트나 남들에게 보여주기 위한 스펙 쌓기엔 관심이 없습니다. 24시간 내내 세상의 작동 원리를 파헤치는 데 뇌를 풀가동하죠. 사람들은 당신이 자기만의 세계에 빠져 있다고 생각하지만, 솔직히 현실보다 당신의 머릿속이 수백 배는 더 흥미롭습니다.",
+      soulQuestions: "당신의 완벽한 이론을 현실에서 증명하지 않는다면, 무슨 소용이 있을까요? | 찾아낸 진리가 너무나도 고독하다면 어떻게 할 건가요?",
+    },
+  },
+  ENTJ: {
+    zh: {
+      title: "天生指揮官",
+      quote: "「不可能這個詞只存在於愚人的字典裡。」",
+      coreAnalysis: "你是天生的領袖。在大腦中，一切事物都被轉化為實現目標的資源。你對低效與混亂有著天然的厭惡，總是渴望在充滿挑戰的環境中建立秩序。你不僅看見森林，你還規劃了整座森林的採伐與重生路徑。",
+      soulQuestions: "如果有一天你停止達成目標，你還知道自己是誰嗎？ | 你的強大，是為了追求卓越，還是為了掩飾對脆弱的恐懼？",
+    },
+    en: {
+      title: "The Born Commander",
+      quote: "The word 'impossible' only exists in the dictionary of fools.",
+      coreAnalysis: "You are a natural-born commander. You look at chaos and immediately start drawing up blueprints for order. You absolutely despise inefficiency and complacency. In an era of 'quiet quitting', you are the force that pushes things forward. You don't just see the forest; you plan the path to harvest and replant the entire ecosystem.",
+      soulQuestions: "Who are you when you stop achieving? | Is your relentless drive a pursuit of greatness, or a running away from vulnerability?",
+    },
+    ja: {
+      title: "天性のカリスマ指揮官",
+      quote: "「不可能という言葉は、愚か者の辞書にしか存在しない。」",
+      coreAnalysis: "あなたは天性のリーダーです。年功序列や非効率なハンコ文化を心底軽蔑し、混沌とした状況を瞬時に整理してシステムを構築します。「現状維持」はあなたにとって退化と同義です。ただ森を見るだけでなく、その森をどう伐採し、どう再開発するかまで計算し尽くしています。",
+      soulQuestions: "何も達成していない時の「あなた」の価値とは何ですか？ | その圧倒的な推進力は、弱さと向き合うことからの逃避ではないですか？",
+    },
+    ko: {
+      title: "타고난 야망의 지휘관",
+      quote: "「불가능이라는 단어는 바보들의 사전에서나 찾는 것이다.」",
+      coreAnalysis: "당신은 타고난 지휘관입니다. 답답한 꼰대 문화나 비효율적인 시스템을 보면 당장 다 갈아엎고 싶어 합니다. '워라밸'보다 폭발적인 성장을 갈망하죠. 당신은 단순히 숲을 보는 것을 넘어, 그 숲을 어떻게 베어내고 어떻게 재개발할지 거대한 마스터플랜을 짜는 사람입니다.",
+      soulQuestions: "아무것도 성취하지 않을 때, 당신은 누구인가요? | 그 지독한 원동력은 위대함을 향한 갈망인가요, 아니면 약해지는 것에 대한 두려움인가요?",
+    },
+  },
+  ENTP: {
+    zh: {
+      title: "智力辯論家",
+      quote: "「為什麼不試試看反過來做？」",
+      coreAnalysis: "你是思想的魔術師。你熱愛在辯論中尋找真理（或者只是為了好玩）。傳統和規則對你來說只是挑戰的起點。你思維敏捷，能瞬間連結看似無關的事物。你的魅力在於你的不可預測性與無窮的精力。",
+      soulQuestions: "你喜歡反對一切，但你真正堅持的立場到底是什麼？ | 當所有的辯論都結束，你感到的是充實還是空虛？",
+    },
+    en: {
+      title: "The Rule Breaker",
+      quote: "Why not try doing it the exact opposite way?",
+      coreAnalysis: "You are the ultimate intellectual provocateur. Traditions and rules are merely starting lines for you to cross. You thrive in the art of debate and can instantly connect completely unrelated ideas. In a society demanding conformity, your unapologetic unpredictability is a breath of fresh air.",
+      soulQuestions: "You love playing devil's advocate, but what do you actually stand for? | When the debate ends, are you left feeling fulfilled or just empty?",
+    },
+    ja: {
+      title: "常識クラッシャー",
+      quote: "「逆にやってみたらどうなるか、試さない手はないでしょ？」",
+      coreAnalysis: "あなたは知的トリックスターです。「前例がない」「ルールだから」という言葉を聞くとうずうずして、どうやってその常識を破壊してやろうかと企みます。空気を読むどころか、意図的に空気をかき乱して本質を炙り出します。その予測不可能性こそが、最大の武器です。",
+      soulQuestions: "逆張りばかりしていますが、あなたが本当に守りたい信念は何ですか？ | 議論に勝って相手を論破したあと、心に残るのは充実感ですか？虚無感ですか？",
+    },
+    ko: {
+      title: "규칙 파괴의 혁신가",
+      quote: "「완전 반대로 한 번 해보면 어떨까?」",
+      coreAnalysis: "당신은 지적 도발을 즐기는 트릭스터입니다. '원래 그런 거야'라는 말에 가장 큰 반발심을 느끼며, 금기를 깨고 규칙을 부수는 데서 희열을 느낍니다. 남들이 다 Yes라고 할 때 굳이 No라고 던져보는 당신의 기발함은 이 뻔한 세상에 꼭 필요한 사이다 같은 존재입니다.",
+      soulQuestions: "반대를 위한 반대를 즐기지만, 당선이 진정으로 지키고 싶은 신념은 무엇인가요? | 모든 논쟁이 끝난 후, 마음속에 남는 건 성취감인가요, 공허함인가요?",
+    },
+  },
+  INFJ: {
+    zh: {
+      title: "深淵凝視者",
+      quote: "「最安靜的人往往擁有最喧囂的思想。」",
+      coreAnalysis: "你是人類靈魂的解讀者。你擁有一種近乎通靈的直覺，能輕易看穿他人的偽裝與潛在動機。你雖然安靜，但內心燃燒著改變世界的理想之火。你追求深度的連結與意義，對於膚淺的事物感到疲憊。",
+      soulQuestions: "你總是試圖拯救別人，但誰來拯救你？ | 你的理想主義，會不會是一種將人推開的完美防禦機制？",
+    },
+    en: {
+      title: "The Abyssal Gazer",
+      quote: "The quietest people often have the loudest minds.",
+      coreAnalysis: "You are a reader of human souls. With near-psychic intuition, you see right through facades and hidden motives. In a fast-paced, superficial world, your depth can feel isolating. You are quiet, yet you carry a burning desire to change the world. You seek profound connections, easily exhausted by small talk and performative interactions.",
+      soulQuestions: "You save everyone else, but who is saving you? | Are your high expectations a shield to keep people from getting too close?",
+    },
+    ja: {
+      title: "深淵を覗く預言者",
+      quote: "「最も静かな人ほど、その心の中は最も騒がしい。」",
+      coreAnalysis: "あなたは人間の魂を読み解く通訳者です。建前や嘘が透けて見えてしまうため、表層的な付き合いの多い日本社会ではひどく消耗しがちです。とても静かですが、内面には世界を変えたいという強い炎を宿しています。薄っぺらい会話には興味がなく、魂と魂が触れ合うような深い繋がりを求めています。",
+      soulQuestions: "他人の心は救えても、あなた自身の心を救うのは誰ですか？ | あなたの理想の高さは、人が近づきすぎるのを防ぐためのバリアではありませんか？",
+    },
+    ko: {
+      title: "심연을 꿰뚫어 보는 자",
+      quote: "「가장 조용한 사람의 머릿속이 가장 시끄러운 법이다.」",
+      coreAnalysis: "당신은 사람의 영혼을 읽어내는 능력이 있습니다. 한국 사회 특유의 가식이나 눈치 보기가 당신에게는 너무나도 투명하게 보여 피곤합니다. 조용하지만 내면에는 세상을 더 나은 곳으로 만들고 싶다는 강렬한 불꽃이 타오르고 있죠. 영양가 없는 스몰토크보다는 영혼이 통하는 깊은 대화에 목말라 있습니다.",
+      soulQuestions: "남들은 잘 거두면서, 정작 당신 자신은 누가 돌보고 있나요? | 당신의 그 높은 기준은 사실 사람들이 너무 가까이 오는 걸 막기 위한 방패 아닐까요?",
+    },
+  },
+  INFP: {
+    zh: {
+      title: "治癒系詩人",
+      quote: "「即使在陰溝裡我也在仰望星空。」",
+      coreAnalysis: "你是詩人與夢想家。你的內心世界比現實世界更真實、更豐富。你對真實（Authenticity）有著極致的追求，無法忍受虛偽。雖然外表看似柔弱隨和，但一旦觸及你的核心價值觀，你會展現出驚人的頑強。",
+      soulQuestions: "你的精神世界是安全的避風港，還是逃避現實的華麗牢籠？ | 你要等到什麼時候，才願意在不完美的世界裡勇敢活一次？",
+    },
+    en: {
+      title: "The Healing Poet",
+      quote: "Even in the gutter, I am looking at the stars.",
+      coreAnalysis: "You are a gentle idealist with an entire universe inside your mind. Your inner world is far richer and more real than reality. You relentlessly pursue authenticity and cannot stand anything fake. While you appear soft-spoken and easygoing, you possess an astonishing resilience when your core values are threatened.",
+      soulQuestions: "Is your rich inner world a safe haven, or a beautiful prison? | How much longer will you wait for the 'perfect' moment to live?",
+    },
+    ja: {
+      title: "癒やしの詩人",
+      quote: "「泥溝の中にいても、私は星を見上げている。」",
+      coreAnalysis: "あなたは心の中に広大な宇宙を抱く、心優しき理想主義者です。過労やストレスが蔓延する現代において、あなたの内面世界は唯一のサンクチュアリ（聖域）です。「自分らしさ」に究極のこだわりがあり、嘘や偽善を嫌います。普段は穏やかですが、自分の大切な価値観を脅かされた時は、驚くほどの強さを発揮します。",
+      soulQuestions: "その豊かな内面世界は、安全な避難所ですか？それとも美しい牢獄ですか？ | 「完璧なタイミング」を待つあまり、現実を生きるのを忘れていませんか？",
+    },
+    ko: {
+      title: "치유의 몽상가",
+      quote: "「시궁창 속에서도, 나는 별을 바라본다.」",
+      coreAnalysis: "당신은 마음속에 거대한 우주를 품고 있는 부드러운 이상주의자입니다. 팍팍한 현실과 무한 경쟁 속에서도, 당신의 내면 세계는 현실보다 훨씬 다채롭고 아름답습니다. 가식과 거짓을 본능적으로 거부하며, 평소엔 한없이 순해 보여도 자신의 핵심 가치를 건드리면 상상 이상의 단단함을 보여줍니다.",
+      soulQuestions: "당신의 그 풍부한 내면 세계는 안전한 도피처인가요, 아니면 아름다운 감옥인가요? | 완벽한 순간만을 기다리느라, 지금 이 순간을 놓치고 있진 않은가요?",
+    },
+  },
+  ENFJ: {
+    zh: {
+      title: "光輝導師",
+      quote: "「你的潛力是我最想守護的寶藏。」",
+      coreAnalysis: "你是人群中的恆星。你天生就能感受到他人的情緒需求，並知道如何激勵他們成為更好的自己。你充滿魅力、熱情且富有責任感。你常常為了群體的和諧而忽略了自己的需求，你的快樂來自於看到他人的成長。",
+      soulQuestions: "如果你不再被需要，你還覺得自己有價值嗎？ | 你上一次卸下堅強，允許別人照顧你，是什麼時候？",
+    },
+    en: {
+      title: "The Radiant Mentor",
+      quote: "Your potential is the treasure I want to guard the most.",
+      coreAnalysis: "You are the emotional anchor of your community. You possess a natural gift for understanding people's needs and motivating them to become their best selves. You are incredibly charismatic, deeply empathetic, and highly responsible. Often, you neglect your own needs for the sake of group harmony, finding joy primarily in the growth of others.",
+      soulQuestions: "If you weren't constantly helping others, would you still feel valuable? | When was the last time you let someone take care of you?",
+    },
+    ja: {
+      title: "光り輝くメンター",
+      quote: "「あなたの可能性こそ、私が最も守り抜きたい宝物です。」",
+      coreAnalysis: "あなたは集団の精神的な支柱です。ギスギスした職場やコミュニティにおいて、他人の感情の機微を察知し、ポテンシャルを引き出す圧倒的な才能を持っています。誰かのために尽くしすぎるあまり、自己犠牲がデフォルトになりがちです。他人の成長を見ることに、自分自身の喜びを見出す人です。",
+      soulQuestions: "他人の世話を焼くことをやめたとき、あなた自身の価値は残りますか？ | 最後に「誰かに甘えた」のはいつですか？",
+    },
+    ko: {
+      title: "빛나는 인도자",
+      quote: "「당신의 잠재력이야말로 내가 가장 지켜주고 싶은 보물이야.」",
+      coreAnalysis: "당신은 주변 사람들을 이끄는 따뜻한 등대입니다. 매정한 사회 속에서, 타인의 감정적 필요를 가장 먼저 알아채고 그들이 더 나은 사람이 되도록 영감을 불어넣습니다. 인간관계가 당신의 에너지원이지만, 무리의 화합을 위해 정작 자신의 상처는 숨기고 희생하는 경우가 많습니다.",
+      soulQuestions: "남을 돕지 않아도, 당신 스스로 가치 있는 사람이라 느낄 수 있나요? | 마지막으로 누군가가 당신을 온전히 돌보게 내버려 둔 적이 언제인가요?",
+    },
+  },
+  ENFP: {
+    zh: {
+      title: "熱血追夢人",
+      quote: "「生活要麼是一場大膽的冒險要麼什麼都不是。」",
+      coreAnalysis: "你是自由的靈魂。你對世界充滿了孩子般的好奇心，總能從平凡中發現神奇。你熱愛人、熱愛故事、熱愛一切未知的可能性。你是天生的連結者，能瞬間拉近人與人的距離。你的能量具有傳染性，讓周圍的人都跟著燃燒。",
+      soulQuestions: "你不斷追求新鮮感，是因為熱愛刺激，還是因為害怕面對平凡的自己？ | 你能在日復一日的無聊中，依然找到生命的熱情嗎？",
+    },
+    en: {
+      title: "The Passionate Dreamer",
+      quote: "Life is either a daring adventure or nothing at all.",
+      coreAnalysis: "You are a free spirit powered by childlike curiosity. You find magic in the mundane and are constantly chasing novel possibilities. You love people, stories, and the great unknown. As a natural connector, your infectious energy lights up everyone around you. However, staying grounded and finishing what you started is your ultimate challenge.",
+      soulQuestions: "Are you chasing the new because it's exciting, or because you're running away from the present? | Can you find beauty in routine?",
+    },
+    ja: {
+      title: "情熱の冒険家",
+      quote: "「人生は大胆な冒険か、さもなくば無だ。」",
+      coreAnalysis: "あなたは好奇心を燃料に走る自由な魂です。「つまらない大人」になることを最も恐れ、平凡な日常の中から魔法のような可能性を見つけ出します。人と人、アイデアとアイデアを繋ぐ天才で、あなたの周囲はいつも活気に満ちています。ただし、熱しやすく冷めやすいため、最後までやり抜くことが永遠の課題です。",
+      soulQuestions: "新しい刺激を追い求めるのは本当に楽しいからですか？それとも今の現実から逃げたいからですか？ | 退屈な「日常」の中に美しさを見出せますか？",
+    },
+    ko: {
+      title: "열정적인 스파크",
+      quote: "「인생은 과감한 모험이거나, 아무것도 아니거나 둘 중 하나다.」",
+      coreAnalysis: "당신은 어린아이 같은 호기심으로 가득 찬 자유로운 영혼입니다. 쳇바퀴 도는 일상을 가장 견디기 힘들어하며, 평범함 속에서도 마법을 발견해냅니다. 처음 보는 사람과도 10분 만에 베프가 되는 놀라운 친화력의 소유자죠. 당신의 에너지는 전염성이 강해 주변을 밝히지만, 시작한 일을 끝맺는 것은 늘 숙제입니다.",
+      soulQuestions: "끊임없이 새로운 것을 쫓는 건 그게 즐거워서인가요, 아니면 지금 이곳의 권태로부터 도망치기 위함인가요? | 반복되는 지루한 일상 속에서도 의미를 찾을 수 있나요?",
+    },
+  },
+  ISTJ: {
+    zh: {
+      title: "守序捍衛者",
+      quote: "「承諾就是契約事實勝於雄辯。」",
+      coreAnalysis: "你是社會的基石。你誠實、直接、盡忠職守。你相信事實、數據與經過驗證的方法，而不是空泛的理論。你做事井井有條，對細節有著驚人的記憶力。你不喜歡變動，因為那代表著不可控的風險。",
+      soulQuestions: "如果你偶爾打破一次規則，天真的會塌下來嗎？ | 你的努力是基於渴望，還是只是出於習慣性的責任？",
+    },
+    en: {
+      title: "The Order Defender",
+      quote: "A promise is a contract. Actions speak louder than words.",
+      coreAnalysis: "You are the bedrock of society. You are honest, direct, and fiercely dutiful. You trust facts, data, and proven methods over empty theories. You keep everything meticulously organized and hate unpredictable changes because they represent uncontrollable risks. Your reliability is unmatched.",
+      soulQuestions: "If you break a rule, will the world actually fall apart? | Are you working hard out of purpose, or just out of habit?",
+    },
+    ja: {
+      title: "秩序の守護者",
+      quote: "「約束は契約である。言葉よりも行動が全てだ。」",
+      coreAnalysis: "あなたは社会を支える最も強固な大黒柱です。不確実性が高くフワフワしたこの時代において、事実とデータ、そして過去の経験のみを信じます。整理整頓がいきとどき、ルールを守り、与えられた義務を完璧に遂行します。予測不能な変化を嫌いますが、あなたのその絶対的な信頼感に、多くの人が救われています。",
+      soulQuestions: "もし一度だけルールを破ったとして、本当に世界は崩壊するでしょうか？ | その努力は目的のためですか？それとも単なる「習慣」ですか？",
+    },
+    ko: {
+      title: "질서의 수호자",
+      quote: "「약속은 곧 계약이다. 백 마디 말보다 행동이 증명한다.」",
+      coreAnalysis: "당신은 사회를 지탱하는 가장 견고한 주춧돌입니다. 말만 앞서는 사람들을 질색하며, 오로지 검증된 사실, 데이터, 확실한 행동만을 믿습니다. 모든 것을 체계적으로 정리하고 규칙을 준수하며, 예측할 수 없는 리스크를 극도로 꺼립니다. 당신의 그 흔들림 없는 책임감은 타의 추종을 불허합니다.",
+      soulQuestions: "단 한 번 규칙을 어긴다고 해서 세상이 무너지기라도 할까요? | 당신이 그토록 열심히 일하는 건 목표 때문인가요, 아니면 멈추는 법을 몰라서인가요?",
+    },
+  },
+  ISFJ: {
+    zh: {
+      title: "溫柔守護者",
+      quote: "「被需要是我存在的最大價值。」",
+      coreAnalysis: "你是最溫暖的港灣。你安靜、友善且極具責任感。你總是把別人的需求放在自己之前，默默地記住每個人的喜好與細節。你維護著家庭與團體的和諧，是那種在背後默默支撐一切的力量。",
+      soulQuestions: "如果你對所有人說「不」，還有誰會留在你身邊？ | 為了維持表面和諧，你到底委屈了自己多少次？",
+    },
+    en: {
+      title: "The Gentle Guardian",
+      quote: "Being needed is the greatest value of my existence.",
+      coreAnalysis: "You are the warmest safe harbor. Quiet, friendly, and deeply responsible, you consistently put others' needs before your own. You silently remember everyone's preferences and details, maintaining harmony in your family and groups. You are the unseen force that holds everything together.",
+      soulQuestions: "If you stopped saying 'yes' to everyone, who would stay? | Are you suppressing your own voice to keep the peace?",
+    },
+    ja: {
+      title: "優しき守護天使",
+      quote: "「誰かに必要とされることが、私の生きる意味。」",
+      coreAnalysis: "あなたは最も暖かく、安心できる避難所です。「察する文化」の日本において、あなたの細やかな気配りと献身的な態度は周囲の空気を和ませます。常に他人のニーズを優先し、目立たないところでコツコツと和を保つための努力を惜しみません。縁の下の力持ちとして、コミュニティに不可欠な存在です。",
+      soulQuestions: "すべてのお願いに「NO」と言ったとき、あなたの元に残ってくれる人は誰ですか？ | 平和を保つために、自分自身の声を殺しすぎていませんか？",
+    },
+    ko: {
+      title: "다정한 수호천사",
+      quote: "「누군가에게 필요한 사람이 되는 것, 그것이 내 존재의 이유다.」",
+      coreAnalysis: "당신은 가장 따뜻한 안식처입니다. 나서지 않고 조용히, 하지만 누구보다 섬세하게 주변 사람들의 취향과 기분을 챙깁니다. 극심한 눈치 사회 속에서 당신의 배려는 사람들에게 큰 위로가 됩니다. 갈등을 피하고 조화를 유지하며, 뒤에서 묵묵히 모든 걸 지탱하는 헌신적인 수호자입니다.",
+      soulQuestions: "모든 사람의 부탁을 거절한다면, 당신 곁에 남을 사람은 누구인가요? | 갈등을 피하려고 정작 당신의 진짜 목소리를 억누르고 있진 않나요?",
+    },
+  },
+  ESTJ: {
+    zh: {
+      title: "鐵血執行長",
+      quote: "「效率是通往成功的唯一路徑。」",
+      coreAnalysis: "你是天生的管理者。你重視傳統、秩序與規則，並且擅長組織人事物去達成目標。你講究效率，無法容忍懶散與混亂。你直言不諱，因為你認為誠實比圓滑更重要。你是社會運作的引擎。",
+      soulQuestions: "在你追求極致效率的清單裡，有給「情感」與「溫度」留下空間嗎？ | 當你無法產出結果時，你能平靜地接納自己嗎？",
+    },
+    en: {
+      title: "The Iron Executive",
+      quote: "Efficiency is the only path to success.",
+      coreAnalysis: "You are a natural-born manager. You value tradition, order, and rules, and you excel at organizing people and resources to get things done. You demand efficiency and have zero tolerance for laziness or chaos. You are blunt because you believe honesty is vastly superior to tact. You are the engine that keeps society ticking.",
+      soulQuestions: "Does efficiency leave room for humanity? | When you strip away your productivity, are you at peace with who you are?",
+    },
+    ja: {
+      title: "鋼の仕掛人",
+      quote: "「効率こそが、成功への唯一の道である。」",
+      coreAnalysis: "あなたは社会を牽引する生粋のマネージャーです。曖昧な指示やダラダラした会議を嫌い、組織とルールを整備して最速で目標を達成します。効率が悪く、怠惰な人間には一切の容赦がありません。空気を読むよりも「事実をハッキリ伝えること」が誠意だと信じている、非常に頼もしい存在です。",
+      soulQuestions: "効率を極めた先に、人間のあたたかさが入り込む隙間はありますか？ | 「生産性」という鎧を脱いだ時、あなたは自分を愛せますか？",
+    },
+    ko: {
+      title: "철의 집행관",
+      quote: "「효율성이야말로 성공으로 가는 유일한 길이다.」",
+      coreAnalysis: "당신은 타고난 관리자이자 집행자입니다. 빙빙 돌려 말하는 것이나 감정 소모를 극도로 혐오하며, 군더더기 없이 깔끔하게 일을 처리합니다. 능력 없고 게으른 사람을 참지 못하죠. 규칙과 질서를 중시하며, 조직을 효율적으로 굴러가게 만드는 핵심 엔진이자 기둥입니다.",
+      soulQuestions: "모든 걸 효율의 잣대로만 재면, 인간다움이 설 자리는 어디에 있을까요? | '생산성'이라는 타이틀을 떼어냈을 때, 당신은 당신 자신으로 평안한가요?",
+    },
+  },
+  ESFJ: {
+    zh: {
+      title: "熱心供給者",
+      quote: "「大家好我們才好。」",
+      coreAnalysis: "你是社交圈的核心。你真心喜歡人，並致力於讓周圍的人感到快樂與被接納。你重視傳統與禮節，是團體中的黏合劑。你對他人的評價很敏感，渴望得到認可與感謝。你的超能力是創造歸屬感。",
+      soulQuestions: "你能接受「總有人會不喜歡你」這個殘酷的事實嗎？ | 脫下那件「照顧者」的外衣後，真正的你喜歡什麼？",
+    },
+    en: {
+      title: "The Warm Provider",
+      quote: "If everyone is happy, I am happy.",
+      coreAnalysis: "You are the beating heart of your social circle. You genuinely love people and make it your mission to ensure everyone feels included and happy. Valuing decorum and tradition, you are the social glue. Sensitive to others' opinions, you deeply crave validation. Your superpower is creating an instant sense of belonging.",
+      soulQuestions: "Can you be okay with the fact that not everyone will like you? | How much of your identity is tied to being what others need?",
+    },
+    ja: {
+      title: "みんなのお世話役",
+      quote: "「みんなが笑顔なら、それが私にとって一番の幸せ。」",
+      coreAnalysis: "あなたはコミュニティの中心であり、強力な接着剤です。みんなが心地よく過ごせるよう、飲み会の幹事から日々の声かけまで、細やかに気を配ります。「誰一人仲間外れにしない」という圧倒的なホスピタリティを持っています。他人の評価や視線に敏感で、「ありがとう」の一言でどこまでも頑張れる人です。",
+      soulQuestions: "「全員から好かれることは不可能だ」と割り切る勇気はありますか？ | 「他人に必要とされる自分」以外に、あなた自身のアイデンティティはありますか？",
+    },
+    ko: {
+      title: "다정한 분위기 메이커",
+      quote: "「모두가 즐겁고 행복해야 나도 행복하다.」",
+      coreAnalysis: "당신은 언제나 모임의 중심이자 따뜻한 분위기 메이커입니다. 눈치가 매우 빨라, 무리에서 소외된 사람을 가장 먼저 찾아내어 끌어안아 줍니다. 인간관계가 당신 삶의 최우선 순위이며, 타인이 나를 어떻게 평가하는지에 예민합니다. 사람들에게 소속감을 주는 것이 당신의 초능력입니다.",
+      soulQuestions: "모든 사람이 당신을 좋아할 순 없다는 사실을 온전히 받아들일 수 있나요? | 남들의 기대와 시선을 빼고 나면, 진짜 당신의 모습은 무엇인가요?",
+    },
+  },
+  ISTP: {
+    zh: {
+      title: "冷靜工匠",
+      quote: "「與其談論如何運作不如直接拆開來看。」",
+      coreAnalysis: "你是天生的工程師。你熱愛拆解世界的規律，不論是物理的還是邏輯的。你擁有一種極致的「省力原則」，總能找到最簡潔的路徑去達成目標。你重視效率與實務，對於虛無縹緲的情感喧囂往往保持距離。",
+      soulQuestions: "任何東西壞了你都會修，但如果是一顆受傷的心呢？ | 你的極致理性，是為了解決問題，還是為了逃避感受？",
+    },
+    en: {
+      title: "The Cool Artisan",
+      quote: "Instead of talking about how it works, let's just take it apart.",
+      coreAnalysis: "You are a natural-born engineer. You love disassembling the world's mechanisms, physical or logical. Equipped with an ultimate 'economy of effort' mindset, you always find the most straightforward path to a goal. You value practicality, usually keeping your distance from vague emotional noise.",
+      soulQuestions: "You can fix any machine, but what do you do when a heart needs fixing? | Is your logic a tool, or a wall to block out emotions?",
+    },
+    ja: {
+      title: "冷静な職人",
+      quote: "「どう動くか語り合うより、とりあえずバラしてみようぜ。」",
+      coreAnalysis: "あなたは生来のメカニックです。抽象的な議論や精神論を嫌い、物理的であれ論理的であれ「それがどう機能するか」にしか興味がありません。無駄のなさを極めた「省エネ主義」でありながら、いざという時の問題解決能力とトラブルシューティングの速さはピカイチ。感情的な重い空気からはそっと離脱します。",
+      soulQuestions: "どんな機械も直せるのに、人の心にヒビが入った時はどう直しますか？ | その論理は真理を探求するツールですか？感情を遠ざける壁ですか？",
+    },
+    ko: {
+      title: "시크한 마이스터",
+      quote: "「백날 말로 설명해봤자지. 그냥 분해해서 확인해보자.」",
+      coreAnalysis: "당신은 타고난엔지니어이자 해결사입니다. 추상적인 감정팔이나 뜬구름 잡는 소리를 극혐하며, 문제의 핵심을 파악해 가장 효율적이고 직관적인 해결책을 내놓습니다. 만사가 귀찮아 보이지만(극강의 가성비/에너지 효율 추구), 흥미로운 문제 앞에서는 무서운 집중력을 발휘하는 시크한 마이스터입니다.",
+      soulQuestions: "어떤 고장 난 기계도 다 고치면서, 마음이 고장  났을 땐 어떻게 할 건가요? | 당신의 철저한 논리는 문제를 해결하기 위한 도구인가요, 아니면 감정을 피하기 위한 방패인가요?",
+    },
+  },
+  ISFP: {
+    zh: {
+      title: "自由藝術家",
+      quote: "「生活是一張畫布我負責塗抹真實的色彩。」",
+      coreAnalysis: "你擁有一種獨特的動態平衡感。既能適應規則，又能看見規則之外的可能性。你的多面性是你最強大的武器。你對自我的認知在不斷流動，拒絕被單一的標籤定義。這讓你具備了極強的心理韌性。",
+      soulQuestions: "如果你永遠不向世界展現真實的自我，那你真的存在過嗎？ | 你有勇氣對一個不完美的現實，做出長久的承諾嗎？",
+    },
+    en: {
+      title: "The Free Artist",
+      quote: "Life is a canvas, and I am responsible for painting its true colors.",
+      coreAnalysis: "You possess a unique dynamic balance. Adapting to rules while seeing the possibilities outside them, your multifaceted nature is your greatest weapon. Your self-identity is fluid, rejecting single-label definitions. This grants you immense psychological resilience and an appreciation for living truly in the moment.",
+      soulQuestions: "If you never show your true colors to anyone, are you really painting? | Can you commit to an imperfect reality?",
+    },
+    ja: {
+      title: "自由な芸術家",
+      quote: "「人生というキャンバスに、本当の色を塗るのは私自身だ。」",
+      coreAnalysis: "あなたは独自の感性とダイナミズムを持ったアーティストです。型にはめられた生き方や、単一のレッテルで定義されることを静かに、しかし強く拒否します。社会のルールに適応しながらも、心の中の自由な領域は絶対に明け渡しません。今この瞬間を鮮やかに生きる、しなやかな強さを持っています。",
+      soulQuestions: "本当の自分を誰にも見せないのであれば、それは描いていないのと同じではないですか？ | 不完全で面倒な現実と、本気で向き合う覚悟はありますか？",
+    },
+    ko: {
+      title: "자유로운 영혼의 아티스트",
+      quote: "「인생은 하나의 캔버스. 내 진짜 색깔로 채우는 건 내 몫이다.」",
+      coreAnalysis: "당신은 자기만의 독특한 색채를 지닌 아티스트입니다. 시스템에 순응하는 척하면서도 틀에 박힌 삶과 획일화된 가치관을 조용히 거부합니다. 당신을 규정하려는 모든 라벨링을 싫어하며, 지금 이 순간의 감각과 감정에 충실합니다. 그 유연함이 어지러운 세상 속에서 버틸 수 있는 당신만의 무기입니다.",
+      soulQuestions: "누구에게도 진짜 색깔을 보여주지 않는다면, 그 캔버스는 무슨 의미가 있을까요? | 불완전하고 귀찮은 현실의 흠집까지 사랑할 수 있나요?",
+    },
+  },
+  ESTP: {
+    zh: {
+      title: "極限挑戰者",
+      quote: "「與其後悔做過不如後悔沒做。」",
+      coreAnalysis: "你是活在當下的實踐者。你討厭抽象理論，喜歡捲起袖子直接幹。你擁有驚人的觀察力，能瞬間讀懂空氣並做出反應。你是天生的冒險家，喜歡遊走在邊緣，並在危機中找到快感與機會。",
+      soulQuestions: "當刺激退去、四下無人時，你如何面對平靜的恐懼？ | 你跑得那麼快，到底是在追尋目標，還是在逃避自己？",
+    },
+    en: {
+      title: "The Extreme Challenger",
+      quote: "I'd rather regret doing it than regret not doing it.",
+      coreAnalysis: "You are a practitioner who lives fiercely in the present. You hate abstract theories and prefer rolling up your sleeves to get your hands dirty. Your observational skills are incredible; you can read a room instantly and react. You are a natural adventurer, finding thrill and opportunity right on the knife's edge.",
+      soulQuestions: "When the adrenaline fades, what are you left alone with? | Are you running towards something, or just running fast?",
+    },
+    ja: {
+      title: "限界突破のチャレンジャー",
+      quote: "「やらなくて後悔するより、やって後悔する方がマシだ。」",
+      coreAnalysis: "あなたは「今、ここ」を全力で駆け抜ける行動派です。会議室での長ったらしい机上の空論よりも、現場で手を動かしながら正解を見つけることを好みます。動体視力のように場の空気を読む能力が高く、リスクを恐れるどころか、スリルの中にこそ最大のチャンスと快感を見出す生粋のギャンブラーです。",
+      soulQuestions: "アドレナリンの魔法が解けたあと、あなたの心に残るものは何ですか？ | 猛スピードで走っていますが、それはどこかへ向かっているのですか？",
+    },
+    ko: {
+      title: "거침없는 액션마스터",
+      quote: "「안 하고 후회하느니, 저지르고 나서 수습하겠다.」",
+      coreAnalysis: "당신은 현재를 100%의 농도로 살아가는 행동파입니다. 지루한 이론이나 기나긴 회의를 혐오하며, 일단 몸으로 부딪혀서 해결합니다. 눈치가 백 단이라 현장 분위기를 순식간에 파악하고 임기응변으로 위기를 넘기는 데 능합니다. 위험을 두려워하기보단, 그 아슬아슬한 스릴 즐기며 기회를 포착합니다.",
+      soulQuestions: "아드레날린이 식고 난 고요한 밤, 당신 곁엔 무엇이 남아있나요? | 그저 달리는 속도감에 취해 있는 건가요, 아니면 진짜 목적지가 있는 건가요?",
+    },
+  },
+  ESFP: {
+    zh: {
+      title: "閃耀巨星",
+      quote: "「人生就是一場即興演出。」",
+      coreAnalysis: "你是世界的聚光燈。你熱愛生活、熱愛物質、熱愛與人互動。你有一種讓沈悶氣氛瞬間活躍的魔力。你極度關注美感與感官體驗，認為人生苦短，必須及時行樂。你是最慷慨的朋友，總是樂於分享快樂。",
+      soulQuestions: "當燈光暗下、掌聲停止，你知道安靜的自己是誰嗎？ | 你能不帶任何幽默感，去直面人生中那些沉重的真相嗎？",
+    },
+    en: {
+      title: "The Shining Superstar",
+      quote: "Life is an impromptu performance.",
+      coreAnalysis: "You are the spotlight of the world. You passionately love life, material experiences, and human interaction. You possess a magic that instantly brightens up any dull atmosphere. Highly focused on aesthetics and sensory experiences, you believe life is short and meant to be enjoyed right now. You are the most generous of friends.",
+      soulQuestions: "When the party's over and the crowd leaves, do you know who you are in the silence? | Can you face the heavy parts of life without making a joke?",
+    },
+    ja: {
+      title: "煌めくスーパースター",
+      quote: "「人生という名の、終わらない即興劇。」",
+      coreAnalysis: "あなたは世界の中心を照らすスポットライトです。暗い雰囲気も、あなたが現れれば一瞬で華やぎます。人生は短く、楽しんでこそナンボ。美味しいもの、美しいもの、楽しい体験を全力で追い求めます。過去を悔やまず未来を憂慮せず、今この瞬間を最も輝かせることができる最高のエンターテイナーです。",
+      soulQuestions: "パーティーが終わり誰もいなくなった静寂の中で、あなたは本当の自分を見つめられますか？ | 冗談やおどけでごまかさずに、人生の重みに耐えることはできますか？",
+    },
+    ko: {
+      title: "무대 위의 본투비 스타",
+      quote: "「인생은 한 편의 화려한 즉흥극이다.」",
+      coreAnalysis: "당신은 걸어 다니는 비타민이자 인간 스포트라이트입니다. 우울한 분위기도 당신이 등장하면 순식간에 시트콤으로 변합니다. 인생은 짧고 즐길 거리는 많다고 믿으며, 미적 취향과 감각적 즐거움을 최대한으로 만끽합니다. 복잡한 생각보다는 지금 눈앞의 사람들과 신나게 웃고 떠드는 것이 가장 중요합니다.",
+      soulQuestions: "파티가 끝나고 모두가 떠난 텅 빈 방 안에서, 당신은 자신이 누구인지 알고 있나요? | 농담으로 얼버무리지 않고, 삶의 무거운 진실을 똑바로 마주할 수 있나요?",
+    },
+  },
+};

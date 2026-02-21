@@ -14,6 +14,7 @@ import OnboardingTooltip from './OnboardingTooltip';
 import { useLanguage } from '../contexts/LanguageContext';
 import LineCTA from './LineCTA';
 import { resultTranslations } from '../i18n/resultTranslations';
+import { mbtiReportTranslations } from '../i18n/mbtiReportTranslations';
 import { trackResultView, trackResultShare, trackResultDownload, trackButtonClick } from '../utils/analytics';
 import { buildDessertOrderLink, trackDessertOrderClick } from '../utils/utmTracking';
 import { trackAction } from '../utils/userDataCollector';
@@ -153,6 +154,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   };
 
   const { language, t } = useLanguage();
+  const langKey = (language === 'zh-TW' ? 'zh' : language) as 'zh' | 'en' | 'ja' | 'ko';
+  const i18nContent = mbtiReportTranslations[resultData.id]?.[langKey] || mbtiReportTranslations[resultData.id]?.zh;
 
   // Onboarding Tour State
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -342,27 +345,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-black tracking-tighter mb-2 md:mb-4 leading-none md:leading-tight">
                 {resultData.id}-{identitySuffix}
               </h1>
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-light text-black tracking-[0.15em] md:tracking-[0.2em] mb-6 md:mb-10 font-serif italic">{resultData.title}</h2>
-              <p className="text-lg md:text-xl lg:text-2xl text-gray-500 font-serif leading-relaxed italic max-w-2xl mx-auto px-4">「{resultData.quote.replace(/[「」]/g, '')}」</p>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-light text-black tracking-[0.15em] md:tracking-[0.2em] mb-6 md:mb-10 font-serif italic">{i18nContent.title}</h2>
+              <p className="text-lg md:text-xl lg:text-2xl text-gray-500 font-serif leading-relaxed italic max-w-2xl mx-auto px-4">「{i18nContent.quote.replace(/[「」]/g, '')}」</p>
 
-              {/* Share CTAs - Prominent Position */}
-              <div className="mt-8 md:mt-12 flex flex-wrap items-center justify-center gap-3 md:gap-4">
-                <button
-                  onClick={handleDownloadIG}
-                  className="group px-6 md:px-8 py-3 md:py-4 rounded-full bg-black hover:bg-gray-900 text-white font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 flex items-center gap-2"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
-                  <span>{t.ig_story_share}</span>
-                </button>
-                <button
-                  onClick={handleSave}
-                  className="px-6 md:px-8 py-3 md:py-4 rounded-full bg-white hover:bg-gray-50 text-black font-bold text-xs md:text-sm tracking-wider uppercase shadow-lg hover:shadow-xl transition-all active:scale-95 hover:scale-105 border-2 border-black"
-                >
-                  {t.full_report_share}
-                </button>
-              </div>
-
-              {/* ===== MBTI PASSPORT CTA ===== */}
+              {/* Share CTAs Removed per user request */}              {/* ===== MBTI PASSPORT CTA ===== */}
               <div className="mt-8 md:mt-10 max-w-md mx-auto text-center transform transition-transform hover:scale-[1.02]">
                 <a
                   href={passportClaimUrl || `https://moonmoon-dessert-passport.vercel.app/?mbti_type=${resultData.id}&variant=${identitySuffix}&auto_unlock=true`}
@@ -404,7 +390,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               <div className="md:col-span-7 flex flex-col justify-center text-left">
                 <div className="mb-8 md:mb-10">
                   <span className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.5em] border-b-2 border-kiwi-dark pb-2 mb-6 md:mb-8 inline-block uppercase text-gray-400 ">CORE ESSENCE 核心本質</span>
-                  <p className="text-gray-800 leading-relaxed font-serif text-xl md:text-2xl lg:text-3xl font-medium text-justify md:text-left">{resultData.coreAnalysis}</p>
+                  <p className="text-gray-800 leading-relaxed font-serif text-xl md:text-2xl lg:text-3xl font-medium text-justify md:text-left whitespace-pre-line">{i18nContent.coreAnalysis}</p>
                 </div>
                 <div className="flex flex-wrap gap-3 md:gap-4">
                   {resultData.keywords.map(k => (
@@ -646,20 +632,23 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 );
               })()}
 
-              {/* ===== DISCORD CTA (長條狀) ===== */}
-              <div className="py-8 md:py-12 border-b border-gray-100 bg-white">
-                <div className="max-w-3xl mx-auto px-6 text-center">
-                  <h3 className="text-xl md:text-2xl font-bold text-[#5865F2] mb-4 tracking-widest uppercase">領取專屬 Discord 身份組</h3>
-                  <p className="text-sm text-gray-600 mb-6 font-serif leading-relaxed">加入社群，馬上領取屬於你的 <span className="font-bold text-gray-900 border-b-2 border-[#5865F2]">{resultData.id}-{identitySuffix}</span> 限定稱號，探索更多性格可能。</p>
-                  <a
-                    href="https://discord.gg/WJMQEAXx"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex w-full md:w-auto items-center justify-center gap-3 px-10 py-4 rounded-full bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-bold tracking-[0.2em] uppercase transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.42zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.42z" /></svg>
-                    <span>{t.join_discord}</span>
-                  </a>
+              {/* ===== DISCORD CTA (純 Icon 置中) ===== */}
+              <div className="py-12 md:py-16 border-b border-gray-100 bg-white">
+                <div className="max-w-2xl mx-auto px-6 text-center">
+                  <h3 className="text-2xl md:text-3xl font-bold text-[#5865F2] mb-4 tracking-widest uppercase">領取專屬 DISCORD 身份組</h3>
+                  <p className="text-gray-600 mb-8 font-serif leading-relaxed text-sm md:text-base">
+                    加入社群，馬上領取屬於你的 <span className="font-bold text-gray-900 border-b-2 border-[#5865F2]">{resultData.id}-{identitySuffix}</span> 限定稱號，探索更多性格可能。
+                  </p>
+                  <div className="flex justify-center">
+                    <a
+                      href="https://discord.gg/WJMQEAXx"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-32 h-14 md:w-48 md:h-16 rounded-2xl md:rounded-full bg-[#5865F2] hover:bg-[#4752C4] text-white transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.42zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.42z" /></svg>
+                    </a>
+                  </div>
                 </div>
               </div>
 
@@ -1206,7 +1195,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               margin: '12px 0 0 0',
               letterSpacing: '0.2em'
             }}>
-              {identityChinese} · {resultData.title}
+              {identityChinese} · {i18nContent.title}
             </p>
           </div>
 
@@ -1231,7 +1220,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 letterSpacing: '-0.02em'
               }}>
                 {(() => {
-                  const core = resultData.coreAnalysis;
+                  const core = i18nContent.coreAnalysis;
                   const firstSentence = core.indexOf('。') >= 0 ? core.substring(0, core.indexOf('。') + 1) : core.substring(0, 80) + '…';
                   return firstSentence;
                 })()}
@@ -1274,7 +1263,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 fontWeight: 500
               }}>
                 {(() => {
-                  const core = resultData.coreAnalysis;
+                  const core = i18nContent.coreAnalysis;
                   const len = Math.min(core.length, 160);
                   return core.substring(0, len) + (core.length > 160 ? '…' : '');
                 })()}
@@ -1288,7 +1277,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 fontWeight: 400
               }}>
                 {(() => {
-                  const core = resultData.coreAnalysis;
+                  const core = i18nContent.coreAnalysis;
                   if (core.length <= 160) return '';
                   return core.substring(160, Math.min(core.length, 320)) + (core.length > 320 ? '…' : '');
                 })()}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth, googleProvider } from '../firebase';
 import { signInWithPopup, User } from 'firebase/auth';
 import { linkGoogleAccount } from '../utils/accountLinking';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoginProps {
     onLoginSuccess: (user: User) => void;
@@ -11,6 +12,11 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) => {
     const [error, setError] = useState<string | null>(null);
     const [isInAppBrowser, setIsInAppBrowser] = useState(false);
+    const { language } = useLanguage();
+
+    const langSuffix = language === 'zh-TW' ? '' : `-${language}`;
+    const privacyText = language === 'en' ? 'Privacy Policy' : language === 'ja' ? 'プライバシーポリシー' : language === 'ko' ? '개인정보 보호정책' : '隱私權政策';
+    const termsText = language === 'en' ? 'Terms of Use' : language === 'ja' ? '利用規約' : language === 'ko' ? '이용 약관' : '使用者條款';
 
     useEffect(() => {
         const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
@@ -95,9 +101,9 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) =
                 {/* Privacy Notice - 強調記錄屬於用戶，非蒐集 */}
                 <p className="text-xs text-gray-400 mb-6">
                     您的記錄僅供您回看與長期追蹤。繼續即表示同意
-                    <a href="/privacy.html" target="_blank" rel="noopener" className="text-kiwi-dark underline ml-1">隱私權政策</a>
+                    <a href={`/privacy${langSuffix}.html`} target="_blank" rel="noopener" className="text-kiwi-dark underline ml-1">{privacyText}</a>
                     <span className="mx-1">與</span>
-                    <a href="/terms.html" target="_blank" rel="noopener" className="text-kiwi-dark underline">使用者條款</a>
+                    <a href={`/terms${langSuffix}.html`} target="_blank" rel="noopener" className="text-kiwi-dark underline">{termsText}</a>
                 </p>
 
                 {!isInAppBrowser && (

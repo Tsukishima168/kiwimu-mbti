@@ -21,7 +21,22 @@ import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
 import { doc, getDoc } from 'firebase/firestore';
 import { trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin } from './utils/analytics';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+
+const FooterLinks = () => {
+  const { language } = useLanguage();
+  const langSuffix = language === 'zh-TW' ? '' : `-${language}`;
+  const privacyText = language === 'en' ? 'Privacy Policy' : language === 'ja' ? 'プライバシーポリシー' : language === 'ko' ? '개인정보 보호정책' : '隱私權政策';
+  const termsText = language === 'en' ? 'Terms of Use' : language === 'ja' ? '利用規約' : language === 'ko' ? '이용 약관' : '使用者條款';
+
+  return (
+    <footer className="py-3 text-center text-xs text-gray-400">
+      <a href={`/privacy${langSuffix}.html`} target="_blank" rel="noopener" className="hover:text-kiwi-dark transition-colors">{privacyText}</a>
+      <span className="mx-2">·</span>
+      <a href={`/terms${langSuffix}.html`} target="_blank" rel="noopener" className="hover:text-kiwi-dark transition-colors">{termsText}</a>
+    </footer>
+  );
+};
 
 // 行銷像素追蹤
 import { initAllPixels, trackMarketingEvent, MARKETING_EVENTS, createCustomAudience } from './utils/marketingPixels';
@@ -483,11 +498,7 @@ const App: React.FC = () => {
 
           {/* 底部法律連結（低調放置） */}
           {stage !== 'login' && stage !== 'callback' && (
-            <footer className="py-3 text-center text-xs text-gray-400">
-              <a href="/privacy.html" target="_blank" rel="noopener" className="hover:text-kiwi-dark transition-colors">隱私權政策</a>
-              <span className="mx-2">·</span>
-              <a href="/terms.html" target="_blank" rel="noopener" className="hover:text-kiwi-dark transition-colors">使用者條款</a>
-            </footer>
+            <FooterLinks />
           )}
 
           {/* Toast Notification for Save Status */}
