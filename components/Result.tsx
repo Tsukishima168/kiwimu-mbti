@@ -15,6 +15,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import LineCTA from './LineCTA';
 import { resultTranslations } from '../i18n/resultTranslations';
 import { mbtiReportTranslations } from '../i18n/mbtiReportTranslations';
+import { detailsTranslations } from '../i18n/detailsTranslations';
 import { trackResultView, trackResultShare, trackResultDownload, trackButtonClick } from '../utils/analytics';
 import { buildDessertOrderLink, trackDessertOrderClick } from '../utils/utmTracking';
 import { trackAction } from '../utils/userDataCollector';
@@ -156,6 +157,15 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const { language, t } = useLanguage();
   const langKey = (language === 'zh-TW' ? 'zh' : language) as 'zh' | 'en' | 'ja' | 'ko';
   const i18nContent = mbtiReportTranslations[resultData.id]?.[langKey] || mbtiReportTranslations[resultData.id]?.zh;
+
+  const extraI18n = langKey !== 'zh' ? (detailsTranslations[resultData.id]?.[langKey as 'en' | 'ja' | 'ko'] || null) : null;
+  const displayStrengths = extraI18n ? extraI18n.strengths : resultData.strengths;
+  const displayBlindSpots = extraI18n ? extraI18n.blindSpots : resultData.blindSpots;
+  const displayCareerStyle = extraI18n ? extraI18n.career.style : resultData.career.style;
+  const displayCareerAdvice = extraI18n ? extraI18n.career.advice : resultData.career.advice;
+  const displayRelStyle = extraI18n ? extraI18n.relationships.style : (resultData.relationships.romance || resultData.relationships.style);
+  const displayRelAdvice = extraI18n ? extraI18n.relationships.advice : resultData.relationships.advice;
+  const displayRelStrengths = extraI18n ? extraI18n.relationships.style : (resultData.relationships.strengths || resultData.relationships.style || resultData.relationships.romance);
 
   // Onboarding Tour State
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -474,11 +484,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     <div className="space-y-8 md:space-y-12">
                       <div className="border-l-2 border-kiwi-dark pl-6">
                         <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">{t('work_style')}</h4>
-                        <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.career.style}</p>
+                        <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{displayCareerStyle}</p>
                       </div>
                       <div className="border-l-2 border-kiwi-dark pl-6">
                         <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">{t('strategic_advice')}</h4>
-                        <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.career.advice}</p>
+                        <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{displayCareerAdvice}</p>
                       </div>
                     </div>
                   </section>
@@ -493,11 +503,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     <div className="space-y-8 md:space-y-12">
                       <div className="border-l-2 border-kiwi-dark pl-6">
                         <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">{t('love_philosophy')}</h4>
-                        <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{resultData.relationships.style}</p>
+                        <p className="text-lg md:text-xl font-serif text-gray-800 leading-relaxed">{displayRelStyle}</p>
                       </div>
                       <div className="border-l-2 border-kiwi-dark pl-6">
                         <h4 className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-400 mb-4 ">{t('navigational_advice')}</h4>
-                        <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{resultData.relationships.advice}</p>
+                        <p className="text-lg md:text-xl font-serif text-gray-600 leading-relaxed italic">{displayRelAdvice}</p>
                       </div>
                     </div>
                   </section>
@@ -509,11 +519,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
                   <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
                     <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark ">{t('superpower')}</h4>
-                    <p className="text-gray-800 text-lg md:text-xl font-serif leading-relaxed">{resultData.relationships.strengths}</p>
+                    <p className="text-gray-800 text-lg md:text-xl font-serif leading-relaxed">{displayRelStrengths}</p>
                   </div>
                   <div className="bg-kiwi-dark text-white p-8 md:p-14 lg:p-20">
                     <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-gray-400 ">{t('growth_area')}</h4>
-                    <p className="text-gray-100 text-lg md:text-xl font-serif leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{resultData.relationships.advice}</p>
+                    <p className="text-gray-100 text-lg md:text-xl font-serif leading-relaxed" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>{displayRelAdvice}</p>
                   </div>
                 </div>
               </CollapsibleSection>
@@ -670,7 +680,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 <div>
                   <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-8 md:mb-10 border-l-8 border-kiwi-dark pl-6">STRENGTHS 優勢</h4>
                   <ul className="space-y-4 md:space-y-6">
-                    {resultData.strengths.map((s, i) => (
+                    {displayStrengths.map((s, i) => (
                       <li key={i} className="flex items-start gap-4 text-gray-700 font-serif">
                         <span className="text-[11px]  text-gray-300 font-bold mt-1">0{i + 1}.</span>
                         <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
@@ -681,7 +691,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 <div>
                   <h4 className="text-2xl md:text-3xl font-serif font-bold text-gray-400 mb-8 md:mb-10 border-l-8 border-gray-100 pl-6">BLIND SPOTS 盲點</h4>
                   <ul className="space-y-4 md:space-y-6">
-                    {resultData.blindSpots.map((s, i) => (
+                    {displayBlindSpots.map((s, i) => (
                       <li key={i} className="flex items-start gap-4 text-gray-400 font-serif opacity-60">
                         <span className="text-[11px]  text-gray-200 font-bold mt-1">0{i + 1}.</span>
                         <span className="text-lg md:text-xl lg:text-2xl leading-snug">{s}</span>
