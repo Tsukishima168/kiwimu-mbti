@@ -927,3 +927,22 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
 
   return baseData;
 };
+
+export const SOUL_ANCHOR_MAP: Record<string, any> = {
+  INTJ: { name: "北海道經典巴斯克", series: "巴斯克", quad: "經典", alt: ["檸檬巴斯克", "茶香巴斯克"], drinkA: "美式咖啡", drinkT: "經典拿鐵", hook: "極致的濃度直達靈魂核心，是理智與感官的完美角力。" },
+  INTP: { name: "檸檬柚子千層蛋糕", series: "千層", quad: "亮色", alt: ["蜜香紅茶千層", "草莓莓果千層"], drinkA: "日本柚子美式", drinkT: "薄荷茶", hook: "結構細膩且層次分明，適合在深度思考中尋求一絲清亮。" },
+  ENTJ: { name: "奶酒提拉米蘇", series: "提拉米蘇", quad: "深色", alt: ["經典提拉米蘇", "抹茶提拉米蘇"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "微醺的權力展演，苦甜之間盡是掌控局勢的餘韻。" },
+  ENTP: { name: "柚子蘋果提拉米蘇", series: "提拉米蘇", quad: "亮色", alt: ["奶酒提拉米蘇", "抹茶提拉米蘇"], drinkA: "日本柚子美式", drinkT: "烤布丁拿鐵", hook: "打破常規的驚喜風味，在每一次味覺挑戰中看見邊界。" },
+  INFJ: { name: "茶香巴斯克", series: "巴斯克", quad: "深色", alt: ["北海道經典巴斯克", "檸檬巴斯克"], drinkA: "博士茶", drinkT: "抹茶拿鐵", hook: "沈穩的茶韻撫平外界的嘈雜，帶你潛入最深的內在宇宙。" },
+  INFP: { name: "北海道十勝戚風蛋糕", series: "戚風", quad: "經典", alt: ["檸檬蘋果戚風", "莓果戚風"], drinkA: "博士茶", drinkT: "花草茶", hook: "輕盈柔軟的著陸點，在銳利的世界裡提供一場溫柔的安放。" },
+  ENFJ: { name: "檸檬蘋果戚風蛋糕", series: "戚風", quad: "亮色", alt: ["北海道十勝戚風", "莓果戚風"], drinkA: "西西里美式", drinkT: "抹茶拿鐵", hook: "明亮如陽光的清新力量，溫暖並照亮每一個被遺忘的角落。" },
+  ENFP: { name: "草莓莓果千層蛋糕", series: "千層", quad: "果香", alt: ["檸檬柚子千層", "蜜香紅茶千層"], drinkA: "日本柚子美式", drinkT: "花草茶", hook: "層次繽紛且富有生命力，裝滿奇奇怪怪且閃亮的靈感碎片。" },
+  ISTJ: { name: "經典十勝原味千層", series: "千層", quad: "經典", alt: ["巧克力布朗尼千層", "蜜香紅茶千層"], drinkA: "美式咖啡", drinkT: "經典拿鐵", hook: "結構的絕對精準與對承諾的執著，最值得信賴的味覺基石。" },
+  ISFJ: { name: "經典烤布丁", series: "單品", quad: "經典", alt: ["本口味目前為最佳配對"], drinkA: "蕎麥茶", drinkT: "烤布丁拿鐵", hook: "安全感的終極錨點，最純粹、最直接的溫柔安撫與回歸。" },
+  ESTJ: { name: "鹹蛋黃巴斯克", series: "巴斯克", quad: "深色", alt: ["北海道經典巴斯克", "茶香巴斯克"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "鋼鐵意志與濃郁核心的結合，穩健中帶有不容忽視的力量。" },
+  ESFJ: { name: "莓果戚風蛋糕", series: "戚風", quad: "果香", alt: ["綜合水果戚風", "檸檬蘋果戚風"], drinkA: "日本柚子美式", drinkT: "經典拿鐵", hook: "溫和友善的包覆感，與摯愛分享這份純粹快樂的本質。" },
+  ISTP: { name: "經典提拉米蘇", series: "提拉米蘇", quad: "經典", alt: ["抹茶提拉米蘇", "柚子蘋果提拉米蘇"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "冷靜大膽的口感平衡，無需多言的硬派實力展現。" },
+  ISFP: { name: "抹茶提拉米蘇", series: "提拉米蘇", quad: "深色", alt: ["經典提拉米蘇", "奶酒提拉米蘇"], drinkA: "日本柚子美式", drinkT: "花草茶", hook: "細膩美感的微苦回甘，用最溫柔的方式對抗世界的喧囂。" },
+  ESTP: { name: "巧克力布朗尼千層", series: "千層", quad: "深色", alt: ["經典十勝原味千層", "蜜香紅茶千層"], drinkA: "西西里美式", drinkT: "焙茶拿鐵", hook: "極致感官的爆發體驗，追求速度與最直白的生命熱情。" },
+  ESFP: { name: "綜合水果戚風蛋糕", series: "戚風", quad: "果香", alt: ["莓果戚風", "檸檬蘋果戚風"], drinkA: "日本柚子美式", drinkT: "烤布丁拿鐵", hook: "點亮全場的色彩盛宴，將每一刻都轉化為永恆的快樂慶典。" }
+};

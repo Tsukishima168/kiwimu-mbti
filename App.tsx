@@ -56,8 +56,9 @@ import { sendResultEmail } from './utils/sendResultEmail';
 import NotFound from './components/NotFound';
 import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
+import ResultLegacyDump from './components/ResultLegacyDump';
 
-type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | '404';
+type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | '404';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -184,6 +185,28 @@ const App: React.FC = () => {
 
       if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
         setStage('callback');
+      } else if (window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/)) {
+        const match = window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/);
+        if (match && match[1]) {
+          const [type, suffix] = match[1].split('-');
+          // Load result data directly from constants for the OG crawler
+          import('./constants').then(({ getResultData }) => {
+            const data = getResultData(type);
+            setResultData(data);
+            // Default dummy scores format
+            setScores({
+              E: 0, I: 0,
+              S: 0, N: 0,
+              T: 0, F: 0,
+              J: 0, P: 0,
+              A: suffix === 'A' ? 1 : 0,
+              Turbulent: suffix === 'T' ? 1 : 0
+            });
+            setStage('og-render');
+          });
+        } else {
+          setStage('404');
+        }
       } else if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
         // Simple 404 detection: If path is not root/index and not callback, show 404
         // Note: This works because we are using hashing/state routing for the app content itself
@@ -476,6 +499,18 @@ const App: React.FC = () => {
           {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
           {stage === 'result' && resultData && scores && (
             <Result
+              resultData={resultData}
+              rawScores={scores}
+              onRetest={handleRetest}
+              onOpenConsultant={() => console.log('Open consultant modal')}
+              onViewArchive={handleViewArchive}
+              user={user}
+              onLogin={handleLogin}
+              onLogout={handleLogout}
+            />
+          )}
+          {stage === 'og-render' && resultData && scores && (
+            <ResultLegacyDump
               resultData={resultData}
               rawScores={scores}
               onRetest={handleRetest}

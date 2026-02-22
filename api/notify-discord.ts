@@ -69,8 +69,6 @@ export default async function handler(
         });
     }
 
-
-
     const localeConfig = (LOCALES as any)[locale] || LOCALES.zh;
 
     console.log('[DISCORD] 📤 Preparing to send notification:', {
@@ -82,10 +80,23 @@ export default async function handler(
     });
 
     try {
+        // 取得目前總測驗人數
+        let totalCount = 0;
+        try {
+            const countSnapshot = await db.collection('discord_notifications').count().get();
+            totalCount = countSnapshot.data().count + 1; // 包含這次
+        } catch (e) {
+            console.warn('[DISCORD] Failed to get count', e);
+        }
+
         const discordPayload = {
+            content: '@everyone',
+            allowed_mentions: {
+                parse: ['everyone']
+            },
             embeds: [{
                 title: `${localeConfig.emoji} ${localeConfig.header}`,
-                description: `**${personalityName}** (${resultType})`,
+                description: `**${personalityName}** (${resultType})\n\n🏆 總計第 **${totalCount}** 份靈魂檔案！`,
                 color: localeConfig.color,
                 fields: [
                     {
