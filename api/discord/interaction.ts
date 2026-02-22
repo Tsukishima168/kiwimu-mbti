@@ -258,13 +258,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!ok) {
     console.error('❌ Discord signature verification failed', {
       hasPublicKey: !!publicKey,
-      publicKeyLength: publicKey.length,
+      publicKeyPreview: `${publicKey.substring(0, 5)}...`,
       hasSignature: !!signature,
-      signatureLength: signature.length,
       hasTimestamp: !!timestamp,
-      timestampLength: timestamp.length,
       bodyLength: rawBody.length,
-      bodyPreview: rawBody.substring(0, 100),
+      bodyPreview: rawBody.substring(0, 50),
     });
     return res.status(401).json({ error: 'Bad request signature' });
   }
