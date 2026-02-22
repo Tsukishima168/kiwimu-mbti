@@ -28,9 +28,16 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
 
     const { hasProgress, saveProgress, loadProgress, clearProgress } = useProgressStorage();
 
-    // 載入題目（優先從 Supabase）
+    // 載入題目（優先從 Supabase，中文版例外則鎖定 V1）
     useEffect(() => {
         const fetchQuestions = async () => {
+            // 如果是中文版，鎖定使用 constants.ts 中的 QUESTIONS (V1)
+            if (language === 'zh' || language === 'zh-TW') {
+                setQuestions(QUESTIONS);
+                setQuestionsLoaded(true);
+                return;
+            }
+
             const loadedQuestions = await loadQuestions();
             if (loadedQuestions && loadedQuestions.length > 0) {
                 setQuestions(loadedQuestions);
@@ -38,7 +45,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
             setQuestionsLoaded(true);
         };
         fetchQuestions();
-    }, []);
+    }, [language]);
 
     const currentQuestion: Question | undefined = questions[currentIndex];
     const progress = questionsLoaded && currentQuestion ? ((currentIndex + 1) / questions.length) * 100 : 0;
