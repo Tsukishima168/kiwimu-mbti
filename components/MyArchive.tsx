@@ -3,6 +3,7 @@ import { User } from 'firebase/auth';
 import { TestRun } from '../types';
 import { useFirestoreSync } from '../hooks/useFirestoreSync';
 import { trackButtonClick } from '../utils/analytics';
+import { useLanguage } from '../contexts/LanguageContext';
 import RunTimeline from './RunTimeline';
 import RunDetail from './RunDetail';
 import Comparison from './Comparison';
@@ -24,6 +25,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
     const [viewMode, setViewMode] = useState<ViewMode>('timeline');
 
     const { getUserTestRuns } = useFirestoreSync(user);
+    const { t } = useLanguage();
 
     useEffect(() => {
         const loadTestRuns = async () => {
@@ -58,7 +60,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
             <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block w-8 h-8 border-2 border-kiwi-dark border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="text-gray-600 font-mono text-sm tracking-wider">載入你的人格檔案...</p>
+                    <p className="text-gray-600 font-mono text-sm tracking-wider">{(t as any).archive_loading}</p>
                 </div>
             </div>
         );
@@ -84,24 +86,24 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="text-2xl">🏝️</span>
-                                            <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-800">島嶼連結</h3>
+                                            <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-800">{(t as any).island_link_title}</h3>
                                         </div>
                                         <p className="text-sm md:text-base text-gray-600 mb-2">
-                                            💡 您的測驗結果已同步至月島品牌資料庫
+                                            {(t as any).island_link_synced}
                                         </p>
                                         <p className="text-xs md:text-sm text-gray-500">
-                                            前往甜點店可查看您的島民檔案與專屬甜點處方
+                                            {(t as any).island_link_desc}
                                         </p>
                                     </div>
                                     <a
                                         href={`https://moon-map-original.vercel.app/?mbti=${testRuns[0]?.result || ''}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        onClick={() => trackButtonClick('前往月島甜點店', 'archive_cross_site', 'https://moon-map-original.vercel.app/')}
+                                        onClick={() => trackButtonClick('island_link', 'archive_cross_site', 'https://moon-map-original.vercel.app/')}
                                         className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 hover:from-amber-500 hover:via-yellow-500 hover:to-orange-500 text-gray-900 font-bold text-base md:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap"
                                     >
                                         <span className="text-xl">🍰</span>
-                                        <span>前往月島甜點店</span>
+                                        <span>{(t as any).island_link_btn}</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-300">
                                             <path d="M5 12h14M12 5l7 7-7 7" />
                                         </svg>
@@ -116,16 +118,16 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                         <div className="max-w-4xl mx-auto px-6 pt-6 pb-6">
                             <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
                                 <button
-                                    onClick={() => { trackButtonClick('時間線', 'archive_tabs'); handleViewChange('timeline'); }}
+                                    onClick={() => { trackButtonClick('timeline', 'archive_tabs'); handleViewChange('timeline'); }}
                                     className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'timeline'
                                         ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
                                         : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
-                                    時間線
+                                    {(t as any).tab_timeline}
                                 </button>
                                 <button
-                                    onClick={() => { trackButtonClick('對比分析', 'archive_tabs'); handleViewChange('comparison'); }}
+                                    onClick={() => { trackButtonClick('comparison', 'archive_tabs'); handleViewChange('comparison'); }}
                                     disabled={testRuns.length < 2}
                                     className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'comparison'
                                         ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
@@ -134,22 +136,22 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                             : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
-                                    對比分析
+                                    {(t as any).tab_comparison}
                                     {testRuns.length < 2 && (
-                                        <span className="ml-2 text-xs">（需 2+ 筆）</span>
+                                        <span className="ml-2 text-xs">{(t as any).tab_comparison_min}</span>
                                     )}
                                 </button>
                                 <button
-                                    onClick={() => { trackButtonClick('統計', 'archive_tabs'); handleViewChange('stats'); }}
+                                    onClick={() => { trackButtonClick('stats', 'archive_tabs'); handleViewChange('stats'); }}
                                     className={`flex-shrink-0 px-6 py-3 font-serif text-lg font-medium transition-all ${viewMode === 'stats'
                                         ? 'text-kiwi-dark border-b-2 border-kiwi-dark'
                                         : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
-                                    統計
+                                    {(t as any).tab_stats}
                                 </button>
                                 <button
-                                    onClick={() => { trackButtonClick('設定', 'archive_tabs'); handleViewChange('settings'); }}
+                                    onClick={() => { trackButtonClick('settings', 'archive_tabs'); handleViewChange('settings'); }}
                                     className="flex-shrink-0 px-6 py-3 font-serif text-lg font-medium text-gray-400 hover:text-gray-600 transition-all ml-auto"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-block mr-1">
@@ -159,7 +161,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         <path d="M1 12h6m6 0h6" />
                                         <path d="m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24" />
                                     </svg>
-                                    設定
+                                    {(t as any).tab_settings}
                                 </button>
                             </div>
                         </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { TestRun } from '../types';
 import { analyzeChange, getPersonalityChangeSummary } from '../utils/changeAnalysis';
 import { calculatePercentages } from '../utils/logic';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ComparisonProps {
     runs: TestRun[];
@@ -11,6 +12,9 @@ interface ComparisonProps {
 export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
     const [selectedA, setSelectedA] = useState<string>(runs[0]?.id || '');
     const [selectedB, setSelectedB] = useState<string>(runs[1]?.id || '');
+    const { language, t } = useLanguage();
+
+    const dateLocale = language === 'ja' ? 'ja-JP' : language === 'ko' ? 'ko-KR' : language === 'en' ? 'en-US' : 'zh-TW';
 
     if (runs.length < 2) {
         return (
@@ -18,16 +22,16 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                 <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
                     <span className="text-3xl">📊</span>
                 </div>
-                <h2 className="text-2xl font-serif text-gray-700 mb-3">需要更多測驗記錄</h2>
+                <h2 className="text-2xl font-serif text-gray-700 mb-3">{(t as any).comparison_need_more}</h2>
                 <p className="text-gray-500 mb-8">
-                    至少需要 2 次測驗才能進行對比分析
+                    {(t as any).comparison_need_more_desc}
                 </p>
                 {onBack && (
                     <button
                         onClick={onBack}
                         className="px-8 py-3 bg-kiwi-dark text-white hover:bg-opacity-90 transition-all font-medium tracking-wide"
                     >
-                        返回時間線
+                        {(t as any).comparison_back_timeline}
                     </button>
                 )}
             </div>
@@ -42,7 +46,6 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
     const percentagesA = calculatePercentages(runA.scores);
     const percentagesB = calculatePercentages(runB.scores);
 
-    // 注意：對比時 B 是較舊的，A 是較新的
     const insights = analyzeChange(runB.scores, runA.scores);
     const changeSummary = getPersonalityChangeSummary(
         runB.resultType,
@@ -53,7 +56,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
 
     const formatDate = (timestamp: number) => {
         const date = new Date(timestamp);
-        return date.toLocaleDateString('zh-TW', {
+        return date.toLocaleDateString(dateLocale, {
             year: 'numeric',
             month: 'numeric',
             day: 'numeric',
@@ -70,14 +73,14 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                         className="mb-6 flex items-center gap-2 text-sm font-mono text-gray-400 hover:text-kiwi-dark transition-colors tracking-wider uppercase"
                     >
                         <span>←</span>
-                        <span>返回</span>
+                        <span>{(t as any).archive_back}</span>
                     </button>
                 )}
                 <h1 className="text-4xl md:text-5xl font-serif font-medium text-kiwi-dark mb-4">
-                    變化對比分析
+                    {(t as any).comparison_title}
                 </h1>
                 <p className="text-gray-600 leading-relaxed">
-                    深入了解你的人格演變軌跡
+                    {(t as any).comparison_desc}
                 </p>
             </div>
 
@@ -85,7 +88,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                 <div>
                     <label className="block text-sm font-mono font-bold text-gray-400 uppercase tracking-wider mb-3">
-                        測驗 A（較新）
+                        {(t as any).comparison_test_a}
                     </label>
                     <select
                         value={selectedA}
@@ -101,7 +104,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                 </div>
                 <div>
                     <label className="block text-sm font-mono font-bold text-gray-400 uppercase tracking-wider mb-3">
-                        測驗 B（較舊）
+                        {(t as any).comparison_test_b}
                     </label>
                     <select
                         value={selectedB}
@@ -123,7 +126,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                     <div className="flex-shrink-0 text-4xl">🔄</div>
                     <div className="flex-1">
                         <h2 className="text-2xl font-serif font-semibold text-blue-900 mb-3">
-                            人格變化摘要
+                            {(t as any).comparison_summary}
                         </h2>
                         <div className="flex items-center gap-3 mb-4">
                             <span className="text-3xl font-display font-bold text-kiwi-dark">
@@ -138,7 +141,9 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                             {changeSummary}
                         </p>
                         <p className="text-sm text-blue-600 mt-2 font-mono">
-                            時間跨度：{formatDate(runB.finishedAt)} 至 {formatDate(runA.finishedAt)}
+                            {((t as any).comparison_timespan || '')
+                                .replace('{from}', formatDate(runB.finishedAt))
+                                .replace('{to}', formatDate(runA.finishedAt))}
                         </p>
                     </div>
                 </div>
@@ -147,7 +152,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
             {/* Dimension Changes */}
             <div className="space-y-8">
                 <h3 className="text-2xl font-serif font-medium text-gray-800 mb-6">
-                    維度變化詳細分析
+                    {(t as any).comparison_dimension_detail}
                 </h3>
 
                 {insights.map((insight, index) => {
@@ -171,12 +176,12 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                                         {insight.dimensionName}
                                     </h4>
                                     <p className="text-sm text-gray-500 font-mono mt-1">
-                                        維度 {index + 1} / 5
+                                        {((t as any).comparison_dimension_count || '').replace('{index}', String(index + 1))}
                                     </p>
                                 </div>
                                 {isSignificant && (
                                     <span className="px-3 py-1 bg-kiwi-dark text-white text-xs font-mono font-bold tracking-wider rounded">
-                                        顯著變化
+                                        {(t as any).comparison_significant}
                                     </span>
                                 )}
                             </div>
@@ -184,7 +189,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                             {/* Values Comparison */}
                             <div className="grid grid-cols-3 gap-4 mb-4 items-center">
                                 <div className="text-center">
-                                    <p className="text-xs text-gray-400 font-mono uppercase mb-1">測驗 B</p>
+                                    <p className="text-xs text-gray-400 font-mono uppercase mb-1">{(t as any).comparison_test_b_short}</p>
                                     <p className="text-3xl font-display font-bold text-gray-700">
                                         {insight.oldValue}%
                                     </p>
@@ -201,15 +206,15 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                                             <span className="text-2xl text-gray-400">→</span>
                                         )}
                                         <span className={`text-xl font-bold ${insight.direction === 'increase' ? 'text-green-600' :
-                                                insight.direction === 'decrease' ? 'text-orange-600' :
-                                                    'text-gray-400'
+                                            insight.direction === 'decrease' ? 'text-orange-600' :
+                                                'text-gray-400'
                                             }`}>
                                             {insight.delta > 0 ? '+' : ''}{insight.delta}%
                                         </span>
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-xs text-gray-400 font-mono uppercase mb-1">測驗 A</p>
+                                    <p className="text-xs text-gray-400 font-mono uppercase mb-1">{(t as any).comparison_test_a_short}</p>
                                     <p className="text-3xl font-display font-bold text-kiwi-dark">
                                         {insight.newValue}%
                                     </p>
