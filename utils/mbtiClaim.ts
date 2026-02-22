@@ -75,7 +75,8 @@ export async function getOrCreatePassportClaimUrl(
   const code = await createMbtiClaim(mbtiType, variant);
   if (!code) {
     // fallback: 即使 claim code 建立失敗，也提供直接跳轉連結
-    return `https://moonmoon-dessert-passport.vercel.app/?mbti_type=${mbtiType}&variant=${variant}&auto_unlock=true`;
+    const passportBase = import.meta.env.VITE_PASSPORT_URL || 'https://kiwimu.com/passport';
+    return `${passportBase}/?mbti_type=${mbtiType}&variant=${variant}&auto_unlock=true`;
   }
 
   localStorage.setItem(key, code);

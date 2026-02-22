@@ -33,21 +33,21 @@ export const EXTERNAL_LINKS: Record<string, ExternalLink> = {
   // Dessert Booking - 訂購系統
   DESSERT_BOOKING: {
     name: '月島甜點菜單',
-    baseUrl: 'https://moon-map-original.vercel.app/menu',
+    baseUrl: 'https://kiwimu.com/menu',
     defaultSource: 'mbti-lab'
   },
 
   // Moon Map - 導覽地圖
   MOON_MAP: {
     name: '月島導覽地圖',
-    baseUrl: 'https://moon-map-original.vercel.app',
+    baseUrl: 'https://kiwimu.com/map',
     defaultSource: 'mbti-lab'
   },
 
   // Passport - 趣味測驗
   PASSPORT: {
     name: '甜點護照測驗',
-    baseUrl: 'https://moonmoon-dessert-passport.vercel.app',
+    baseUrl: 'https://kiwimu.com/passport',
     defaultSource: 'mbti-lab'
   },
 

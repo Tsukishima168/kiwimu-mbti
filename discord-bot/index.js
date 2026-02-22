@@ -80,10 +80,9 @@ function buildProductLinks(source = 'bot', campaign = 'community') {
     const baseParams = `utm_source=discord&utm_medium=${source}&utm_campaign=${campaign}`;
     return {
         mbti: `https://kiwimu.com?${baseParams}`,
-        moonMap: `https://moon-map-original.vercel.app?${baseParams}`,
-        passport: `https://moonmoon-dessert-passport.vercel.app?${baseParams}`,
-        // Dessert Booking 尚未部署，使用月島地圖代替
-        dessertBooking: `https://moon-map-original.vercel.app?${baseParams}&redirect=dessert`
+        moonMap: `https://kiwimu.com/map?${baseParams}`,
+        passport: `https://kiwimu.com/passport?${baseParams}`,
+        dessertBooking: `https://kiwimu.com/menu?${baseParams}`
     };
 }
 

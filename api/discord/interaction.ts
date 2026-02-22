@@ -222,11 +222,19 @@ async function handleResult(interaction: DiscordInteraction): Promise<DiscordInt
   };
 }
 
+// 導出 config 以禁用 Vercel 的自動 body parsing
+// 這對於 Discord 的 Ed25519 簽名驗證至關重要，因為我們需要原始的 raw body 字串
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const publicKey = process.env.DISCORD_PUBLIC_KEY || '';
-  
+
   // 檢查 Public Key 是否設定
   if (!publicKey) {
     console.error('❌ DISCORD_PUBLIC_KEY is not set in environment variables');
@@ -236,29 +244,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const signature = (req.headers['x-signature-ed25519'] as string) || '';
   const timestamp = (req.headers['x-signature-timestamp'] as string) || '';
 
-  // Vercel 的 @vercel/node 會自動解析 body，但我們需要原始 body 來驗簽
-  // 嘗試從多個來源取得原始 body
-  let rawBody: string;
-  
-  // 方法 1：檢查是否有 rawBody（Vercel 有時會保留）
-  if ((req as any).rawBody) {
-    rawBody = Buffer.isBuffer((req as any).rawBody) 
-      ? (req as any).rawBody.toString('utf8')
-      : String((req as any).rawBody);
+  // Vercel 禁用 bodyParser 後，我們可以從 req 中讀取原始 body
+  const chunks = [];
+  for await (const chunk of req) {
+    chunks.push(chunk);
   }
-  // 方法 2：如果 body 是字串，直接使用
-  else if (typeof req.body === 'string') {
-    rawBody = req.body;
-  }
-  // 方法 3：如果 body 是 Buffer
-  else if (Buffer.isBuffer(req.body)) {
-    rawBody = req.body.toString('utf8');
-  }
-  // 方法 4：Fallback - 重新 stringify（可能導致驗簽失敗，但至少能處理 PING）
-  else {
-    rawBody = JSON.stringify(req.body ?? {});
-    // 如果是 PING（type: 1），body 應該是空的或簡單的 JSON，這個方法可能可行
-  }
+  const rawBody = Buffer.concat(chunks).toString('utf8');
+
+  // 驗簽（PING 請求也需要驗簽）
 
   // 驗簽（PING 請求也需要驗簽）
   const ok = verifyDiscordSignature({ publicKey, signature, timestamp, rawBody });
