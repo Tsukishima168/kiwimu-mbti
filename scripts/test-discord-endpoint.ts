@@ -5,7 +5,7 @@
  * 
  * 使用方式：
  * DISCORD_PUBLIC_KEY=你的PublicKey \
- * ENDPOINT_URL=https://kiwimu-mbti.vercel.app/api/discord/interaction \
+ * ENDPOINT_URL=https://kiwimu.com/api/discord/interaction \
  * npx tsx scripts/test-discord-endpoint.ts
  */
 

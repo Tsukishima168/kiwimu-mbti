@@ -7,77 +7,77 @@
 
 ### 1. DM Card V1 - 春節啟航卡（2,000張）
 - **檔案：** 01_dm_v1_feb.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=dm&campaign=spring2026&medium=card&content=v1_cny&month=feb
+- **網址：** https://kiwimu.com?source=dm&campaign=spring2026&medium=card&content=v1_cny&month=feb
 
 
 ### 2. 門口海報 - 主視覺（常駐）
 - **檔案：** 02_poster_main.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=poster&campaign=spring2026&medium=door&content=main&location=store01
+- **網址：** https://kiwimu.com?source=poster&campaign=spring2026&medium=door&content=main&location=store01
 
 
 ### 3. 門口海報 - 新春版（2月）
 - **檔案：** 03_poster_cny_feb.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=poster&campaign=spring2026&medium=door&content=cny&month=feb
+- **網址：** https://kiwimu.com?source=poster&campaign=spring2026&medium=door&content=cny&month=feb
 
 
 ### 4. 合作咖啡廳 DM（600張）
 - **檔案：** 04_dm_v1_cafe.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=dm&campaign=spring2026&medium=card&content=v1_cny&location=partner_cafe
+- **網址：** https://kiwimu.com?source=dm&campaign=spring2026&medium=card&content=v1_cny&location=partner_cafe
 
 
 ### 5. 社區信箱 DM（400張）
 - **檔案：** 05_dm_v1_community.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=dm&campaign=spring2026&medium=card&content=v1_cny&location=community
+- **網址：** https://kiwimu.com?source=dm&campaign=spring2026&medium=card&content=v1_cny&location=community
 
 
 ### 6. 街頭發放 DM（200張）
 - **檔案：** 06_dm_v1_street.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=dm&campaign=spring2026&medium=card&content=v1_cny&location=street
+- **網址：** https://kiwimu.com?source=dm&campaign=spring2026&medium=card&content=v1_cny&location=street
 
 
 ### 7. DM Card V2 - 春季探索卡（2,000張）
 - **檔案：** 07_dm_v2_mar.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=dm&campaign=spring2026&medium=card&content=v2_spring&month=mar
+- **網址：** https://kiwimu.com?source=dm&campaign=spring2026&medium=card&content=v2_spring&month=mar
 
 
 ### 8. 門口海報 - 春季版（3月）
 - **檔案：** 08_poster_spring_mar.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=poster&campaign=spring2026&medium=door&content=spring&month=mar
+- **網址：** https://kiwimu.com?source=poster&campaign=spring2026&medium=door&content=spring&month=mar
 
 
 ### 9. 門口海報 - Discord 邀請（3月）
 - **檔案：** 09_poster_discord_mar.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=poster&campaign=spring2026&medium=door&content=discord&month=mar
+- **網址：** https://kiwimu.com?source=poster&campaign=spring2026&medium=door&content=discord&month=mar
 
 
 ### 10. 大學校園 DM（600張）
 - **檔案：** 10_dm_v2_university.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=dm&campaign=spring2026&medium=card&content=v2_spring&location=university
+- **網址：** https://kiwimu.com?source=dm&campaign=spring2026&medium=card&content=v2_spring&location=university
 
 
 ### 11. 辦公大樓 DM（400張）
 - **檔案：** 11_dm_v2_office.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=dm&campaign=spring2026&medium=card&content=v2_spring&location=office
+- **網址：** https://kiwimu.com?source=dm&campaign=spring2026&medium=card&content=v2_spring&location=office
 
 
 ### 12. DM Card V3 - VIP 招募卡（1,000張）
 - **檔案：** 12_dm_v3_apr.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=dm&campaign=spring2026&medium=card&content=v3_vip&month=apr
+- **網址：** https://kiwimu.com?source=dm&campaign=spring2026&medium=card&content=v3_vip&month=apr
 
 
 ### 13. 門口海報 - VIP版（4月）
 - **檔案：** 13_poster_vip_apr.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=poster&campaign=spring2026&medium=door&content=vip&month=apr
+- **網址：** https://kiwimu.com?source=poster&campaign=spring2026&medium=door&content=vip&month=apr
 
 
 ### 14. Instagram 限時動態
 - **檔案：** 14_instagram_story.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=social&campaign=spring2026&medium=instagram&content=story
+- **網址：** https://kiwimu.com?source=social&campaign=spring2026&medium=instagram&content=story
 
 
 ### 15. LINE 推播連結
 - **檔案：** 15_line_broadcast.png
-- **網址：** https://kiwimu-mbti.vercel.app?source=line&campaign=spring2026&medium=broadcast&content=undefined&month=apr
+- **網址：** https://kiwimu.com?source=line&campaign=spring2026&medium=broadcast&content=undefined&month=apr
 
 
 ## 使用說明

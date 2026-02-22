@@ -21,7 +21,7 @@
 |------|------|------------|
 | **sitemap.xml** | 列出希望被收錄的 URL | `public/sitemap.xml` |
 | **robots.txt** | 不擋重要路徑、指向 sitemap | `public/robots.txt` |
-| **主站 URL** | 單頁應用僅一入口，sitemap 以首頁為主 | `https://kiwimu-mbti.vercel.app/` |
+| **主站 URL** | 單頁應用僅一入口，sitemap 以首頁為主 | `https://kiwimu.com/` |
 
 **注意**：本專案為 SPA，目前可索引的「頁面」主要是首頁；虛擬路由（intro／quiz／result／archive）透過 GA4 的 `page_view` 事件追蹤，不另做實體 URL。若未來新增 SSG 的公開頁（如 `/about`、`/faq`），再將該等 URL 加入 sitemap。
 

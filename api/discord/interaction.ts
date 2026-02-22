@@ -24,7 +24,7 @@ function getStringOption(interaction: DiscordInteraction, name: string): string 
 }
 
 function buildLinkUrl(state: string) {
-  const base = process.env.DISCORD_LINK_BASE_URL || 'https://kiwimu-mbti.vercel.app';
+  const base = process.env.DISCORD_LINK_BASE_URL || 'https://kiwimu.com';
   // Use query so SPA can pick it up without router changes.
   return `${base}/?discord_link_state=${encodeURIComponent(state)}`;
 }
@@ -186,7 +186,7 @@ async function handleResult(interaction: DiscordInteraction): Promise<DiscordInt
   const variant = latest.variant || latest.identity || '';
   const fullType = variant ? `${mbtiType}-${variant}` : mbtiType;
 
-  const base = process.env.DISCORD_REPORT_BASE_URL || 'https://kiwimu-mbti.vercel.app';
+  const base = process.env.DISCORD_REPORT_BASE_URL || 'https://kiwimu.com';
   const reportUrl = `${base}/?utm_source=discord&utm_medium=bot&utm_campaign=mbti_result&mbti=${encodeURIComponent(
     mbtiType
   )}`;

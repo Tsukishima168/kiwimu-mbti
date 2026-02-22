@@ -21,7 +21,7 @@ const CHANNEL_MESSAGES = {
 
 🧪 **MBTI 性格測驗**
 探索你的內在性格，找到你的靈魂甜點
-→ https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=pinned&utm_campaign=community
+→ https://kiwimu.com?utm_source=discord&utm_medium=pinned&utm_campaign=community
 
 🗺️ **月島品牌地圖**
 探索完整的 Moon Moon 世界觀與品牌故事
@@ -444,7 +444,7 @@ Instagram：@kiwimu.mbti
 
 🧪 **MBTI 性格測驗**
 探索你的內在性格，找到你的靈魂甜點
-→ https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=cross_product&utm_campaign=community
+→ https://kiwimu.com?utm_source=discord&utm_medium=cross_product&utm_campaign=community
 
 🗺️ **月島品牌地圖**
 探索完整的 Moon Moon 世界觀與品牌故事

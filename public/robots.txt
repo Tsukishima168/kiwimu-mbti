@@ -8,4 +8,4 @@ Allow: /
 # Disallow: /admin
 
 # Sitemap 位置（請依實際網域替換）
-Sitemap: https://kiwimu-mbti.vercel.app/sitemap.xml
+Sitemap: https://kiwimu.com/sitemap.xml

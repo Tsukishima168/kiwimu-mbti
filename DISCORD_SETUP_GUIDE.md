@@ -105,7 +105,7 @@
 1. 回到 Discord Developer Portal，左側選單點 **「Interactions」**
 2. 在 **「INTERACTIONS ENDPOINT URL」** 欄位輸入：
    ```
-   https://kiwimu-mbti.vercel.app/api/discord/interaction
+   https://kiwimu.com/api/discord/interaction
    ```
    （或你的實際 Vercel 網域）
 3. 點擊 **「Save Changes」**
@@ -216,8 +216,8 @@
 | `DISCORD_PUBLIC_KEY` | 從步驟 4 複製的 Public Key | 例如：`abc123def456...` |
 | `DISCORD_BOT_TOKEN` | 從步驟 5 複製的 Bot Token | 例如：`MTIzNDU2Nzg5...` |
 | `DISCORD_GUILD_ID` | 從步驟 7 複製的 Guild ID | 例如：`987654321098765432` |
-| `DISCORD_LINK_BASE_URL` | `https://kiwimu-mbti.vercel.app` | （選配，預設值已夠用） |
-| `DISCORD_REPORT_BASE_URL` | `https://kiwimu-mbti.vercel.app` | （選配，預設值已夠用） |
+| `DISCORD_LINK_BASE_URL` | `https://kiwimu.com` | （選配，預設值已夠用） |
+| `DISCORD_REPORT_BASE_URL` | `https://kiwimu.com` | （選配，預設值已夠用） |
 
 #### Firebase 變數（擇一）
 
@@ -302,7 +302,7 @@ Registered commands: help, link, unlink, result
 - [ ] Discord Public Key 已複製並設定到 Vercel
 - [ ] Discord Bot Token 已複製並設定到 Vercel
 - [ ] Discord Guild ID 已複製並設定到 Vercel
-- [ ] Interactions Endpoint URL 已設定（`https://kiwimu-mbti.vercel.app/api/discord/interaction`）
+- [ ] Interactions Endpoint URL 已設定（`https://kiwimu.com/api/discord/interaction`）
 - [ ] Bot 已邀請到 Server
 - [ ] Firebase Service Account JSON 已設定到 Vercel（或拆成三個變數）
 - [ ] Vercel 已重新部署

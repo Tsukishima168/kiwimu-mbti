@@ -56,7 +56,7 @@
 ## 4) 網站端綁定頁（已做）
 
 `/link` 會給一個連結：
-- `https://kiwimu-mbti.vercel.app/?discord_link_state=...`
+- `https://kiwimu.com/?discord_link_state=...`
 
 網站會在帶 `discord_link_state` 時彈出綁定視窗：
 - 若未登入 → 引導使用既有 Login

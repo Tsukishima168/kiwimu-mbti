@@ -348,7 +348,7 @@ async function notifyTestComplete(discordUserId, mbtiType, guildId) {
             type: 2,
             style: 5,
             label: '查看完整報告',
-            url: `https://kiwimu-mbti.vercel.app/?utm_source=discord&utm_medium=bot`
+            url: `https://kiwimu.com/?utm_source=discord&utm_medium=bot`
           }]
         }]
       }]

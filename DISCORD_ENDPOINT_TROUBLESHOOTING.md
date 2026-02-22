@@ -42,7 +42,7 @@ interactions_endpoint_url: 無法驗證指定的互動端點 URL。
 **檢查方法**：
 1. 確認你在 Discord Developer Portal 填的 URL 是：
    ```
-   https://kiwimu-mbti.vercel.app/api/discord/interaction
+   https://kiwimu.com/api/discord/interaction
    ```
    （或你的實際 Vercel 網域）
 
@@ -67,7 +67,7 @@ Discord 會發送一個 PING 請求（`{ type: 1 }`）來驗證 endpoint，你�
 使用測試腳本：
 ```bash
 DISCORD_PUBLIC_KEY=你的PublicKey \
-ENDPOINT_URL=https://kiwimu-mbti.vercel.app/api/discord/interaction \
+ENDPOINT_URL=https://kiwimu.com/api/discord/interaction \
 npx tsx scripts/test-discord-endpoint.ts
 ```
 
@@ -112,7 +112,7 @@ npx tsx scripts/test-discord-endpoint.ts
 - [ ] **步驟 4**：測試 Endpoint（可選）
   ```bash
   DISCORD_PUBLIC_KEY=你的PublicKey \
-  ENDPOINT_URL=https://kiwimu-mbti.vercel.app/api/discord/interaction \
+  ENDPOINT_URL=https://kiwimu.com/api/discord/interaction \
   npx tsx scripts/test-discord-endpoint.ts
   ```
 

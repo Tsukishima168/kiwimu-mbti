@@ -111,7 +111,7 @@ export const saveTestRun = async (
 
     // Generate share ID for this test
     const shareId = generateShareId();
-    const shareUrl = `https://kiwimu-mbti.vercel.app/r/${shareId}`;
+    const shareUrl = `https://kiwimu.com/r/${shareId}`;
 
     const docRef = await addDoc(runsCollection, {
         ...run,

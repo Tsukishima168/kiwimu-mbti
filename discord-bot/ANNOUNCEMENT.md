@@ -7,7 +7,7 @@
 ## 🚀 快速開始 3 步驟
 
 ### Step 1: 選擇你的探索方式
-- **🧪 MBTI 測驗** - https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **🧪 MBTI 測驗** - https://kiwimu.com?utm_source=discord&utm_medium=announcement&utm_campaign=community
 - **🗺️ 月島地圖** - https://moon-map-original.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
 - **🎨 甜點護照** - https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
 
@@ -115,7 +115,7 @@
 
 ## 📞 聯絡資訊
 
-- **MBTI 測驗**: https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **MBTI 測驗**: https://kiwimu.com?utm_source=discord&utm_medium=announcement&utm_campaign=community
 - **月島地圖**: https://moon-map-original.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
 - **甜點護照**: https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
 - **LINE@**: @kiwimu

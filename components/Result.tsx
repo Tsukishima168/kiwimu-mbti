@@ -364,7 +364,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </div>
 
               <div className="border border-kiwi-dark px-4 py-1.5 mb-6 md:mb-8 inline-block bg-white shadow-sm">
-                <p className="text-[10px]  tracking-[0.2em] md:tracking-[0.4em] uppercase font-bold text-kiwi-dark">{t.comprehensive_analysis}</p>
+                <p className="text-[10px]  tracking-[0.2em] md:tracking-[0.4em] uppercase font-bold text-kiwi-dark">{t('comprehensive_analysis')}</p>
               </div>
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-black tracking-tighter mb-2 md:mb-4 leading-none md:leading-tight">
                 {resultData.id}-{identitySuffix}
@@ -413,7 +413,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </div>
               <div className="md:col-span-7 flex flex-col justify-center text-left">
                 <div className="mb-8 md:mb-10">
-                  <span className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.5em] border-b-2 border-kiwi-dark pb-2 mb-6 md:mb-8 inline-block uppercase text-gray-400 ">{t.core_essence}</span>
+                  <span className="text-[10px] font-bold tracking-[0.3em] md:tracking-[0.5em] border-b-2 border-kiwi-dark pb-2 mb-6 md:mb-8 inline-block uppercase text-gray-400 ">{t('core_essence')}</span>
                   <p className="text-gray-800 leading-relaxed font-serif text-xl md:text-2xl lg:text-3xl font-medium text-justify md:text-left whitespace-pre-line">{i18nContent.coreAnalysis}</p>
                 </div>
                 <div className="flex flex-wrap gap-3 md:gap-4">
@@ -430,20 +430,20 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           <div className="max-w-6xl mx-auto">
             <div id="section-overview" className="scroll-mt-32 py-8">
               <p className="sr-only">
-                {t.section_shown}
+                {t('section_shown')}
               </p>
             </div>
 
             <div id="section-spectrum" className="scroll-mt-32">
               {/* 3. COGNITIVE SPECTRUM */}
-              <CollapsibleSection title="COGNITIVE SPECTRUM" subtitle={t.cognitive_spectrum} defaultOpen={true}>
+              <CollapsibleSection title="COGNITIVE SPECTRUM" subtitle={t('cognitive_spectrum')} defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
-                  <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc={t.extrovert} rightDesc={t.introvert} />
-                  <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc={t.sensing} rightDesc={t.intuition} />
-                  <SpectrumBar leftLabel="THINKING (T)" rightLabel="FEELING (F)" leftScore={percentages.T} rightScore={percentages.F} leftDesc={t.thinking} rightDesc={t.feeling} />
-                  <SpectrumBar leftLabel="JUDGING (J)" rightLabel="PERCEIVING (P)" leftScore={percentages.J} rightScore={percentages.P} leftDesc={t.judging} rightDesc={t.perceiving} />
+                  <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc={t('extrovert')} rightDesc={t('introvert')} />
+                  <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc={t('sensing')} rightDesc={t('intuition')} />
+                  <SpectrumBar leftLabel="THINKING (T)" rightLabel="FEELING (F)" leftScore={percentages.T} rightScore={percentages.F} leftDesc={t('thinking')} rightDesc={t('feeling')} />
+                  <SpectrumBar leftLabel="JUDGING (J)" rightLabel="PERCEIVING (P)" leftScore={percentages.J} rightScore={percentages.P} leftDesc={t('judging')} rightDesc={t('perceiving')} />
                   <div className="md:col-span-2">
-                    <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc={t.assertive} rightDesc={t.turbulent} />
+                    <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc={t('assertive')} rightDesc={t('turbulent')} />
                   </div>
                 </div>
               </CollapsibleSection>
@@ -451,15 +451,15 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
             <div id="section-identity" className="scroll-mt-32">
               {/* 4. IDENTITY ANALYSIS */}
-              <CollapsibleSection title="IDENTITY" subtitle={t.identity} defaultOpen={true}>
+              <CollapsibleSection title="IDENTITY" subtitle={t('identity')} defaultOpen={true}>
                 <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start text-left">
                   <div className="w-full md:w-1/3 border-l-4 border-kiwi-dark pl-6 md:pl-10 py-2">
-                    <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2 whitespace-pre-line">{t.identity_title}</h3>
-                    <p className="text-[10px]  tracking-[0.3em] uppercase text-gray-400 mb-6 font-bold">{t.the_32nd_variance}</p>
+                    <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2 whitespace-pre-line">{t('identity_title')}</h3>
+                    <p className="text-[10px]  tracking-[0.3em] uppercase text-gray-400 mb-6 font-bold">{t('the_32nd_variance')}</p>
                     <span className="px-4 py-2 md:px-6 bg-kiwi-dark text-white text-[10px] md:text-[11px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase shadow-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{identityLabel}</span>
                   </div>
                   <div className="w-full md:w-2/3">
-                    <h4 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold mb-6 md:mb-8 text-kiwi-dark">{t.identity_quote}</h4>
+                    <h4 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold mb-6 md:mb-8 text-kiwi-dark">{t('identity_quote')}</h4>
                     <p className="text-lg md:text-xl lg:text-2xl font-serif text-gray-700 leading-relaxed text-justify">
                       {(t.identity_body || '').replace('{type}', `${resultData.id}-${identitySuffix}`)}
                     </p>
@@ -468,7 +468,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </CollapsibleSection>
 
               {/* 5. GLOSSARY */}
-              <CollapsibleSection title="DEFINITIONS" subtitle={t.definitions} className="bg-gray-50/40" defaultOpen={true}>
+              <CollapsibleSection title="DEFINITIONS" subtitle={t('definitions')} className="bg-gray-50/40" defaultOpen={true}>
                 <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
                   {dimensionData.map(dim => (
                     <div key={dim.key} className="flex flex-col md:flex-row gap-4 md:gap-10 text-left items-start group border-b border-gray-100/50 pb-8 md:pb-10 last:border-0">
@@ -485,7 +485,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
             <div id="section-life" className="scroll-mt-32">
               {/* 06. LIFE INSIGHTS */}
-              <CollapsibleSection title="LIFE INSIGHTS" subtitle={t.life_insights} defaultOpen={true}>
+              <CollapsibleSection title="LIFE INSIGHTS" subtitle={t('life_insights')} defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 text-left">
                   <section>
                     <div className="flex items-center gap-4 md:gap-6 mb-8 md:mb-12">
@@ -529,7 +529,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </CollapsibleSection>
 
               {/* 7. RELATIONSHIP NAVIGATION */}
-              <CollapsibleSection title="NAVIGATION" subtitle={t.navigation} defaultOpen={true}>
+              <CollapsibleSection title="NAVIGATION" subtitle={t('navigation')} defaultOpen={true}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-black overflow-hidden shadow-xl text-left">
                   <div className="bg-white p-8 md:p-14 lg:p-20 border-b md:border-b-0 md:border-r border-black">
                     <h4 className="font-bold text-[10px] tracking-[0.3em] md:tracking-[0.5em] uppercase mb-6 md:mb-10 text-kiwi-dark ">{t('superpower')}</h4>
@@ -553,7 +553,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 const rarityMessage = getRarityMessage(rarityData.rank);
 
                 return (
-                  <CollapsibleSection title="RARITY" subtitle={t.rarity} defaultOpen={true}>
+                  <CollapsibleSection title="RARITY" subtitle={t('rarity')} defaultOpen={true}>
 
                     <div className="max-w-2xl mx-auto text-center mb-12 md:mb-16">
                       <p className="text-lg md:text-xl font-serif text-gray-800 mb-4">
@@ -598,7 +598,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     {/* Disclaimer */}
                     <div className="max-w-2xl mx-auto mt-12 p-6 bg-gray-50 border-l-4 border-gray-300">
                       <p className="text-xs md:text-sm text-gray-600 leading-relaxed font-serif">
-                        {t.rarity_disclaimer}
+                        {t('rarity_disclaimer')}
                       </p>
                     </div>
                   </CollapsibleSection>
@@ -611,7 +611,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 if (archetypes.length === 0) return null;
 
                 return (
-                  <CollapsibleSection title="ARCHETYPES" subtitle={t.archetypes} defaultOpen={true}>
+                  <CollapsibleSection title="ARCHETYPES" subtitle={t('archetypes')} defaultOpen={true}>
 
                     <p className="text-center text-sm md:text-base text-gray-600 font-serif max-w-2xl mx-auto mb-12 md:mb-16 leading-relaxed px-6">
                       {t('archetypes_intro')}
@@ -637,7 +637,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                             {/* Resonance Traits */}
                             <div>
                               <h5 className="text-[10px]  font-bold text-gray-400 tracking-widest uppercase mb-4">
-                                {t.resonance_traits}
+                                {t('resonance_traits')}
                               </h5>
                               <ul className="space-y-3">
                                 {archetype.resonanceTraits.map((trait, i) => (
@@ -659,7 +659,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               {/* ===== DISCORD CTA (純 Icon 置中) ===== */}
               <div className="py-12 md:py-16 border-b border-gray-100 bg-white">
                 <div className="max-w-2xl mx-auto px-6 text-center">
-                  <h3 className="text-2xl md:text-3xl font-bold text-[#5865F2] mb-4 tracking-widest uppercase">{t.discord_cta_title}</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-[#5865F2] mb-4 tracking-widest uppercase">{t('discord_cta_title')}</h3>
                   <p className="text-gray-600 mb-8 font-serif leading-relaxed text-sm md:text-base">
                     {(t.discord_cta_desc || '').replace('{type}', `${resultData.id}-${identitySuffix}`).split(`${resultData.id}-${identitySuffix}`).map((part: string, i: number) => i === 0 ? part : <><span key={i} className="font-bold text-gray-900 border-b-2 border-[#5865F2]">{resultData.id}-{identitySuffix}</span>{part}</>)}
                   </p>
@@ -692,7 +692,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               {/* 9. STRENGTHS & BLIND SPOTS - 手機單欄 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 py-16 md:py-24 border-b border-gray-100 text-left px-0 md:px-4">
                 <div>
-                  <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-8 md:mb-10 border-l-8 border-kiwi-dark pl-6">{t.strengths_title}</h4>
+                  <h4 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-8 md:mb-10 border-l-8 border-kiwi-dark pl-6">{t('strengths_title')}</h4>
                   <ul className="space-y-4 md:space-y-6">
                     {displayStrengths.map((s, i) => (
                       <li key={i} className="flex items-start gap-4 text-gray-700 font-serif">
@@ -703,7 +703,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   </ul>
                 </div>
                 <div>
-                  <h4 className="text-2xl md:text-3xl font-serif font-bold text-gray-400 mb-8 md:mb-10 border-l-8 border-gray-100 pl-6">{t.blind_spots_title}</h4>
+                  <h4 className="text-2xl md:text-3xl font-serif font-bold text-gray-400 mb-8 md:mb-10 border-l-8 border-gray-100 pl-6">{t('blind_spots_title')}</h4>
                   <ul className="space-y-4 md:space-y-6">
                     {displayBlindSpots.map((s, i) => (
                       <li key={i} className="flex items-start gap-4 text-gray-400 font-serif opacity-60">
@@ -719,7 +719,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               <div className="py-24 md:py-40 text-center">
                 <div className="text-gray-100 text-[100px] md:text-[180px] font-display opacity-40 mb-[-40px] md:mb-[-90px] select-none font-bold">“</div>
                 <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif font-bold text-kiwi-dark leading-snug italic max-w-4xl mx-auto px-6 relative z-10">
-                  {t.closing_quote}
+                  {t('closing_quote')}
                 </h2>
               </div>
 
@@ -1262,7 +1262,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 {anchor.name}
               </div>
               <p style={{ fontSize: '18px', color: '#757575', fontFamily: 'monospace', letterSpacing: '0.12em', margin: 0 }}>
-                lab · kiwimu-mbti.vercel.app
+                lab · kiwimu.com
               </p>
             </div>
 

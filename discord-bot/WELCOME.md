@@ -8,7 +8,7 @@
 
 ### 🧪 MBTI 性格測驗
 探索你的內在性格，找到你的靈魂甜點
-👉 **https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community**
+👉 **https://kiwimu.com?utm_source=discord&utm_medium=welcome&utm_campaign=community**
 
 ### 🗺️ 月島品牌地圖
 探索完整的 Moon Moon 世界觀與品牌故事
@@ -157,7 +157,7 @@ A: 在 📝 意見箱留言，或標註 @管理員
 
 ## 📞 聯絡我們
 
-- **MBTI 測驗**: https://kiwimu-mbti.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community
+- **MBTI 測驗**: https://kiwimu.com?utm_source=discord&utm_medium=welcome&utm_campaign=community
 - **月島地圖**: https://moon-map-original.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community
 - **甜點護照**: https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community
 - **LINE@**: @kiwimu

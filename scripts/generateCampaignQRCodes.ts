@@ -16,7 +16,7 @@ async function generateCampaignQR(
     filename: string
 ): Promise<string> {
     // 構建 URL
-    const baseUrl = 'https://kiwimu-mbti.vercel.app';
+    const baseUrl = 'https://kiwimu.com';
     const urlParams = new URLSearchParams({
         source: params.source,
         campaign: params.campaign,
