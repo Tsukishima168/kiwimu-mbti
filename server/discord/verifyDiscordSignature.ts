@@ -1,4 +1,4 @@
-import nacl from 'tweetnacl';
+import * as nacl from 'tweetnacl';
 
 function hexToUint8Array(hex: string): Uint8Array {
   const cleanHex = hex.trim().replace(/^0x/, '');
