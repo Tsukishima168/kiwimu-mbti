@@ -62,6 +62,11 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
     const displayRelAdvice = extraI18n ? extraI18n.relationships.advice : resultData.relationships.advice;
     const displayRelStrengths = extraI18n ? extraI18n.relationships.style : (resultData.relationships.strengths || resultData.relationships.style || resultData.relationships.romance);
 
+    // Pick localized hook for DessertCard
+    const displayHook = langKey === 'zh'
+        ? anchor.hook
+        : (anchor[`hook${langKey.charAt(0).toUpperCase() + langKey.slice(1)}`] || anchor.hook);
+
     useEffect(() => {
         trackResultView(resultData.id, user?.uid);
         window.scrollTo(0, 0);
@@ -132,13 +137,15 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
         onSkipRegistration: () => setHasSkippedGate(true),
         isArchiveMode,
         anchor,
+        displayHook,
         displayStrengths,
         displayBlindSpots,
         displayCareerStyle,
         displayCareerAdvice,
         displayRelStyle,
         displayRelAdvice,
-        displayRelStrengths
+        displayRelStrengths,
+        langKey,
     };
 
     return (

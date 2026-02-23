@@ -2,7 +2,12 @@ import React from 'react';
 import { CardProps } from './Types';
 import { MBTI_BG_COLORS } from '../../constants';
 
-export const IdentityCard: React.FC<CardProps> = ({ resultData, identitySuffix, identityLabel, t, i18nContent, displayKeywords }) => {
+interface IdentityCardProps extends CardProps {
+    langKey?: 'zh' | 'en' | 'ja' | 'ko';
+}
+
+export const IdentityCard: React.FC<IdentityCardProps> = ({ resultData, identitySuffix, identityLabel, t, i18nContent, displayKeywords, langKey = 'zh' }) => {
+    const needsLooseLeading = langKey === 'ja' || langKey === 'ko';
     return (
         <div className="w-full h-full flex flex-col bg-white overflow-hidden pb-16">
             <div className="flex-1 overflow-y-auto no-scrollbar">
@@ -11,7 +16,7 @@ export const IdentityCard: React.FC<CardProps> = ({ resultData, identitySuffix, 
                     <h1 className="text-5xl md:text-6xl font-display font-bold text-black tracking-tighter mb-2 leading-none">
                         {resultData.id}-{identitySuffix}
                     </h1>
-                    <h2 className="text-xl md:text-2xl font-light text-black tracking-[0.2em] font-serif italic">{i18nContent.title}</h2>
+                    <h2 className={`text-xl md:text-2xl font-light text-black font-serif italic ${langKey === 'en' ? 'tracking-[0.1em]' : langKey === 'ja' || langKey === 'ko' ? 'tracking-normal' : 'tracking-[0.2em]'}`}>{i18nContent.title}</h2>
                 </div>
 
                 {/* Character Image */}
@@ -33,7 +38,7 @@ export const IdentityCard: React.FC<CardProps> = ({ resultData, identitySuffix, 
 
                     <div className="mb-8 text-left">
                         <span className="text-[10px] font-bold tracking-[0.3em] border-b-2 border-kiwi-dark pb-2 mb-4 inline-block uppercase text-gray-400">{t('core_essence')}</span>
-                        <p className="text-gray-800 leading-relaxed font-serif text-lg font-medium">{i18nContent.coreAnalysis}</p>
+                        <p className={`text-gray-800 font-serif text-lg font-medium ${needsLooseLeading ? 'leading-loose' : 'leading-relaxed'}`}>{i18nContent.coreAnalysis}</p>
                     </div>
 
                     <div className="flex flex-wrap justify-center gap-2">

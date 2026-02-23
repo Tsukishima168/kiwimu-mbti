@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서비스 이용약관 | KIWIMU MBTI Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --kiwi-bg: #FAFAFA;
+            --kiwi-surface: #FFFFFF;
+            --kiwi-dark: #121212;
+            --kiwi-grey: #757575;
+            --kiwi-lightgrey: #E0E0E0;
+            --kiwi-link: #06C755;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans KR', -apple-system, sans-serif;
+            line-height: 1.95;
+            color: var(--kiwi-dark);
+            background: var(--kiwi-bg);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-size: 15px;
+            word-break: keep-all;
+        }
+        .header {
+            background: var(--kiwi-surface);
+            border-bottom: 1px solid var(--kiwi-lightgrey);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .header-inner {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo {
+            font-family: 'Noto Serif KR', serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--kiwi-dark);
+            text-decoration: none;
+        }
+        .back {
+            font-size: 0.875rem;
+            color: var(--kiwi-grey);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .back:hover { color: var(--kiwi-link); }
+        .main {
+            flex: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 40px 24px 56px;
+            width: 100%;
+        }
+        .page-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.625rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+            color: var(--kiwi-dark);
+        }
+        .updated {
+            font-size: 0.875rem;
+            color: var(--kiwi-grey);
+            margin-bottom: 32px;
+        }
+        h2 {
+            font-size: 1.0625rem;
+            font-weight: 700;
+            margin: 32px 0 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--kiwi-dark);
+            color: var(--kiwi-dark);
+        }
+        h2:first-of-type { margin-top: 0; }
+        p { margin: 12px 0; }
+        ul { margin: 12px 0; padding-left: 1.5rem; }
+        li { margin: 8px 0; }
+        a { color: var(--kiwi-link); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .footer {
+            background: var(--kiwi-surface);
+            border-top: 1px solid var(--kiwi-lightgrey);
+            padding: 24px;
+            margin-top: auto;
+        }
+        .footer-inner {
+            max-width: 720px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .legal-links { font-size: 0.875rem; margin-bottom: 12px; }
+        .legal-links a { color: var(--kiwi-grey); margin: 0 8px; }
+        .legal-links a:hover { color: var(--kiwi-link); }
+        .copyright { font-size: 0.8125rem; color: var(--kiwi-grey); }
+        .summary-box {
+            background: var(--kiwi-surface);
+            border: 1px solid var(--kiwi-lightgrey);
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 32px;
+            font-size: 0.9375rem;
+        }
+        .detail-label {
+            font-size: 0.8125rem;
+            color: var(--kiwi-grey);
+            margin: 24px 0 8px;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin: 16px 0;
+        }
+        .info-table th {
+            background: #F5F5F5;
+            border: 1px solid var(--kiwi-lightgrey);
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            width: 30%;
+        }
+        .info-table td {
+            border: 1px solid var(--kiwi-lightgrey);
+            padding: 10px 14px;
+            vertical-align: top;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-inner">
+            <a href="/" class="logo">KIWIMU MBTI Lab</a>
+            <a href="/" class="back">← 홈으로 돌아가기</a>
+        </div>
+    </header>
+    <main class="main">
+        <h1 class="page-title">서비스 이용약관</h1>
+        <p class="updated">최종 업데이트: 2026년 2월 23일</p>
+
+        <div class="summary-box">
+            <strong>쉽게 말하면:</strong> 이 서비스는 자기 탐색과 오락을 위한 무료 성격 진단 도구입니다. 전문적인 심리·의료 조언이 아닙니다. 올바르게 이용해 주세요. 문제가 생기면 먼저 연락 주시면 함께 해결하겠습니다.
+        </div>
+        <p class="detail-label">아래에 전체 약관 내용을 안내합니다.</p>
+
+        <h2>제1조 (서비스 개요)</h2>
+        <p>KIWIMU MBTI Lab(이하 "서비스")은 Moon Island Dessert가 운영하는 MBTI식 성격 탐색 서비스입니다. 이용자의 응답을 바탕으로 개인화된 성격 프로필을 제공합니다.</p>
+        <p>진단 결과는 오락·자기 탐색·개인적 성찰을 위한 것으로, 전문적인 심리 평가, 의료 진단, 정신건강 상담 또는 직업 조언을 대체하지 않습니다.</p>
+
+        <h2>제2조 (이용 자격)</h2>
+        <p>서비스는 만 14세 이상(정보통신망법 기준) 이용자를 대상으로 합니다. 만 18세 미만의 경우 보호자의 동의하에 이용하시기 바랍니다. 서비스 이용 시 이 조건을 충족하였음을 확인하는 것으로 간주합니다.</p>
+
+        <h2>제3조 (계정)</h2>
+        <p>계정 없이도 진단을 받을 수 있습니다. Google 계정으로 로그인하면 결과 저장 및 변화 추적이 가능합니다. 계정 관리의 책임은 이용자 본인에게 있으며, 계정은 개인 사용 목적에 한하며 양도·공유할 수 없습니다.</p>
+
+        <h2>제4조 (금지 행위)</h2>
+        <p>이용자는 서비스 이용 시 다음 행위를 해서는 안 됩니다.</p>
+        <ul>
+            <li>서비스의 리버스 엔지니어링, 스크래핑, 무단 복제</li>
+            <li>자동화 도구를 이용한 답변 제출 또는 사용자 데이터 접근</li>
+            <li>다른 이용자 또는 플랫폼에 손해를 끼칠 수 있는 행위</li>
+            <li>사전 서면 동의 없이 상업적 목적으로 서비스 이용</li>
+            <li>관련 법령 또는 공서양속에 반하는 행위</li>
+        </ul>
+
+        <h2>제5조 (지식재산권)</h2>
+        <p>서비스의 모든 콘텐츠(텍스트, 시각 디자인, 일러스트, 성격 유형 설명 등 포함)는 Moon Island Dessert 또는 라이선서에 귀속되며 저작권법에 의해 보호됩니다. 개인 진단 결과는 비상업적 목적으로 공유할 수 있습니다. 서면 허가 없이 서비스의 일부를 복제·상업적으로 이용하는 것은 금지됩니다.</p>
+
+        <h2>제6조 (면책 사항)</h2>
+        <ul>
+            <li>서비스는 명시적·묵시적 보증 없이 "있는 그대로" 제공됩니다.</li>
+            <li>MBTI식 진단 결과는 참고 지표이며, 의학적 진단이 아닙니다. 결과는 응시 시마다 달라질 수 있습니다.</li>
+            <li>서비스의 지속적인 제공을 보장하지 않으며, 점검 등의 사유로 일시 중단될 수 있습니다.</li>
+        </ul>
+
+        <h2>제7조 (책임의 제한)</h2>
+        <p>관련 법률이 허용하는 최대 범위 내에서, Moon Island Dessert는 서비스 이용 또는 이용 불가로 인해 발생하는 간접적·부수적·특별·파생적 손해에 대해 책임을 지지 않습니다.</p>
+        <p>본 조항은 소비자기본법, 전자상거래 등에서의 소비자보호에 관한 법률 등 강행 법규에 의한 이용자의 권리를 제한하지 않습니다.</p>
+
+        <h2>제8조 (서비스 중단 및 이용 제한)</h2>
+        <p>이용약관을 위반한 경우 당사는 계정을 정지 또는 해지할 권리를 보유합니다. 계정 삭제를 원하시는 경우 <a href="/privacy-ko.html">개인정보처리방침</a>에 기재된 연락처로 요청해 주시면, 30일 이내에 데이터를 삭제합니다.</p>
+
+        <h2>제9조 (약관의 변경)</h2>
+        <p>당사는 약관을 수시로 변경할 수 있습니다. 변경 시 상단의 "최종 업데이트" 날짜를 수정하며, 중요한 변경 사항은 서비스 내 공지를 통해 알립니다. 변경 후 서비스를 계속 이용하면 새로운 약관에 동의한 것으로 간주합니다. 동의하지 않으실 경우 서비스 이용을 중단하고 계정 삭제를 요청하실 수 있습니다.</p>
+
+        <h2>제10조 (준거법 및 분쟁 해결)</h2>
+
+        <table class="info-table">
+            <tr>
+                <th>사업자 정보</th>
+                <td>Moon Island Dessert</td>
+            </tr>
+            <tr>
+                <th>소재지</th>
+                <td>대만 (중화민국)</td>
+            </tr>
+            <tr>
+                <th>준거법</th>
+                <td>중화민국(대만) 법률</td>
+            </tr>
+            <tr>
+                <th>분쟁 해결</th>
+                <td>우선 이메일·LINE을 통한 협의 → 합의 불가 시 대만 타이베이 지방법원 제1심</td>
+            </tr>
+        </table>
+
+        <p>본 약관의 어떤 내용도 이용자가 거주하는 국가의 강행적 소비자보호법상 권리를 제한하지 않습니다.</p>
+
+        <h2>제11조 (기타)</h2>
+        <p>본 약관의 일부 조항이 무효로 판단되더라도 나머지 조항은 계속 유효합니다. 본 약관과 <a href="/privacy-ko.html">개인정보처리방침</a>은 서비스에 관한 이용자와 당사 간의 완전한 합의를 구성합니다. 서비스를 이용함으로써 본 약관 및 개인정보처리방침에 동의하는 것으로 간주합니다.</p>
+
+        <h2>제12조 (문의처)</h2>
+        <ul>
+            <li><strong>LINE 공식 계정</strong>: <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener">https://lin.ee/r19wTnY</a></li>
+            <li><strong>Linktree</strong>: <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener">https://linktr.ee/moon_moon_dessert</a></li>
+        </ul>
+    </main>
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="legal-links">
+                <a href="/privacy-ko.html">개인정보처리방침</a>
+                <a href="/terms-ko.html">서비스 이용약관</a>
+            </div>
+            <p class="copyright">© 2026 KIWIMU MBTI Lab. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -183,6 +183,25 @@ export const resultTranslations = {
         // Discord modal (hardcoded in Result.tsx)
         discord_input_placeholder: '請輸入 Discord User ID',
         discord_assigning: '正在發放身份組...',
+
+        // ResultCardFlow missing keys
+        gate_title: '解鎖深度分析<br/>保存你的結果',
+        gate_desc: '免費建立帳號，解鎖完整職涯、關係與靈魂分析報告。',
+        gate_login: 'Google 登入',
+        gate_continue: '繼續查看',
+        gate_skip: '直接探索（不保存）',
+        dessert_series: '系列',
+        dessert_quad: '象限',
+        drink_recommend: '飲品推薦',
+        drink_a_best: '堅定型最佳配對',
+        drink_t_best: '動盪型最佳配對',
+        book_dessert: '預約甜點體驗',
+        continue_deep: '繼續深度分析',
+        deep_analysis_unlock: '你的完整報告已解鎖。',
+        share_title: '我是 {id}-{suffix}，{title}｜Kiwimu MBTI',
+        share_text: '我的靈魂甜點是 {dessert}！來看看你的 Kiwimu 檔案吧✨',
+        share_alert: '已複製連結',
+        radar_capability: '能力',
     },
 
     en: {
@@ -362,6 +381,25 @@ export const resultTranslations = {
 
         discord_input_placeholder: 'Enter your Discord User ID',
         discord_assigning: 'Assigning role...',
+
+        // ResultCardFlow missing keys
+        gate_title: 'Unlock Your<br/>Deep Profile',
+        gate_desc: 'Create a free account to save your results and unlock the full career, relationships & soul analysis.',
+        gate_login: 'Continue with Google',
+        gate_continue: 'View My Profile',
+        gate_skip: 'Explore without saving',
+        dessert_series: 'SERIES',
+        dessert_quad: 'QUAD',
+        drink_recommend: 'DRINK PAIRING',
+        drink_a_best: 'Assertive favorite',
+        drink_t_best: 'Turbulent favorite',
+        book_dessert: 'Book Your Dessert',
+        continue_deep: 'Continue to Deep Dive',
+        deep_analysis_unlock: 'Your full profile is now unlocked.',
+        share_title: 'I\'m {id}-{suffix}, {title} | Kiwimu MBTI',
+        share_text: 'My soul dessert is {dessert}! Discover your Kiwimu profile ✨',
+        share_alert: 'Link copied to clipboard',
+        radar_capability: 'Capability',
     },
 
     ja: {
@@ -535,6 +573,25 @@ export const resultTranslations = {
 
         discord_input_placeholder: 'Discord User IDを入力',
         discord_assigning: 'ロールを付与中...',
+
+        // ResultCardFlow missing keys
+        gate_title: '深層プロフィールを<br/>解放する',
+        gate_desc: '無料アカウントを作成して、結果を保存。キャリア・人間関係・ソウル分析のフルレポートをアンロックしましょう。',
+        gate_login: 'Googleで続ける',
+        gate_continue: 'プロフィールを見る',
+        gate_skip: '保存せずに続ける',
+        dessert_series: 'シリーズ',
+        dessert_quad: 'クワッド',
+        drink_recommend: 'ドリンクペアリング',
+        drink_a_best: '自信型のおすすめ',
+        drink_t_best: '敏感型のおすすめ',
+        book_dessert: 'デザートを予約する',
+        continue_deep: '深層分析へ進む',
+        deep_analysis_unlock: 'フルプロフィールが解放されました。',
+        share_title: '{id}-{suffix}・{title} | Kiwimu MBTI',
+        share_text: '私のソウルデザートは{dessert}！あなたのKiwimuプロフィールも見てみて ✨',
+        share_alert: 'リンクをコピーしました',
+        radar_capability: '能力値',
     },
 
     ko: {
@@ -707,6 +764,25 @@ export const resultTranslations = {
 
         discord_input_placeholder: 'Discord User ID를 입력하세요',
         discord_assigning: '역할 부여 중...',
+
+        // ResultCardFlow missing keys
+        gate_title: '나의 심층 프로필<br/>잠금 해제하기',
+        gate_desc: '무료 계정을 만들어 결과를 저장하고 커리어·관계·소울 분석 전체 보고서를 해제하세요.',
+        gate_login: 'Google로 계속하기',
+        gate_continue: '내 프로필 보기',
+        gate_skip: '저장 없이 탐험하기',
+        dessert_series: '시리즈',
+        dessert_quad: '쿼드',
+        drink_recommend: '드링크 페어링',
+        drink_a_best: '확신형 추천',
+        drink_t_best: '격동형 추천',
+        book_dessert: '디저트 예약하기',
+        continue_deep: '심층 분석으로 계속하기',
+        deep_analysis_unlock: '전체 프로필이 잠금 해제되었습니다.',
+        share_title: '{id}-{suffix} · {title} | Kiwimu MBTI',
+        share_text: '내 소울 디저트는 {dessert}! Kiwimu 프로필 확인해봐요 ✨',
+        share_alert: '링크가 복사되었습니다',
+        radar_capability: '역량 지수',
     }
 };
 

@@ -4,9 +4,11 @@ import { buildDessertOrderLink } from '../../utils/utmTracking';
 
 interface DessertCardProps extends CardProps {
     anchor: any;
+    displayHook?: string;
+    langKey?: 'zh' | 'en' | 'ja' | 'ko';
 }
 
-export const DessertCard: React.FC<DessertCardProps> = ({ resultData, identitySuffix, anchor, t, onNext }) => {
+export const DessertCard: React.FC<DessertCardProps> = ({ resultData, identitySuffix, anchor, t, onNext, displayHook, langKey = 'zh' }) => {
     return (
         <div className="w-full h-full flex flex-col bg-white overflow-hidden pb-16">
             <div className="flex-1 overflow-y-auto no-scrollbar relative">
@@ -22,8 +24,8 @@ export const DessertCard: React.FC<DessertCardProps> = ({ resultData, identitySu
                 </div>
 
                 <div className="px-6 py-8">
-                    <p className="font-serif text-lg leading-relaxed text-gray-800 mb-6 text-justify">
-                        {anchor.hook}
+                    <p className={`font-serif text-lg leading-relaxed text-gray-800 mb-6 text-justify ${langKey === 'ja' || langKey === 'ko' ? 'leading-loose' : ''}`}>
+                        {displayHook || anchor.hook}
                     </p>
 
                     <div className="flex flex-wrap gap-2 mb-8">

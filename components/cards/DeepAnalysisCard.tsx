@@ -1,6 +1,6 @@
 import React from 'react';
 import { CardProps } from './Types';
-import { getRarityData, getRarityLabel, getRarityMessage } from '../../data/rarityData';
+import { getRarityData, getRarityMessageI18n } from '../../data/rarityData';
 import { getCelebrityArchetypes } from '../../data/celebrityData';
 
 interface DeepAnalysisProps extends CardProps {
@@ -11,12 +11,14 @@ interface DeepAnalysisProps extends CardProps {
     displayRelStyle: string;
     displayRelAdvice: string;
     displayRelStrengths: string;
+    langKey?: 'zh' | 'en' | 'ja' | 'ko';
 }
 
 export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
     resultData,
     identitySuffix,
     t,
+    i18nContent,
     displayStrengths,
     displayBlindSpots,
     displayCareerStyle,
@@ -24,10 +26,21 @@ export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
     displayRelStyle,
     displayRelAdvice,
     displayRelStrengths,
+    langKey = 'zh',
 }) => {
     const rarityData = getRarityData(resultData.id);
-    const rarityMessage = rarityData ? getRarityMessage(rarityData.rank) : '';
+    const rarityMessage = rarityData ? getRarityMessageI18n(rarityData.rank, langKey) : '';
     const archetypes = getCelebrityArchetypes(resultData.id);
+
+    // Use i18nContent soul questions when available (EN/JA/KO), fallback to resultData for ZH
+    // i18nContent.soulQuestions is a pipe-separated string; resultData.soulQuestions is already an array
+    const rawSoulQs: string | undefined = i18nContent?.soulQuestions;
+    const soulQuestions: string[] = rawSoulQs
+        ? rawSoulQs.split(' | ').map((q: string) => q.trim()).filter(Boolean)
+        : resultData.soulQuestions;
+
+    // For non-ZH: use English name + English traits/profession if available
+    const isLocalized = langKey !== 'zh';
 
     return (
         <div className="w-full h-full flex flex-col bg-white overflow-hidden pb-16">
@@ -51,11 +64,11 @@ export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
                     <div className="space-y-8">
                         <div className="border-l-2 border-kiwi-dark pl-4">
                             <h4 className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-400 mb-2">{t('work_style')}</h4>
-                            <p className="text-base font-serif text-gray-800 leading-relaxed text-justify">{displayCareerStyle}</p>
+                            <p className={`text-base font-serif text-gray-800 leading-relaxed text-justify ${langKey === 'ja' ? 'leading-loose' : langKey === 'ko' ? 'leading-loose' : ''}`}>{displayCareerStyle}</p>
                         </div>
                         <div className="border-l-2 border-kiwi-dark pl-4">
                             <h4 className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-400 mb-2">{t('strategic_advice')}</h4>
-                            <p className="text-base font-serif text-gray-600 leading-relaxed italic text-justify">{displayCareerAdvice}</p>
+                            <p className={`text-base font-serif text-gray-600 leading-relaxed italic text-justify ${langKey === 'ja' ? 'leading-loose' : langKey === 'ko' ? 'leading-loose' : ''}`}>{displayCareerAdvice}</p>
                         </div>
                     </div>
                 </div>
@@ -72,11 +85,11 @@ export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
                     <div className="space-y-8">
                         <div className="border-l-2 border-kiwi-dark pl-4">
                             <h4 className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-400 mb-2">{t('love_philosophy')}</h4>
-                            <p className="text-base font-serif text-gray-800 leading-relaxed text-justify">{displayRelStyle}</p>
+                            <p className={`text-base font-serif text-gray-800 leading-relaxed text-justify ${langKey === 'ja' ? 'leading-loose' : langKey === 'ko' ? 'leading-loose' : ''}`}>{displayRelStyle}</p>
                         </div>
                         <div className="border-l-2 border-kiwi-dark pl-4">
                             <h4 className="text-[10px] font-bold tracking-[0.3em] uppercase text-gray-400 mb-2">{t('navigational_advice')}</h4>
-                            <p className="text-base font-serif text-gray-600 leading-relaxed italic text-justify">{displayRelAdvice}</p>
+                            <p className={`text-base font-serif text-gray-600 leading-relaxed italic text-justify ${langKey === 'ja' ? 'leading-loose' : langKey === 'ko' ? 'leading-loose' : ''}`}>{displayRelAdvice}</p>
                         </div>
                     </div>
                 </div>
@@ -89,7 +102,7 @@ export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
                             {displayStrengths.map((s, i) => (
                                 <li key={i} className="flex items-start gap-4 text-gray-700 font-serif">
                                     <span className="text-[10px] text-gray-300 font-bold mt-1">0{i + 1}.</span>
-                                    <span className="text-base leading-snug">{s}</span>
+                                    <span className={`text-base leading-snug ${langKey === 'ja' || langKey === 'ko' ? 'leading-relaxed' : ''}`}>{s}</span>
                                 </li>
                             ))}
                         </ul>
@@ -100,7 +113,7 @@ export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
                             {displayBlindSpots.map((s, i) => (
                                 <li key={i} className="flex items-start gap-4 text-gray-400 font-serif opacity-80">
                                     <span className="text-[10px] text-gray-200 font-bold mt-1">0{i + 1}.</span>
-                                    <span className="text-base leading-snug">{s}</span>
+                                    <span className={`text-base leading-snug ${langKey === 'ja' || langKey === 'ko' ? 'leading-relaxed' : ''}`}>{s}</span>
                                 </li>
                             ))}
                         </ul>
@@ -137,19 +150,24 @@ export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
                     <div className="px-6 py-12 border-b border-gray-100 bg-[#f8f5f0]">
                         <h3 className="text-center text-[10px] font-bold tracking-[0.5em] uppercase text-gray-400 mb-8">{t('archetypes')}</h3>
                         <div className="space-y-6">
-                            {archetypes.map((archetype, index) => (
-                                <div key={index} className="bg-white p-6 border border-gray-200 shadow-sm">
-                                    <h4 className="text-lg font-serif font-bold text-kiwi-dark">{archetype.name}</h4>
-                                    <p className="text-[10px] text-gray-400 tracking-wider uppercase mb-4">{archetype.profession}</p>
-                                    <ul className="space-y-2">
-                                        {archetype.resonanceTraits.map((trait, i) => (
-                                            <li key={i} className="text-sm font-serif text-gray-700 leading-relaxed flex gap-2">
-                                                <span className="text-kiwi-dark">•</span>{trait}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
+                            {archetypes.map((archetype, index) => {
+                                const displayName = isLocalized ? archetype.nameEn : archetype.name;
+                                const displayProfession = isLocalized ? (archetype.professionEn || archetype.profession) : archetype.profession;
+                                const displayTraits = isLocalized ? (archetype.resonanceTraitsEn || archetype.resonanceTraits) : archetype.resonanceTraits;
+                                return (
+                                    <div key={index} className="bg-white p-6 border border-gray-200 shadow-sm">
+                                        <h4 className="text-lg font-serif font-bold text-kiwi-dark">{displayName}</h4>
+                                        <p className="text-[10px] text-gray-400 tracking-wider uppercase mb-4">{displayProfession}</p>
+                                        <ul className="space-y-2">
+                                            {displayTraits.map((trait, i) => (
+                                                <li key={i} className={`text-sm font-serif text-gray-700 leading-relaxed flex gap-2 ${langKey === 'ja' || langKey === 'ko' ? 'leading-loose' : ''}`}>
+                                                    <span className="text-kiwi-dark">•</span>{trait}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
@@ -158,10 +176,10 @@ export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
                 <div className="px-6 py-16 text-center">
                     <h3 className="text-center text-[10px] font-bold tracking-[0.5em] uppercase text-gray-400 mb-10">{t('soul_reflection')}</h3>
                     <div className="space-y-6">
-                        {resultData.soulQuestions.map((q, idx) => (
+                        {soulQuestions.map((q, idx) => (
                             <div key={idx} className="bg-white border border-gray-100 p-6 flex flex-col items-center">
                                 <span className="text-3xl font-display font-bold text-gray-100 mb-2 pl-2">0{idx + 1}</span>
-                                <p className="text-base font-serif leading-relaxed italic text-gray-800">{q}</p>
+                                <p className={`text-base font-serif leading-relaxed italic text-gray-800 ${langKey === 'ja' ? 'leading-loose' : langKey === 'ko' ? 'leading-loose' : ''}`}>{q}</p>
                             </div>
                         ))}
                     </div>
@@ -169,11 +187,11 @@ export const DeepAnalysisCard: React.FC<DeepAnalysisProps> = ({
 
                 {/* 7. Closing Quote */}
                 <div className="px-6 py-20 text-center bg-white border-t border-gray-100">
-                    <div className="text-gray-100 text-[80px] font-display opacity-40 mb-[-40px] select-none font-bold block">“</div>
+                    <div className="text-gray-100 text-[80px] font-display opacity-40 mb-[-40px] select-none font-bold block">"</div>
                     <h2 className="text-xl font-serif font-bold text-kiwi-dark leading-snug italic relative z-10">
                         {t('closing_quote')}
                     </h2>
-                    <div className="text-gray-100 text-[80px] font-display opacity-40 mt-[-20px] select-none font-bold block">”</div>
+                    <div className="text-gray-100 text-[80px] font-display opacity-40 mt-[-20px] select-none font-bold block">"</div>
 
                     <div className="mt-16 mb-8 text-center">
                         <p className="text-[10px] text-gray-400 tracking-widest font-bold uppercase mb-4">You have reached the end.</p>

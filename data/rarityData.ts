@@ -50,3 +50,30 @@ export const getRarityMessage = (rank: number): string => {
     if (rank <= 12) return '你在人群中有自己的位置';
     return '你代表著穩定與連結';
 };
+
+// Internationalized versions — contextually localized, not direct translations
+export const getRarityMessageI18n = (rank: number, lang: string): string => {
+    const messages: Record<string, Record<number, string>> = {
+        en: {
+            1: 'You\'re not strange — you\'re simply rare.',
+            2: 'Your way of thinking is genuinely distinctive.',
+            3: 'You hold a quiet but meaningful place in the crowd.',
+            4: 'You are the steady force others rely on.',
+        },
+        ja: {
+            1: 'あなたは変わり者じゃない。ただ、少数派なだけ。',
+            2: 'あなたの思考方法は本当にユニークです。',
+            3: 'あなたは人々の中で静かながらも確かな存在感を持っています。',
+            4: 'あなたは周りが頼りにする、安定した力の源です。',
+        },
+        ko: {
+            1: '당신은 이상한 게 아니에요 — 그저 소수일 뿐이에요.',
+            2: '당신만의 독특한 사고 방식을 가지고 있어요.',
+            3: '사람들 사이에서 조용하지만 의미 있는 자리를 갖고 있어요.',
+            4: '당신은 주변이 의지하는 안정적인 힘이에요.',
+        },
+    };
+    if (lang === 'zh') return getRarityMessage(rank);
+    const bucket = rank <= 4 ? 1 : rank <= 8 ? 2 : rank <= 12 ? 3 : 4;
+    return (messages[lang] as Record<number, string>)?.[bucket] ?? getRarityMessage(rank);
+};
