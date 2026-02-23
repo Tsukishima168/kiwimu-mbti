@@ -1,17 +1,31 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import * as admin from 'firebase-admin';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
 const CHANNEL_ID = process.env.DISCORD_CHANNEL_ID || '1466020032310939823'; // #results channel
 
-// 初始化 Firebase（如果還未初始化）
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
-    });
+// ── Firebase Admin：懶加載，避免 Vercel 啟動時因缺少憑證而 crash ──
+let _db: any = null;
+function getFirestore() {
+    if (_db) return _db;
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const admin = require('firebase-admin');
+        if (!admin.apps.length) {
+            // 優先嘗試 JSON 格式的 service account（Vercel env var）
+            const svcJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+            if (svcJson) {
+                admin.initializeApp({ credential: admin.credential.cert(JSON.parse(svcJson)) });
+            } else {
+                admin.initializeApp({ credential: admin.credential.applicationDefault() });
+            }
+        }
+        _db = admin.firestore();
+        return _db;
+    } catch (e) {
+        console.warn('[DISCORD] Firebase init skipped (no credentials):', (e as Error).message);
+        return null;
+    }
 }
-
-const db = admin.firestore();
 
 // 多語言配置
 const LOCALES = {
@@ -80,11 +94,14 @@ export default async function handler(
     });
 
     try {
-        // 取得目前總測驗人數
+        // 取得目前總測驗人數（Firebase 可選）
         let totalCount = 0;
         try {
-            const countSnapshot = await db.collection('discord_notifications').count().get();
-            totalCount = countSnapshot.data().count + 1; // 包含這次
+            const db = getFirestore();
+            if (db) {
+                const countSnapshot = await db.collection('discord_notifications').count().get();
+                totalCount = countSnapshot.data().count + 1;
+            }
         } catch (e) {
             console.warn('[DISCORD] Failed to get count', e);
         }
@@ -156,19 +173,23 @@ export default async function handler(
             timestamp: new Date().toISOString()
         });
 
-        // 記錄到 Firestore（用於分析）
+        // 記錄到 Firestore（用於分析，可選）
         try {
-            await db.collection('discord_notifications').add({
-                resultType,
-                personalityName,
-                locale,
-                userId: userId || 'anonymous',
-                sentAt: admin.firestore.FieldValue.serverTimestamp(),
-                messageId: responseData.id,
-                channelId: CHANNEL_ID,
-                platform: 'discord',
-                market: localeConfig.country
-            });
+            const db = getFirestore();
+            if (db) {
+                const { firestore } = require('firebase-admin');
+                await db.collection('discord_notifications').add({
+                    resultType,
+                    personalityName,
+                    locale,
+                    userId: userId || 'anonymous',
+                    sentAt: firestore.FieldValue.serverTimestamp(),
+                    messageId: responseData.id,
+                    channelId: CHANNEL_ID,
+                    platform: 'discord',
+                    market: localeConfig.country
+                });
+            }
         } catch (firestoreError) {
             console.warn('[DISCORD] Failed to log to Firestore:', firestoreError);
             // 不中斷推播流程
