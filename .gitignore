@@ -23,6 +23,19 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.*
+!.env.example
+
+# 🔴 Service Account 金鑰 — 永遠不要 commit
+*-adminsdk-*.json
+*-service-account*.json
+firebase-adminsdk-key.json
+serviceAccount*.json
+*-credentials.json
+
+# 敏感設定
+config.json
+*.key.json
 
 # IG Story 匯出圖（可隨時用 export-story-images.cjs 重新產生）
 dev-previews/output
