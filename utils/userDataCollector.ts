@@ -3,6 +3,7 @@
 
 import { db } from '../firestore.config';
 import { doc, setDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { saveUserBehaviorToSupabase, upsertUserStats } from '../services/supabase-user.service';
 
 // ============================================
 // 用戶資料結構
@@ -164,9 +165,12 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
       ...behaviorData,
       createdAt: serverTimestamp()
     });
-    
+
     console.log('✅ 用戶行為已儲存到 Firebase');
-    
+
+    // 雙寫到 Supabase（fire-and-forget，失敗不影響主流程）
+    void saveUserBehaviorToSupabase(uid, behaviorData);
+
     // 更新用戶統計
     await updateUserStats(uid, mbtiType, variant);
     
@@ -203,8 +207,12 @@ async function updateUserStats(uid: string, mbtiType?: string, variant?: string)
     }
     
     await updateDoc(statsRef, updateData);
-    
+
     console.log('✅ 用戶統計已更新');
+
+    // 雙寫到 Supabase（fire-and-forget）
+    const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
+    void upsertUserStats(uid, mbtiType, variant, sessionData.utmSource);
   } catch (error) {
     console.error('❌ 更新用戶統計失敗:', error);
   }

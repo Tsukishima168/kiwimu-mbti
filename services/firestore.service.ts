@@ -14,6 +14,12 @@ import {
 } from 'firebase/firestore';
 import { db, CURRENT_QUIZ_VERSION } from '../firestore.config';
 import { QuizProgress, TestRun, UserDocument } from '../types';
+import {
+    upsertUser,
+    saveQuizProgressToSupabase,
+    deleteQuizProgressFromSupabase,
+    saveTestRunToSupabase,
+} from './supabase-user.service';
 
 /**
  * User operations
@@ -40,6 +46,13 @@ export const createOrUpdateUser = async (
             ...data,
         });
     }
+
+    // 雙寫到 Supabase（fire-and-forget，失敗不影響主流程）
+    void upsertUser(uid, {
+        displayName: data.displayName,
+        email: data.email,
+        profile: data.profile as Record<string, unknown> | undefined,
+    });
 };
 
 export const getUser = async (uid: string): Promise<UserDocument | null> => {
@@ -67,6 +80,9 @@ export const saveProgressToCloud = async (
         ...progress,
         updatedAt: Date.now(),
     });
+
+    // 雙寫到 Supabase（fire-and-forget）
+    void saveQuizProgressToSupabase(uid, progress);
 };
 
 export const loadProgressFromCloud = async (
@@ -90,6 +106,9 @@ export const deleteProgress = async (
     const progressDocId = `${uid}_${quizVersion}`;
     const progressRef = doc(db, 'quiz_progress', progressDocId);
     await deleteDoc(progressRef);
+
+    // 雙寫到 Supabase（fire-and-forget）
+    void deleteQuizProgressFromSupabase(uid, quizVersion);
 };
 
 /**
@@ -129,6 +148,9 @@ export const saveTestRun = async (
         mbtiType: run.mbtiType,
         createdAt: Date.now(),
     });
+
+    // 雙寫到 Supabase（fire-and-forget）
+    void saveTestRunToSupabase(docRef.id, run, shareId, shareUrl);
 
     return docRef.id;
 };
