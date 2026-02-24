@@ -11,7 +11,7 @@ import { saveUserBehaviorToSupabase, upsertUserStats } from '../services/supabas
 export interface UserBehaviorData {
   uid: string;
   sessionId: string;
-  
+
   // 基本資訊
   timestamp: number;
   userAgent: string;
@@ -19,15 +19,15 @@ export interface UserBehaviorData {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
-  
+
   // 測驗資料
   mbtiType?: string;
   variant?: string;
   completionTime?: number; // 完成測驗花費時間（秒）
-  
+
   // 行為資料
   actions: UserAction[];
-  
+
   // 裝置資訊
   device: {
     type: 'mobile' | 'tablet' | 'desktop';
@@ -54,7 +54,7 @@ export function initSession() {
   currentSession = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   sessionStartTime = Date.now();
   userActions = [];
-  
+
   // 記錄進入來源
   const urlParams = new URLSearchParams(window.location.search);
   const sessionData = {
@@ -67,10 +67,10 @@ export function initSession() {
     utmContent: urlParams.get('utm_content'),
     utmTerm: urlParams.get('utm_term'),
   };
-  
+
   // 儲存到 localStorage
   localStorage.setItem('kiwimu_session', JSON.stringify(sessionData));
-  
+
   console.log('📊 Session 已初始化:', currentSession);
   return currentSession;
 }
@@ -91,14 +91,14 @@ export function trackAction(action: string, metadata?: any) {
     timestamp: Date.now(),
     metadata
   };
-  
+
   userActions.push(actionData);
-  
+
   // 同步到 localStorage（防止重新整理遺失）
   const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
   sessionData.actions = userActions;
   localStorage.setItem('kiwimu_session', JSON.stringify(sessionData));
-  
+
   console.log('📝 行為記錄:', action, metadata);
 }
 
@@ -107,7 +107,7 @@ export function trackAction(action: string, metadata?: any) {
 // ============================================
 export function detectDevice() {
   const ua = navigator.userAgent;
-  
+
   // 裝置類型
   let type: 'mobile' | 'tablet' | 'desktop' = 'desktop';
   if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
@@ -115,7 +115,7 @@ export function detectDevice() {
   } else if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
     type = 'mobile';
   }
-  
+
   // 作業系統
   let os = 'Unknown';
   if (ua.indexOf('Win') !== -1) os = 'Windows';
@@ -123,7 +123,7 @@ export function detectDevice() {
   else if (ua.indexOf('Linux') !== -1) os = 'Linux';
   else if (ua.indexOf('Android') !== -1) os = 'Android';
   else if (ua.indexOf('iOS') !== -1 || ua.indexOf('iPhone') !== -1 || ua.indexOf('iPad') !== -1) os = 'iOS';
-  
+
   // 瀏覽器
   let browser = 'Unknown';
   if (ua.indexOf('Chrome') !== -1) browser = 'Chrome';
@@ -131,7 +131,7 @@ export function detectDevice() {
   else if (ua.indexOf('Firefox') !== -1) browser = 'Firefox';
   else if (ua.indexOf('MSIE') !== -1 || ua.indexOf('Trident/') !== -1) browser = 'IE';
   else if (ua.indexOf('Edge') !== -1) browser = 'Edge';
-  
+
   return { type, os, browser };
 }
 
@@ -142,7 +142,7 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
   try {
     const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
     const device = detectDevice();
-    
+
     const behaviorData: Partial<UserBehaviorData> = {
       uid,
       sessionId: getSession(),
@@ -158,7 +158,7 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
       actions: userActions,
       device
     };
-    
+
     // 儲存到 Firestore
     const behaviorRef = doc(db, 'user_behaviors', `${uid}_${Date.now()}`);
     await setDoc(behaviorRef, {
@@ -173,7 +173,7 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
 
     // 更新用戶統計
     await updateUserStats(uid, mbtiType, variant);
-    
+
   } catch (error) {
     console.error('❌ 儲存用戶行為失敗:', error);
   }
@@ -185,33 +185,32 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
 async function updateUserStats(uid: string, mbtiType?: string, variant?: string) {
   try {
     const statsRef = doc(db, 'user_stats', uid);
-    
+
     const updateData: any = {
       lastActive: serverTimestamp(),
       totalSessions: increment(1),
     };
-    
+
     if (mbtiType) {
       updateData.lastMbtiType = mbtiType;
       updateData[`mbtiTypes.${mbtiType}`] = increment(1);
     }
-    
+
     if (variant) {
       updateData.lastVariant = variant;
     }
-    
+
     // 更新來源統計
     const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
     if (sessionData.utmSource) {
       updateData[`sources.${sessionData.utmSource}`] = increment(1);
     }
-    
+
     await updateDoc(statsRef, updateData);
 
     console.log('✅ 用戶統計已更新');
 
     // 雙寫到 Supabase（fire-and-forget）
-    const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
     void upsertUserStats(uid, mbtiType, variant, sessionData.utmSource);
   } catch (error) {
     console.error('❌ 更新用戶統計失敗:', error);
@@ -224,7 +223,7 @@ async function updateUserStats(uid: string, mbtiType?: string, variant?: string)
 export function exportUserData() {
   const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
   const device = detectDevice();
-  
+
   return {
     session: sessionData,
     device,
@@ -283,10 +282,10 @@ export function endSession() {
   if (sessionStartTime) {
     const duration = Math.floor((Date.now() - sessionStartTime) / 1000);
     trackAction('session_end', { duration });
-    
+
     console.log(`📊 Session 結束，持續時間: ${duration}秒`);
   }
-  
+
   // 清理（可選，也可以保留供下次使用）
   // localStorage.removeItem('kiwimu_session');
 }
