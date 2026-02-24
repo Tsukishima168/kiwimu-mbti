@@ -20,7 +20,7 @@ export const upsertUser = async (
   if (!userDb) return;
   try {
     const { error } = await userDb
-      .from('mbti_users')
+      .from('users')
       .upsert(
         {
           uid,
@@ -50,7 +50,7 @@ export const saveQuizProgressToSupabase = async (
   try {
     const id = `${uid}_${progress.quizVersion}`;
     const { error } = await userDb
-      .from('mbti_quiz_progress')
+      .from('quiz_progress')
       .upsert(
         {
           id,
@@ -79,7 +79,7 @@ export const deleteQuizProgressFromSupabase = async (
   try {
     const id = `${uid}_${quizVersion}`;
     const { error } = await userDb
-      .from('mbti_quiz_progress')
+      .from('quiz_progress')
       .delete()
       .eq('id', id);
     if (error) console.error('[Supabase] deleteQuizProgressFromSupabase error:', error.message);
@@ -106,7 +106,7 @@ export const saveTestRunToSupabase = async (
 
     // 寫入測驗結果
     const { error: runError } = await userDb
-      .from('mbti_test_runs')
+      .from('test_runs')
       .insert({
         id: testId,
         uid: run.uid,
@@ -130,7 +130,7 @@ export const saveTestRunToSupabase = async (
 
     // 寫入分享連結
     const { error: linkError } = await userDb
-      .from('mbti_share_links')
+      .from('share_links')
       .insert({
         share_id: shareId,
         uid: run.uid,
@@ -157,7 +157,7 @@ export const saveUserBehaviorToSupabase = async (
   if (!userDb) return;
   try {
     const { error } = await userDb
-      .from('mbti_user_behaviors')
+      .from('user_behaviors')
       .insert({
         uid,
         session_id: data.sessionId ?? null,
@@ -195,7 +195,7 @@ export const upsertUserStats = async (
   try {
     // 讀取現有統計
     const { data: existing } = await userDb
-      .from('mbti_user_stats')
+      .from('user_stats')
       .select('total_sessions, mbti_types, sources')
       .eq('uid', uid)
       .single();
@@ -215,7 +215,7 @@ export const upsertUserStats = async (
     }
 
     const { error } = await userDb
-      .from('mbti_user_stats')
+      .from('user_stats')
       .upsert(
         {
           uid,

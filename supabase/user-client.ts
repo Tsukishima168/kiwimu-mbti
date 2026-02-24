@@ -15,4 +15,6 @@ if (!url || !key) {
  * Supabase client 專門用於用戶資料寫入（雙寫 Firebase）
  * 若環境變數未設定，為 null（雙寫靜默跳過）
  */
-export const userDb = url && key ? createClient(url, key) : null;
+export const userDb = url && key
+  ? createClient(url, key, { db: { schema: 'mbti' } })
+  : null;
