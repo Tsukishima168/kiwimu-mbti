@@ -233,8 +233,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex-shrink-0 px-4 md:px-6 py-4 text-xs md:text-sm font-mono tracking-wider transition-all ${activeTab === tab.id
-                        ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
-                        : 'text-gray-400 hover:text-gray-600'
+                      ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
+                      : 'text-gray-400 hover:text-gray-600'
                       }`}
                   >
                     <span className="hidden md:inline">{tab.en}</span>
@@ -974,7 +974,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             alignItems: 'center',
             marginTop: '60px'
           }}>
-            <span style={{ fontSize: '24px', fontFamily: 'monospace', color: '#D1D5DB' }}>kiwimu-lab.vercel.app</span>
+            <span style={{ fontSize: '24px', fontFamily: 'monospace', color: '#D1D5DB' }}>kiwimu.com</span>
             <span style={{ fontSize: '24px', fontFamily: 'monospace', fontWeight: 'bold', color: '#000' }}>KIWIMU</span>
           </div>
         </div>
