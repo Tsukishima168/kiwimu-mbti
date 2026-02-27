@@ -13,7 +13,7 @@
  *   triggerSharePoints();
  */
 
-import { PointAction, PointSource, WEEKLY_QUESTS } from '../../_共享_資料/gamification-types';
+import { PointAction, PointSource, WEEKLY_QUESTS } from '../types/gamification-types';
 
 const DEVICE_ID_KEY = 'moonmoon_device_id';
 const WEEKLY_LIMIT_PREFIX = 'kiwimu_weekly_limit_';
