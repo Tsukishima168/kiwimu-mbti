@@ -96,10 +96,10 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         </p>
                                     </div>
                                     <a
-                                        href={`https://moon-map-original.vercel.app/?mbti=${testRuns[0]?.result || ''}`}
+                                        href={`https://map.kiwimu.com/?mbti=${testRuns[0]?.result || ''}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        onClick={() => trackButtonClick('island_link', 'archive_cross_site', 'https://moon-map-original.vercel.app/')}
+                                        onClick={() => trackButtonClick('island_link', 'archive_cross_site', 'https://map.kiwimu.com/')}
                                         className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 hover:from-amber-500 hover:via-yellow-500 hover:to-orange-500 text-gray-900 font-bold text-base md:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap"
                                     >
                                         <span className="text-xl">🍰</span>

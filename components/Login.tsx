@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { auth, googleProvider } from '../firebase';
-import { signInWithPopup, User } from 'firebase/auth';
+import { signInWithPopup, User, GoogleAuthProvider } from 'firebase/auth';
 import { linkGoogleAccount } from '../utils/accountLinking';
+import { syncGoogleToSupabase } from '../utils/supabaseAuthBridge';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoginProps {
@@ -31,6 +32,12 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) =
         try {
             // Use our helper to attempt linking first
             const result = await linkGoogleAccount();
+
+            // [Bridge] 同步 Google idToken 至 Supabase（非阻塞，cookie domain = .kiwimu.com）
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            if (credential?.idToken) {
+                syncGoogleToSupabase(credential.idToken).catch(() => {}); // 失敗不影響主流程
+            }
 
             // Log user to Google Sheets
             try {

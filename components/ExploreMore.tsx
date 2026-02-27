@@ -10,9 +10,9 @@ interface ExploreMoreProps {
 export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, passportClaimUrl }) => {
   const dessertUrl = mbtiType
     ? buildDessertOrderLink(mbtiType, variant || 'A')
-    : 'https://dessert-booking.vercel.app';
+    : 'https://shop.kiwimu.com';
   const passportUrl = passportClaimUrl || buildPassportLink();
-  const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType) : 'https://moon-map-original.vercel.app';
+  const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType) : 'https://map.kiwimu.com';
 
   const products = [
     {

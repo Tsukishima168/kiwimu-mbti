@@ -1,6 +1,6 @@
 // Moon Map Integration
 export const buildMoonMapUrl = (mbtiType: string, variant: 'A' | 'T'): string => {
-    const baseUrl = 'https://moon-map-original.vercel.app'; // Moon Island 地圖網址
+    const baseUrl = 'https://map.kiwimu.com';
     return `${baseUrl}?from=mbti&type=${mbtiType}&variant=${variant}#easter-egg`;
 };
 

@@ -57,6 +57,7 @@ import NotFound from './components/NotFound';
 import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
 import ResultLegacyDump from './components/ResultLegacyDump';
+import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | '404';
 
@@ -340,6 +341,9 @@ const App: React.FC = () => {
     }
 
     setStage('result');
+
+    // 🎮 W2-6 / LIFF-3：MBTI 完成積分觸發（+2 pts，每週限一次）
+    triggerMbtiCompletePoints();
   };
 
   const handleLoginSuccess = () => {

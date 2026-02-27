@@ -1,21 +1,26 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBiG4Z8ccrx_nswypmuaeFaLAqtnH6Eqj8",
-  authDomain: "kiwimu-mbti.firebaseapp.com",
-  projectId: "kiwimu-mbti",
-  storageBucket: "kiwimu-mbti.firebasestorage.app",
-  messagingSenderId: "537717488268",
-  appId: "1:537717488268:web:e1586a9d8d5be06c0f59a9",
-  measurementId: "G-2NBWRX24YR"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 export const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
+
+// 僅在瀏覽器環境支援時初始化 Analytics（避免 SSR / 部分瀏覽器報錯）
+let analytics: ReturnType<typeof getAnalytics> | undefined;
+isSupported().then((supported) => {
+  if (supported) analytics = getAnalytics(app);
+});
 
 export { auth, googleProvider, analytics };
