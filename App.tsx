@@ -71,6 +71,8 @@ const App: React.FC = () => {
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showSaveToast, setShowSaveToast] = useState<{ show: boolean; success: boolean; message: string }>({ show: false, success: true, message: '' });
+  // 是否為分享連結瀏覽模式（?r=INFP-A）
+  const [isSharedView, setIsSharedView] = useState(false);
 
   // 【新增】測試模式狀態
   const [showTestPanel, setShowTestPanel] = useState(false);
@@ -188,6 +190,26 @@ const App: React.FC = () => {
         }
       }
 
+      // 【分享連結】?r=INFP-A → 載入該類型結果並進入 result 頁（瀏覽模式）
+      const rParam = new URLSearchParams(window.location.search).get('r');
+      if (rParam && !savedResult) {
+        const shareMatch = rParam.match(/^([A-Z]{4})-([AT])$/);
+        if (shareMatch) {
+          const [, sharedType, sharedSuffix] = shareMatch;
+          const sharedData = getResultData(sharedType);
+          setResultData(sharedData);
+          setScores({
+            E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0,
+            A: sharedSuffix === 'A' ? 8 : 0,
+            Turbulent: sharedSuffix === 'T' ? 8 : 0
+          });
+          setIsSharedView(true);
+          setStage('result');
+          setLoadingAuth(false);
+          return;
+        }
+      }
+
       if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
         setStage('callback');
       } else if (window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/)) {
@@ -298,13 +320,13 @@ const App: React.FC = () => {
     if (user) {
       saveCompletedTest(type, variant, scores)
         .then(() => {
-          setShowSaveToast({ show: true, success: true, message: '測驗結果已安全儲存' });
-          setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 3000);
+          setShowSaveToast({ show: true, success: true, message: '你的靈魂甜點配方已封存於 Kiwimu 宇宙 ✦' });
+          setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 3500);
         })
         .catch(err => {
           console.error('Failed to save test results:', err);
-          setShowSaveToast({ show: true, success: false, message: '結果已保存在此裝置，請稍後登入同步' });
-          setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4000);
+          setShowSaveToast({ show: true, success: false, message: '配方暫存於此裝置，入籍宇宙後可永久封存 🌙' });
+          setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4500);
         });
 
       // 儲存用戶行為資料到 Firebase
@@ -515,6 +537,7 @@ const App: React.FC = () => {
               user={user}
               onLogin={handleLogin}
               onLogout={handleLogout}
+              isSharedView={isSharedView}
             />
           )}
           {stage === 'og-render' && resultData && scores && (

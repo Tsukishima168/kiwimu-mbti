@@ -17,6 +17,7 @@ interface ResultProps {
     user?: User | null;
     onLogin?: () => void;
     onLogout?: () => void;
+    isSharedView?: boolean;
 }
 
 const Result: React.FC<ResultProps> = (props) => {
@@ -27,7 +28,7 @@ const Result: React.FC<ResultProps> = (props) => {
         // Force V1 content from constants.ts to ensure "V1 content" requirement
         const variant = getVariant(props.rawScores);
         const v1Data = getResultData(props.resultData.id, variant);
-        return <ResultLegacyDump {...props} resultData={v1Data} />;
+        return <ResultLegacyDump {...props} resultData={v1Data} isSharedView={props.isSharedView} />;
     }
 
     // Otherwise, use the new V2 story-like design

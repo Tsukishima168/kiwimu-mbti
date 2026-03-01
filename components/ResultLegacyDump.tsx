@@ -9,6 +9,7 @@ import { getCelebrityArchetypes } from '../data/celebrityData';
 import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
 import { shareResultToLine } from '../utils/liffShare';
+import { trackResultDownload, trackResultShare, trackButtonClick } from '../utils/analytics';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -20,6 +21,7 @@ interface ResultProps {
   user?: User | null;
   onLogin?: () => void;
   onLogout?: () => void;
+  isSharedView?: boolean;
 }
 
 const ALL_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
@@ -58,6 +60,26 @@ const MENU_DATA = {
   ]
 };
 
+/* IG Story dimension label map — 3 trait pillars per MBTI type */
+const IG_STORY_DIMENSION_MAP: Record<string, { zh: string; en: string }> = {
+  INTJ: { zh: "策略 · 遠見 · 意志力",    en: "Strategy · Vision · Willpower" },
+  INTP: { zh: "解構 · 洞察 · 純粹理性",  en: "Analysis · Insight · Pure Reason" },
+  ENTJ: { zh: "野心 · 執行力 · 支配感",  en: "Ambition · Drive · Command" },
+  ENTP: { zh: "創新 · 辯證 · 可能性",    en: "Innovation · Debate · Possibility" },
+  INFJ: { zh: "直覺 · 同理 · 使命感",    en: "Intuition · Empathy · Mission" },
+  INFP: { zh: "銳敏 · 卓越 · 情緒能量",  en: "Sensitivity · Excellence · Emotional Resonance" },
+  ENFJ: { zh: "影響力 · 光輝 · 人際能量", en: "Influence · Radiance · Social Energy" },
+  ENFP: { zh: "熱情 · 創意 · 自由意志",  en: "Passion · Creativity · Free Will" },
+  ISTJ: { zh: "秩序 · 責任 · 精確執行",  en: "Order · Duty · Precision" },
+  ISFJ: { zh: "守護 · 細膩 · 無私奉獻",  en: "Protection · Sensitivity · Selfless Care" },
+  ESTJ: { zh: "效率 · 秩序 · 主導力",    en: "Efficiency · Order · Leadership" },
+  ESFJ: { zh: "和諧 · 溫暖 · 社群意識",  en: "Harmony · Warmth · Community" },
+  ISTP: { zh: "冷靜 · 技術 · 即戰力",    en: "Calm · Technique · Instant Action" },
+  ISFP: { zh: "美感 · 敏感 · 活在當下",  en: "Aesthetics · Sensitivity · Presence" },
+  ESTP: { zh: "行動 · 感官 · 即時回應",  en: "Action · Sensation · Instant Response" },
+  ESFP: { zh: "表演 · 喜悅 · 感染力",    en: "Performance · Joy · Charisma" },
+};
+
 const SpectrumBar = ({ leftLabel, rightLabel, leftScore, rightScore, leftDesc, rightDesc }: any) => (
   <div className="mb-8 md:mb-12 border-b border-gray-200 pb-8 md:pb-12 last:border-0 text-left">
     <div className="flex justify-between items-baseline mb-3 md:mb-4">
@@ -79,7 +101,7 @@ const SpectrumBar = ({ leftLabel, rightLabel, leftScore, rightScore, leftDesc, r
   </div>
 );
 
-const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpenConsultant, onViewArchive, isArchiveMode = false, user, onLogin, onLogout }) => {
+const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpenConsultant, onViewArchive, isArchiveMode = false, user, onLogin, onLogout, isSharedView = false }) => {
   const percentages = calculatePercentages(rawScores);
   const resultRef = useRef<HTMLDivElement>(null);
   const [selectedOtherType, setSelectedOtherType] = useState<MbtiResultData | null>(null);
@@ -89,7 +111,14 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('已複製連結到剪貼簿');
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
+
+  const showCustomToast = (msg: string, durationMs = 3000) => {
+    setToastMsg(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), durationMs);
+  };
 
   const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
   const identitySuffix = resultAT;
@@ -103,50 +132,30 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   }, []);
 
   const handleLineShare = async () => {
+    trackResultShare('line', `${resultData.id}-${identitySuffix}`, user?.uid);
     await shareResultToLine(`${resultData.id}-${identitySuffix}`, anchor.name);
+  };
+
+  /* Generate share URL for this result type */
+  const getShareUrl = () => `${window.location.origin}?r=${resultData.id}-${identitySuffix}`;
+
+  /* Copy share link to clipboard with GA4 tracking */
+  const handleCopyShareLink = async () => {
+    const shareUrl = getShareUrl();
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      trackResultShare('link', `${resultData.id}-${identitySuffix}`, user?.uid);
+      showCustomToast('連結已複製 ✦ 傳給朋友，看看他們是哪種靈魂甜點 🍰', 3500);
+    } catch {
+      showCustomToast('複製失敗，請手動複製網址', 2500);
+    }
   };
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [selectedOtherType, activeTab]); // Scroll to top when tab changes
 
-  /* 
-   * SAVE REPORT FUNCTIONALITY (Download as Image)
-   */
-  const handleSave = async () => {
-    const element = document.getElementById('full-report-container');
-    if (!element) return;
-
-    try {
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#F9F7F5',
-      });
-
-      const dataUrl = canvas.toDataURL('image/png');
-      setShareImage({ url: dataUrl, title: '完整測驗報告' });
-
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: 'Kiwimu MBTI Lab',
-            text: '來看看我的靈魂甜點是什麼！',
-            url: window.location.origin,
-          });
-        } catch (e) { console.log('Native share failed', e); }
-      }
-    } catch (err) {
-      console.error('Failed to generate report:', err);
-    }
-  };
-
-  /* 
-   * DOWNLOAD IG STORY FUNCTIONALITY 
-   */
-  /* 
-   * DOWNLOAD IG STORY FUNCTIONALITY 
-   */
+  /* DOWNLOAD IG STORY — generate acid green 1080×1920 card */
   const handleDownloadIG = async () => {
     const element = document.getElementById('ig-story-container');
     if (!element) return;
@@ -159,7 +168,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         scale: 1.5, // Better quality without crashing mobile
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#F9F7F5',
+        backgroundColor: '#C6FF00',   /* Acid green — match ig-story-container bg */
         width: 1080,
         height: 1920,
         windowWidth: 1080,
@@ -180,6 +189,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
       const dataUrl = canvas.toDataURL('image/png', 0.9); // 0.9 quality
 
+      trackResultDownload('ig_story', resultData.id);
+
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       if (!isMobile) {
         // Desktop: Direct download
@@ -187,13 +198,14 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         link.download = `KIWIMU_STORY_${resultData.id}.png`;
         link.href = dataUrl;
         link.click();
+        showCustomToast('限動圖卡下載完成 ✦ 貼到 IG 限動分享給朋友吧 🍰', 3500);
       } else {
         // Mobile: Show modal for long-press
         setShareImage({ url: dataUrl, title: 'Instagram Story' });
       }
     } catch (err) {
       console.error('Failed to save IG story:', err);
-      alert('產生圖片失敗，請重試或截圖分享');
+      showCustomToast('產生圖片失敗，請重試或截圖分享 🙏', 3000);
     }
   };
 
@@ -206,7 +218,24 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         </div>
       )}
 
-      <div ref={resultRef} className="bg-white">
+      {/* ── SHARED VIEW BANNER ── 當透過 ?r= 連結進來，引導訪客做測驗 */}
+      {isSharedView && (
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-black text-white py-3 px-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center shadow-xl">
+          <span className="text-xs sm:text-sm font-medium">
+            <span className="opacity-60 mr-1.5">✦</span>
+            你正在查看朋友的靈魂甜點 · {resultData.id}-{resultAT} {resultData.title}
+          </span>
+          <button
+            onClick={onRetest}
+            className="shrink-0 px-4 py-1.5 rounded-full text-xs font-black tracking-[0.1em] uppercase transition-all active:scale-95 hover:scale-105"
+            style={{ background: '#C6FF00', color: '#000' }}
+          >
+            測測你的甜點 →
+          </button>
+        </div>
+      )}
+
+      <div ref={resultRef} className={`bg-white ${isSharedView ? 'pt-12 sm:pt-10' : ''}`}>
         <div id="full-report-container" className="bg-white px-2 py-4 md:px-0 md:py-0">
 
           {/* 1. HEADER - 響應式字體與間距 */}
@@ -763,30 +792,64 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           </div>
         </div>
 
+        {/* ── LOSS AVERSION BANNER — 匿名用戶才顯示，固定在浮動選單上方 */}
+        {!isSharedView && user?.isAnonymous && !isArchiveMode && (
+          <div className="fixed bottom-[88px] md:bottom-[100px] left-1/2 transform -translate-x-1/2 z-40 w-max max-w-[90vw]">
+            <div
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-xl cursor-pointer transition-all hover:scale-105 active:scale-95"
+              style={{ background: '#C6FF00', color: '#000' }}
+              onClick={() => { trackButtonClick('login_gate_banner', 'result_floating'); onLogin?.(); }}
+            >
+              <span className="text-[10px] md:text-[11px] font-black tracking-[0.08em] leading-tight whitespace-nowrap">
+                ✦ 你的靈魂配方將在離開後消散 — 入籍宇宙永久封存
+              </span>
+              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </div>
+          </div>
+        )}
+
         {/* Floating Menu - Mobile responsive */}
         <div className="fixed bottom-6 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-1.5 md:p-3 rounded-full shadow-2xl flex items-center gap-1.5 md:gap-3 z-50 w-max max-w-[95vw] border border-white/10 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]">
-          <button onClick={handleLineShare} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-all duration-300 border border-white/20 hover:scale-110 active:scale-95 shadow-lg">
+          {/* LINE share */}
+          <button onClick={handleLineShare} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-all duration-300 border border-white/20 hover:scale-110 active:scale-95 shadow-lg" title="LINE 分享">
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
           </button>
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          {/* Retest */}
           <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95">Retest 重測</button>
+          {/* Archive / 入籍宇宙 */}
           {onViewArchive && !isArchiveMode && (
             <>
               <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
               <button
-                onClick={onViewArchive}
-                className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
-                title={user?.isAnonymous ? '綁定帳號以永久保存' : '查看檔案館'}
+                onClick={() => { trackButtonClick(user?.isAnonymous ? '入籍宇宙' : '我的甜點館', 'result_floating'); onViewArchive(); }}
+                className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] whitespace-nowrap hover:scale-105 active:scale-95"
+                title={user?.isAnonymous ? '入籍 Kiwimu 宇宙，永久保存你的靈魂配方' : '查看我的甜點館'}
               >
-                {user?.isAnonymous ? '綁定帳號' : 'Archive 檔案館'}
+                {user?.isAnonymous ? '入籍宇宙 ✦' : '我的甜點館'}
               </button>
             </>
           )}
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
-          <button onClick={handleSave} className="shrink-0 px-4 md:px-10 py-2 md:py-3 rounded-full bg-white text-black hover:bg-gray-100 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase shadow-lg transition-all active:scale-95 whitespace-nowrap hover:scale-105">Share 分享</button>
+          {/* 複製連結 */}
+          <button
+            onClick={handleCopyShareLink}
+            className="shrink-0 flex items-center gap-1 md:gap-1.5 px-3 md:px-6 py-2 md:py-3 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
+            title="複製連結分享給朋友"
+          >
+            <svg className="w-3 h-3 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+            <span>複製連結</span>
+          </button>
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
-          <button onClick={handleDownloadIG} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 transition-all text-black border border-white/20 shadow-lg hover:scale-110 active:scale-95 duration-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram md:w-5 md:h-5"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+          {/* IG Story download — highlighted as primary CTA */}
+          <button
+            onClick={handleDownloadIG}
+            className="shrink-0 flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-3 rounded-full transition-all duration-300 active:scale-95 hover:scale-105 shadow-lg"
+            style={{ background: '#C6FF00', color: '#000' }}
+            title="下載 IG Story 限動圖卡"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-5 md:h-5 shrink-0"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+            <span className="text-[9px] md:text-[11px] font-black tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap">限動</span>
           </button>
         </div>
 
@@ -800,10 +863,15 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   <button onClick={() => setShareImage(null)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-black hover:text-white transition-colors">&times;</button>
                 </div>
 
-                <div className="overflow-y-auto max-h-[70vh] bg-gray-50 flex flex-col items-center">
-                  <div className="p-6 text-center">
-                    <p className="text-sm font-serif text-kiwi-dark mb-1 font-bold">已為您生成轉傳圖片</p>
-                    <p className="text-[11px] text-gray-400">請「長按圖片」選擇「儲存影像」或「分享」</p>
+                {/* Image preview + gesture hint */}
+                <div className="overflow-y-auto max-h-[60vh] bg-gray-50 flex flex-col items-center relative">
+                  {/* Long-press hint overlay */}
+                  <div className="sticky top-0 w-full z-10 bg-black/80 backdrop-blur-sm px-5 py-3 flex items-center gap-3">
+                    <span className="text-2xl">👇</span>
+                    <div>
+                      <p className="text-white text-[12px] font-bold leading-tight">長按圖片 → 儲存影像</p>
+                      <p className="text-white/60 text-[10px] leading-tight mt-0.5">存到相簿後，直接貼到 IG 限動分享給朋友</p>
+                    </div>
                   </div>
                   <img
                     src={shareImage.url}
@@ -813,34 +881,64 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   />
                 </div>
 
-                <div className="p-4 bg-white border-t border-gray-100 grid grid-cols-2 gap-3">
+                {/* CTAs */}
+                <div className="p-4 bg-white border-t border-gray-100 flex flex-col gap-2.5">
+                  {/* Primary: IG Story / Web Share API CTA */}
                   <button
-                    onClick={() => {
-                      const text = `來看看我的靈魂甜點是什麼！ ${window.location.origin}`;
-                      window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`);
+                    onClick={async () => {
+                      const shareUrl = getShareUrl();
+                      trackResultShare('instagram', `${resultData.id}-${identitySuffix}`, user?.uid);
+                      if (navigator.share) {
+                        try {
+                          await navigator.share({
+                            title: `我的靈魂甜點是 ${anchor.name}！`,
+                            text: `我在 Kiwimu MBTI Lab 測出了靈魂甜點「${anchor.name}」，你也來看看你是什麼甜點 ✦`,
+                            url: shareUrl,
+                          });
+                        } catch { /* user cancelled */ }
+                      } else {
+                        await navigator.clipboard.writeText(shareUrl);
+                        showCustomToast('連結已複製 ✦ 貼到 IG 限動分享吧 📲', 3000);
+                      }
                     }}
-                    className="flex items-center justify-center gap-2 bg-[#06C755] text-white py-3 rounded-lg text-xs font-bold"
+                    className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl text-[12px] font-black tracking-[0.08em] uppercase transition-all active:scale-95"
+                    style={{ background: '#C6FF00', color: '#000' }}
                   >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
-                    分享給好友
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
+                    分享到 IG 限動
                   </button>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.origin);
-                      setShowToast(true);
-                      setTimeout(() => setShowToast(false), 2000);
-                    }}
-                    className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-lg text-xs font-bold"
-                  >
-                    複製連結
-                  </button>
+                  {/* Secondary: LINE + 複製連結 */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        const shareUrl = getShareUrl();
+                        const text = `我在 Kiwimu 測出了靈魂甜點「${anchor.name}」！你是哪種甜點？👉 ${shareUrl}`;
+                        trackResultShare('line', `${resultData.id}-${identitySuffix}`, user?.uid);
+                        window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text)}`);
+                      }}
+                      className="flex items-center justify-center gap-2 bg-[#06C755] text-white py-3 rounded-xl text-[11px] font-bold"
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+                      LINE 分享
+                    </button>
+                    <button
+                      onClick={handleCopyShareLink}
+                      className="flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 rounded-xl text-[11px] font-bold hover:bg-gray-200 transition-colors"
+                    >
+                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                      複製連結
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           )
         }
 
-        {/* HIDDEN IG STORY CONTAINER (1080x1920) - STRICT INLINE STYLES */}
+        {/* ============================================================
+             HIDDEN IG STORY CONTAINER (1080 × 1920px)
+             ACID GREEN REDESIGN — all inline styles for html2canvas
+        ============================================================ */}
         <div
           id="ig-story-container"
           style={{
@@ -849,140 +947,303 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             left: '-9999px',
             width: '1080px',
             height: '1920px',
-            backgroundColor: '#F9F7F5',
+            backgroundColor: '#C6FF00',   /* Acid / Lime Green */
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '100px 60px',
-            fontFamily: '"Times New Roman", serif',
+            padding: '72px 80px 64px 80px',
             zIndex: -50,
-            boxSizing: 'border-box'
+            boxSizing: 'border-box',
+            overflow: 'hidden',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif',
           }}
         >
-          {/* 1. Header Area */}
-          <div style={{ width: '100%', textAlign: 'center', marginBottom: '60px' }}>
-            <p style={{
-              fontSize: '28px',
-              letterSpacing: '0.4em',
-              color: '#9CA3AF',
-              fontFamily: 'monospace',
-              fontWeight: 'bold',
-              textTransform: 'uppercase',
-              marginBottom: '30px'
-            }}>
-              KIWIMU LAB
-            </p>
-            <div style={{ width: '60px', height: '2px', background: '#000', margin: '0 auto' }}></div>
-          </div>
-
-          {/* 2. Identity Block */}
-          <div style={{ textAlign: 'center', marginBottom: '80px' }}>
-            <h1 style={{
-              fontSize: '140px',
-              lineHeight: '1',
-              fontWeight: '800',
-              color: '#4B5563',
-              margin: '0 0 20px 0',
-              fontFamily: 'serif'
-            }}>
-              {resultData.id}
-            </h1>
-            <p style={{
-              fontSize: '40px',
-              fontStyle: 'italic',
-              color: '#6B7280',
-              fontFamily: 'serif',
-              margin: 0
-            }}>
-              {identityChinese} ・ {resultData.title.split(' ')[1] || resultData.title}
-            </p>
-          </div>
-
-          {/* 3. Character Image (Key Visual) */}
-          <div style={{
-            width: '800px',
-            height: '800px',
-            position: 'relative',
-            marginBottom: '80px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <div style={{
+          {/* ── WATERMARK: kiwimu standard logotype at low opacity ── */}
+          <img
+            src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1769501231/%E6%A8%99%E6%BA%96%E5%AD%97-02_ndnf7x.png"
+            alt=""
+            crossOrigin="anonymous"
+            style={{
               position: 'absolute',
-              top: '40px',
-              left: '40px',
-              right: '40px',
-              bottom: '40px',
-              border: '1px solid rgba(0,0,0,0.08)',
-              borderRadius: '50%'
-            }} />
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%) rotate(-10deg)',
+              width: '130%',
+              opacity: 0.055,
+              pointerEvents: 'none',
+              objectFit: 'contain',
+              zIndex: 0,
+            }}
+          />
 
-            <img
-              src={resultData.characterImage}
-              alt="Character"
-              crossOrigin="anonymous"
-              style={{
-                width: '90%',
-                height: '90%',
-                objectFit: 'contain',
-                filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.15))'
-              }}
-            />
-          </div>
+          {/* ── ALL FOREGROUND CONTENT ── */}
+          <div style={{
+            position: 'relative',
+            zIndex: 1,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
 
-          {/* 4. Soul Anchor Text */}
-          <div style={{ textAlign: 'center', marginBottom: 'auto', padding: '0 40px' }}>
-            <p style={{
-              fontSize: '24px',
-              fontFamily: 'monospace',
-              color: '#9CA3AF',
-              letterSpacing: '0.2em',
-              marginBottom: '20px',
-              textTransform: 'uppercase'
+            {/* 1. TOP LABEL BAR */}
+            <div style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '28px',
+              flexShrink: 0,
             }}>
-              YOUR SOUL DESSERT
-            </p>
-            <h3 style={{
-              fontSize: '56px',
-              fontFamily: 'serif',
-              fontWeight: 'bold',
-              color: '#1F2937',
-              margin: '0 0 30px 0'
+              <span style={{
+                fontSize: '23px',
+                letterSpacing: '0.38em',
+                color: 'rgba(0,0,0,0.52)',
+                fontFamily: 'monospace',
+                fontWeight: '700',
+                textTransform: 'uppercase',
+              }}>
+                KIWIMU MBTI LAB
+              </span>
+              <span style={{
+                fontSize: '21px',
+                fontFamily: 'monospace',
+                color: 'rgba(0,0,0,0.38)',
+                letterSpacing: '0.12em',
+                fontWeight: '600',
+              }}>
+                2026
+              </span>
+            </div>
+
+            {/* 2. ── IDENTITY HERO: The shareable core ── */}
+            <div style={{ textAlign: 'center', flexShrink: 0, marginBottom: '44px' }}>
+
+              {/* MBTI Type — the biggest, most dominant element */}
+              <h1 style={{
+                fontSize: '212px',
+                lineHeight: '0.86',
+                fontWeight: '900',
+                color: '#000000',
+                margin: '0',
+                letterSpacing: '-0.05em',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif',
+              }}>
+                {resultData.id}
+              </h1>
+
+              {/* Subtype + title on same row with dashes */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '18px',
+                margin: '18px 0 28px 0',
+              }}>
+                <span style={{ width: '48px', height: '2.5px', background: '#000', display: 'block', flexShrink: 0 }} />
+                <p style={{
+                  fontSize: '46px',
+                  fontWeight: '700',
+                  color: '#000',
+                  margin: 0,
+                  letterSpacing: '0.06em',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {identityChinese}&nbsp;·&nbsp;{resultData.title}
+                </p>
+                <span style={{ width: '48px', height: '2.5px', background: '#000', display: 'block', flexShrink: 0 }} />
+              </div>
+
+              {/* Signature quote — the emotional hook */}
+              <p style={{
+                fontSize: '33px',
+                fontStyle: 'italic',
+                color: 'rgba(0,0,0,0.70)',
+                margin: 0,
+                lineHeight: '1.65',
+                maxWidth: '900px',
+                textAlign: 'center',
+                fontFamily: 'Georgia, "Times New Roman", Times, serif',
+                letterSpacing: '0.015em',
+              }}>
+                {resultData.quote}
+              </p>
+            </div>
+
+            {/* 3. ── CHARACTER IMAGE — visually dominant ── */}
+            <div style={{
+              width: '660px',
+              height: '660px',
+              position: 'relative',
+              flexShrink: 0,
+              marginBottom: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}>
-              {anchor.name}
-            </h3>
-            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {resultData.keywords.slice(0, 3).map(k => (
+              {/* Soft glow halo */}
+              <div style={{
+                position: 'absolute',
+                inset: '0',
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.28)',
+                border: '2px solid rgba(0,0,0,0.07)',
+              }} />
+              {/* Character: contain, no distortion */}
+              <img
+                src={resultData.characterImage}
+                alt={`Kiwimu ${resultData.id}`}
+                crossOrigin="anonymous"
+                style={{
+                  width: '86%',
+                  height: '86%',
+                  objectFit: 'contain',     /* ← no distortion, proportional */
+                  filter: 'drop-shadow(0 28px 52px rgba(0,0,0,0.22))',
+                  position: 'relative',
+                  zIndex: 1,
+                }}
+              />
+            </div>
+
+            {/* 4. ── DIMENSION ANALYSIS ── */}
+            <div style={{
+              textAlign: 'center',
+              padding: '36px 56px',
+              background: 'rgba(0,0,0,0.09)',
+              borderRadius: '20px',
+              width: '100%',
+              marginBottom: '32px',
+              flexShrink: 0,
+              boxSizing: 'border-box',
+            }}>
+              <p style={{
+                fontSize: '21px',
+                fontFamily: 'monospace',
+                color: 'rgba(0,0,0,0.48)',
+                letterSpacing: '0.32em',
+                margin: '0 0 10px 0',
+                textTransform: 'uppercase',
+                fontWeight: '600',
+              }}>
+                DIMENSION ANALYSIS
+              </p>
+              <h3 style={{
+                fontSize: '62px',
+                fontWeight: '800',
+                color: '#000',
+                margin: '0 0 8px 0',
+                letterSpacing: '-0.02em',
+                lineHeight: '1.1',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif',
+              }}>
+                {(IG_STORY_DIMENSION_MAP[resultData.id] ?? IG_STORY_DIMENSION_MAP['INFP']).zh}
+              </h3>
+              <p style={{
+                fontSize: '25px',
+                fontFamily: 'monospace',
+                color: 'rgba(0,0,0,0.50)',
+                letterSpacing: '0.07em',
+                margin: 0,
+                fontWeight: '500',
+              }}>
+                {(IG_STORY_DIMENSION_MAP[resultData.id] ?? IG_STORY_DIMENSION_MAP['INFP']).en}
+              </p>
+            </div>
+
+            {/* 5. ── KEYWORD PILLS ── */}
+            <div style={{
+              display: 'flex',
+              gap: '16px',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              marginBottom: '28px',
+              flexShrink: 0,
+            }}>
+              {resultData.keywords.slice(0, 3).map((k: string) => (
                 <span key={k} style={{
-                  padding: '12px 30px',
-                  border: '2px solid #E5E7EB',
-                  fontSize: '24px',
-                  color: '#6B7280',
+                  padding: '14px 34px',
+                  border: '2.5px solid rgba(0,0,0,0.55)',
+                  fontSize: '26px',
+                  color: '#000',
                   borderRadius: '100px',
                   fontFamily: 'monospace',
-                  fontWeight: 'bold'
+                  fontWeight: '700',
+                  letterSpacing: '0.04em',
                 }}>
                   #{k}
                 </span>
               ))}
             </div>
-          </div>
 
-          {/* 5. Footer / Link */}
-          <div style={{
-            width: '100%',
-            padding: '40px',
-            borderTop: '2px solid #F3F4F6',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: '60px'
-          }}>
-            <span style={{ fontSize: '24px', fontFamily: 'monospace', color: '#D1D5DB' }}>kiwimu.com</span>
-            <span style={{ fontSize: '24px', fontFamily: 'monospace', fontWeight: 'bold', color: '#000' }}>KIWIMU</span>
-          </div>
-        </div>
+            {/* 6. ── CTA STRIP — the viral trigger ── */}
+            <div style={{
+              padding: '26px 56px',
+              background: '#000',
+              borderRadius: '100px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '22px',
+              flexShrink: 0,
+              marginBottom: 'auto',
+            }}>
+              <span style={{
+                fontSize: '31px',
+                color: '#C6FF00',
+                fontWeight: '800',
+                letterSpacing: '0.04em',
+              }}>
+                測測你的靈魂甜點
+              </span>
+              <span style={{
+                fontSize: '28px',
+                color: 'rgba(198,255,0,0.65)',
+                fontWeight: '300',
+              }}>
+                →
+              </span>
+              <span style={{
+                fontSize: '27px',
+                color: 'rgba(255,255,255,0.72)',
+                fontFamily: 'monospace',
+                letterSpacing: '0.05em',
+              }}>
+                kiwimu.com
+              </span>
+            </div>
+
+            {/* 7. ── FOOTER ── */}
+            <div style={{
+              width: '100%',
+              marginTop: '28px',
+              paddingTop: '24px',
+              borderTop: '1.5px solid rgba(0,0,0,0.22)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexShrink: 0,
+            }}>
+              <span style={{
+                fontSize: '25px',
+                fontFamily: 'monospace',
+                color: 'rgba(0,0,0,0.48)',
+                letterSpacing: '0.1em',
+                fontWeight: '600',
+              }}>
+                kiwimu.com
+              </span>
+              <span style={{
+                fontSize: '22px',
+                fontFamily: 'monospace',
+                color: 'rgba(0,0,0,0.32)',
+                letterSpacing: '0.1em',
+              }}>
+                KIWIMU LAB © 2026
+              </span>
+            </div>
+
+          </div>{/* end foreground content */}
+        </div>{/* end ig-story-container */}
 
         {/* MODAL ARCHIVE (Fully Responsive) */}
         {
@@ -1054,14 +1315,14 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
           )}
 
-        {/* Toast Notification */}
+        {/* Toast Notification — dynamic message */}
         {showToast && (
-          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[200] fade-in">
-            <div className="bg-black text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[200] fade-in pointer-events-none">
+            <div className="bg-black text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 max-w-[90vw]">
+              <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <span className="text-sm font-medium">已複製連結到剪貼簿</span>
+              <span className="text-sm font-medium">{toastMsg}</span>
             </div>
           </div>
         )}
