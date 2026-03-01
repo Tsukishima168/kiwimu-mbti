@@ -149,7 +149,7 @@ export const resultTranslations = {
         tab_stats: '統計',
         tab_settings: '設定',
         island_link_title: '島嶼連結',
-        island_link_synced: '💡 您的測驗結果已同步至月島品牌資料庫',
+        island_link_synced: '您的測驗結果已同步至月島品牌資料庫',
         island_link_desc: '前往甜點店可查看您的島民檔案與專屬甜點處方',
         island_link_btn: '前往月島甜點店',
 
@@ -177,7 +177,7 @@ export const resultTranslations = {
         detail_new_dessert: '新甜點已上架！',
         detail_new_dessert_desc: '你的人格（{type}）有了全新的靈魂配對。當時推薦的是舊甜點目錄，現在有更多美味選擇等著你！',
         detail_view_latest: '查看最新甜點推薦',
-        detail_switched: '✨ 已切換到最新甜點目錄',
+        detail_switched: '已切換到最新甜點目錄',
         detail_revert: '返回原版',
 
         // Discord modal (hardcoded in Result.tsx)
@@ -199,7 +199,7 @@ export const resultTranslations = {
         continue_deep: '繼續深度分析',
         deep_analysis_unlock: '你的完整報告已解鎖。',
         share_title: '我是 {id}-{suffix}，{title}｜Kiwimu MBTI',
-        share_text: '我的靈魂甜點是 {dessert}！來看看你的 Kiwimu 檔案吧✨',
+        share_text: '我的靈魂甜點是 {dessert}！來看看你的 Kiwimu 檔案吧',
         share_alert: '已複製連結',
         radar_capability: '能力',
     },
@@ -350,7 +350,7 @@ export const resultTranslations = {
         tab_stats: 'Stats',
         tab_settings: 'Settings',
         island_link_title: 'Island Link',
-        island_link_synced: '💡 Your test results have been synced to the Moon Island database',
+        island_link_synced: 'Your test results have been synced to the Moon Island database',
         island_link_desc: 'Visit the dessert shop to view your island profile and exclusive dessert prescription',
         island_link_btn: 'Visit Moon Island Dessert Shop',
 
@@ -376,7 +376,7 @@ export const resultTranslations = {
         detail_new_dessert: 'New Desserts Available!',
         detail_new_dessert_desc: 'Your personality ({type}) has a brand-new soul pairing. The original recommendation was from an older catalog—now there are even more delicious options waiting for you!',
         detail_view_latest: 'View Latest Dessert Recommendations',
-        detail_switched: '✨ Switched to latest dessert catalog',
+        detail_switched: 'Switched to latest dessert catalog',
         detail_revert: 'Revert to original',
 
         discord_input_placeholder: 'Enter your Discord User ID',
@@ -397,7 +397,7 @@ export const resultTranslations = {
         continue_deep: 'Continue to Deep Dive',
         deep_analysis_unlock: 'Your full profile is now unlocked.',
         share_title: 'I\'m {id}-{suffix}, {title} | Kiwimu MBTI',
-        share_text: 'My soul dessert is {dessert}! Discover your Kiwimu profile ✨',
+        share_text: 'My soul dessert is {dessert}! Discover your Kiwimu profile',
         share_alert: 'Link copied to clipboard',
         radar_capability: 'Capability',
     },
@@ -542,7 +542,7 @@ export const resultTranslations = {
         tab_stats: '統計',
         tab_settings: '設定',
         island_link_title: 'アイランドリンク',
-        island_link_synced: '💡 テスト結果が月島データベースに同期されました',
+        island_link_synced: 'テスト結果が月島データベースに同期されました',
         island_link_desc: 'デザートショップで島民プロフィールと限定デザート処方を確認',
         island_link_btn: '月島デザートショップへ',
 
@@ -568,7 +568,7 @@ export const resultTranslations = {
         detail_new_dessert: '新デザートが登場！',
         detail_new_dessert_desc: 'あなたの性格（{type}）に新しいソウルペアリングが登場。以前のおすすめは旧カタログでしたが、さらに美味しい選択肢が待っています！',
         detail_view_latest: '最新デザートのおすすめを見る',
-        detail_switched: '✨ 最新デザートカタログに切り替えました',
+        detail_switched: '最新デザートカタログに切り替えました',
         detail_revert: '元に戻す',
 
         discord_input_placeholder: 'Discord User IDを入力',
@@ -589,7 +589,7 @@ export const resultTranslations = {
         continue_deep: '深層分析へ進む',
         deep_analysis_unlock: 'フルプロフィールが解放されました。',
         share_title: '{id}-{suffix}・{title} | Kiwimu MBTI',
-        share_text: '私のソウルデザートは{dessert}！あなたのKiwimuプロフィールも見てみて ✨',
+        share_text: '私のソウルデザートは{dessert}！あなたのKiwimuプロフィールも見てみて',
         share_alert: 'リンクをコピーしました',
         radar_capability: '能力値',
     },
@@ -733,7 +733,7 @@ export const resultTranslations = {
         tab_stats: '통계',
         tab_settings: '설정',
         island_link_title: '아일랜드 링크',
-        island_link_synced: '💡 테스트 결과가 문아일랜드 데이터베이스에 동기화되었습니다',
+        island_link_synced: '테스트 결과가 문아일랜드 데이터베이스에 동기화되었습니다',
         island_link_desc: '디저트 가게에서 아일랜드 프로필과 전용 디저트 처방을 확인하세요',
         island_link_btn: '문아일랜드 디저트 가게로',
 
@@ -759,7 +759,7 @@ export const resultTranslations = {
         detail_new_dessert: '신규 디저트 출시!',
         detail_new_dessert_desc: '당신의 성격({type})에 새로운 소울 페어링이 등장했습니다. 이전 추천은 구 카탈로그 기준이었는데, 지금은 더 맛있는 선택지가 기다리고 있어요!',
         detail_view_latest: '최신 디저트 추천 보기',
-        detail_switched: '✨ 최신 디저트 카탈로그로 전환되었습니다',
+        detail_switched: '최신 디저트 카탈로그로 전환되었습니다',
         detail_revert: '원래대로 되돌리기',
 
         discord_input_placeholder: 'Discord User ID를 입력하세요',
@@ -780,7 +780,7 @@ export const resultTranslations = {
         continue_deep: '심층 분석으로 계속하기',
         deep_analysis_unlock: '전체 프로필이 잠금 해제되었습니다.',
         share_title: '{id}-{suffix} · {title} | Kiwimu MBTI',
-        share_text: '내 소울 디저트는 {dessert}! Kiwimu 프로필 확인해봐요 ✨',
+        share_text: '내 소울 디저트는 {dessert}! Kiwimu 프로필 확인해봐요',
         share_alert: '링크가 복사되었습니다',
         radar_capability: '역량 지수',
     }

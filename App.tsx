@@ -41,6 +41,7 @@ const FooterLinks = () => {
 // 行銷像素追蹤
 import { initAllPixels, trackMarketingEvent, MARKETING_EVENTS, createCustomAudience } from './utils/marketingPixels';
 import { initSession, trackAction, saveUserBehavior } from './utils/userDataCollector';
+import { initLiff } from './utils/liffShare';
 
 // UTM 追蹤（新增）
 import { initUTMTracking } from './utils/utmTracking';
@@ -92,6 +93,9 @@ const App: React.FC = () => {
 
       // 【新增】初始化推薦追蹤
       initReferralTracking();
+
+      // 初始化 LIFF
+      initLiff();
 
       // 追蹤頁面進入
       trackMarketingEvent(MARKETING_EVENTS.PAGE_VIEW);
@@ -294,12 +298,12 @@ const App: React.FC = () => {
     if (user) {
       saveCompletedTest(type, variant, scores)
         .then(() => {
-          setShowSaveToast({ show: true, success: true, message: '✅ 測驗結果已安全儲存' });
+          setShowSaveToast({ show: true, success: true, message: '測驗結果已安全儲存' });
           setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 3000);
         })
         .catch(err => {
           console.error('Failed to save test results:', err);
-          setShowSaveToast({ show: true, success: false, message: '⚠️ 結果已保存在此裝置，請稍後登入同步' });
+          setShowSaveToast({ show: true, success: false, message: '結果已保存在此裝置，請稍後登入同步' });
           setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4000);
         });
 

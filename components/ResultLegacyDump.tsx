@@ -8,6 +8,7 @@ import { getRarityData, getRarityLabel, getRarityMessage } from '../data/rarityD
 import { getCelebrityArchetypes } from '../data/celebrityData';
 import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
+import { shareResultToLine } from '../utils/liffShare';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -100,6 +101,10 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
+
+  const handleLineShare = async () => {
+    await shareResultToLine(`${resultData.id}-${identitySuffix}`, anchor.name);
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -615,7 +620,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     </div>
                   </div>
                   <div className="soul-btns" style={{ flexDirection: 'column' }} data-html2canvas-ignore>
-                    <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>跟 KIWIMU 當朋友，抽幸運甜點</a>
+                    <button onClick={handleLineShare} className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>傳送給 LINE 好友</button>
                     <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
                       <button className="soul-btn" onClick={() => setShowAlt(!showAlt)} style={{ flex: 1 }}>{showAlt ? '收起建議' : '同象限替換'}</button>
                       <button className="soul-btn soul-btn-black" onClick={() => setShowMenu(true)} style={{ flex: 1 }}>完整菜單</button>
@@ -760,9 +765,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
         {/* Floating Menu - Mobile responsive */}
         <div className="fixed bottom-6 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-1.5 md:p-3 rounded-full shadow-2xl flex items-center gap-1.5 md:gap-3 z-50 w-max max-w-[95vw] border border-white/10 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]">
-          <a href="https://lin.ee/r19wTnY" target="_blank" rel="noopener noreferrer" className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-all duration-300 border border-white/20 hover:scale-110 active:scale-95 shadow-lg">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
-          </a>
+          <button onClick={handleLineShare} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-all duration-300 border border-white/20 hover:scale-110 active:scale-95 shadow-lg">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+          </button>
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95">Retest 重測</button>
           {onViewArchive && !isArchiveMode && (
@@ -773,7 +778,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
                 title={user?.isAnonymous ? '綁定帳號以永久保存' : '查看檔案館'}
               >
-                {user?.isAnonymous ? '🔗 綁定帳號' : 'Archive 檔案館'}
+                {user?.isAnonymous ? '綁定帳號' : 'Archive 檔案館'}
               </button>
             </>
           )}

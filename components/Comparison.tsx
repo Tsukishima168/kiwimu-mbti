@@ -20,18 +20,20 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
         return (
             <div className="max-w-4xl mx-auto px-6 py-20 text-center">
                 <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
-                    <span className="text-3xl">📊</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
                 </div>
-                <h2 className="text-2xl font-serif text-gray-700 mb-3">{(t as any).comparison_need_more}</h2>
+                <h2 className="text-2xl font-serif text-gray-700 mb-3">{t('comparison_need_more')}</h2>
                 <p className="text-gray-500 mb-8">
-                    {(t as any).comparison_need_more_desc}
+                    {t('comparison_need_more_desc')}
                 </p>
                 {onBack && (
                     <button
                         onClick={onBack}
                         className="px-8 py-3 bg-kiwi-dark text-white hover:bg-opacity-90 transition-all font-medium tracking-wide"
                     >
-                        {(t as any).comparison_back_timeline}
+                        {t('comparison_back_timeline')}
                     </button>
                 )}
             </div>
@@ -73,14 +75,14 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                         className="mb-6 flex items-center gap-2 text-sm font-mono text-gray-400 hover:text-kiwi-dark transition-colors tracking-wider uppercase"
                     >
                         <span>←</span>
-                        <span>{(t as any).archive_back}</span>
+                        <span>{t('archive_back')}</span>
                     </button>
                 )}
                 <h1 className="text-4xl md:text-5xl font-serif font-medium text-kiwi-dark mb-4">
-                    {(t as any).comparison_title}
+                    {t('comparison_title')}
                 </h1>
                 <p className="text-gray-600 leading-relaxed">
-                    {(t as any).comparison_desc}
+                    {t('comparison_desc')}
                 </p>
             </div>
 
@@ -88,7 +90,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
                 <div>
                     <label className="block text-sm font-mono font-bold text-gray-400 uppercase tracking-wider mb-3">
-                        {(t as any).comparison_test_a}
+                        {t('comparison_test_a')}
                     </label>
                     <select
                         value={selectedA}
@@ -104,7 +106,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                 </div>
                 <div>
                     <label className="block text-sm font-mono font-bold text-gray-400 uppercase tracking-wider mb-3">
-                        {(t as any).comparison_test_b}
+                        {t('comparison_test_b')}
                     </label>
                     <select
                         value={selectedB}
@@ -123,10 +125,14 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
             {/* Change Summary */}
             <div className="mb-12 p-8 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg shadow-sm">
                 <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 text-4xl">🔄</div>
+                    <div className="flex-shrink-0 text-blue-500 mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="17 1 21 5 17 9" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><polyline points="7 23 3 19 7 15" /><path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                        </svg>
+                    </div>
                     <div className="flex-1">
                         <h2 className="text-2xl font-serif font-semibold text-blue-900 mb-3">
-                            {(t as any).comparison_summary}
+                            {t('comparison_summary')}
                         </h2>
                         <div className="flex items-center gap-3 mb-4">
                             <span className="text-3xl font-display font-bold text-kiwi-dark">
@@ -141,7 +147,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                             {changeSummary}
                         </p>
                         <p className="text-sm text-blue-600 mt-2 font-mono">
-                            {((t as any).comparison_timespan || '')
+                            {t('comparison_timespan')
                                 .replace('{from}', formatDate(runB.finishedAt))
                                 .replace('{to}', formatDate(runA.finishedAt))}
                         </p>
@@ -152,7 +158,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
             {/* Dimension Changes */}
             <div className="space-y-8">
                 <h3 className="text-2xl font-serif font-medium text-gray-800 mb-6">
-                    {(t as any).comparison_dimension_detail}
+                    {t('comparison_dimension_detail')}
                 </h3>
 
                 {insights.map((insight, index) => {
@@ -176,12 +182,12 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                                         {insight.dimensionName}
                                     </h4>
                                     <p className="text-sm text-gray-500 font-mono mt-1">
-                                        {((t as any).comparison_dimension_count || '').replace('{index}', String(index + 1))}
+                                        {t('comparison_dimension_count').replace('{index}', String(index + 1))}
                                     </p>
                                 </div>
                                 {isSignificant && (
                                     <span className="px-3 py-1 bg-kiwi-dark text-white text-xs font-mono font-bold tracking-wider rounded">
-                                        {(t as any).comparison_significant}
+                                        {t('comparison_significant')}
                                     </span>
                                 )}
                             </div>
@@ -189,7 +195,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                             {/* Values Comparison */}
                             <div className="grid grid-cols-3 gap-4 mb-4 items-center">
                                 <div className="text-center">
-                                    <p className="text-xs text-gray-400 font-mono uppercase mb-1">{(t as any).comparison_test_b_short}</p>
+                                    <p className="text-xs text-gray-400 font-mono uppercase mb-1">{t('comparison_test_b_short')}</p>
                                     <p className="text-3xl font-display font-bold text-gray-700">
                                         {insight.oldValue}%
                                     </p>
@@ -214,7 +220,7 @@ export const Comparison: React.FC<ComparisonProps> = ({ runs, onBack }) => {
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-xs text-gray-400 font-mono uppercase mb-1">{(t as any).comparison_test_a_short}</p>
+                                    <p className="text-xs text-gray-400 font-mono uppercase mb-1">{t('comparison_test_a_short')}</p>
                                     <p className="text-3xl font-display font-bold text-kiwi-dark">
                                         {insight.newValue}%
                                     </p>

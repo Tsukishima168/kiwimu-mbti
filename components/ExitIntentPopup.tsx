@@ -67,7 +67,7 @@ export const ExitIntentPopup: React.FC<ExitIntentPopupProps> = ({
                             </svg>
                         </div>
                         <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                            等等！你快完成了！⏰
+                            等等！你快完成了！
                         </h3>
                     </div>
 
@@ -106,7 +106,7 @@ export const ExitIntentPopup: React.FC<ExitIntentPopupProps> = ({
                             }}
                             className="w-full bg-gradient-to-r from-green-500 to-blue-600 text-white font-bold py-3 px-6 rounded-xl hover:shadow-lg transition-all hover:scale-105"
                         >
-                            ✨ 繼續測驗
+                            繼續測驗
                         </button>
                         <button
                             onClick={() => {
@@ -115,7 +115,7 @@ export const ExitIntentPopup: React.FC<ExitIntentPopupProps> = ({
                             }}
                             className="w-full bg-gray-100 text-gray-700 font-medium py-3 px-6 rounded-xl hover:bg-gray-200 transition-all"
                         >
-                            💾 稍後繼續
+                            稍後繼續
                         </button>
                         <button
                             onClick={() => setShow(false)}

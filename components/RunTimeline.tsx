@@ -43,14 +43,14 @@ export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack
                         className="mb-6 flex items-center gap-2 text-sm font-mono text-gray-400 hover:text-kiwi-dark transition-colors tracking-wider uppercase"
                     >
                         <span>←</span>
-                        <span>{(t as any).archive_back}</span>
+                        <span>{t('archive_back')}</span>
                     </button>
                 )}
                 <h1 className="text-4xl md:text-5xl font-serif font-medium text-kiwi-dark mb-4">
-                    {(t as any).archive_title}
+                    {t('archive_title')}
                 </h1>
                 <p className="text-gray-600 leading-relaxed">
-                    {((t as any).archive_welcome || '').replace('{name}', user.displayName || 'Explorer')}
+                    {t('archive_welcome').replace('{name}', user.displayName || 'Explorer')}
                 </p>
             </div>
 
@@ -58,16 +58,18 @@ export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack
             {runs.length === 0 ? (
                 <div className="text-center py-20">
                     <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-100 flex items-center justify-center">
-                        <span className="text-3xl">🌱</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                            <path d="M12 22V12" /><path d="M5 12H2a10 10 0 0 0 20 0h-3" /><path d="M8 6a4 4 0 0 1 8 0" /><path d="M5.8 9H2" /><path d="M22 9h-3.8" />
+                        </svg>
                     </div>
-                    <h2 className="text-2xl font-serif text-gray-700 mb-3">{(t as any).archive_empty_title}</h2>
-                    <p className="text-gray-500 mb-8">{(t as any).archive_empty_desc}</p>
+                    <h2 className="text-2xl font-serif text-gray-700 mb-3">{t('archive_empty_title')}</h2>
+                    <p className="text-gray-500 mb-8">{t('archive_empty_desc')}</p>
                     {onBack && (
                         <button
                             onClick={() => { trackButtonClick('start_explore_archive', 'archive_empty'); onBack(); }}
                             className="px-8 py-3 bg-kiwi-dark text-white hover:bg-opacity-90 transition-all font-medium tracking-wide"
                         >
-                            {(t as any).archive_start_explore}
+                            {t('archive_start_explore')}
                         </button>
                     )}
                 </div>
@@ -76,13 +78,13 @@ export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack
                     {/* Summary Card */}
                     <div className="mb-10 p-8 bg-white border border-gray-100 shadow-sm">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-serif font-medium text-kiwi-dark">{(t as any).archive_explore_records}</h2>
+                            <h2 className="text-xl font-serif font-medium text-kiwi-dark">{t('archive_explore_records')}</h2>
                             <span className="text-sm font-mono text-gray-400 tracking-wider">
-                                {((t as any).archive_tests_count || '').replace('{count}', String(runs.length))}
+                                {t('archive_tests_count').replace('{count}', String(runs.length))}
                             </span>
                         </div>
                         <p className="text-gray-600 text-sm leading-relaxed">
-                            {((t as any).archive_latest_test || '').replace('{date}', formatDate(runs[0].finishedAt))}{' '}
+                            {t('archive_latest_test').replace('{date}', formatDate(runs[0].finishedAt))}{' '}
                             <span className="font-semibold text-kiwi-dark">
                                 {runs[0].resultType}-{runs[0].suffix}
                             </span>
@@ -91,7 +93,7 @@ export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack
 
                     {/* Timeline */}
                     <div className="space-y-6">
-                        <h3 className="text-lg font-serif font-medium text-gray-700 mb-6">{(t as any).archive_timeline_title}</h3>
+                        <h3 className="text-lg font-serif font-medium text-gray-700 mb-6">{t('archive_timeline_title')}</h3>
                         {runs.map((run, index) => (
                             <button
                                 key={run.id}
@@ -110,7 +112,7 @@ export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack
                                     <div className="flex items-center gap-3">
                                         {index === 0 && (
                                             <span className="text-xs font-mono bg-kiwi-dark text-white px-3 py-1 tracking-wider">
-                                                {(t as any).archive_latest}
+                                                {t('archive_latest')}
                                             </span>
                                         )}
                                         <span className="text-2xl group-hover:translate-x-1 transition-transform">
@@ -122,10 +124,10 @@ export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack
                                 {/* Version Info */}
                                 <div className="flex gap-2 text-xs text-gray-400 font-mono mt-3">
                                     <span className="px-2 py-1 bg-gray-50 rounded border border-gray-200">
-                                        {((t as any).archive_quiz_version || '').replace('{version}', run.quizVersion)}
+                                        {t('archive_quiz_version').replace('{version}', run.quizVersion)}
                                     </span>
                                     <span className="px-2 py-1 bg-gray-50 rounded border border-gray-200">
-                                        {((t as any).archive_dessert_version || '').replace('{version}', run.dessertCatalogVersion)}
+                                        {t('archive_dessert_version').replace('{version}', run.dessertCatalogVersion)}
                                     </span>
                                 </div>
                             </button>

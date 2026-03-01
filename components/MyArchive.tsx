@@ -60,7 +60,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
             <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block w-8 h-8 border-2 border-kiwi-dark border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="text-gray-600 font-mono text-sm tracking-wider">{(t as any).archive_loading}</p>
+                    <p className="text-gray-600 font-mono text-sm tracking-wider">{t('archive_loading')}</p>
                 </div>
             </div>
         );
@@ -85,14 +85,16 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-2xl">🏝️</span>
-                                            <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-800">{(t as any).island_link_title}</h3>
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600 flex-shrink-0">
+                                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                                            </svg>
+                                            <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-800">{t('island_link_title')}</h3>
                                         </div>
                                         <p className="text-sm md:text-base text-gray-600 mb-2">
-                                            {(t as any).island_link_synced}
+                                            {t('island_link_synced')}
                                         </p>
                                         <p className="text-xs md:text-sm text-gray-500">
-                                            {(t as any).island_link_desc}
+                                            {t('island_link_desc')}
                                         </p>
                                     </div>
                                     <a
@@ -102,8 +104,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         onClick={() => trackButtonClick('island_link', 'archive_cross_site', 'https://map.kiwimu.com/')}
                                         className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 hover:from-amber-500 hover:via-yellow-500 hover:to-orange-500 text-gray-900 font-bold text-base md:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap"
                                     >
-                                        <span className="text-xl">🍰</span>
-                                        <span>{(t as any).island_link_btn}</span>
+                                        <span>{t('island_link_btn')}</span>
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform duration-300">
                                             <path d="M5 12h14M12 5l7 7-7 7" />
                                         </svg>
@@ -124,7 +125,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
-                                    {(t as any).tab_timeline}
+                                    {t('tab_timeline')}
                                 </button>
                                 <button
                                     onClick={() => { trackButtonClick('comparison', 'archive_tabs'); handleViewChange('comparison'); }}
@@ -136,9 +137,9 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                             : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
-                                    {(t as any).tab_comparison}
+                                    {t('tab_comparison')}
                                     {testRuns.length < 2 && (
-                                        <span className="ml-2 text-xs">{(t as any).tab_comparison_min}</span>
+                                        <span className="ml-2 text-xs">{t('tab_comparison_min')}</span>
                                     )}
                                 </button>
                                 <button
@@ -148,7 +149,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         : 'text-gray-400 hover:text-gray-600'
                                         }`}
                                 >
-                                    {(t as any).tab_stats}
+                                    {t('tab_stats')}
                                 </button>
                                 <button
                                     onClick={() => { trackButtonClick('settings', 'archive_tabs'); handleViewChange('settings'); }}
@@ -161,7 +162,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         <path d="M1 12h6m6 0h6" />
                                         <path d="m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24" />
                                     </svg>
-                                    {(t as any).tab_settings}
+                                    {t('tab_settings')}
                                 </button>
                             </div>
                         </div>

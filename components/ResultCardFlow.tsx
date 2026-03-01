@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { mbtiReportTranslations } from '../i18n/mbtiReportTranslations';
 import { detailsTranslations } from '../i18n/detailsTranslations';
 import { trackResultView } from '../utils/analytics';
+import { shareResultToLine } from '../utils/liffShare';
 
 import { IdentityCard } from './cards/IdentityCard';
 import { RadarCard } from './cards/RadarCard';
@@ -72,13 +73,17 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
         window.scrollTo(0, 0);
     }, [resultData.id, user]);
 
+    const handleLineShare = async () => {
+        await shareResultToLine(`${resultData.id}-${identitySuffix}`, anchor.name);
+    };
+
     // Handle Native Web Share API
     const handleNativeShare = async () => {
         if (navigator.share) {
             try {
                 await navigator.share({
                     title: t('share_title')?.replace('{id}', resultData.id).replace('{suffix}', identitySuffix).replace('{title}', i18nContent.title) || `我是 ${resultData.id}-${identitySuffix}，${i18nContent.title}｜Kiwimu MBTI`,
-                    text: t('share_text')?.replace('{dessert}', anchor.name) || `我的靈魂甜點是 ${anchor.name}！來看看你的 Kiwimu 檔案吧✨`,
+                    text: t('share_text')?.replace('{dessert}', anchor.name) || `我的靈魂甜點是 ${anchor.name}！來看看你的 Kiwimu 檔案吧`,
                     url: `https://kiwimu.com/` // Replace with user-specific share link URL if available later
                 });
             } catch (err) {
@@ -155,6 +160,13 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
 
                 {/* Top Floating Actions (Close Archive, Share) */}
                 <div className="absolute top-4 right-4 z-[60] flex gap-2">
+                    <button
+                        onClick={handleLineShare}
+                        className="w-10 h-10 rounded-full bg-[#06C755] flex items-center justify-center shadow hover:opacity-90 text-white transition-opacity"
+                        title="Share to LINE"
+                    >
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+                    </button>
                     <button
                         onClick={handleNativeShare}
                         className="w-10 h-10 rounded-full bg-white/50 backdrop-blur-md flex items-center justify-center shadow hover:bg-white text-kiwi-dark transition-colors"
