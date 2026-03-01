@@ -57,14 +57,14 @@ export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogi
                     </div>
                 </div>
 
-                {/* Pulsing "disappearing" hint */}
+                {/* Pulsing "disappearing" hint — i18n */}
                 <div className="mb-5 flex items-center justify-center gap-2">
                     <span
                         className="inline-block w-2 h-2 rounded-full animate-pulse"
                         style={{ background: '#C6FF00' }}
                     />
-                    <span className="text-[10px] font-mono tracking-[0.25em] uppercase" style={{ color: '#C6FF00', opacity: 0.85 }}>
-                        配方消散中
+                    <span className="text-[10px] font-mono tracking-[0.2em]" style={{ color: '#C6FF00', opacity: 0.85 }}>
+                        {t('gate_dissolving') || '配方消散中'}
                     </span>
                     <span
                         className="inline-block w-2 h-2 rounded-full animate-pulse"
