@@ -33,7 +33,7 @@ export const EXTERNAL_LINKS: Record<string, ExternalLink> = {
   // Dessert Booking - 訂購系統
   DESSERT_BOOKING: {
     name: '月島甜點菜單',
-    baseUrl: 'https://kiwimu.com/menu',
+    baseUrl: 'https://map.kiwimu.com',
     defaultSource: 'mbti-lab'
   },
 
@@ -176,6 +176,8 @@ export function buildPassportClaimLink(claimCode: string, mbtiType?: string, var
   const additionalParams: Record<string, string> = {
     claim: claimCode,
     auto_unlock: 'true',
+    stamp: 'mbti_complete',
+    from: 'mbti',
   };
   if (mbtiType) additionalParams.mbti_type = mbtiType;
   if (variant) additionalParams.variant = variant;
