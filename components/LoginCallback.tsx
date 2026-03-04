@@ -16,9 +16,18 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
         const processLogin = async () => {
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code');
+            const callbackState = params.get('state');
+            const expectedState = sessionStorage.getItem('line_auth_state');
 
             if (!code) {
                 setError('No code found in URL');
+                return;
+            }
+
+            if (!callbackState || !expectedState || callbackState !== expectedState) {
+                setError('Invalid login state');
+                sessionStorage.removeItem('processed_line_code');
+                sessionStorage.removeItem('line_auth_state');
                 return;
             }
 
@@ -82,10 +91,12 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
 
                 // Clear the processed code after successful login
                 sessionStorage.removeItem('processed_line_code');
+                sessionStorage.removeItem('line_auth_state');
                 onLoginSuccess();
 
             } catch (err: any) {
                 console.error('LINE Login Error:', err);
+                sessionStorage.removeItem('line_auth_state');
                 setError(err.message || 'Login failed');
             }
         };

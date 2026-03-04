@@ -1,6 +1,61 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import admin from 'firebase-admin';
 
+function normalizeOrigin(origin: string): string {
+    return origin.trim().replace(/\/+$/, '').toLowerCase();
+}
+
+function getHeaderValue(value: string | string[] | undefined): string | undefined {
+    if (!value) return undefined;
+    if (Array.isArray(value)) return value[0];
+    return value;
+}
+
+function getAllowedOrigins(req: VercelRequest): string[] {
+    const configured = (process.env.LINE_AUTH_ALLOWED_ORIGINS || process.env.ALLOWED_ORIGINS || '')
+        .split(',')
+        .map((origin) => normalizeOrigin(origin))
+        .filter(Boolean);
+
+    const defaults = [
+        'https://kiwimu.com',
+        'https://www.kiwimu.com',
+        'https://mbti.kiwimu.com',
+        'http://localhost:3000',
+        'http://localhost:5173',
+    ];
+
+    const host = getHeaderValue(req.headers.host);
+    if (host) {
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        defaults.push(`${protocol}://${host}`);
+    }
+
+    return Array.from(new Set([...defaults, ...configured]));
+}
+
+function resolveRequestOrigin(req: VercelRequest): string | undefined {
+    const origin = getHeaderValue(req.headers.origin);
+    if (origin) return normalizeOrigin(origin);
+
+    const referer = getHeaderValue(req.headers.referer);
+    if (!referer) return undefined;
+    try {
+        return normalizeOrigin(new URL(referer).origin);
+    } catch {
+        return undefined;
+    }
+}
+
+function validateRedirectUri(redirectUri: string, allowedOrigins: string[]): boolean {
+    try {
+        const redirectOrigin = normalizeOrigin(new URL(redirectUri).origin);
+        return allowedOrigins.includes(redirectOrigin);
+    } catch {
+        return false;
+    }
+}
+
 // Initialize Firebase Admin (only once)
 function initAdmin() {
     if (admin.apps.length) return;
@@ -24,17 +79,33 @@ function initAdmin() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const allowedOrigins = getAllowedOrigins(req);
+    const requestOrigin = resolveRequestOrigin(req);
+    const expectedToken = process.env.INTERNAL_API_TOKEN;
+    const providedToken = getHeaderValue(req.headers['x-internal-token']);
+    const hasInternalToken = !!expectedToken && providedToken === expectedToken;
+    const isOriginAllowed = !!requestOrigin && allowedOrigins.includes(requestOrigin);
+
+    if (isOriginAllowed && requestOrigin) {
+        res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+    }
+    res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Internal-Token');
 
     if (req.method === 'OPTIONS') {
+        if (!isOriginAllowed && !hasInternalToken) {
+            return res.status(403).json({ ok: false, error: 'Origin not allowed' });
+        }
         return res.status(204).end();
     }
 
     if (req.method !== 'POST') {
         return res.status(405).json({ ok: false, error: 'Method not allowed - use POST' });
+    }
+
+    if (!isOriginAllowed && !hasInternalToken) {
+        return res.status(403).json({ ok: false, error: 'Origin not allowed' });
     }
 
     const { code, redirectUri } = req.body;
@@ -43,6 +114,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({
             ok: false,
             error: 'Missing code or redirectUri in request body'
+        });
+    }
+
+    if (!validateRedirectUri(redirectUri, allowedOrigins)) {
+        return res.status(400).json({
+            ok: false,
+            error: 'Invalid redirectUri origin'
         });
     }
 
