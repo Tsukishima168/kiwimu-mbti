@@ -10,6 +10,7 @@ import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
 import { shareResultToLine } from '../utils/liffShare';
 import { trackResultDownload, trackResultShare, trackButtonClick } from '../utils/analytics';
+import { buildDessertOrderLink } from '../utils/utmTracking';
 
 interface ResultProps {
   resultData: MbtiResultData;
@@ -62,22 +63,22 @@ const MENU_DATA = {
 
 /* IG Story dimension label map — 3 trait pillars per MBTI type */
 const IG_STORY_DIMENSION_MAP: Record<string, { zh: string; en: string }> = {
-  INTJ: { zh: "策略 · 遠見 · 意志力",    en: "Strategy · Vision · Willpower" },
-  INTP: { zh: "解構 · 洞察 · 純粹理性",  en: "Analysis · Insight · Pure Reason" },
-  ENTJ: { zh: "野心 · 執行力 · 支配感",  en: "Ambition · Drive · Command" },
-  ENTP: { zh: "創新 · 辯證 · 可能性",    en: "Innovation · Debate · Possibility" },
-  INFJ: { zh: "直覺 · 同理 · 使命感",    en: "Intuition · Empathy · Mission" },
-  INFP: { zh: "銳敏 · 卓越 · 情緒能量",  en: "Sensitivity · Excellence · Emotional Resonance" },
+  INTJ: { zh: "策略 · 遠見 · 意志力", en: "Strategy · Vision · Willpower" },
+  INTP: { zh: "解構 · 洞察 · 純粹理性", en: "Analysis · Insight · Pure Reason" },
+  ENTJ: { zh: "野心 · 執行力 · 支配感", en: "Ambition · Drive · Command" },
+  ENTP: { zh: "創新 · 辯證 · 可能性", en: "Innovation · Debate · Possibility" },
+  INFJ: { zh: "直覺 · 同理 · 使命感", en: "Intuition · Empathy · Mission" },
+  INFP: { zh: "銳敏 · 卓越 · 情緒能量", en: "Sensitivity · Excellence · Emotional Resonance" },
   ENFJ: { zh: "影響力 · 光輝 · 人際能量", en: "Influence · Radiance · Social Energy" },
-  ENFP: { zh: "熱情 · 創意 · 自由意志",  en: "Passion · Creativity · Free Will" },
-  ISTJ: { zh: "秩序 · 責任 · 精確執行",  en: "Order · Duty · Precision" },
-  ISFJ: { zh: "守護 · 細膩 · 無私奉獻",  en: "Protection · Sensitivity · Selfless Care" },
-  ESTJ: { zh: "效率 · 秩序 · 主導力",    en: "Efficiency · Order · Leadership" },
-  ESFJ: { zh: "和諧 · 溫暖 · 社群意識",  en: "Harmony · Warmth · Community" },
-  ISTP: { zh: "冷靜 · 技術 · 即戰力",    en: "Calm · Technique · Instant Action" },
-  ISFP: { zh: "美感 · 敏感 · 活在當下",  en: "Aesthetics · Sensitivity · Presence" },
-  ESTP: { zh: "行動 · 感官 · 即時回應",  en: "Action · Sensation · Instant Response" },
-  ESFP: { zh: "表演 · 喜悅 · 感染力",    en: "Performance · Joy · Charisma" },
+  ENFP: { zh: "熱情 · 創意 · 自由意志", en: "Passion · Creativity · Free Will" },
+  ISTJ: { zh: "秩序 · 責任 · 精確執行", en: "Order · Duty · Precision" },
+  ISFJ: { zh: "守護 · 細膩 · 無私奉獻", en: "Protection · Sensitivity · Selfless Care" },
+  ESTJ: { zh: "效率 · 秩序 · 主導力", en: "Efficiency · Order · Leadership" },
+  ESFJ: { zh: "和諧 · 溫暖 · 社群意識", en: "Harmony · Warmth · Community" },
+  ISTP: { zh: "冷靜 · 技術 · 即戰力", en: "Calm · Technique · Instant Action" },
+  ISFP: { zh: "美感 · 敏感 · 活在當下", en: "Aesthetics · Sensitivity · Presence" },
+  ESTP: { zh: "行動 · 感官 · 即時回應", en: "Action · Sensation · Instant Response" },
+  ESFP: { zh: "表演 · 喜悅 · 感染力", en: "Performance · Joy · Charisma" },
 };
 
 const SpectrumBar = ({ leftLabel, rightLabel, leftScore, rightScore, leftDesc, rightDesc }: any) => (
@@ -649,10 +650,17 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     </div>
                   </div>
                   <div className="soul-btns" style={{ flexDirection: 'column' }} data-html2canvas-ignore>
+                    <button
+                      onClick={() => window.open(buildDessertOrderLink(resultData.id, identitySuffix), '_blank')}
+                      className="soul-btn soul-btn-black"
+                      style={{ backgroundColor: '#C6FF00', color: '#000', border: '1px solid #C6FF00', width: '100%', marginBottom: '10px', fontSize: '14px' }}
+                    >
+                      領取靈魂處方箋 ↗
+                    </button>
                     <button onClick={handleLineShare} className="soul-btn" style={{ backgroundColor: '#06C755', color: 'white', border: '1px solid #06C755', width: '100%' }}>傳送給 LINE 好友</button>
                     <div style={{ display: 'flex', gap: '15px', width: '100%' }}>
                       <button className="soul-btn" onClick={() => setShowAlt(!showAlt)} style={{ flex: 1 }}>{showAlt ? '收起建議' : '同象限替換'}</button>
-                      <button className="soul-btn soul-btn-black" onClick={() => setShowMenu(true)} style={{ flex: 1 }}>完整菜單</button>
+                      <button className="soul-btn" onClick={() => setShowMenu(true)} style={{ flex: 1 }}>完整菜單</button>
                     </div>
                   </div>
                 </div>

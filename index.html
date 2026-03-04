@@ -171,12 +171,20 @@ Kiwimu 16 型人格化身，每型對應獨特的甜點風味與情緒主題。"
   </style>
 
   <!-- Google Analytics (GA4) - 與 Firebase measurementId 同資源 -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2NBWRX24YR"></script>
-  <script>
+  <script type="module">
+    // Use the new Kiwimu-Core GA4 ID for unified funnel tracking
+    const gaId = import.meta.env.VITE_GA4_ID || import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-DM6F27KL8B';
+
+    window.__GA4_ID__ = gaId;
+    const gaScript = document.createElement('script');
+    gaScript.async = true;
+    gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+    document.head.appendChild(gaScript);
+
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
-    gtag('config', 'G-2NBWRX24YR');
+    gtag('config', gaId);
   </script>
 
   <!-- 結構化資料 (JSON-LD) - AI SEO 可理解、可引用 -->
