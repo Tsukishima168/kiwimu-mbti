@@ -25,11 +25,11 @@ const CHANNEL_MESSAGES = {
 
 🗺️ **月島品牌地圖**
 探索完整的 Moon Moon 世界觀與品牌故事
-→ https://moon-map-original.vercel.app?utm_source=discord&utm_medium=pinned&utm_campaign=community
+→ https://map.kiwimu.com?utm_source=discord&utm_medium=pinned&utm_campaign=community
 
 🎨 **甜點護照測驗**
 趣味測驗，獲得你的甜點角色貼紙
-→ https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=pinned&utm_campaign=community
+→ https://passport.kiwimu.com?utm_source=discord&utm_medium=pinned&utm_campaign=community
 
 ━━━━━━━━━━━━━━━━━━
 
@@ -448,11 +448,11 @@ Instagram：@kiwimu.mbti
 
 🗺️ **月島品牌地圖**
 探索完整的 Moon Moon 世界觀與品牌故事
-→ https://moon-map-original.vercel.app?utm_source=discord&utm_medium=cross_product&utm_campaign=community
+→ https://map.kiwimu.com?utm_source=discord&utm_medium=cross_product&utm_campaign=community
 
 🎨 **甜點護照測驗**
 趣味測驗，獲得你的甜點角色貼紙
-→ https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=cross_product&utm_campaign=community
+→ https://passport.kiwimu.com?utm_source=discord&utm_medium=cross_product&utm_campaign=community
 
 🛒 **甜點訂購系統**
 線上預訂你的專屬甜點（即將推出）

@@ -21,7 +21,7 @@
 
 **連結格式**：
 ```
-https://dessert-booking.vercel.app?
+https://shop.kiwimu.com?
   mbti=INTJ-A
   &utm_source=mbti-lab
   &utm_campaign=2026-q1-integration

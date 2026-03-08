@@ -66,7 +66,7 @@ http://localhost:5173?test=true
 
 **預期網址**：
 ```
-https://dessert-booking.vercel.app?
+https://shop.kiwimu.com?
   mbti=INTJ-A
   &from=mbti-test
   &source=result-page
@@ -160,7 +160,7 @@ https://dessert-booking.vercel.app?
 
 ```javascript
 [GA4 Track] outbound_click {
-  link_domain: "dessert-booking.vercel.app",
+  link_domain: "shop.kiwimu.com",
   link_name: "月島甜點訂購",
   utm_source: "mbti-lab",
   mbti_type: "INTJ"

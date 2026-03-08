@@ -25,7 +25,7 @@
 **實作細節**：
 ```typescript
 // 生成的連結格式：
-https://dessert-booking.vercel.app?
+https://shop.kiwimu.com?
   mbti=INTJ-A
   &from=mbti-test
   &source=result-page
@@ -99,7 +99,7 @@ import {
 
 // 建立訂購連結
 const orderLink = buildDessertOrderLink('INTJ', 'A');
-// 結果：https://dessert-booking.vercel.app?mbti=INTJ-A&utm_source=mbti-lab&...
+// 結果：https://shop.kiwimu.com?mbti=INTJ-A&utm_source=mbti-lab&...
 
 // 追蹤點擊
 trackDessertOrderClick('INTJ', 'A');

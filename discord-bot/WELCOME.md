@@ -12,11 +12,11 @@
 
 ### 🗺️ 月島品牌地圖
 探索完整的 Moon Moon 世界觀與品牌故事
-👉 **https://moon-map-original.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community**
+👉 **https://map.kiwimu.com?utm_source=discord&utm_medium=welcome&utm_campaign=community**
 
 ### 🎨 甜點護照測驗
 趣味測驗，獲得你的甜點角色貼紙
-👉 **https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community**
+👉 **https://passport.kiwimu.com?utm_source=discord&utm_medium=welcome&utm_campaign=community**
 
 ### 🛒 訂購靈魂甜點
 根據你的性格，訂購專屬甜點（即將推出）
@@ -158,8 +158,8 @@ A: 在 📝 意見箱留言，或標註 @管理員
 ## 📞 聯絡我們
 
 - **MBTI 測驗**: https://kiwimu.com?utm_source=discord&utm_medium=welcome&utm_campaign=community
-- **月島地圖**: https://moon-map-original.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community
-- **甜點護照**: https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=welcome&utm_campaign=community
+- **月島地圖**: https://map.kiwimu.com?utm_source=discord&utm_medium=welcome&utm_campaign=community
+- **甜點護照**: https://passport.kiwimu.com?utm_source=discord&utm_medium=welcome&utm_campaign=community
 - **LINE@**: @kiwimu
 - **Instagram**: @kiwimu.mbti
 

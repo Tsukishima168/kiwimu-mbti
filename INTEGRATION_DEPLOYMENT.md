@@ -55,7 +55,7 @@ npm run dev
 
 **預期網址格式**：
 ```
-https://dessert-booking.vercel.app?
+https://shop.kiwimu.com?
   mbti=INTJ-A
   &from=mbti-test
   &source=result-page

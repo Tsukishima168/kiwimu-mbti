@@ -25,9 +25,9 @@
 | 舊 URL | 新 URL | 影響檔案數 |
 |--------|-------|----------|
 | `kiwimu-mbti.vercel.app` | `kiwimu.com` | analytics map + 導覽 |
-| `moon-map-original.vercel.app` | `map.kiwimu.com` | 6 個檔案 |
-| `dessert-booking.vercel.app` | `shop.kiwimu.com` | 7 個檔案 |
-| `moonmoon-dessert-passport.vercel.app` | `passport.kiwimu.com` | 5 個檔案 |
+| `map.kiwimu.com` | `map.kiwimu.com` | 6 個檔案 |
+| `shop.kiwimu.com` | `shop.kiwimu.com` | 7 個檔案 |
+| `passport.kiwimu.com` | `passport.kiwimu.com` | 5 個檔案 |
 | `moonmoon-gacha.vercel.app` | `gacha.kiwimu.com` | 2 個檔案 |
 
 **analytics hostname maps（保留舊 key 向下相容）：**
@@ -74,7 +74,7 @@
 
 | 設定項目 | 舊值 | 新值 |
 |---------|------|------|
-| Site URL | `https://moon-map-original.vercel.app` | `https://shop.kiwimu.com` |
+| Site URL | `https://map.kiwimu.com` | `https://shop.kiwimu.com` |
 
 **Redirect URLs（5 筆新增）：**
 ```

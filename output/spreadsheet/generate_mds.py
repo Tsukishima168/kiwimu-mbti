@@ -8,8 +8,8 @@ countries = [
     ('south_korea', 'South Korea (ko-KR)')
 ]
 
-csv_dir = '/Users/pensoair/Desktop/color-of-kiwimu-mbti-lab-v5/output/spreadsheet/'
-obsidian_dir = '/Users/pensoair/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/08_專案工坊/'
+csv_dir = '/Users/penstudio/Desktop/color-of-kiwimu-mbti-lab-v5/output/spreadsheet/'
+obsidian_dir = '/Users/penstudio/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/08_專案工坊/'
 
 for slug, name in countries:
     csv_path = os.path.join(csv_dir, f'mbti_question_bank_2026_{slug}.csv')

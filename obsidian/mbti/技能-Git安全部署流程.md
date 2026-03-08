@@ -44,7 +44,7 @@
 
 ```bash
 # 進到任何項目
-cd /Users/pensoair/Desktop/網路開發專案/[project-name]
+cd /Users/penstudio/Desktop/網路開發專案/[project-name]
 
 # 執行一鍵安全部署
 ./deploy.sh

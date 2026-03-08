@@ -57,7 +57,7 @@ def write_updated_file(filepath, lines, header_idx, table_len, orig_data, tw_dic
     print(f"Updated {filepath}")
 
 if __name__ == "__main__":
-    base_dir = "/Users/pensoair/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/08_專案工坊/Kiwimu_MBTI_Lab_內容庫/2026_H1_跨國升級版/"
+    base_dir = "/Users/penstudio/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/08_專案工坊/Kiwimu_MBTI_Lab_內容庫/2026_H1_跨國升級版/"
     tw_file = base_dir + "MBTI_Question_Bank_2026_Taiwan.md"
     
     _, _, _, tw_data = read_markdown_table(tw_file)

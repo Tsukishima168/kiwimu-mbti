@@ -8,8 +8,8 @@
 
 ### Step 1: 選擇你的探索方式
 - **🧪 MBTI 測驗** - https://kiwimu.com?utm_source=discord&utm_medium=announcement&utm_campaign=community
-- **🗺️ 月島地圖** - https://moon-map-original.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
-- **🎨 甜點護照** - https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **🗺️ 月島地圖** - https://map.kiwimu.com?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **🎨 甜點護照** - https://passport.kiwimu.com?utm_source=discord&utm_medium=announcement&utm_campaign=community
 
 ### Step 2: 獲得身份組（完成 MBTI 測驗後）
 在這裡輸入：
@@ -116,8 +116,8 @@
 ## 📞 聯絡資訊
 
 - **MBTI 測驗**: https://kiwimu.com?utm_source=discord&utm_medium=announcement&utm_campaign=community
-- **月島地圖**: https://moon-map-original.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
-- **甜點護照**: https://moonmoon-dessert-passport.vercel.app?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **月島地圖**: https://map.kiwimu.com?utm_source=discord&utm_medium=announcement&utm_campaign=community
+- **甜點護照**: https://passport.kiwimu.com?utm_source=discord&utm_medium=announcement&utm_campaign=community
 - **LINE@**: @kiwimu
 
 ---

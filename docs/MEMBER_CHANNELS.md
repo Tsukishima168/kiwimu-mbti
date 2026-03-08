@@ -21,7 +21,7 @@
 | 專案（桌面） | 可能需要的會員資訊 | 建議通道方式 | 備註 |
 |--------------|--------------------|--------------|------|
 | **1. moon_passport** | 身份（email/uid）、MBTI 類型、暱稱、頭像；必要時測驗紀錄 | 共用 **月島 Supabase** `profiles` 讀取；或本專案提供 **API** 查詢 | 甜點護照／會員卡；與月島品牌統一身份與 MBTI。 |
-| **2. moon_map** | MBTI 類型、email、暱稱（地圖顯示／推薦） | 已寫入 **月島 Supabase** `profiles`；moon_map 直接連同一 Supabase 讀取 | 目前連結為 `moon-map-original.vercel.app?mbti=xxx`，可改為依 email 從 profiles 取 mbti。 |
+| **2. moon_map** | MBTI 類型、email、暱稱（地圖顯示／推薦） | 已寫入 **月島 Supabase** `profiles`；moon_map 直接連同一 Supabase 讀取 | 目前連結為 `map.kiwimu.com?mbti=xxx`，可改為依 email 從 profiles 取 mbti。 |
 | **3. dessert_booking** | 身份、MBTI（訂單／推薦甜點）、聯絡方式 | 共用 **月島 Supabase** `profiles`；或由本專案 **API** 回傳會員＋MBTI | 訂位／訂購時帶入會員與靈魂甜點類型。 |
 | **4. penso_good_blog** | 若要做「登入會員看文／留言」：uid、email、displayName | **Firebase Auth 共用**（同一 Firebase 專案）＋ Firestore 或月島 Supabase 視需求 | 部落格會員與 MBTI Lab 可同一套登入；需在 blog 專案接 Firebase。 |
 
@@ -73,7 +73,7 @@
 | 專案名稱 | 說明 |
 |----------|------|
 | moon_passport | 月島甜點護照／會員護照 |
-| moon_map | 月島地圖（目前連結：moon-map-original.vercel.app） |
+| moon_map | 月島地圖（目前連結：map.kiwimu.com） |
 | dessert_booking | 甜點訂購／訂位 |
 | penso_good_blog | 部落格 |
 
