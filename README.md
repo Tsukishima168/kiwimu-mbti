@@ -23,3 +23,14 @@ Required for deployment:
 - `LINE_CHANNEL_SECRET`
 - `LINE_REDIRECT_URI`
 - `FIREBASE_SERVICE_ACCOUNT`
+
+---
+
+## Phase 1 Gate (Current)
+**Goal: Validate traffic funnel**
+
+### Metrics
+- MBTI completions: 1000
+- Orders: 200
+- AOV: NT
+- Monthly revenue: NTk
