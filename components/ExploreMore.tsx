@@ -10,7 +10,7 @@ interface ExploreMoreProps {
 export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, passportClaimUrl }) => {
   const dessertUrl = mbtiType
     ? buildDessertOrderLink(mbtiType, variant || 'A')
-    : 'https://shop.kiwimu.com';
+    : 'https://shop.kiwimu.com?utm_source=mbti&utm_medium=result_page&utm_campaign=quiz_result';
   const passportUrl = passportClaimUrl || buildPassportLink();
   const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType) : 'https://map.kiwimu.com';
 
