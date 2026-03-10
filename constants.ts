@@ -575,14 +575,14 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
   const baseDb: Record<string, MbtiResultData> = {
     // --- 分析師 (Analysts) ---
     "INTJ": {
-      id: "INTJ", title: "戰略策劃家 · 睿智巴斯貓", summary: "極致理性的系統構建者，孤獨但清醒。", quote: "「在混亂的星雲中，你總能看見那條隱形的秩序之線。」", keywords: ["遠見", "獨立", "戰略", "完美"], bgColor: getBgColor("INTJ"),
-      coreAnalysis: "你的靈魂像是一隻在夜色中觀察世界的巴斯貓，冷靜且富有策略。世界對你來說不是隨機的混亂，而是一個可以被拆解、優化和重組的巨大棋盤。你極度看重能力與知識，對權威不屑一顧，除非那個權威能證明他比你聰明。你的孤獨來自於你總是在思考大多數人還沒意識到的未來。",
+      id: "INTJ", title: "戰略策劃家", summary: "極致理性的系統構建者，孤獨但清醒。", quote: "「如果這件事沒有邏輯，那它就不應該存在。」", keywords: ["遠見", "獨立", "戰略", "完美"], bgColor: getBgColor("INTJ"),
+      coreAnalysis: "你是天生的架構師。世界對你來說不是隨機的混亂，而是一個可以被拆解、優化和重組的巨大棋盤。你極度看重能力與知識，對權威不屑一顧，除非那個權威能證明他比你聰明。你的孤獨來自於你總是在思考大多數人還沒意識到的未來。",
       dimensionAnalysis: { EI: "內向 (I) 提供深度思考的空間。", SN: "直覺 (N) 讓你總是看向未來。", TF: "思考 (T) 是你過濾雜訊的刀。", JP: "判斷 (J) 讓你執行力如雷。", AT: "面對變數時的穩定程度。" },
       strengths: ["長遠的戰略眼光", "極強的邏輯分析能力", "獨立自主", "追求卓越"],
       blindSpots: ["過於傲慢", "忽視他人情感", "過度分析", "對細節不耐煩"],
       career: {
-        style: "你是優秀的架構師或策略家。需要高度專注力，討厭無效溝通。你喜歡解決複雜的系統性問題。",
-        advice: "巴斯貓的眼光雖然銳利，但有時也需要收起爪子。學習花點時間經營職場關係，這不是虛偽，而是潤滑劑。試著用更溫和的方式推銷你的想法，別讓人覺得你在展現智商優越感，否則你會發現自己在單打獨鬥。",
+        style: "你是優秀的架構師或策略家。需要高度自主權，討厭微觀管理。你喜歡解決複雜的系統性問題。",
+        advice: "你的才華毋庸置疑，但「人」往往是你計畫中最大的變數。學習花點時間經營職場關係，這不是虛偽，而是潤滑劑。試著用更溫和的方式推銷你的想法，別讓人覺得你在展現智商優越感，否則你會發現自己在單打獨鬥。",
         suitableJobs: ["系統架構師", "科學家", "策略顧問", "投資經理"]
       },
       relationships: {
@@ -595,7 +595,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "北海道經典巴斯克", description: "極致的濃度直達靈魂核心，理智與感官的完美角力。", imageUrl: DESSERT_IMAGES.BASQUE_CLASSIC, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "INTP": {
-      id: "INTP", title: "邏輯解構者 · 睿智巴斯貓", summary: "沈迷於宇宙奧秘的思考者，腦洞無邊無際。", quote: "「比起答案，我更喜歡那些無解的問題。」", keywords: ["好奇", "邏輯", "解構", "真理"], bgColor: getBgColor("INTP"),
+      id: "INTP", title: "邏輯解構者", summary: "沈迷於宇宙奧秘的思考者，腦洞無邊無際。", quote: "「比起答案，我更喜歡那些無解的問題。」", keywords: ["好奇", "邏輯", "解構", "真理"], bgColor: getBgColor("INTP"),
       coreAnalysis: "你是思想的遊牧民族。你的大腦24小時都在運作，試圖找出萬物背後的原理。你不在乎世俗的成功標準，只在乎思維是否足夠清晰、邏輯是否足夠優美。你常被認為活在自己的世界裡，但那是因為你的世界比現實更有趣。",
       dimensionAnalysis: { EI: "內向 (I) 讓你專注於內在邏輯。", SN: "直覺 (N) 讓你看到抽象關聯。", TF: "思考 (T) 是你唯一的準則。", JP: "感知 (P) 讓你保持開放與靈活。", AT: "對自我懷疑的處理機制。" },
       strengths: ["分析能力", "創新思維", "客觀公正", "學習力強"],
@@ -615,7 +615,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "檸檬柚子千層", description: "結構細膩且層次分明，在深度思考中尋求一絲清亮。", imageUrl: DESSERT_IMAGES.MILLE_CREPE_LEMON, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ENTJ": {
-      id: "ENTJ", title: "天生指揮官 · 睿智巴斯貓", summary: "你是天生的統帥。擁有宏大的願景與鐵一般的意志。", quote: "「不可能這個詞，只存在於愚人的字典裡。」", keywords: ["野心", "戰略", "果斷", "權力"], bgColor: getBgColor("ENTJ"),
+      id: "ENTJ", title: "天生指揮官", summary: "你是天生的統帥。擁有宏大的願景與鐵一般的意志。", quote: "「不可能這個詞，只存在於愚人的字典裡。」", keywords: ["野心", "戰略", "果斷", "權力"], bgColor: getBgColor("ENTJ"),
       coreAnalysis: "你是天生的領袖。在大腦中，一切事物都被轉化為實現目標的資源。你對低效與混亂有著天然的厭惡，總是渴望在充滿挑戰的環境中建立秩序。你不僅看見森林，你還規劃了整座森林的採伐與重生路徑。",
       dimensionAnalysis: { EI: "外向 (E) 賦予你奪取主導權的衝動。", SN: "直覺 (N) 是你的長遠戰略指南。", TF: "思考 (T) 是你最強大的武器。", JP: "判斷 (J) 讓你的決策果斷如雷。", AT: "身份維度影響你對壓力的耐受度。" },
       strengths: ["決策力", "戰略", "自信", "效率"],
@@ -656,7 +656,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
     },
     // --- 外交官 (Diplomats) ---
     "INFJ": {
-      id: "INFJ", title: "深淵凝視者 · 夢幻蛋鬼", summary: "稀有且深邃的導師，看透人心的直覺力。", quote: "「最安靜的人，往往擁有最喧囂的思想。」", keywords: ["洞察", "理想", "神祕", "利他"], bgColor: getBgColor("INFJ"),
+      id: "INFJ", title: "深淵凝視者", summary: "稀有且深邃的導師，看透人心的直覺力。", quote: "「最安靜的人，往往擁有最喧囂的思想。」", keywords: ["洞察", "理想", "神祕", "利他"], bgColor: getBgColor("INFJ"),
       coreAnalysis: "你是人類靈魂的解讀者。你擁有一種近乎通靈的直覺，能輕易看穿他人的偽裝與潛在動機。你雖然安靜，但內心燃燒著改變世界的理想之火。你追求深度的連結與意義，對於膚淺的事物感到疲憊。",
       dimensionAnalysis: { EI: "內向 (I) 讓你保留神祕感。", SN: "直覺 (N) 讓你預見未來趨勢。", TF: "情感 (F) 讓你對人充滿關懷。", JP: "判斷 (J) 讓你堅定地執行理想。", AT: "面對完美主義時的壓力。" },
       strengths: ["穿透人心的直覺力", "強大的共情與療癒能力", "對信念的堅持與執行力", "善於看見事物的本質"],
@@ -676,14 +676,14 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "茶香巴斯克", description: "沈穩的茶韻撫平外界的嘈雜，帶你潛入最深的內在宇宙。", imageUrl: DESSERT_IMAGES.BASQUE_TEA, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "INFP": {
-      id: "INFP", title: "治癒系詩人 · 夢幻蛋鬼", summary: "溫柔的理想主義者，內心藏著整座宇宙。", quote: "「在最安靜角落，藏著最巨大的共鳴。」", keywords: ["夢幻", "真誠", "共情", "自由"], bgColor: getBgColor("INFP"),
-      coreAnalysis: "你像是一顆純白的蛋鬼，吸收了世間的憂愁，將其孵化成最溫柔的詩。你的內心世界比現實世界更真實、更豐富。你對真實（Authenticity）有著極致的追求，無法忍受虛偽。雖然外表看似柔弱隨和，但一旦觸及你的核心價值觀，你會展現出驚人的頑強。",
+      id: "INFP", title: "治癒系詩人", summary: "溫柔的理想主義者，內心藏著整座宇宙。", quote: "「即使在陰溝裡，我也在仰望星空。」", keywords: ["夢幻", "真誠", "共情", "自由"], bgColor: getBgColor("INFP"),
+      coreAnalysis: "你是詩人與夢想家。你的內心世界比現實世界更真實、更豐富。你對真實（Authenticity）有著極致的追求，無法忍受虛偽。雖然外表看似柔弱隨和，但一旦觸及你的核心價值觀，你會展現出驚人的頑強。",
       dimensionAnalysis: { EI: "內向 (I) 是你的能量源泉。", SN: "直覺 (N) 讓你充滿想像。", TF: "情感 (F) 是你的決策核心。", JP: "感知 (P) 讓你隨性生活。", AT: "情緒波動的穩定度。" },
       strengths: ["豐富的想像力", "真誠", "同理心", "開放的心態"],
       blindSpots: ["不切實際", "容易受傷", "缺乏執行力", "逃避衝突"],
       career: {
         style: "你需要創意與自由，無法忍受官僚與僵化的體制。工作必須符合你的個人價值觀。",
-        advice: "蛋鬼的轉化需要時間，但別讓它變成永無止盡的觀望。你的熱情來得快去得也快，容易陷入「想得太多，做得太少」的循環。試著建立微小的日常紀律，讓靈感能夠落地。不要因為職場的現實面而感到幻滅，學習在不完美的一環境中守護你的初心。",
+        advice: "你的熱情來得快去得也快，容易陷入「想得太多，做得太少」的循環。試著建立微小的日常紀律，讓靈感能夠落地。不要因為職場的現實面而感到幻滅，學習在不完美的一環境中守護你的初心，而不是逃避。",
         suitableJobs: ["作家", "藝術家", "心理學家", "編輯"]
       },
       relationships: {
@@ -696,7 +696,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "北海道十勝戚風", description: "輕盈柔軟的著陸點，在銳利的世界裡提供一場溫柔的安放。", imageUrl: DESSERT_IMAGES.CHIFFON_HOKKAIDO, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ENFJ": {
-      id: "ENFJ", title: "光輝導師 · 夢幻蛋鬼", summary: "天生的導師與激勵者，散發溫暖的光芒。", quote: "「你的潛力，是我最想守護的寶藏。」", keywords: ["熱情", "領導", "利他", "影響"], bgColor: getBgColor("ENFJ"),
+      id: "ENFJ", title: "光輝導師", summary: "天生的導師與激勵者，散發溫暖的光芒。", quote: "「你的潛力，是我最想守護的寶藏。」", keywords: ["熱情", "領導", "利他", "影響"], bgColor: getBgColor("ENFJ"),
       coreAnalysis: "你是人群中的恆星。你天生就能感受到他人的情緒需求，並知道如何激勵他們成為更好的自己。你充滿魅力、熱情且富有責任感。你常常為了群體的和諧而忽略了自己的需求，你的快樂來自於看到他人的成長。",
       dimensionAnalysis: { EI: "外向 (E) 讓你從幫助他人中獲能。", SN: "直覺 (N) 讓你看到他人的潛力。", TF: "情感 (F) 讓你極重人情。", JP: "判斷 (J) 讓你做事有條理。", AT: "面對批評時的反應。" },
       strengths: ["說服力", "同理心", "領導力", "熱情"],
@@ -716,14 +716,14 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "檸檬蘋果戚風", description: "明亮如陽光的清新力量，溫暖並照亮每一個被遺忘的角落。", imageUrl: DESSERT_IMAGES.CHIFFON_LEMON, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ENFP": {
-      id: "ENFP", title: "熱血追夢人 · 活力奇異鳥", summary: "充滿熱情的可能性探險家，永遠在追逐新奇。", quote: "「世界是你的畫布，而你的熱情是唯一的顏色。」", keywords: ["活力", "創意", "連結", "自由"], bgColor: getBgColor("ENFP"),
-      coreAnalysis: "你擁有奇異鳥般溫暖的守護力，卻又嚮往著蛋鬼般的無限變幻。你對世界充滿了孩子般的好奇心，總能從平凡中發現神奇。你熱愛人、熱愛故事、熱愛一切未知的可能性。你是天生的連結者，能瞬間拉近人與人的距離。你的能量具有傳染性，讓周圍的人都跟著燃燒。",
+      id: "ENFP", title: "熱血追夢人", summary: "充滿熱情的可能性探險家，永遠在追逐新奇。", quote: "「生活要麼是一場大膽的冒險，要麼什麼都不是。」", keywords: ["活力", "創意", "連結", "自由"], bgColor: getBgColor("ENFP"),
+      coreAnalysis: "你是自由的靈魂。你對世界充滿了孩子般的好奇心，總能從平凡中發現神奇。你熱愛人、熱愛故事、熱愛一切未知的可能性。你是天生的連結者，能瞬間拉近人與人的距離。你的能量具有傳染性，讓周圍的人都跟著燃燒。",
       dimensionAnalysis: { EI: "外向 (E) 讓你愛上人群。", SN: "直覺 (N) 讓你腦洞大開。", TF: "情感 (F) 讓你真誠待人。", JP: "感知 (P) 讓你隨性生活。", AT: "樂觀與焦慮的並存。" },
       strengths: ["創新", "溝通", "熱忱", "洞察力"],
       blindSpots: ["三分鐘熱度", "情緒化", "過度思考", "缺乏紀律"],
       career: {
         style: "需要創意、多樣性與能夠發揮影響力的工作。適合當點子的發想者。",
-        advice: "奇異鳥的守護是你的底色，但別讓過度的熱情燒毀了耐心。你是開始的高手，卻是結束的生手。你的履歷表可能充滿了各種有趣的經歷，但缺乏深度。在職場上，試著練習「收斂」，專注於將一個專案完美落地。",
+        advice: "你是開始的高手，卻是結束的生手。你的履歷表可能充滿了各種有趣的經歷，但缺乏深度。在職場上，試著練習「收斂」，專注於將一個專案完美落地，而不僅僅是提出好點子。注意細節，別讓粗心掩蓋了你的才華。",
         suitableJobs: ["活動企劃", "記者", "創業者", "行銷專員"]
       },
       relationships: {
@@ -737,7 +737,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
     },
     // --- 守護者 (Sentinels) ---
     "ISTJ": {
-      id: "ISTJ", title: "守序捍衛者 · 活力奇異鳥", summary: "可靠現實的基石，維護秩序的沈默守護者。", quote: "「承諾就是契約，事實勝於雄辯。」", keywords: ["責任", "細節", "傳統", "秩序"], bgColor: getBgColor("ISTJ"),
+      id: "ISTJ", title: "守序捍衛者", summary: "可靠現實的基石，維護秩序的沈默守護者。", quote: "「承諾就是契約，事實勝於雄辯。」", keywords: ["責任", "細節", "傳統", "秩序"], bgColor: getBgColor("ISTJ"),
       coreAnalysis: "你是社會的基石。你誠實、直接、盡忠職守。你相信事實、數據與經過驗證的方法，而不是空泛的理論。你做事井井有條，對細節有著驚人的記憶力。你不喜歡變動，因為那代表著不可控的風險。",
       dimensionAnalysis: { EI: "內向 (I) 讓你專注內在標準。", SN: "實感 (S) 讓你腳踏實地。", TF: "思考 (T) 讓你客觀公正。", JP: "判斷 (J) 讓你計畫周全。", AT: "對責任的焦慮感。" },
       strengths: ["誠實", "負責", "細心", "遵守規範"],
@@ -757,7 +757,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "經典十勝原味千層", description: "結構的絕對精準與對承諾的執著，最值得信賴的味覺基石。", imageUrl: DESSERT_IMAGES.MILLE_CREPE_CLASSIC, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ISFJ": {
-      id: "ISFJ", title: "溫柔守護者 · 活力奇異鳥", summary: "無私的奉獻者，細膩體貼的守護天使。", quote: "「被需要，是我存在的最大價值。」", keywords: ["守護", "奉獻", "細膩", "傳統"], bgColor: getBgColor("ISFJ"),
+      id: "ISFJ", title: "溫柔守護者", summary: "無私的奉獻者，細膩體貼的守護天使。", quote: "「被需要，是我存在的最大價值。」", keywords: ["守護", "奉獻", "細膩", "傳統"], bgColor: getBgColor("ISFJ"),
       coreAnalysis: "你是最溫暖的港灣。你安靜、友善且極具責任感。你總是把別人的需求放在自己之前，默默地記住每個人的喜好與細節。你維護著家庭與團體的和諧，是那種在背後默默支撐一切的力量。",
       dimensionAnalysis: { EI: "內向 (I) 讓你內斂謙虛。", SN: "實感 (S) 讓你關注細節。", TF: "情感 (F) 讓你體貼入微。", JP: "判斷 (J) 讓你盡忠職守。", AT: "過度擔憂的傾向。" },
       strengths: ["體貼", "耐心", "務實", "觀察力強"],
@@ -777,7 +777,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "經典烤布丁", description: "安全感的終極錨點，最純粹、最直接的溫柔安撫與回歸。", imageUrl: DESSERT_IMAGES.PUDDING_CLASSIC, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ESTJ": {
-      id: "ESTJ", title: "鐵血執行長 · 活力奇異鳥", summary: "講究效率的管理者，維護傳統與秩序。", quote: "「效率是通往成功的唯一路徑。」", keywords: ["秩序", "管理", "效率", "現實"], bgColor: getBgColor("ESTJ"),
+      id: "ESTJ", title: "鐵血執行長", summary: "講究效率的管理者，維護傳統與秩序。", quote: "「效率是通往成功的唯一路徑。」", keywords: ["秩序", "管理", "效率", "現實"], bgColor: getBgColor("ESTJ"),
       coreAnalysis: "你是天生的管理者。你重視傳統、秩序與規則，並且擅長組織人事物去達成目標。你講究效率，無法容忍懶散與混亂。你直言不諱，因為你認為誠實比圓滑更重要。你是社會運作的引擎。",
       dimensionAnalysis: { EI: "外向 (E) 讓你主動掌控。", SN: "實感 (S) 讓你依據事實。", TF: "思考 (T) 讓你邏輯分明。", JP: "判斷 (J) 讓你果斷決策。", AT: "對失控的焦慮。" },
       strengths: ["領導力", "負責", "效率", "堅毅"],
@@ -818,7 +818,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
     },
     // --- 探險家 (Explorers) ---
     "ISTP": {
-      id: "ISTP", title: "冷靜工匠 · 睿智巴斯貓", summary: "冷靜的觀察者，靈巧的執行者。", quote: "「與其談論如何運作，不如直接拆開來看。」", keywords: ["理性", "冷靜", "冒險", "技術"], bgColor: getBgColor("ISTP"),
+      id: "ISTP", title: "冷靜工匠", summary: "冷靜的觀察者，靈巧的執行者。", quote: "「與其談論如何運作，不如直接拆開來看。」", keywords: ["理性", "冷靜", "冒險", "技術"], bgColor: getBgColor("ISTP"),
       coreAnalysis: "你是天生的工程師。你熱愛拆解世界的規律，不論是物理的還是邏輯的。你擁有一種極致的「省力原則」，總能找到最簡潔的路徑去達成目標。你重視效率與實務，對於虛無縹緲的情感喧囂往往保持距離。",
       dimensionAnalysis: { EI: "內向 (I) 提供思考深度。", SN: "實感 (S) 確保精準。", TF: "思考 (T) 主導決策。", JP: "感知 (P) 提供彈性。", AT: "自我認同度決定穩定性。" },
       strengths: ["危機處理", "實作能力", "客觀", "適應力"],
@@ -838,7 +838,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "經典提拉米蘇", description: "冷靜大膽的口感平衡，無需多言的硬派實力展現。", imageUrl: DESSERT_IMAGES.TIRAMISU_CLASSIC, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ISFP": {
-      id: "ISFP", title: "自由藝術家 · 夢幻蛋鬼", summary: "在黑白之間探索無限可能的藝術家。", quote: "「生活是一張畫布，我負責塗抹真實的色彩。」", keywords: ["藝術", "自由", "敏感", "當下"], bgColor: getBgColor("ISFP"),
+      id: "ISFP", title: "自由藝術家", summary: "在黑白之間探索無限可能的藝術家。", quote: "「生活是一張畫布，我負責塗抹真實的色彩。」", keywords: ["藝術", "自由", "敏感", "當下"], bgColor: getBgColor("ISFP"),
       coreAnalysis: "你擁有一種獨特的動態平衡感。既能適應規則，又能看見規則之外的可能性。你的多面性是你最強大的武器。你對自我的認知在不斷流動，拒絕被單一的標籤定義。這讓你具備了極強的心理韌性。",
       dimensionAnalysis: { EI: "內向 (I) 讓你保留能量。", SN: "實感 (S) 捕捉當下。", TF: "情感 (F) 是靈魂濾鏡。", JP: "感知 (P) 讓你隨遇而安。", AT: "情緒穩定性的影響。" },
       strengths: ["藝術天賦", "包容力", "熱情", "觀察力"],
@@ -858,7 +858,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "抹茶提拉米蘇", description: "細膩美感的微苦回甘，用最溫柔的方式對抗世界的喧囂。", imageUrl: DESSERT_IMAGES.TIRAMISU_MATCHA, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ESTP": {
-      id: "ESTP", title: "極限挑戰者 · 睿智巴斯貓", summary: "活在當下的行動派，追求刺激與解決問題。", quote: "「與其後悔做過，不如後悔沒做。」", keywords: ["大膽", "行動", "現實", "速度"], bgColor: getBgColor("ESTP"),
+      id: "ESTP", title: "極限挑戰者", summary: "活在當下的行動派，追求刺激與解決問題。", quote: "「與其後悔做過，不如後悔沒做。」", keywords: ["大膽", "行動", "現實", "速度"], bgColor: getBgColor("ESTP"),
       coreAnalysis: "你是活在當下的實踐者。你討厭抽象理論，喜歡捲起袖子直接幹。你擁有驚人的觀察力，能瞬間讀懂空氣並做出反應。你是天生的冒險家，喜歡遊走在邊緣，並在危機中找到快感與機會。",
       dimensionAnalysis: { EI: "外向 (E) 讓你主動出擊。", SN: "實感 (S) 讓你專注現實。", TF: "思考 (T) 讓你理性計算風險。", JP: "感知 (P) 讓你靈活應變。", AT: "自信與衝動的平衡。" },
       strengths: ["行動力", "社交手腕", "適應力", "觀察力"],
@@ -878,7 +878,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "巧克力布朗尼千層", description: "極致感官的爆發體驗，追求速度與最直白的生命熱情。", imageUrl: DESSERT_IMAGES.MILLE_CREPE_CHOCO, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ESFP": {
-      id: "ESFP", title: "閃耀巨星 · 活力奇異鳥", summary: "天生的藝人，讓生活充滿樂趣與色彩。", quote: "「人生就是一場即興演出。」", keywords: ["樂趣", "表演", "熱情", "關注"], bgColor: getBgColor("ESFP"),
+      id: "ESFP", title: "閃耀巨星", summary: "天生的藝人，讓生活充滿樂趣與色彩。", quote: "「人生就是一場即興演出。」", keywords: ["樂趣", "表演", "熱情", "關注"], bgColor: getBgColor("ESFP"),
       coreAnalysis: "你是世界的聚光燈。你熱愛生活、熱愛物質、熱愛與人互動。你有一種讓沈悶氣氛瞬間活躍的魔力。你極度關注美感與感官體驗，認為人生苦短，必須及時行樂。你是最慷慨的朋友，總是樂於分享快樂。",
       dimensionAnalysis: { EI: "外向 (E) 讓你在舞台上發光。", SN: "實感 (S) 讓你享受感官。", TF: "情感 (F) 讓你真情流露。", JP: "感知 (P) 讓你隨性而至。", AT: "對批評的敏感度。" },
       strengths: ["樂觀", "美感", "人際關係", "創造力"],

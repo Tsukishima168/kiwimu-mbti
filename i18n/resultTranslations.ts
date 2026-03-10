@@ -77,10 +77,10 @@ export const resultTranslations = {
         settings: '設定',
         logged_in: '已登入',
         user_prefix: '用戶',
-        kiwimu_universe: '奇幻月島：MBTI 靈魂處方箋',
-        discover_inner_self: 'Eggle · Bascat · Kiwimu 的宇宙敘事',
-        soft_understanding: '像鮮奶油一樣柔軟地，在月島遇見你的靈魂原型',
-        enter: 'ENTER 進入月島',
+        kiwimu_universe: 'KIWIMU 的 MBTI宇宙',
+        discover_inner_self: 'Discover Your Inner Self 探索內在自我',
+        soft_understanding: '像鮮奶油一樣柔軟地理解自己',
+        enter: 'ENTER 進入',
         tested_users: '已幫助 <count> 位用戶探索性格奧秘',
 
         // New keys
