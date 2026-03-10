@@ -366,19 +366,19 @@ async function postCrossProductInfo(channel) {
     {
       name: 'Dessert-Booking',
       description: '線上預訂你的專屬甜點',
-      url: 'https://dessert-booking.vercel.app/?utm_source=discord',
+      url: 'https://shop.kiwimu.com/?utm_source=discord',
       emoji: '🛒'
     },
     {
       name: 'Moon Map',
       description: '探索 Moon Moon 品牌生態',
-      url: 'https://moon-map-original.vercel.app/?utm_source=discord',
+      url: 'https://map.kiwimu.com/?utm_source=discord',
       emoji: '🗺️'
     },
     {
       name: 'Dessert Passport',
       description: '趣味測驗找到專屬角色貼紙',
-      url: 'https://moonmoon-dessert-passport.vercel.app/?utm_source=discord',
+      url: 'https://passport.kiwimu.com/?utm_source=discord',
       emoji: '🎨'
     }
   ];
