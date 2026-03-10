@@ -59,6 +59,7 @@ import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
 import ResultLegacyDump from './components/ResultLegacyDump';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
+import V2App from './components/v2/V2App';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | '404';
 
@@ -496,6 +497,31 @@ const App: React.FC = () => {
 
     console.log(`[TEST MODE] Jumped to ${mbtiType} result page`);
   };
+
+  // ── v2 路由 ─────────────────────────────────────────────────────
+  const isV2Path = window.location.pathname.startsWith('/v2');
+  const isLoggedIn = user && !user.isAnonymous;
+
+  // 訪客（匿名）訪問 /v2 → 重定向回 v1
+  if (isV2Path && !isLoggedIn && !loadingAuth) {
+    window.history.replaceState(null, '', '/');
+  }
+
+  // 已登入用戶訪問 / → 重定向至 /v2
+  if (!isV2Path && isLoggedIn && !loadingAuth && stage === 'intro') {
+    const params = new URLSearchParams(window.location.search);
+    const hasSpecialParam = params.has('r') || params.has('test') || params.has('ref');
+    if (!hasSpecialParam) {
+      window.history.replaceState(null, '', '/v2');
+      return <V2App />;
+    }
+  }
+
+  // /v2 路由 → 直接渲染 V2App
+  if (isV2Path) {
+    return <V2App />;
+  }
+  // ────────────────────────────────────────────────────────────────
 
   if (loadingAuth && stage !== 'callback') {
     return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;
