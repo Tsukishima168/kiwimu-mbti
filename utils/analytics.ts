@@ -133,10 +133,10 @@ export const trackQuizComplete = (
     };
 
     if (analytics) {
-        logEvent(analytics, 'quiz_complete', withSiteId(eventData));
+        logEvent(analytics, 'quiz_completion', withSiteId(eventData));
     }
 
-    logToFirestore('quiz_complete', eventData);
+    logToFirestore('quiz_completion', eventData);
 
     // Set user property for MBTI type
     if (analytics && mbtiType) {

@@ -55,13 +55,14 @@ import { saveMBTIToMoonIsland } from './utils/moonIslandSync';
 import { sendResultEmail } from './utils/sendResultEmail';
 
 import NotFound from './components/NotFound';
+import StateTest from './pages/StateTest';
 import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
 import ResultLegacyDump from './components/ResultLegacyDump';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
 import V2App from './components/v2/V2App';
 
-type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | '404';
+type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | '404';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -235,6 +236,8 @@ const App: React.FC = () => {
         } else {
           setStage('404');
         }
+      } else if (window.location.pathname === '/state-test') {
+        setStage('state-test');
       } else if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
         // Simple 404 detection: If path is not root/index and not callback, show 404
         // Note: This works because we are using hashing/state routing for the app content itself
@@ -581,6 +584,7 @@ const App: React.FC = () => {
           {stage === 'archive' && user && (
             <MyArchive key={Date.now()} user={user} onBack={handleBackFromArchive} />
           )}
+          {stage === 'state-test' && <StateTest />}
           {stage === '404' && (
             <NotFound onHome={() => {
               window.history.pushState({}, '', '/'); // Reset URL
