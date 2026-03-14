@@ -39,3 +39,12 @@ config.json
 
 # IG Story 匯出圖（可隨時用 export-story-images.cjs 重新產生）
 dev-previews/output
+
+# Local workflow / scratch files
+.claude/
+MBTI-Lab-V1.5-TEST/
+obsidian/
+live_index.html
+*.bak
+*.backup
+*.backup.*

@@ -6,6 +6,7 @@ declare global {
 }
 
 export type Dimension = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P' | 'A' | 'Turbulent';
+export type TranslatableString = Record<string, string>;
 
 export interface Option {
   label: string;
