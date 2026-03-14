@@ -173,8 +173,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const identityChinese = resultAT === 'A' ? '堅定型' : '動盪型';
   const anchor = SOUL_ANCHOR_MAP[resultData.id] || SOUL_ANCHOR_MAP["ISFP"];
   const isOgRenderPreview = typeof window !== 'undefined' && window.location.pathname.includes('/og-render');
-  const storyExcerpt = extractStoryExcerpt(resultData.coreAnalysis, 104);
-  const storyOutro = extractStoryExcerpt(resultData.summary || anchor.hook || resultData.quote, 76);
+  const storyExcerpt = extractStoryExcerpt(resultData.coreAnalysis, 132);
+  const storyOutro = extractStoryExcerpt(resultData.summary || anchor.hook || resultData.quote, 92);
   const quoteLines = splitQuoteLines(resultData.quote);
   const titleLines = splitEditorialTitle(resultData.title);
 
@@ -329,15 +329,14 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           <div style={{ position: 'absolute', top: '96px', left: '96px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <span style={{ fontSize: '32px', lineHeight: 1.1, letterSpacing: '0.02em', color: SHARE_EDITORIAL_PALETTE.ink }}>CREATIVE</span>
             <span style={{ fontSize: '32px', lineHeight: 1.1, letterSpacing: '0.02em', color: SHARE_EDITORIAL_PALETTE.ink }}>STORY</span>
-            <div style={{ marginTop: '18px', fontSize: '68px', fontWeight: 500, color: SHARE_EDITORIAL_PALETTE.ink, letterSpacing: '-0.05em' }}>2K26</div>
-            <div style={{ display: 'flex', gap: '32px', marginTop: '18px', fontSize: '22px', letterSpacing: '0.02em', color: 'rgba(17,17,17,0.82)' }}>
+            <div style={{ display: 'flex', gap: '32px', marginTop: '52px', fontSize: '22px', letterSpacing: '0.02em', color: 'rgba(17,17,17,0.82)' }}>
               <span>KIWIMU'S</span>
               <span>ARCHIVE</span>
             </div>
           </div>
 
           <div style={{ position: 'absolute', top: '142px', left: '50%', transform: 'translateX(-50%)', fontSize: '92px', color: SHARE_EDITORIAL_PALETTE.ink, fontWeight: 400 }}>
-            ←
+            →
           </div>
 
           <div style={{ position: 'absolute', top: '122px', right: '108px', display: 'grid', gridTemplateColumns: 'repeat(2, 34px)', gap: '10px', alignItems: 'start' }}>
@@ -354,42 +353,51 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           <div
             style={{
               position: 'absolute',
-              top: '420px',
+              top: '378px',
               left: 0,
               right: 0,
-              height: '520px',
+              height: '576px',
               overflow: 'hidden',
               borderTop: '1px solid rgba(17,17,17,0.10)',
               borderBottom: '1px solid rgba(17,17,17,0.10)',
-              background: 'linear-gradient(180deg, rgba(223,228,209,0.8) 0%, rgba(244,244,238,0.92) 100%)',
+              background: 'linear-gradient(180deg, rgba(230,234,214,0.86) 0%, rgba(244,244,238,0.96) 100%)',
             }}
           >
-            <img
-              src={resultData.characterImage}
-              alt={`Kiwimu ${resultData.id}`}
-              crossOrigin="anonymous"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center 30%',
-                filter: 'saturate(0.92) contrast(1.02)',
-              }}
-            />
             <div
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(17,17,17,0.08) 100%)',
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                padding: '16px 72px 0 72px',
+              }}
+            >
+              <img
+                src={resultData.characterImage}
+                alt={`Kiwimu ${resultData.id}`}
+                crossOrigin="anonymous"
+                style={{
+                  maxWidth: '100%',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  objectPosition: 'center bottom',
+                  filter: 'saturate(0.96) contrast(1.02)',
+                }}
+              />
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(17,17,17,0.06) 100%)',
               }}
             />
           </div>
 
-          <div style={{ position: 'absolute', top: '1012px', left: '96px', width: '390px', color: SHARE_EDITORIAL_PALETTE.ink }}>
-            <div style={{ fontSize: '24px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(17,17,17,0.7)' }}>
-              {resultData.id}-{identitySuffix} / {identityChinese}
-            </div>
-            <div style={{ marginTop: '18px', fontSize: '98px', lineHeight: 0.84, fontWeight: 500, letterSpacing: '-0.08em' }}>
+          <div style={{ position: 'absolute', top: '1038px', left: '96px', width: '390px', color: SHARE_EDITORIAL_PALETTE.ink }}>
+            <div style={{ marginTop: '18px', fontSize: '108px', lineHeight: 1.06, fontWeight: 500, letterSpacing: '-0.06em' }}>
               {titleLines.map((line, index) => (
                 <div key={`${line}-${index}`}>{line}</div>
               ))}
@@ -412,43 +420,34 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               {anchor.series}
             </div>
 
-            <div style={{ marginTop: '84px', fontSize: '23px', color: 'rgba(17,17,17,0.82)' }}>
+            <div style={{ marginTop: '72px', fontSize: '23px', color: 'rgba(17,17,17,0.82)' }}>
               dessert : {anchor.name}
             </div>
           </div>
 
-          <div style={{ position: 'absolute', top: '1038px', right: '96px', width: '332px', color: SHARE_EDITORIAL_PALETTE.ink }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '84px 1fr', rowGap: '4px', marginBottom: '22px' }}>
-              <div style={{ fontSize: '68px', lineHeight: 0.92, fontWeight: 500, letterSpacing: '-0.05em' }}>{resultData.id.slice(0, 2)}</div>
-              <div style={{ fontSize: '20px', lineHeight: 1.12, alignSelf: 'end' }}>Where your mind
-                <br />
-                begins to glow.
-              </div>
-              <div style={{ fontSize: '68px', lineHeight: 0.92, fontWeight: 500, letterSpacing: '-0.05em' }}>{identitySuffix === 'A' ? '01' : '02'}</div>
-              <div style={{ fontSize: '20px', lineHeight: 1.12, alignSelf: 'end' }}>A quiet profile
-                <br />
-                from Kiwimu.
-              </div>
+          <div style={{ position: 'absolute', top: '1044px', right: '96px', width: '356px', color: SHARE_EDITORIAL_PALETTE.ink }}>
+            <div style={{ fontSize: '30px', lineHeight: 1.1, letterSpacing: '0.08em', textTransform: 'uppercase', color: SHARE_EDITORIAL_PALETTE.olive }}>
+              {resultData.id}-{identitySuffix} / {identityChinese.replace('型', '')}
             </div>
 
-            <div style={{ fontSize: '31px', lineHeight: 1.18, textAlign: 'left', whiteSpace: 'pre-line' }}>
+            <div style={{ marginTop: '34px', fontSize: '27px', lineHeight: 1.32, textAlign: 'left', whiteSpace: 'pre-line' }}>
               {quoteLines.join('\n')}
             </div>
 
-            <div style={{ marginTop: '54px', fontSize: '21px', lineHeight: 1.34, textAlign: 'justify' }}>
+            <div style={{ marginTop: '40px', fontSize: '18px', lineHeight: 1.52, letterSpacing: '0.01em', textAlign: 'justify' }}>
               {storyExcerpt}
             </div>
 
-            <div style={{ marginTop: '38px', fontSize: '20px', lineHeight: 1.32, textAlign: 'justify', color: 'rgba(17,17,17,0.84)' }}>
+            <div style={{ marginTop: '34px', fontSize: '18px', lineHeight: 1.5, letterSpacing: '0.01em', textAlign: 'justify', color: 'rgba(17,17,17,0.84)' }}>
               {storyOutro}
             </div>
           </div>
 
-          <div style={{ position: 'absolute', top: '1112px', left: '500px', fontSize: '72px', color: SHARE_EDITORIAL_PALETTE.ink, fontWeight: 500 }}>
+          <div style={{ position: 'absolute', top: '1200px', left: '492px', fontSize: '72px', color: SHARE_EDITORIAL_PALETTE.ink, fontWeight: 500 }}>
             ↗
           </div>
-          <div style={{ position: 'absolute', top: '1140px', right: '104px', width: '28px', height: '28px', borderTop: '5px solid #111', borderRight: '5px solid #111' }} />
-          <div style={{ position: 'absolute', top: '1540px', left: '572px', width: '28px', height: '28px', borderLeft: '5px solid #111', borderBottom: '5px solid #111' }} />
+          <div style={{ position: 'absolute', top: '1190px', right: '104px', width: '28px', height: '28px', borderTop: '5px solid #111', borderRight: '5px solid #111' }} />
+          <div style={{ position: 'absolute', top: '1566px', left: '572px', width: '28px', height: '28px', borderLeft: '5px solid #111', borderBottom: '5px solid #111' }} />
 
           <div style={{ position: 'absolute', bottom: '124px', left: '96px', fontSize: '24px', color: 'rgba(17,17,17,0.84)' }}>
             camera : kiwimu archive
