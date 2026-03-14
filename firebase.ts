@@ -14,13 +14,34 @@ const firebaseConfig = {
 };
 
 export const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+
+const hasFirebaseCoreConfig = Boolean(
+  firebaseConfig.apiKey &&
+  firebaseConfig.authDomain &&
+  firebaseConfig.projectId &&
+  firebaseConfig.appId
+);
+
+let auth: any = null;
+let googleProvider: GoogleAuthProvider | null = null;
+
+if (hasFirebaseCoreConfig) {
+  try {
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+  } catch (error) {
+    console.warn('[firebase] auth init skipped:', error);
+  }
+} else {
+  console.warn('[firebase] missing auth env, running without auth provider');
+}
 
 // 僅在瀏覽器環境支援時初始化 Analytics（避免 SSR / 部分瀏覽器報錯）
 let analytics: ReturnType<typeof getAnalytics> | undefined;
-isSupported().then((supported) => {
-  if (supported) analytics = getAnalytics(app);
-});
+if (hasFirebaseCoreConfig && firebaseConfig.measurementId) {
+  isSupported().then((supported) => {
+    if (supported) analytics = getAnalytics(app);
+  });
+}
 
 export { auth, googleProvider, analytics };
