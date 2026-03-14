@@ -79,9 +79,57 @@ const App: React.FC = () => {
 
   const { saveCompletedTest, saveToCloud } = useFirestoreSync(user);
 
+  const applyRouteFromLocation = (hasSavedResult: boolean) => {
+    const rParam = new URLSearchParams(window.location.search).get('r');
+    if (rParam && !hasSavedResult) {
+      const shareMatch = rParam.match(/^([A-Z]{4})-([AT])$/);
+      if (shareMatch) {
+        const [, sharedType, sharedSuffix] = shareMatch;
+        const sharedData = getResultData(sharedType);
+        setResultData(sharedData);
+        setScores({
+          E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0,
+          A: sharedSuffix === 'A' ? 8 : 0,
+          Turbulent: sharedSuffix === 'T' ? 8 : 0
+        });
+        setIsSharedView(true);
+        setStage('result');
+        return;
+      }
+    }
+
+    if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
+      setStage('callback');
+      return;
+    }
+
+    const ogMatch = window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/);
+    if (ogMatch && ogMatch[1]) {
+      const [type, suffix] = ogMatch[1].split('-');
+      const data = getResultData(type);
+      setResultData(data);
+      setScores({
+        E: 0, I: 0,
+        S: 0, N: 0,
+        T: 0, F: 0,
+        J: 0, P: 0,
+        A: suffix === 'A' ? 1 : 0,
+        Turbulent: suffix === 'T' ? 1 : 0
+      });
+      setStage('og-render');
+      return;
+    }
+
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+      setStage('404');
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
-      await auth.authStateReady();
+      if (auth?.authStateReady) {
+        await auth.authStateReady();
+      }
       setLoading(false);
 
       // 初始化行銷像素
@@ -111,7 +159,7 @@ const App: React.FC = () => {
 
       // 【新增】如果有推薦參數，儲存到 Firebase
       const referralData = parseReferralParams();
-      if (referralData && auth.currentUser) {
+      if (referralData && auth?.currentUser) {
         saveReferralToFirebase(auth.currentUser.uid, referralData, db).catch(console.error);
       }
     };
@@ -157,6 +205,24 @@ const App: React.FC = () => {
   }, [user, loading]);
 
   useEffect(() => {
+    if (!auth) {
+      const savedResult = sessionStorage.getItem('last_quiz_result');
+      const savedScores = sessionStorage.getItem('last_quiz_scores');
+
+      if (savedResult && savedScores) {
+        setResultData(JSON.parse(savedResult));
+        setScores(JSON.parse(savedScores));
+        const currentStage = sessionStorage.getItem('flow_stage');
+        if (currentStage) {
+          setStage(currentStage as Stage);
+        }
+      }
+
+      applyRouteFromLocation(Boolean(savedResult));
+      setLoadingAuth(false);
+      return;
+    }
+
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       if (!currentUser) {
         try {
@@ -190,55 +256,7 @@ const App: React.FC = () => {
         }
       }
 
-      // 【分享連結】?r=INFP-A → 載入該類型結果並進入 result 頁（瀏覽模式）
-      const rParam = new URLSearchParams(window.location.search).get('r');
-      if (rParam && !savedResult) {
-        const shareMatch = rParam.match(/^([A-Z]{4})-([AT])$/);
-        if (shareMatch) {
-          const [, sharedType, sharedSuffix] = shareMatch;
-          const sharedData = getResultData(sharedType);
-          setResultData(sharedData);
-          setScores({
-            E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0,
-            A: sharedSuffix === 'A' ? 8 : 0,
-            Turbulent: sharedSuffix === 'T' ? 8 : 0
-          });
-          setIsSharedView(true);
-          setStage('result');
-          setLoadingAuth(false);
-          return;
-        }
-      }
-
-      if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
-        setStage('callback');
-      } else if (window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/)) {
-        const match = window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/);
-        if (match && match[1]) {
-          const [type, suffix] = match[1].split('-');
-          // Load result data directly from constants for the OG crawler
-          import('./constants').then(({ getResultData }) => {
-            const data = getResultData(type);
-            setResultData(data);
-            // Default dummy scores format
-            setScores({
-              E: 0, I: 0,
-              S: 0, N: 0,
-              T: 0, F: 0,
-              J: 0, P: 0,
-              A: suffix === 'A' ? 1 : 0,
-              Turbulent: suffix === 'T' ? 1 : 0
-            });
-            setStage('og-render');
-          });
-        } else {
-          setStage('404');
-        }
-      } else if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-        // Simple 404 detection: If path is not root/index and not callback, show 404
-        // Note: This works because we are using hashing/state routing for the app content itself
-        setStage('404');
-      }
+      applyRouteFromLocation(Boolean(savedResult));
 
       setLoadingAuth(false);
     });
@@ -428,6 +446,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = async () => {
+    if (!auth) return;
     try {
       await auth.signOut();
       // After logout, Firebase will auto-create a new anonymous user via onAuthStateChanged
@@ -506,8 +525,8 @@ const App: React.FC = () => {
     <LanguageProvider>
       <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
         <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>
-          <DiscordLinkGate user={user} onLogin={handleLogin} />
-          {stage !== 'intro' && stage !== 'manifesto' && (
+          {stage !== 'og-render' && <DiscordLinkGate user={user} onLogin={handleLogin} />}
+          {stage !== 'intro' && stage !== 'manifesto' && stage !== 'og-render' && (
             <div className="fixed top-6 right-6 z-50">
               <UserMenu user={user} onLogin={handleLogin} onLogout={handleLogout} />
             </div>

@@ -80,6 +80,54 @@ const IG_STORY_DIMENSION_MAP: Record<string, { zh: string; en: string }> = {
   ESFP: { zh: "表演 · 喜悅 · 感染力",    en: "Performance · Joy · Charisma" },
 };
 
+const SHARE_EDITORIAL_PALETTE = {
+  ink: '#111111',
+  olive: '#6F7732',
+  moss: '#8F9A3A',
+  limeMist: '#C3CC67',
+  paper: '#F8F7F1',
+  grid: 'rgba(16, 16, 16, 0.10)',
+};
+
+const extractStoryExcerpt = (text: string, maxLength = 160) => {
+  const normalized = text.replace(/\s+/g, ' ').trim();
+  if (!normalized) return '';
+
+  const sentenceMatch = normalized.match(/^(.{0,160}[。！!?])/);
+  if (sentenceMatch?.[1]) {
+    return sentenceMatch[1].trim();
+  }
+
+  return normalized.length > maxLength
+    ? `${normalized.slice(0, maxLength).trim()}…`
+    : normalized;
+};
+
+const splitQuoteLines = (quote: string) => {
+  const stripped = quote.replace(/[「」]/g, '').trim();
+  if (!stripped) return ['quiet', 'soul'];
+
+  const chunks = stripped
+    .replace(/[，、]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (chunks.length >= 2) {
+    return chunks.slice(0, 2);
+  }
+
+  const midpoint = Math.ceil(stripped.length / 2);
+  return [stripped.slice(0, midpoint), stripped.slice(midpoint)];
+};
+
+const splitEditorialTitle = (title: string) => {
+  const stripped = title.replace(/\s+/g, '').trim();
+  if (!stripped) return ['quiet', 'soul'];
+  if (stripped.length <= 3) return [stripped];
+  if (stripped.length <= 6) return [stripped.slice(0, 3), stripped.slice(3)];
+  return [stripped.slice(0, 3), stripped.slice(3, 6), stripped.slice(6)];
+};
+
 const SpectrumBar = ({ leftLabel, rightLabel, leftScore, rightScore, leftDesc, rightDesc }: any) => (
   <div className="mb-8 md:mb-12 border-b border-gray-200 pb-8 md:pb-12 last:border-0 text-left">
     <div className="flex justify-between items-baseline mb-3 md:mb-4">
@@ -124,6 +172,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const identitySuffix = resultAT;
   const identityChinese = resultAT === 'A' ? '堅定型' : '動盪型';
   const anchor = SOUL_ANCHOR_MAP[resultData.id] || SOUL_ANCHOR_MAP["ISFP"];
+  const isOgRenderPreview = typeof window !== 'undefined' && window.location.pathname.includes('/og-render');
+  const storyExcerpt = extractStoryExcerpt(resultData.coreAnalysis, 104);
+  const storyOutro = extractStoryExcerpt(resultData.summary || anchor.hook || resultData.quote, 76);
+  const quoteLines = splitQuoteLines(resultData.quote);
+  const titleLines = splitEditorialTitle(resultData.title);
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowMenu(false); };
@@ -155,7 +208,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     window.scrollTo(0, 0);
   }, [selectedOtherType, activeTab]); // Scroll to top when tab changes
 
-  /* DOWNLOAD IG STORY — generate acid green 1080×1920 card */
+  /* DOWNLOAD IG STORY — generate editorial 1080×1920 card */
   const handleDownloadIG = async () => {
     const element = document.getElementById('ig-story-container');
     if (!element) return;
@@ -168,7 +221,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         scale: 1.5, // Better quality without crashing mobile
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#C6FF00',   /* Acid green — match ig-story-container bg */
+        backgroundColor: SHARE_EDITORIAL_PALETTE.paper,
         width: 1080,
         height: 1920,
         windowWidth: 1080,
@@ -208,6 +261,244 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
       showCustomToast('產生圖片失敗，請重試或截圖分享 🙏', 3000);
     }
   };
+
+  const renderIGStoryCard = (mode: 'capture' | 'preview') => {
+    const isPreview = mode === 'preview';
+    const previewScale = isPreview && typeof window !== 'undefined'
+      ? Math.min(Math.max((Math.min(window.innerWidth - 32, 420)) / 1080, 0.28), 1)
+      : 1;
+    const containerStyle: React.CSSProperties = isPreview
+      ? {
+        position: 'relative',
+        width: `${1080 * previewScale}px`,
+        height: `${1920 * previewScale}px`,
+        backgroundColor: SHARE_EDITORIAL_PALETTE.paper,
+        overflow: 'hidden',
+        boxShadow: '0 36px 100px rgba(0,0,0,0.14)',
+        border: '1px solid rgba(17,17,17,0.10)',
+      }
+      : {
+        position: 'fixed',
+        top: 0,
+        left: '-9999px',
+        width: '1080px',
+        height: '1920px',
+        backgroundColor: SHARE_EDITORIAL_PALETTE.paper,
+        zIndex: -50,
+        overflow: 'hidden',
+      };
+
+    return (
+      <div
+        id={isPreview ? undefined : 'ig-story-container'}
+        style={containerStyle}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '1080px',
+            height: '1920px',
+            transform: isPreview ? `scale(${previewScale})` : 'none',
+            transformOrigin: 'top left',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: `
+                linear-gradient(${SHARE_EDITORIAL_PALETTE.grid} 1px, transparent 1px),
+                linear-gradient(90deg, ${SHARE_EDITORIAL_PALETTE.grid} 1px, transparent 1px)
+              `,
+              backgroundSize: '54px 54px',
+              backgroundPosition: '-1px -1px',
+            }}
+          />
+
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'radial-gradient(circle at 78% 86%, rgba(17,17,17,0.06), transparent 18%)',
+              pointerEvents: 'none',
+            }}
+          />
+
+          <div style={{ position: 'absolute', top: '96px', left: '96px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <span style={{ fontSize: '32px', lineHeight: 1.1, letterSpacing: '0.02em', color: SHARE_EDITORIAL_PALETTE.ink }}>CREATIVE</span>
+            <span style={{ fontSize: '32px', lineHeight: 1.1, letterSpacing: '0.02em', color: SHARE_EDITORIAL_PALETTE.ink }}>STORY</span>
+            <div style={{ marginTop: '18px', fontSize: '68px', fontWeight: 500, color: SHARE_EDITORIAL_PALETTE.ink, letterSpacing: '-0.05em' }}>2K26</div>
+            <div style={{ display: 'flex', gap: '32px', marginTop: '18px', fontSize: '22px', letterSpacing: '0.02em', color: 'rgba(17,17,17,0.82)' }}>
+              <span>KIWIMU'S</span>
+              <span>ARCHIVE</span>
+            </div>
+          </div>
+
+          <div style={{ position: 'absolute', top: '142px', left: '50%', transform: 'translateX(-50%)', fontSize: '92px', color: SHARE_EDITORIAL_PALETTE.ink, fontWeight: 400 }}>
+            ←
+          </div>
+
+          <div style={{ position: 'absolute', top: '122px', right: '108px', display: 'grid', gridTemplateColumns: 'repeat(2, 34px)', gap: '10px', alignItems: 'start' }}>
+            <div style={{ width: '34px', height: '34px', background: SHARE_EDITORIAL_PALETTE.ink }} />
+            <div style={{ width: '34px', height: '34px', background: SHARE_EDITORIAL_PALETTE.olive }} />
+            <div style={{ width: '34px', height: '34px', background: SHARE_EDITORIAL_PALETTE.limeMist }} />
+            <div style={{ fontSize: '22px', lineHeight: 1.05, color: SHARE_EDITORIAL_PALETTE.ink, display: 'flex', alignItems: 'center' }}>
+              COLOR
+              <br />
+              PICTURE
+            </div>
+          </div>
+
+          <div
+            style={{
+              position: 'absolute',
+              top: '420px',
+              left: 0,
+              right: 0,
+              height: '520px',
+              overflow: 'hidden',
+              borderTop: '1px solid rgba(17,17,17,0.10)',
+              borderBottom: '1px solid rgba(17,17,17,0.10)',
+              background: 'linear-gradient(180deg, rgba(223,228,209,0.8) 0%, rgba(244,244,238,0.92) 100%)',
+            }}
+          >
+            <img
+              src={resultData.characterImage}
+              alt={`Kiwimu ${resultData.id}`}
+              crossOrigin="anonymous"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center 30%',
+                filter: 'saturate(0.92) contrast(1.02)',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(17,17,17,0.08) 100%)',
+              }}
+            />
+          </div>
+
+          <div style={{ position: 'absolute', top: '1012px', left: '96px', width: '390px', color: SHARE_EDITORIAL_PALETTE.ink }}>
+            <div style={{ fontSize: '24px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(17,17,17,0.7)' }}>
+              {resultData.id}-{identitySuffix} / {identityChinese}
+            </div>
+            <div style={{ marginTop: '18px', fontSize: '98px', lineHeight: 0.84, fontWeight: 500, letterSpacing: '-0.08em' }}>
+              {titleLines.map((line, index) => (
+                <div key={`${line}-${index}`}>{line}</div>
+              ))}
+              <div>.</div>
+            </div>
+
+            <div
+              style={{
+                display: 'inline-block',
+                marginTop: '44px',
+                padding: '10px 16px',
+                background: SHARE_EDITORIAL_PALETTE.olive,
+                color: '#F8F7F1',
+                fontSize: '28px',
+                lineHeight: 1,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+              }}
+            >
+              {anchor.series}
+            </div>
+
+            <div style={{ marginTop: '84px', fontSize: '23px', color: 'rgba(17,17,17,0.82)' }}>
+              dessert : {anchor.name}
+            </div>
+          </div>
+
+          <div style={{ position: 'absolute', top: '1038px', right: '96px', width: '332px', color: SHARE_EDITORIAL_PALETTE.ink }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '84px 1fr', rowGap: '4px', marginBottom: '22px' }}>
+              <div style={{ fontSize: '68px', lineHeight: 0.92, fontWeight: 500, letterSpacing: '-0.05em' }}>{resultData.id.slice(0, 2)}</div>
+              <div style={{ fontSize: '20px', lineHeight: 1.12, alignSelf: 'end' }}>Where your mind
+                <br />
+                begins to glow.
+              </div>
+              <div style={{ fontSize: '68px', lineHeight: 0.92, fontWeight: 500, letterSpacing: '-0.05em' }}>{identitySuffix === 'A' ? '01' : '02'}</div>
+              <div style={{ fontSize: '20px', lineHeight: 1.12, alignSelf: 'end' }}>A quiet profile
+                <br />
+                from Kiwimu.
+              </div>
+            </div>
+
+            <div style={{ fontSize: '31px', lineHeight: 1.18, textAlign: 'left', whiteSpace: 'pre-line' }}>
+              {quoteLines.join('\n')}
+            </div>
+
+            <div style={{ marginTop: '54px', fontSize: '21px', lineHeight: 1.34, textAlign: 'justify' }}>
+              {storyExcerpt}
+            </div>
+
+            <div style={{ marginTop: '38px', fontSize: '20px', lineHeight: 1.32, textAlign: 'justify', color: 'rgba(17,17,17,0.84)' }}>
+              {storyOutro}
+            </div>
+          </div>
+
+          <div style={{ position: 'absolute', top: '1112px', left: '500px', fontSize: '72px', color: SHARE_EDITORIAL_PALETTE.ink, fontWeight: 500 }}>
+            ↗
+          </div>
+          <div style={{ position: 'absolute', top: '1140px', right: '104px', width: '28px', height: '28px', borderTop: '5px solid #111', borderRight: '5px solid #111' }} />
+          <div style={{ position: 'absolute', top: '1540px', left: '572px', width: '28px', height: '28px', borderLeft: '5px solid #111', borderBottom: '5px solid #111' }} />
+
+          <div style={{ position: 'absolute', bottom: '124px', left: '96px', fontSize: '24px', color: 'rgba(17,17,17,0.84)' }}>
+            camera : kiwimu archive
+          </div>
+          <div style={{ position: 'absolute', bottom: '124px', right: '96px', fontSize: '24px', color: 'rgba(17,17,17,0.84)' }}>
+            archive by kiwimu
+          </div>
+          <div style={{ position: 'absolute', right: '20px', bottom: '34px', fontSize: '260px', lineHeight: 0.8, letterSpacing: '-0.08em', color: 'rgba(17,17,17,0.04)', fontWeight: 500 }}>
+            {resultData.id.slice(0, 2)}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (isOgRenderPreview) {
+    return (
+      <div className="min-h-screen bg-[#efede4] px-4 py-10 md:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 flex flex-col gap-3 text-center md:mb-10">
+            <p className="text-[11px] font-mono uppercase tracking-[0.35em] text-stone-500">MBTI V1 IG Story Preview</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-stone-900 md:text-4xl">{resultData.id}-{identitySuffix} editorial share card</h1>
+            <p className="mx-auto max-w-2xl text-sm leading-6 text-stone-600 md:text-base">
+              這個頁面是 preview branch 專用的可視審看入口。實際下載仍會使用同一套版型的 hidden capture card。
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <button
+                onClick={handleDownloadIG}
+                className="rounded-full bg-stone-900 px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-white transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Download Story PNG
+              </button>
+              <button
+                onClick={() => window.history.back()}
+                className="rounded-full border border-stone-300 bg-white px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-stone-700 transition-colors hover:border-stone-900 hover:text-stone-900"
+              >
+                Back
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-center">
+            {renderIGStoryCard('preview')}
+          </div>
+        </div>
+
+        {renderIGStoryCard('capture')}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-kiwi-bg pb-24 fade-in select-none">
@@ -935,315 +1226,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           )
         }
 
-        {/* ============================================================
-             HIDDEN IG STORY CONTAINER (1080 × 1920px)
-             ACID GREEN REDESIGN — all inline styles for html2canvas
-        ============================================================ */}
-        <div
-          id="ig-story-container"
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: '-9999px',
-            width: '1080px',
-            height: '1920px',
-            backgroundColor: '#C6FF00',   /* Acid / Lime Green */
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '72px 80px 64px 80px',
-            zIndex: -50,
-            boxSizing: 'border-box',
-            overflow: 'hidden',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif',
-          }}
-        >
-          {/* ── WATERMARK: kiwimu standard logotype at low opacity ── */}
-          <img
-            src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1769501231/%E6%A8%99%E6%BA%96%E5%AD%97-02_ndnf7x.png"
-            alt=""
-            crossOrigin="anonymous"
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%) rotate(-10deg)',
-              width: '130%',
-              opacity: 0.055,
-              pointerEvents: 'none',
-              objectFit: 'contain',
-              zIndex: 0,
-            }}
-          />
-
-          {/* ── ALL FOREGROUND CONTENT ── */}
-          <div style={{
-            position: 'relative',
-            zIndex: 1,
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}>
-
-            {/* 1. TOP LABEL BAR */}
-            <div style={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '28px',
-              flexShrink: 0,
-            }}>
-              <span style={{
-                fontSize: '23px',
-                letterSpacing: '0.38em',
-                color: 'rgba(0,0,0,0.52)',
-                fontFamily: 'monospace',
-                fontWeight: '700',
-                textTransform: 'uppercase',
-              }}>
-                KIWIMU MBTI LAB
-              </span>
-              <span style={{
-                fontSize: '21px',
-                fontFamily: 'monospace',
-                color: 'rgba(0,0,0,0.38)',
-                letterSpacing: '0.12em',
-                fontWeight: '600',
-              }}>
-                2026
-              </span>
-            </div>
-
-            {/* 2. ── IDENTITY HERO: The shareable core ── */}
-            <div style={{ textAlign: 'center', flexShrink: 0, marginBottom: '44px' }}>
-
-              {/* MBTI Type — the biggest, most dominant element */}
-              <h1 style={{
-                fontSize: '212px',
-                lineHeight: '0.86',
-                fontWeight: '900',
-                color: '#000000',
-                margin: '0',
-                letterSpacing: '-0.05em',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif',
-              }}>
-                {resultData.id}
-              </h1>
-
-              {/* Subtype + title on same row with dashes */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '18px',
-                margin: '18px 0 28px 0',
-              }}>
-                <span style={{ width: '48px', height: '2.5px', background: '#000', display: 'block', flexShrink: 0 }} />
-                <p style={{
-                  fontSize: '46px',
-                  fontWeight: '700',
-                  color: '#000',
-                  margin: 0,
-                  letterSpacing: '0.06em',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {identityChinese}&nbsp;·&nbsp;{resultData.title}
-                </p>
-                <span style={{ width: '48px', height: '2.5px', background: '#000', display: 'block', flexShrink: 0 }} />
-              </div>
-
-              {/* Signature quote — the emotional hook */}
-              <p style={{
-                fontSize: '33px',
-                fontStyle: 'italic',
-                color: 'rgba(0,0,0,0.70)',
-                margin: 0,
-                lineHeight: '1.65',
-                maxWidth: '900px',
-                textAlign: 'center',
-                fontFamily: 'Georgia, "Times New Roman", Times, serif',
-                letterSpacing: '0.015em',
-              }}>
-                {resultData.quote}
-              </p>
-            </div>
-
-            {/* 3. ── CHARACTER IMAGE — visually dominant ── */}
-            <div style={{
-              width: '660px',
-              height: '660px',
-              position: 'relative',
-              flexShrink: 0,
-              marginBottom: '44px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              {/* Soft glow halo */}
-              <div style={{
-                position: 'absolute',
-                inset: '0',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.28)',
-                border: '2px solid rgba(0,0,0,0.07)',
-              }} />
-              {/* Character: contain, no distortion */}
-              <img
-                src={resultData.characterImage}
-                alt={`Kiwimu ${resultData.id}`}
-                crossOrigin="anonymous"
-                style={{
-                  width: '86%',
-                  height: '86%',
-                  objectFit: 'contain',     /* ← no distortion, proportional */
-                  filter: 'drop-shadow(0 28px 52px rgba(0,0,0,0.22))',
-                  position: 'relative',
-                  zIndex: 1,
-                }}
-              />
-            </div>
-
-            {/* 4. ── DIMENSION ANALYSIS ── */}
-            <div style={{
-              textAlign: 'center',
-              padding: '36px 56px',
-              background: 'rgba(0,0,0,0.09)',
-              borderRadius: '20px',
-              width: '100%',
-              marginBottom: '32px',
-              flexShrink: 0,
-              boxSizing: 'border-box',
-            }}>
-              <p style={{
-                fontSize: '21px',
-                fontFamily: 'monospace',
-                color: 'rgba(0,0,0,0.48)',
-                letterSpacing: '0.32em',
-                margin: '0 0 10px 0',
-                textTransform: 'uppercase',
-                fontWeight: '600',
-              }}>
-                DIMENSION ANALYSIS
-              </p>
-              <h3 style={{
-                fontSize: '62px',
-                fontWeight: '800',
-                color: '#000',
-                margin: '0 0 8px 0',
-                letterSpacing: '-0.02em',
-                lineHeight: '1.1',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif',
-              }}>
-                {(IG_STORY_DIMENSION_MAP[resultData.id] ?? IG_STORY_DIMENSION_MAP['INFP']).zh}
-              </h3>
-              <p style={{
-                fontSize: '25px',
-                fontFamily: 'monospace',
-                color: 'rgba(0,0,0,0.50)',
-                letterSpacing: '0.07em',
-                margin: 0,
-                fontWeight: '500',
-              }}>
-                {(IG_STORY_DIMENSION_MAP[resultData.id] ?? IG_STORY_DIMENSION_MAP['INFP']).en}
-              </p>
-            </div>
-
-            {/* 5. ── KEYWORD PILLS ── */}
-            <div style={{
-              display: 'flex',
-              gap: '16px',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              marginBottom: '28px',
-              flexShrink: 0,
-            }}>
-              {resultData.keywords.slice(0, 3).map((k: string) => (
-                <span key={k} style={{
-                  padding: '14px 34px',
-                  border: '2.5px solid rgba(0,0,0,0.55)',
-                  fontSize: '26px',
-                  color: '#000',
-                  borderRadius: '100px',
-                  fontFamily: 'monospace',
-                  fontWeight: '700',
-                  letterSpacing: '0.04em',
-                }}>
-                  #{k}
-                </span>
-              ))}
-            </div>
-
-            {/* 6. ── CTA STRIP — the viral trigger ── */}
-            <div style={{
-              padding: '26px 56px',
-              background: '#000',
-              borderRadius: '100px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '22px',
-              flexShrink: 0,
-              marginBottom: 'auto',
-            }}>
-              <span style={{
-                fontSize: '31px',
-                color: '#C6FF00',
-                fontWeight: '800',
-                letterSpacing: '0.04em',
-              }}>
-                測測你的靈魂甜點
-              </span>
-              <span style={{
-                fontSize: '28px',
-                color: 'rgba(198,255,0,0.65)',
-                fontWeight: '300',
-              }}>
-                →
-              </span>
-              <span style={{
-                fontSize: '27px',
-                color: 'rgba(255,255,255,0.72)',
-                fontFamily: 'monospace',
-                letterSpacing: '0.05em',
-              }}>
-                kiwimu.com
-              </span>
-            </div>
-
-            {/* 7. ── FOOTER ── */}
-            <div style={{
-              width: '100%',
-              marginTop: '28px',
-              paddingTop: '24px',
-              borderTop: '1.5px solid rgba(0,0,0,0.22)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexShrink: 0,
-            }}>
-              <span style={{
-                fontSize: '25px',
-                fontFamily: 'monospace',
-                color: 'rgba(0,0,0,0.48)',
-                letterSpacing: '0.1em',
-                fontWeight: '600',
-              }}>
-                kiwimu.com
-              </span>
-              <span style={{
-                fontSize: '22px',
-                fontFamily: 'monospace',
-                color: 'rgba(0,0,0,0.32)',
-                letterSpacing: '0.1em',
-              }}>
-                KIWIMU LAB © 2026
-              </span>
-            </div>
-
-          </div>{/* end foreground content */}
-        </div>{/* end ig-story-container */}
+        {renderIGStoryCard('capture')}
 
         {/* MODAL ARCHIVE (Fully Responsive) */}
         {
