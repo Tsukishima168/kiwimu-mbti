@@ -62,8 +62,45 @@ import { sendDiscordNotification } from './utils/discord';
 import ResultLegacyDump from './components/ResultLegacyDump';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
 import V2App from './components/v2/V2App';
+import V2QuizApp from './components/v2/V2QuizApp';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
+
+const ROOT_PATHS = new Set(['/', '/index.html']);
+const V1_PATHS = new Set(['/quiz', '/v1']);
+
+const isV1Pathname = (pathname: string) => V1_PATHS.has(pathname);
+const isLiteFunnelPathname = (pathname: string) => ROOT_PATHS.has(pathname) || pathname === '/state-test';
+
+const getStagePath = (currentStage: Stage, pathname: string) => {
+  if (currentStage === 'state-test') {
+    return '/';
+  }
+
+  if (isV1Pathname(pathname)) {
+    if (currentStage === 'intro' || currentStage === 'manifesto' || currentStage === 'quiz') {
+      return '/quiz';
+    }
+
+    if (currentStage === 'loading') {
+      return '/quiz/loading';
+    }
+
+    if (currentStage === 'result') {
+      return '/quiz/result';
+    }
+
+    if (currentStage === 'archive') {
+      return '/quiz/archive';
+    }
+  }
+
+  if (currentStage === 'intro') {
+    return '/';
+  }
+
+  return `/${currentStage}`;
+};
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -161,6 +198,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      const pathname = window.location.pathname;
+      const isV1Route = isV1Pathname(pathname);
+
       if (!currentUser) {
         try {
           const anonymousUser = await signInAnonymously(auth);
@@ -181,7 +221,7 @@ const App: React.FC = () => {
 
       const savedResult = sessionStorage.getItem('last_quiz_result');
       const savedScores = sessionStorage.getItem('last_quiz_scores');
-      if (savedResult && savedScores) {
+      if (savedResult && savedScores && isV1Route) {
         setResultData(JSON.parse(savedResult));
         setScores(JSON.parse(savedScores));
         const currentStage = sessionStorage.getItem('flow_stage');
@@ -213,10 +253,10 @@ const App: React.FC = () => {
         }
       }
 
-      if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
+      if (pathname.includes('callback') || window.location.search.includes('code=')) {
         setStage('callback');
-      } else if (window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/)) {
-        const match = window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/);
+      } else if (pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/)) {
+        const match = pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/);
         if (match && match[1]) {
           const [type, suffix] = match[1].split('-');
           // Load result data directly from constants for the OG crawler
@@ -237,13 +277,15 @@ const App: React.FC = () => {
         } else {
           setStage('404');
         }
-      } else if (window.location.pathname === '/state-test') {
+      } else if (pathname.startsWith('/v2')) {
+        // /v2 is rendered outside of the V1 stage machine
+      } else if (isLiteFunnelPathname(pathname)) {
         setStage('state-test');
-      } else if (window.location.pathname === '/today') {
+      } else if (pathname === '/today') {
         setStage('today');
-      } else if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
-        // Simple 404 detection: If path is not root/index and not callback, show 404
-        // Note: This works because we are using hashing/state routing for the app content itself
+      } else if (isV1Route) {
+        setStage('intro');
+      } else if (!pathname.startsWith('/v2')) {
         setStage('404');
       }
 
@@ -257,24 +299,25 @@ const App: React.FC = () => {
   const previousStageRef = React.useRef<Stage | null>(null);
 
   useEffect(() => {
+    if (window.location.pathname.startsWith('/v2')) {
+      return;
+    }
+
     const now = Date.now();
     const prev = previousStageRef.current;
     const enteredAt = stageEnteredAtRef.current;
+    const pathname = window.location.pathname;
 
     if (prev != null && prev !== stage) {
       const seconds = Math.round((now - enteredAt) / 1000);
-      let path = `/${prev}`;
-      if (prev === 'intro') path = '/';
-      trackScreenEngagement(path, seconds);
+      trackScreenEngagement(getStagePath(prev, pathname), seconds);
     }
 
     previousStageRef.current = stage;
     stageEnteredAtRef.current = now;
     window.scrollTo(0, 0);
 
-    let path = `/${stage}`;
-    if (stage === 'intro') path = '/';
-    trackPageView(path);
+    trackPageView(getStagePath(stage, pathname));
   }, [stage]);
 
   const goToManifesto = () => {
@@ -320,6 +363,7 @@ const App: React.FC = () => {
 
     // 【新增】記錄用戶行為
     trackAction('complete_quiz', { mbtiType: type, variant });
+    trackAction('v1_complete', { mbtiType: type, variant });
 
     setStage('loading');
 
@@ -403,8 +447,8 @@ const App: React.FC = () => {
       // Clear flow_stage marker
       sessionStorage.removeItem('flow_stage');
     } else {
-      console.log('No saved results, going to intro');
-      setStage('intro');
+      console.log('No saved results, routing by current path');
+      setStage(isV1Pathname(window.location.pathname) ? 'intro' : 'state-test');
     }
   };
 
@@ -413,16 +457,17 @@ const App: React.FC = () => {
     trackMarketingEvent(MARKETING_EVENTS.RETEST);
     trackAction('retest', { previousType: resultData?.id });
 
-    if (user && !user.isAnonymous) {
-      setStage('result');
-    } else {
-      setStage('intro');
-    }
     setResultData(null);
     setScores(null);
     sessionStorage.removeItem('last_quiz_result');
     sessionStorage.removeItem('last_quiz_scores');
     sessionStorage.removeItem('flow_stage');
+
+    if (!isV1Pathname(window.location.pathname)) {
+      window.history.pushState({}, '', '/quiz');
+    }
+
+    setStage('intro');
   };
 
   const handleLogin = () => {
@@ -445,7 +490,7 @@ const App: React.FC = () => {
 
       // If on result page, stay there. Otherwise go to intro
       if (stage !== 'result') {
-        setStage('intro');
+        setStage(isV1Pathname(window.location.pathname) ? 'intro' : 'state-test');
       }
     } catch (error) {
       console.error('Logout failed:', error);
@@ -469,7 +514,7 @@ const App: React.FC = () => {
     if (resultData && scores) {
       setStage('result');
     } else {
-      setStage('intro');
+      setStage(isV1Pathname(window.location.pathname) ? 'intro' : 'state-test');
     }
   };
 
@@ -504,42 +549,20 @@ const App: React.FC = () => {
     console.log(`[TEST MODE] Jumped to ${mbtiType} result page`);
   };
 
-  // ── v2 路由 ─────────────────────────────────────────────────────
   const isV2Path = window.location.pathname.startsWith('/v2');
-  const isLoggedIn = user && !user.isAnonymous;
-
-  // 訪客（匿名）訪問 /v2 → 重定向回 v1
-  if (isV2Path && !isLoggedIn && !loadingAuth) {
-    window.history.replaceState(null, '', '/');
-  }
-
-  // 已登入用戶訪問 / → 重定向至 /v2
-  if (!isV2Path && isLoggedIn && !loadingAuth && stage === 'intro') {
-    const params = new URLSearchParams(window.location.search);
-    const hasSpecialParam = params.has('r') || params.has('test') || params.has('ref');
-    if (!hasSpecialParam) {
-      window.history.replaceState(null, '', '/v2');
-      return <V2App />;
-    }
-  }
-
-  // /v2 路由 → 直接渲染 V2App
-  if (isV2Path) {
-    return <V2App />;
-  }
-  // ────────────────────────────────────────────────────────────────
-
-  if (loadingAuth && stage !== 'callback') {
-    return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;
-  }
-
+  const isV2QuizPath = window.location.pathname === '/v2/quiz';
 
   return (
     <LanguageProvider>
-      <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
-        <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>
+      {loadingAuth && stage !== 'callback' && !isV2Path ? (
+        <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>
+      ) : isV2Path ? (
+        isV2QuizPath ? <V2QuizApp user={user} /> : <V2App user={user} />
+      ) : (
+        <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
+          <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>
           <DiscordLinkGate user={user} onLogin={handleLogin} />
-          {stage !== 'intro' && stage !== 'manifesto' && (
+          {stage !== 'intro' && stage !== 'manifesto' && stage !== 'state-test' && (
             <div className="fixed top-6 right-6 z-50">
               <UserMenu user={user} onLogin={handleLogin} onLogout={handleLogout} />
             </div>
@@ -592,7 +615,7 @@ const App: React.FC = () => {
           {stage === '404' && (
             <NotFound onHome={() => {
               window.history.pushState({}, '', '/'); // Reset URL
-              setStage('intro');
+              setStage('state-test');
             }} />
           )}
 
@@ -646,8 +669,9 @@ const App: React.FC = () => {
               </div>
             </div>
           )}
+          </div>
         </div>
-      </div>
+      )}
     </LanguageProvider>
   );
 };

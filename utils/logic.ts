@@ -1,14 +1,19 @@
 
-import { Option, Score } from '../types';
+import { Option, Question, Score } from '../types';
 import { QUESTIONS } from '../constants';
 
-export const calculateResults = (answers: Option[]): { type: string, scores: Score } => {
+type WeightedQuestion = Pick<Question, 'weight'>;
+
+export const calculateResults = (
+  answers: Option[],
+  questionBank: WeightedQuestion[] = QUESTIONS,
+): { type: string, scores: Score } => {
   const scores: Score = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0, A: 0, Turbulent: 0 };
 
   answers.forEach((ans, idx) => {
-    // Look up the weight of the corresponding question. 
+    // Look up the weight of the corresponding question.
     // Default to 1 if not specified.
-    const weight = QUESTIONS[idx]?.weight || 1;
+    const weight = questionBank[idx]?.weight || 1;
     scores[ans.value] += weight;
   });
 

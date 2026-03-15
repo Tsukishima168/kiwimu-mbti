@@ -1,358 +1,838 @@
-/**
- * V2App — MBTI Lab v2
- * Source: MBTI-Lab-V1.5-TEST (Studio AI export)
- * motion/react → ./motion shim（待正式安裝 motion package 後直接換 import）
- */
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from './motion';
-import { quizA, quizB, personalities, kiwimuStates } from './data';
-import { QuizType, Dimension } from './types';
-// Inline icons — avoids adding lucide-react dependency to main repo
-const IconScanFace = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg>;
-const IconRotateCcw = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
-const IconDownload = () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>;
+import React, { useEffect, useMemo, useState } from 'react';
+import { User } from 'firebase/auth';
+import { getCelebrityArchetypes } from '../../data/celebrityData';
+import { buildV2ImageSlots, type V2ImageSlotSpec, type V2ReportFamilyKey } from '../../data/v2ImageBlueprint';
+import { getRarityData, getRarityLabel, getRarityMessage } from '../../data/rarityData';
+import {
+  getV2TaiwanDraft,
+  V2_TW_DRAFT_SOURCE,
+  type V2TaiwanDraftReport,
+} from '../../data/v2TaiwanDrafts.generated';
+import type { MbtiResultData, Score } from '../../types';
+import { calculatePercentages, getVariant } from '../../utils/logic';
+import { trackAction } from '../../utils/userDataCollector';
+import {
+  clearV2Entitlement,
+  getLastV1Result,
+  getLastV2PrototypeResult,
+  getV2Entitlement,
+  hasV2UnlockQuery,
+  unlockV2Preview,
+  V2Entitlement,
+} from '../../utils/v2Access';
 import './v2.css';
 
-type Step = 'intro' | 'quiz' | 'visual' | 'result';
+interface V2AppProps {
+  user?: User | null;
+}
 
-// --- Kiwimu Character SVG Components ---
-const KiwimuStable = () => (
-  <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[6px_6px_0px_#1A1A1A] animate-[bounce_3s_ease-in-out_infinite]">
-    {/* Sparkles - Acid Green */}
-    <path d="M160 40 L 165 30 L 170 40 L 180 45 L 170 50 L 165 60 L 160 50 L 150 45 Z" fill="#CCFF00" stroke="#1A1A1A" strokeWidth="3" strokeLinejoin="round"/>
-    <path d="M30 90 L 35 80 L 40 90 L 50 95 L 40 100 L 35 110 L 30 100 L 20 95 Z" fill="#CCFF00" stroke="#1A1A1A" strokeWidth="3" strokeLinejoin="round"/>
+type ReportFamilyKey = 'analysts' | 'diplomats' | 'sentinels' | 'explorers';
+type VariantCode = 'A' | 'T';
+type PercentageKey = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P' | 'A' | 'Turbulent';
 
-    {/* Main Body - Perfect Swirl */}
-    <path
-      d="M100 40 C 60 60, 40 100, 45 140 C 50 170, 80 180, 100 180 C 120 180, 150 170, 155 140 C 160 100, 140 60, 100 40 Z"
-      fill="#FFFFFF"
-      stroke="#1A1A1A"
-      strokeWidth="8"
-      strokeLinejoin="round"
-    />
-    {/* Swirl Top Curl */}
-    <path d="M100 40 C 100 10, 130 10, 130 35 C 130 55, 110 65, 100 70" fill="none" stroke="#1A1A1A" strokeWidth="8" strokeLinecap="round"/>
+type SpectrumRow = {
+  key: string;
+  label: string;
+  selectedCode: string;
+  oppositeCode: string;
+  selectedPct: number;
+  oppositePct: number;
+  description: string;
+  v1Note: string;
+};
 
-    {/* Inner Swirl Lines */}
-    <path d="M60 120 Q 100 140 140 120" fill="none" stroke="#1A1A1A" strokeWidth="6" strokeLinecap="round"/>
-    <path d="M75 95 Q 100 110 125 95" fill="none" stroke="#1A1A1A" strokeWidth="6" strokeLinecap="round"/>
+type TagPill = {
+  code: string;
+  zh: string;
+  en: string;
+};
 
-    {/* Confident/Calm Face */}
-    <circle cx="85" cy="145" r="5" fill="#1A1A1A"/>
-    <circle cx="115" cy="145" r="5" fill="#1A1A1A"/>
-    <path d="M95 155 Q 100 160 105 155" fill="none" stroke="#1A1A1A" strokeWidth="4" strokeLinecap="round"/>
-  </svg>
-);
+const MARQUEE_TEXT = 'KIWIMU MBTI V2 TAIWAN EDITION · LOCAL PROTOTYPE · PAID WALL · DEEP REPORT · ';
+const LOCAL_PREVIEW_HOSTS = new Set(['localhost', '127.0.0.1']);
+const DEV_ONLY_V2 = true;
 
-const KiwimuAnxious = () => (
-  <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-[6px_6px_0px_#1A1A1A] animate-pulse">
-    {/* Chaos Lines / Sweat - Acid Green */}
-    <path d="M150 70 Q 155 50 160 70 Q 155 90 150 70 Z" fill="#CCFF00" stroke="#1A1A1A" strokeWidth="3"/>
-    <path d="M40 100 Q 45 80 50 100 Q 45 120 40 100 Z" fill="#CCFF00" stroke="#1A1A1A" strokeWidth="3"/>
-    <path d="M80 40 Q 90 20 100 40" fill="none" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="round"/>
-    <path d="M110 30 Q 120 10 130 30" fill="none" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="round"/>
+const FAMILY_THEMES: Record<ReportFamilyKey, { accent: string; ink: string; soft: string; glow: string; panel: string; line: string; haze: string; }> = {
+  analysts: {
+    accent: '#D3FF3F',
+    ink: '#0F172A',
+    soft: '#EFF6FF',
+    glow: 'rgba(59, 130, 246, 0.14)',
+    panel: 'rgba(255, 255, 255, 0.92)',
+    line: 'rgba(15, 23, 42, 0.14)',
+    haze: 'rgba(211, 255, 63, 0.18)',
+  },
+  diplomats: {
+    accent: '#FFC98B',
+    ink: '#7C2D12',
+    soft: '#FFF4EA',
+    glow: 'rgba(249, 115, 22, 0.12)',
+    panel: 'rgba(255, 251, 247, 0.94)',
+    line: 'rgba(124, 45, 18, 0.14)',
+    haze: 'rgba(255, 201, 139, 0.18)',
+  },
+  sentinels: {
+    accent: '#B9FBC0',
+    ink: '#0F4C45',
+    soft: '#EEFFF6',
+    glow: 'rgba(16, 185, 129, 0.12)',
+    panel: 'rgba(255, 255, 255, 0.93)',
+    line: 'rgba(15, 76, 69, 0.14)',
+    haze: 'rgba(185, 251, 192, 0.18)',
+  },
+  explorers: {
+    accent: '#FFD166',
+    ink: '#8A3B12',
+    soft: '#FFF6E5',
+    glow: 'rgba(245, 158, 11, 0.14)',
+    panel: 'rgba(255, 252, 246, 0.94)',
+    line: 'rgba(138, 59, 18, 0.14)',
+    haze: 'rgba(255, 209, 102, 0.18)',
+  },
+};
 
-    {/* Main Body - Melting / Spreading */}
-    <path
-      d="M100 70 C 60 70, 20 130, 25 160 C 30 185, 170 185, 175 160 C 180 130, 140 70, 100 70 Z"
-      fill="#FFFFFF"
-      stroke="#1A1A1A"
-      strokeWidth="8"
-      strokeLinejoin="round"
-    />
-    {/* Deflated Top Curl */}
-    <path d="M100 70 C 90 50, 60 50, 60 70 C 60 85, 80 90, 90 95" fill="none" stroke="#1A1A1A" strokeWidth="8" strokeLinecap="round"/>
+const DIMENSION_TAGS: Record<string, TagPill> = {
+  E: { code: 'E', zh: '社群多巴胺節拍器', en: 'Social Pulse' },
+  I: { code: 'I', zh: '數位防空洞隱士', en: 'Inner Shelter' },
+  S: { code: 'S', zh: '碎片資訊體感收集者', en: 'Signal Sampler' },
+  N: { code: 'N', zh: '神經網絡預言者', en: 'Pattern Seer' },
+  T: { code: 'T', zh: '演算法邏輯執行者', en: 'Logic Engine' },
+  F: { code: 'F', zh: '人性溫度防火牆', en: 'Warmth Guard' },
+  J: { code: 'J', zh: '秩序建築師', en: 'Order Architect' },
+  P: { code: 'P', zh: '浪潮衝浪即興派', en: 'Fluid Surfer' },
+  A: { code: 'A', zh: '無感延遲穩定核心', en: 'Stable Core' },
+  T_VARIANT: { code: 'T', zh: '高頻迭代主角韌性', en: 'Iterative Resilience' },
+};
 
-    {/* Melting Wobble Lines */}
-    <path d="M45 150 Q 65 130 85 150 T 125 150 T 155 150" fill="none" stroke="#1A1A1A" strokeWidth="6" strokeLinecap="round"/>
+const SPECTRUM_CONFIG: Array<{
+  label: string;
+  selectedFromType?: number;
+  selectedFromVariant?: VariantCode;
+  selectedKey?: PercentageKey;
+  oppositeKey: PercentageKey;
+  noteKey: keyof MbtiResultData['dimensionAnalysis'];
+}> = [
+  { label: '能量獲取', selectedFromType: 0, oppositeKey: 'I', noteKey: 'EI' },
+  { label: '資訊處理', selectedFromType: 1, oppositeKey: 'N', noteKey: 'SN' },
+  { label: '決策判斷', selectedFromType: 2, oppositeKey: 'F', noteKey: 'TF' },
+  { label: '生活態度', selectedFromType: 3, oppositeKey: 'P', noteKey: 'JP' },
+  { label: '自我抗壓', selectedFromVariant: 'A', selectedKey: 'A', oppositeKey: 'Turbulent', noteKey: 'AT' },
+];
 
-    {/* Anxious Face (> <) */}
-    <path d="M75 135 L 85 145 L 75 155" fill="none" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M125 135 L 115 145 L 125 155" fill="none" stroke="#1A1A1A" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M95 165 Q 100 155 105 165" fill="none" stroke="#1A1A1A" strokeWidth="4" strokeLinecap="round"/>
-  </svg>
-);
-// ------------------------------------------
+const buildCheckoutUrl = (mbtiType: string) => {
+  const params = new URLSearchParams({
+    utm_source: 'mbti',
+    utm_medium: 'v2_paywall',
+    utm_campaign: 'mbti_v2_unlock',
+    mbti_type: mbtiType,
+  });
 
-export default function V2App() {
-  const [step, setStep] = useState<Step>('intro');
-  const [assignedQuiz, setAssignedQuiz] = useState<QuizType>(quizA);
-  const [selectedQuiz, setSelectedQuiz] = useState<QuizType | null>(null);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Dimension[]>([]);
-  const [currentVisual, setCurrentVisual] = useState<string>('');
+  return `https://shop.kiwimu.com?${params.toString()}`;
+};
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const version = params.get('v');
-    if (version === 'A') {
-      setAssignedQuiz(quizA);
-    } else if (version === 'B') {
-      setAssignedQuiz(quizB);
-    } else {
-      setAssignedQuiz(Math.random() > 0.5 ? quizA : quizB);
-    }
-  }, []);
+const cleanQuote = (quote: string) => quote.replace(/[「」]/g, '').trim();
 
-  const handleStart = (quiz: QuizType) => {
-    setSelectedQuiz(quiz);
-    setStep('quiz');
-    setCurrentQuestionIndex(0);
-    setAnswers([]);
-  };
+const getSpectrumValue = (scores: ReturnType<typeof calculatePercentages>, key: PercentageKey) => scores[key];
 
-  const handleAnswer = (value: Dimension, visual: string) => {
-    setAnswers([...answers, value]);
-    setCurrentVisual(visual);
-    setStep('visual');
+const getOppositeKey = (selectedKey: PercentageKey): PercentageKey => {
+  switch (selectedKey) {
+    case 'E':
+      return 'I';
+    case 'I':
+      return 'E';
+    case 'S':
+      return 'N';
+    case 'N':
+      return 'S';
+    case 'T':
+      return 'F';
+    case 'F':
+      return 'T';
+    case 'J':
+      return 'P';
+    case 'P':
+      return 'J';
+    case 'A':
+      return 'Turbulent';
+    default:
+      return 'A';
+  }
+};
 
-    setTimeout(() => {
-      if (selectedQuiz && currentQuestionIndex < selectedQuiz.questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setStep('quiz');
-      } else {
-        setStep('result');
-      }
-    }, 2500);
-  };
+const getDimensionDescription = (report: V2TaiwanDraftReport, selectedCode: string) => {
+  if (selectedCode === 'A' || selectedCode === 'T') {
+    return report.dimension.bullets.find((item) => item.label.startsWith('A / T'))?.body || '';
+  }
 
-  const reset = () => {
-    setStep('intro');
-    setSelectedQuiz(null);
-    setAnswers([]);
-    setCurrentQuestionIndex(0);
-    const params = new URLSearchParams(window.location.search);
-    if (!params.get('v')) {
-      setAssignedQuiz(Math.random() > 0.5 ? quizA : quizB);
-    }
-  };
+  return report.dimension.bullets.find((item) => item.label.startsWith(`${selectedCode} (`))?.body || '';
+};
 
-  const calculateResult = () => {
-    if (answers.length < 5) return { type: 'INFP', aOrT: 'A' };
-    const type = `${answers[0]}${answers[1]}${answers[2]}${answers[3]}`;
-    const aOrT = answers[4] as 'A' | 'T';
-    return { type, aOrT };
-  };
+const buildTagWall = (type: string, variant: VariantCode): TagPill[] => {
+  const tags = type.split('').map((letter) => DIMENSION_TAGS[letter]).filter(Boolean);
+  tags.push(variant === 'A' ? DIMENSION_TAGS.A : DIMENSION_TAGS.T_VARIANT);
+  return tags;
+};
 
+const buildSpectrumRows = (
+  type: string,
+  variant: VariantCode,
+  scores: Score,
+  resultData: MbtiResultData,
+  report: V2TaiwanDraftReport,
+): SpectrumRow[] => {
+  const percentages = calculatePercentages(scores);
+
+  return SPECTRUM_CONFIG.map((config) => {
+    const selectedCode = config.selectedFromVariant
+      ? variant
+      : type[config.selectedFromType || 0];
+    const selectedKey = (config.selectedKey || selectedCode) as PercentageKey;
+    const oppositeKey = config.selectedFromVariant
+      ? getOppositeKey(selectedKey)
+      : getOppositeKey(selectedCode as PercentageKey);
+
+    return {
+      key: config.label,
+      label: config.label,
+      selectedCode,
+      oppositeCode: oppositeKey === 'Turbulent' ? 'T' : oppositeKey,
+      selectedPct: getSpectrumValue(percentages, selectedKey),
+      oppositePct: getSpectrumValue(percentages, oppositeKey),
+      description: getDimensionDescription(report, selectedCode),
+      v1Note: resultData.dimensionAnalysis[config.noteKey],
+    };
+  });
+};
+
+function SectionFrame({
+  index,
+  title,
+  subtitle,
+  locked,
+  children,
+}: {
+  index: string;
+  title: string;
+  subtitle?: string;
+  locked?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="v2-root min-h-screen font-sans flex flex-col items-center justify-center p-4 pt-20 pb-12">
-
-      {/* Top Marquee */}
-      <div className="marquee-container">
-        <div className="marquee-track">
-          {[...Array(10)].map((_, i) => (
-            <span key={i} className="marquee-text">
-              KIWIMU MBTI LAB // PASSPORT // YZ GENERATION //
-            </span>
-          ))}
+    <section className="v2-panel">
+      <div className="v2-section-head">
+        <span className="v2-section-index">{index}</span>
+        <div>
+          <p className="v2-section-kicker">{title}</p>
+          {subtitle ? <h2 className="v2-section-title">{subtitle}</h2> : null}
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {step === 'intro' && (
-          <motion.div
-            key="intro"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="max-w-md w-full space-y-8"
-          >
-            <div className="kiwimu-card p-8 space-y-8 relative overflow-hidden">
-              <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full border-[1.5px] opacity-80 mix-blend-multiply z-0" style={{ backgroundColor: '#CCFF00', borderColor: '#1A1A1A' }}></div>
+      <div className={locked ? 'v2-lock-shell is-locked' : 'v2-lock-shell'}>
+        <div className={locked ? 'v2-lock-body' : ''}>{children}</div>
+        {locked ? (
+          <div className="v2-lock-overlay">
+            <p className="v2-lock-label">LOCKED IN V2</p>
+            <p className="v2-lock-copy">完成解鎖後，這裡會展開台灣版完整段落、A/T 對照與深度建議。</p>
+          </div>
+        ) : null}
+      </div>
+    </section>
+  );
+}
 
-              <div className="relative z-10 space-y-8">
-                <div className="inline-block px-3 py-1 font-mono text-[10px] font-medium tracking-widest uppercase rounded-full" style={{ backgroundColor: '#1A1A1A', color: '#CCFF00' }}>
-                  System.Init()
-                </div>
+function DevImageSlot({
+  slot,
+  compact = false,
+}: {
+  slot: V2ImageSlotSpec;
+  compact?: boolean;
+}) {
+  return (
+    <div className={compact ? 'v2-image-slot is-compact' : 'v2-image-slot'}>
+      <div className="v2-image-slot-top">
+        <p className="v2-card-eyebrow">IMAGE SLOT</p>
+        <span className="v2-image-slot-status">{slot.status}</span>
+      </div>
+      <div className="v2-image-slot-frame">
+        <p className="v2-image-slot-key">{slot.key}</p>
+        <p className="v2-image-slot-ratio">{slot.ratio}</p>
+      </div>
+      <div className="v2-image-slot-meta">
+        <h3>{slot.title}</h3>
+        <p>{slot.placement}</p>
+        <p>Size: {slot.recommendedSize}</p>
+        <p>Path: {slot.assetPath}</p>
+        <p>{slot.notes}</p>
+      </div>
+    </div>
+  );
+}
 
-                <div className="space-y-4">
-                  <h1 className="text-4xl font-bold tracking-tight leading-none uppercase" style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#1A1A1A' }}>
-                    {assignedQuiz.title}
-                  </h1>
+export default function V2App({ user }: V2AppProps) {
+  const [entitlement, setEntitlement] = useState<V2Entitlement>(() => getV2Entitlement());
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const source = params.get('source') || 'direct';
+  const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(window.location.hostname);
+  const resultBundle = useMemo(() => {
+    if (source === 'v2_quiz') {
+      return getLastV2PrototypeResult() || getLastV1Result();
+    }
 
-                  <p className="font-medium leading-relaxed text-sm pl-4" style={{ color: 'rgba(26,26,26,0.8)', borderLeft: '2px solid #CCFF00' }}>
-                    {assignedQuiz.description}
-                  </p>
-                </div>
+    return getLastV1Result();
+  }, [source]);
 
-                <div className="pt-2">
-                  <button
-                    onClick={() => handleStart(assignedQuiz)}
-                    className="w-full kiwimu-btn kiwimu-btn-primary p-4 text-lg flex items-center justify-center gap-3 uppercase tracking-wider"
-                    style={{ color: '#1A1A1A' }}
-                  >
-                    <IconScanFace />
-                    Start Scan
-                  </button>
-                </div>
+  const variant = resultBundle ? getVariant(resultBundle.scores) : 'A';
+  const fullType = resultBundle ? `${resultBundle.resultData.id}-${variant}` : null;
+  const checkoutUrl = fullType ? buildCheckoutUrl(fullType) : 'https://shop.kiwimu.com';
+  const report = useMemo(() => (resultBundle ? getV2TaiwanDraft(resultBundle.resultData.id) : null), [resultBundle]);
+
+  useEffect(() => {
+    if (!fullType || !hasV2UnlockQuery(params)) {
+      return;
+    }
+
+    const unlocked = unlockV2Preview(params.get('order_id') || 'query-preview');
+    setEntitlement(unlocked);
+    trackAction('v2_unlock_success', {
+      mbtiType: fullType,
+      unlockType: unlocked.unlockType,
+      source,
+    });
+  }, [fullType, params, source]);
+
+  useEffect(() => {
+    if (!fullType || entitlement.status === 'unlocked') {
+      return;
+    }
+
+    trackAction('v2_paywall_view', {
+      mbtiType: fullType,
+      source,
+      hasUser: Boolean(user && !user.isAnonymous),
+    });
+  }, [entitlement.status, fullType, source, user]);
+
+  const handleCheckout = () => {
+    if (!fullType) {
+      return;
+    }
+
+    trackAction('v2_checkout_start', {
+      mbtiType: fullType,
+      source,
+      checkoutUrl,
+      mode: isLocalPreview ? 'local_simulation' : 'shop_redirect',
+    });
+
+    if (DEV_ONLY_V2) {
+      if (!isLocalPreview) {
+        trackAction('v2_checkout_blocked_dev', {
+          mbtiType: fullType,
+          source,
+          reason: 'dev_only_mode',
+        });
+        return;
+      }
+
+      const unlocked = unlockV2Preview(`local-${Date.now()}`);
+      setEntitlement(unlocked);
+      trackAction('v2_unlock_success', {
+        mbtiType: fullType,
+        unlockType: unlocked.unlockType,
+        source: 'local_preview',
+      });
+      return;
+    }
+
+    window.location.assign(checkoutUrl);
+  };
+
+  const handleResetPreview = () => {
+    clearV2Entitlement();
+    setEntitlement(getV2Entitlement());
+  };
+
+  if (!resultBundle || !fullType) {
+    return (
+      <div className="v2-root min-h-screen px-5 pt-24 pb-16">
+        <div className="marquee-container">
+          <div className="marquee-track">
+            <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
+            <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
+          </div>
+        </div>
+
+        <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl items-center">
+          <div className="v2-panel w-full p-8 md:p-10">
+            <p className="v2-eyebrow">MBTI V2 TAIWAN EDITION</p>
+            <h1 className="mt-4 text-4xl font-bold leading-none md:text-5xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              先完成 V1 免費完整版
+            </h1>
+            <p className="mt-5 text-base leading-relaxed text-black/70">
+              V2 台灣版會直接吃你完成 V1 之後的正式結果。先做完免費完整版，我們才能把 2026 H2 草案庫裡對應人格的深報告展開給你看。
+            </p>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              {isLocalPreview ? (
+                <a href="/v2/quiz" className="kiwimu-btn kiwimu-btn-primary block flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
+                  跑本地 V2 題組 prototype
+                </a>
+              ) : null}
+              <a href="/quiz" className="kiwimu-btn kiwimu-btn-primary block flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
+                前往免費 V1
+              </a>
+              <a href="/" className="kiwimu-btn block flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
+                回到 5 題漏斗
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!report) {
+    return (
+      <div className="v2-root min-h-screen px-5 pt-24 pb-16">
+        <div className="marquee-container">
+          <div className="marquee-track">
+            <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
+            <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-3xl">
+          <div className="v2-panel p-8 md:p-10">
+            <p className="v2-eyebrow">V2 CONTENT SYNC REQUIRED</p>
+            <h1 className="mt-4 text-3xl font-bold text-black md:text-4xl">{resultBundle.resultData.id} 的台灣版草案尚未同步</h1>
+            <p className="mt-4 text-sm leading-relaxed text-black/70">
+              目前 `/v2` 會直接讀取 `{V2_TW_DRAFT_SOURCE}`。請先重新執行 `npm run sync:v2:tw`，再回來看本地版面。
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { resultData, scores } = resultBundle;
+  const isUnlocked = entitlement.status === 'unlocked';
+  const theme = FAMILY_THEMES[report.familyKey as ReportFamilyKey];
+  const imageSlots = buildV2ImageSlots(resultData.id, report.familyKey as V2ReportFamilyKey);
+  const rootStyle = {
+    '--v2-accent': theme.accent,
+    '--v2-ink': theme.ink,
+    '--v2-soft': theme.soft,
+    '--v2-glow': theme.glow,
+    '--v2-panel': theme.panel,
+    '--v2-line': theme.line,
+    '--v2-haze': theme.haze,
+  } as React.CSSProperties;
+  const soulQuote = cleanQuote(resultData.quote);
+  const tagWall = buildTagWall(resultData.id, variant as VariantCode);
+  const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, resultData, report);
+  const rarityData = getRarityData(resultData.id);
+  const rarityLabel = rarityData ? getRarityLabel(rarityData.rank) : null;
+  const rarityMessage = rarityData ? getRarityMessage(rarityData.rank) : null;
+  const archetypes = getCelebrityArchetypes(resultData.id).slice(0, 2);
+  const isDevLocked = DEV_ONLY_V2 && !isUnlocked && !isLocalPreview;
+  const primaryButtonLabel = isUnlocked
+    ? '下載 / 列印目前頁面'
+    : isLocalPreview
+      ? '本地模擬解鎖 V2'
+      : DEV_ONLY_V2
+        ? 'DEV 階段暫不開放'
+        : '前往 shop 解鎖 V2';
+
+  return (
+    <div className="v2-root min-h-screen px-5 pt-24 pb-16" style={rootStyle}>
+      <div className="marquee-container">
+        <div className="marquee-track">
+          <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
+          <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
+        </div>
+      </div>
+
+      <div className="v2-backdrop-orb v2-backdrop-orb-left" />
+      <div className="v2-backdrop-orb v2-backdrop-orb-right" />
+
+      <div className="mx-auto max-w-7xl">
+        <section className="v2-hero">
+          <div>
+            <div className="flex flex-wrap gap-2">
+              <span className="v2-pill v2-pill-solid">TAIWAN EDITION</span>
+              <span className="v2-pill">V1 永久免費核心</span>
+              <span className="v2-pill">{isUnlocked ? 'V2 已解鎖' : 'V2 付費牆預覽'}</span>
+              {DEV_ONLY_V2 ? <span className="v2-pill">DEV ONLY / 不進 main</span> : null}
+            </div>
+
+            <div className="mt-6 flex flex-wrap items-end gap-4">
+              <div>
+                <p className="v2-eyebrow">MBTI V2</p>
+                <h1 className="v2-hero-code">{fullType}</h1>
+              </div>
+              <p className="v2-hero-title">{report.title}</p>
+            </div>
+
+            <div className="mt-6 max-w-3xl space-y-4 text-base leading-relaxed text-black/75">
+              <p>
+                <span className="font-bold text-black">{report.abstract.label}</span>
+                <span className="mx-2 text-black/35">/</span>
+                {report.abstract.body}
+              </p>
+              {source === 'v2_quiz' ? (
+                <p className="font-medium text-black/70">
+                  目前顯示的是本地 `V2 quiz prototype` 跑出的結果，方便你直接測答題節奏和報告串接。
+                </p>
+              ) : null}
+              <p>{resultData.summary}</p>
+            </div>
+
+            <blockquote className="v2-quote-block mt-8">
+              <p className="v2-eyebrow">SOUL QUOTE</p>
+              <p className="v2-quote-body">「{soulQuote}」</p>
+            </blockquote>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <DevImageSlot slot={imageSlots.heroDesktop} compact />
+              <DevImageSlot slot={imageSlots.heroMobile} compact />
+            </div>
+          </div>
+
+          <div className="v2-hero-aside">
+            <div>
+              <p className="v2-eyebrow">REPORT SOURCE</p>
+              <p className="mt-3 text-sm font-semibold text-black/75">{report.familyLabel}</p>
+              <p className="mt-1 text-sm text-black/60">{report.sourcePath}</p>
+            </div>
+
+            <div className="v2-status-grid">
+              <div>
+                <p className="v2-status-label">人格稱號</p>
+                <p className="v2-status-value">{resultData.title}</p>
+              </div>
+              <div>
+                <p className="v2-status-label">變體</p>
+                <p className="v2-status-value">{variant}</p>
+              </div>
+              <div>
+                <p className="v2-status-label">資料版本</p>
+                <p className="v2-status-value">{report.meta.version}</p>
+              </div>
+              <div>
+                <p className="v2-status-label">本地狀態</p>
+                <p className="v2-status-value">{isLocalPreview ? 'localhost' : 'preview'}</p>
               </div>
             </div>
 
-            <div className="text-center font-mono text-[10px] font-medium uppercase tracking-widest" style={{ color: 'rgba(26,26,26,0.5)' }}>
-              [ Version {assignedQuiz.id} // A-B Test Active ]
+            <div className="grid gap-4">
+              <DevImageSlot slot={imageSlots.reportCover} compact />
+              <DevImageSlot slot={imageSlots.familyMood} compact />
             </div>
+          </div>
+        </section>
 
-            <div className="text-center">
-              <a href="/" className="text-xs underline underline-offset-4" style={{ color: 'rgba(26,26,26,0.4)' }}>
-                ← 返回 v1
-              </a>
-            </div>
-          </motion.div>
-        )}
-
-        {step === 'quiz' && selectedQuiz && (
-          <motion.div
-            key={`quiz-${currentQuestionIndex}`}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="max-w-md w-full space-y-8"
-          >
-            <div className="flex items-center justify-between font-mono font-medium text-xs pb-3" style={{ borderBottom: '1.5px solid rgba(26,26,26,0.2)', color: 'rgba(26,26,26,0.6)' }}>
-              <span>Q.{String(currentQuestionIndex + 1).padStart(2, '0')}</span>
-              <span className="px-2 py-0.5 rounded-full tracking-widest" style={{ backgroundColor: '#1A1A1A', color: '#F8F8F5' }}>ANALYZING</span>
-              <span>{String(selectedQuiz.questions.length).padStart(2, '0')}</span>
-            </div>
-
-            <h2 className="text-2xl font-medium leading-snug" style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#1A1A1A' }}>
-              {selectedQuiz.questions[currentQuestionIndex].text}
-            </h2>
-
-            <div className="space-y-4 pt-4">
-              {selectedQuiz.questions[currentQuestionIndex].options.map((option, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleAnswer(option.value, option.visual)}
-                  className="w-full kiwimu-btn p-5 text-left leading-relaxed font-medium text-sm"
-                  style={{ color: '#1A1A1A' }}
-                >
-                  {option.text}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {step === 'visual' && (
-          <motion.div
-            key="visual"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
-            className="max-w-md w-full flex flex-col items-center justify-center text-center space-y-8 py-20"
-          >
-             <div className="w-32 h-32 rounded-full flex items-center justify-center animate-pulse p-4" style={{ border: '1.5px solid #1A1A1A', backgroundColor: '#CCFF00', boxShadow: '4px 4px 0px #1A1A1A' }}>
-                <KiwimuStable />
-             </div>
-             <div className="px-6 py-4 font-medium text-lg tracking-wide rounded-2xl" style={{ backgroundColor: '#1A1A1A', color: '#F8F8F5', border: '1.5px solid #1A1A1A', boxShadow: '4px 4px 0px #CCFF00', fontFamily: "'Space Grotesk', sans-serif" }}>
-               {currentVisual}
-             </div>
-          </motion.div>
-        )}
-
-        {step === 'result' && (
-          <motion.div
-            key="result"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-md w-full space-y-6"
-          >
-            {(() => {
-              const { type, aOrT } = calculateResult();
-              const personality = personalities[type] || personalities['INFP'];
-              const kiwimuState = kiwimuStates[aOrT as 'A' | 'T'];
-
-              return (
-                <div id="ig-story-card" className="flex flex-col gap-4">
-                  <div className="kiwimu-card p-0 flex flex-col relative overflow-hidden bg-white" style={{ aspectRatio: '4/5' }}>
-
-                    {/* Top Bar */}
-                    <div className="p-4 flex justify-between items-center" style={{ backgroundColor: '#1A1A1A', color: '#CCFF00', borderBottom: '1.5px solid #1A1A1A' }}>
-                      <span className="font-mono font-medium tracking-widest uppercase text-[10px]">Kiwimu Lab // 2026</span>
-                      <span className="font-mono font-medium rounded-full px-3 py-1 text-[10px]" style={{ border: '1px solid rgba(204,255,0,0.5)' }}>ID: {type}-{aOrT}</span>
+        <div className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+          <main className="space-y-6">
+            <SectionFrame index="01" title="DESIGN PHILOSOPHY" subtitle="設計初衷與變動世代觀點">
+              <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+                <div className="rounded-[26px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
+                  <p className="v2-card-eyebrow">WHY THIS REPORT EXISTS</p>
+                  <p className="mt-4 text-lg leading-relaxed text-[color:var(--v2-ink)]">{report.design.quote}</p>
+                </div>
+                <div className="grid gap-4">
+                  {report.design.behaviorLogic.map((item) => (
+                    <div key={item.label} className="rounded-[22px] border border-[color:var(--v2-line)] bg-white/85 p-5">
+                      <p className="v2-card-eyebrow">{item.label}</p>
+                      <p className="mt-3 text-sm leading-relaxed text-black/72">{item.body}</p>
                     </div>
+                  ))}
+                </div>
+              </div>
+            </SectionFrame>
 
-                    {/* Main Character Area */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 relative overflow-hidden" style={{ backgroundColor: '#F8F8F5', borderBottom: '1.5px solid rgba(26,26,26,0.1)' }}>
-                      <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none" style={{ opacity: 0.03 }}>
-                        <span className="font-bold text-9xl uppercase whitespace-nowrap -rotate-12" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                          {kiwimuState.title}
-                        </span>
-                      </div>
-
-                      <div className="relative z-10 w-56 h-56 mb-6 flex items-center justify-center">
-                        <div className="absolute inset-0 rounded-full blur-2xl opacity-20" style={{ backgroundColor: '#CCFF00' }}></div>
-                        {aOrT === 'A' ? <KiwimuStable /> : <KiwimuAnxious />}
-                      </div>
-
-                      <div className="text-center relative z-10 space-y-2">
-                        <div className="inline-block px-3 py-1 font-mono text-[10px] uppercase tracking-widest rounded-full mb-1" style={{ backgroundColor: '#1A1A1A', color: '#CCFF00' }}>
-                          Current State
-                        </div>
-                        <h2 className="font-bold uppercase leading-none tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#1A1A1A', fontSize: 'clamp(2rem, 5vw, 3rem)' }}>
-                          {kiwimuState.title}
-                        </h2>
-                        <p className="text-sm font-medium max-w-[240px] mx-auto leading-relaxed mt-3" style={{ color: 'rgba(26,26,26,0.6)' }}>
-                          {kiwimuState.description}
-                        </p>
-                      </div>
+            <SectionFrame index="02" title="TAG WALL" subtitle="五個能瞬間辨識你的 V2 標籤">
+              <div className="flex flex-wrap gap-3">
+                {tagWall.map((tag) => (
+                  <div key={`${tag.code}-${tag.zh}`} className="v2-tag-pill">
+                    <span className="v2-tag-code">{tag.code}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-[color:var(--v2-ink)]">{tag.zh}</p>
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-black/42">{tag.en}</p>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </SectionFrame>
 
-                    {/* Secondary Info */}
-                    <div className="p-6 bg-white space-y-4">
-                      <div className="flex items-center justify-between">
+            <SectionFrame index="03" title="PROFESSIONAL INSIGHTS" subtitle={report.professional.coreTitle} locked={!isUnlocked}>
+              <div className="space-y-5">
+                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/88 p-6">
+                  <p className="text-base leading-relaxed text-black/80">{report.professional.coreBody}</p>
+                </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {([report.professional.subtypes.A, report.professional.subtypes.T] as const).map((subtype) => (
+                    <div key={subtype.code} className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
+                      <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="font-mono text-[10px] uppercase tracking-widest mb-1" style={{ color: 'rgba(26,26,26,0.4)' }}>Base Flavor</p>
-                          <h3 className="text-xl font-semibold uppercase" style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#1A1A1A' }}>{personality.name}</h3>
+                          <p className="v2-card-eyebrow">{subtype.code} / {subtype.tone}</p>
+                          <h3 className="mt-2 text-2xl font-semibold text-[color:var(--v2-ink)]">{subtype.title}</h3>
                         </div>
-                        <div className="text-right">
-                          <p className="font-mono text-[10px] uppercase tracking-widest mb-1" style={{ color: 'rgba(26,26,26,0.4)' }}>Core</p>
-                          <span className="inline-block px-2 py-1 font-medium text-[10px] rounded-full" style={{ backgroundColor: '#CCFF00', border: '1.5px solid #1A1A1A' }}>
-                            {personality.core}
-                          </span>
-                        </div>
+                        <span className="v2-variant-chip">{subtype.code}</span>
                       </div>
-
-                      <div className="pl-4 py-1 rounded-r-xl p-3" style={{ borderLeft: '2px solid #CCFF00', backgroundColor: 'rgba(248,248,245,0.5)' }}>
-                        <p className="font-mono text-[10px] font-medium uppercase tracking-widest mb-1" style={{ color: 'rgba(26,26,26,0.4)' }}>Kiwimu Says:</p>
-                        <p className="font-medium text-sm leading-relaxed italic" style={{ color: 'rgba(26,26,26,0.9)' }}>
-                          "{personality.kiwimuSays}"
-                        </p>
+                      <div className="mt-5 space-y-4">
+                        {subtype.items.map((item) => (
+                          <div key={item.label}>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">{item.label}</p>
+                            <p className="mt-2 text-sm leading-relaxed text-black/72">{item.body}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
+                  ))}
+                </div>
+              </div>
+            </SectionFrame>
 
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <button
-                      onClick={reset}
-                      className="flex-1 kiwimu-btn py-4 flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest bg-white"
-                      style={{ color: '#1A1A1A' }}
-                    >
-                      <IconRotateCcw />
-                      Restart
-                    </button>
-                    <button
-                      onClick={() => alert('長按圖片即可儲存至手機，或截圖分享至 IG 限動！')}
-                      className="kiwimu-btn kiwimu-btn-primary py-4 flex items-center justify-center gap-2 uppercase text-[10px] tracking-widest"
-                      style={{ flex: 2, color: '#1A1A1A', boxShadow: '4px 4px 0px #1A1A1A' }}
-                    >
-                      <IconDownload />
-                      Save for IG Story
-                    </button>
-                  </div>
-
-                  <div className="text-center">
-                    <a href="/" className="text-xs underline underline-offset-4" style={{ color: 'rgba(26,26,26,0.4)' }}>
-                      ← 返回 v1
-                    </a>
+            <SectionFrame index="04" title="DIMENSION EVOLUTION" subtitle={report.dimension.tip} locked={!isUnlocked}>
+              <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+                <div className="space-y-4">
+                  {report.dimension.bullets.map((item) => (
+                    <div key={item.label} className="rounded-[22px] border border-[color:var(--v2-line)] bg-white/85 p-5">
+                      <p className="v2-card-eyebrow">{item.label}</p>
+                      <p className="mt-3 text-sm leading-relaxed text-black/72">{item.body}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-5 md:p-6">
+                  <p className="v2-card-eyebrow">COGNITIVE SPECTRUM</p>
+                  <div className="mt-5 space-y-4">
+                    {spectrumRows.map((row) => (
+                      <div key={row.key} className="v2-spectrum-row">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-[color:var(--v2-ink)]">{row.label}</p>
+                            <p className="mt-1 text-xs leading-relaxed text-black/55">{row.description || row.v1Note}</p>
+                          </div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-black/45">{row.selectedCode} / {row.oppositeCode}</p>
+                        </div>
+                        <div className="mt-4 h-3 overflow-hidden rounded-full bg-black/8">
+                          <div className="v2-spectrum-fill" style={{ width: `${row.selectedPct}%` }} />
+                        </div>
+                        <div className="mt-3 flex items-start justify-between gap-4 text-xs text-black/55">
+                          <span>{row.selectedCode} {row.selectedPct}%</span>
+                          <span className="text-right">{row.oppositeCode} {row.oppositePct}%</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })()}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </div>
+            </SectionFrame>
+
+            <SectionFrame index="05" title="CULTURAL CONTEXT" subtitle="職涯策略與感情導航" locked={!isUnlocked}>
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/86 p-6">
+                  <p className="v2-card-eyebrow">CAREER</p>
+                  <h3 className="mt-3 text-2xl font-semibold text-[color:var(--v2-ink)]">{report.career.title}</h3>
+                  <div className="mt-5 space-y-4">
+                    {report.career.bullets.map((item) => (
+                      <div key={item.label}>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">{item.label}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-black/72">{item.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
+                  <p className="v2-card-eyebrow">RELATIONSHIP</p>
+                  <h3 className="mt-3 text-2xl font-semibold text-[color:var(--v2-ink)]">{report.relationship.title}</h3>
+                  <div className="mt-5 space-y-4">
+                    {report.relationship.bullets.map((item) => (
+                      <div key={item.label}>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">{item.label}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-black/72">{item.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </SectionFrame>
+
+            <SectionFrame index="06" title="FREQUENCY & ARCHETYPES" subtitle="稀有度與共鳴原型" locked={!isUnlocked}>
+              <div className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
+                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
+                  <p className="v2-card-eyebrow">FREQUENCY</p>
+                  {rarityData ? (
+                    <>
+                      <div className="mt-4 flex items-end gap-3">
+                        <p className="text-5xl font-bold tracking-tight text-[color:var(--v2-ink)]">{rarityData.totalPopulation}%</p>
+                        <p className="pb-2 text-sm font-semibold uppercase tracking-[0.16em] text-black/45">{rarityLabel}</p>
+                      </div>
+                      <p className="mt-4 text-sm leading-relaxed text-black/72">{rarityMessage}</p>
+                      <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-black/68">
+                        <div className="rounded-[18px] border border-[color:var(--v2-line)] bg-white/80 p-4">
+                          <p className="v2-card-eyebrow">MALE</p>
+                          <p className="mt-2 text-xl font-semibold text-[color:var(--v2-ink)]">{rarityData.male}%</p>
+                        </div>
+                        <div className="rounded-[18px] border border-[color:var(--v2-line)] bg-white/80 p-4">
+                          <p className="v2-card-eyebrow">FEMALE</p>
+                          <p className="mt-2 text-xl font-semibold text-[color:var(--v2-ink)]">{rarityData.female}%</p>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-4 text-sm leading-relaxed text-black/70">目前本地原型還沒有對應的稀有度資料。</p>
+                  )}
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  {archetypes.map((archetype) => (
+                    <div key={archetype.name} className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/86 p-6">
+                      <p className="v2-card-eyebrow">ARCHETYPE</p>
+                      <h3 className="mt-3 text-2xl font-semibold text-[color:var(--v2-ink)]">{archetype.name}</h3>
+                      <p className="mt-1 text-sm text-black/52">{archetype.profession}</p>
+                      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-black/72">
+                        {archetype.resonanceTraits.map((trait) => (
+                          <li key={trait}>• {trait}</li>
+                        ))}
+                      </ul>
+                      <div className="mt-5 rounded-[18px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-4">
+                        <p className="v2-card-eyebrow">DESSERT PAIRING</p>
+                        <p className="mt-2 font-semibold text-[color:var(--v2-ink)]">{archetype.dessertPairing}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-black/68">{archetype.pairingReason}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </SectionFrame>
+
+            <SectionFrame index="07" title="SOUL REFLECTION" subtitle={report.dessert.name} locked={!isUnlocked}>
+              <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
+                  <p className="v2-card-eyebrow">SOUL DESSERT</p>
+                  <div className="mt-4">
+                    <DevImageSlot slot={imageSlots.soulDessert} compact />
+                  </div>
+                  <p className="mt-4 text-base leading-relaxed text-black/78">{report.dessert.visualLogic}</p>
+                  <div className="mt-5 space-y-3">
+                    {report.dessert.pairings.map((item) => (
+                      <div key={item.label} className="rounded-[18px] border border-[color:var(--v2-line)] bg-white/82 p-4">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">{item.label}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-black/72">{item.body}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {report.abyssal.map((question, index) => (
+                    <div key={question.title} className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/88 p-5">
+                      <p className="v2-card-eyebrow">ABYSSAL 0{index + 1}</p>
+                      <h3 className="mt-3 text-xl font-semibold text-[color:var(--v2-ink)]">{question.title}</h3>
+                      <p className="mt-3 text-sm leading-relaxed text-black/72">{question.body}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </SectionFrame>
+
+            <section className="v2-panel v2-footer-panel">
+              <p className="v2-card-eyebrow">FOOTER CTA</p>
+              <h2 className="mt-3 text-3xl font-semibold text-[color:var(--v2-ink)]">{report.closing}</h2>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a href="/quiz" className="kiwimu-btn block px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: '#1A1A1A' }}>
+                  回看免費 V1
+                </a>
+                <a href="/" className="kiwimu-btn block px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: '#1A1A1A' }}>
+                  回到 5 題漏斗
+                </a>
+              </div>
+            </section>
+          </main>
+
+          <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
+            <div className="v2-panel p-6 md:p-7">
+              <p className="v2-card-eyebrow">UPGRADE STATUS</p>
+              <h2 className="mt-4 text-3xl font-semibold text-[color:var(--v2-ink)]">
+                {isUnlocked ? 'V2 台灣版已解鎖' : 'V2 深度檔案待解鎖'}
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-black/68">
+                {isUnlocked
+                  ? '這份頁面現在直接使用 2026 H2 台灣版草案庫 + 現有 V1 結果資料在本地組裝。'
+                  : 'V1 永久免費保留。V2 只鎖完整深報告，包含 A/T 對照、維度進化、職涯與關係深度段落。'}
+              </p>
+              {DEV_ONLY_V2 ? (
+                <div className="mt-4 rounded-[18px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-4 text-sm leading-relaxed text-black/72">
+                  目前固定維持在 `dev/local prototype` 階段，不接正式金流、不影響 `main` 營運，也不作正式上線判定。等你的圖補齊後再進下一步整合。
+                </div>
+              ) : null}
+
+              <div className="mt-6 space-y-3 text-sm leading-relaxed text-black/72">
+                <div className="v2-feature-item">完整台灣版草案文案與家族風格排版</div>
+                <div className="v2-feature-item">A/T 亞型對照與真實分數光譜</div>
+                <div className="v2-feature-item">稀有度、共鳴原型、靈魂甜點與靈魂拷問</div>
+                <div className="v2-feature-item">後續可接本地 entitlement 與真實金流流程</div>
+              </div>
+
+              {!isUnlocked ? (
+                <div className="mt-4">
+                  <DevImageSlot slot={imageSlots.paywallLocked} compact />
+                </div>
+              ) : null}
+
+              <div className="mt-6 space-y-3">
+                <button
+                  onClick={isUnlocked ? () => window.print() : handleCheckout}
+                  className="kiwimu-btn kiwimu-btn-primary w-full px-6 py-4 text-sm font-black uppercase tracking-[0.18em]"
+                  style={{ color: '#1A1A1A' }}
+                  disabled={isDevLocked}
+                >
+                  {primaryButtonLabel}
+                </button>
+                {!isUnlocked ? (
+                  <a href="/quiz" className="kiwimu-btn block w-full px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
+                    回看免費 V1
+                  </a>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="v2-panel p-6 md:p-7">
+              <p className="v2-card-eyebrow">LOCAL DEBUG</p>
+              <div className="mt-4 space-y-4 text-sm leading-relaxed text-black/68">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">來源路徑</p>
+                  <p className="mt-2 break-all">{V2_TW_DRAFT_SOURCE}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">結果來源</p>
+                  <p className="mt-2">source={source} / mbti={fullType}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">本地 entitlement</p>
+                  <p className="mt-2">{isUnlocked ? `unlocked (${entitlement.unlockType || 'unknown'})` : 'locked'}</p>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                <DevImageSlot slot={imageSlots.pdfCover} compact />
+                <DevImageSlot slot={imageSlots.shareTemplate} compact />
+              </div>
+
+              {isLocalPreview ? (
+                <div className="mt-6 space-y-3">
+                  <button onClick={handleResetPreview} className="kiwimu-btn w-full px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: '#1A1A1A' }}>
+                    重設本地解鎖狀態
+                  </button>
+                  <p className="text-xs leading-relaxed text-black/55">
+                    localhost 目前會把「解鎖」視為本地模擬付款，不會真的建立訂單。
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }

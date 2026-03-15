@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import '../components/v2/v2.css';
+import { trackAction } from '../utils/userDataCollector';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -356,11 +357,83 @@ function findResult(answers: number[]): StateResult {
 // ─── Marquee content ──────────────────────────────────────────────────────────
 
 const MARQUEE_TEXT = 'KIWIMU STATE TEST · 今天你是哪種奶油狀態？ · MOON DESSERT · 5 QUESTIONS · ';
+const LITE_VARIANT_KEY = 'kiwimu_lite_ab_variant';
+
+function resolveLiteAssignment() {
+  const params = new URLSearchParams(window.location.search);
+  const forcedVariant = params.get('v')?.toUpperCase();
+
+  if (forcedVariant === 'A' || forcedVariant === 'B') {
+    sessionStorage.setItem(LITE_VARIANT_KEY, forcedVariant);
+    return {
+      version: forcedVariant as 'A' | 'B',
+      sourceHint: 'query_override',
+    };
+  }
+
+  const storedVariant = sessionStorage.getItem(LITE_VARIANT_KEY);
+  if (storedVariant === 'A' || storedVariant === 'B') {
+    return {
+      version: storedVariant,
+      sourceHint: 'session_resume',
+    };
+  }
+
+  const sourceText = [
+    params.get('source'),
+    params.get('utm_source'),
+    params.get('utm_medium'),
+    params.get('utm_campaign'),
+    document.referrer,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  let version: 'A' | 'B' = 'A';
+  let sourceHint = 'default_random';
+
+  if (/(threads|thread)/.test(sourceText)) {
+    version = 'A';
+    sourceHint = 'threads_signal';
+  } else if (/(instagram|insta|l\.instagram|\big\b)/.test(sourceText)) {
+    version = 'B';
+    sourceHint = 'instagram_signal';
+  } else {
+    version = Math.random() > 0.5 ? 'A' : 'B';
+  }
+
+  sessionStorage.setItem(LITE_VARIANT_KEY, version);
+
+  return { version, sourceHint };
+}
+
+function buildFullQuizUrl(version: 'A' | 'B', resultId?: number) {
+  const currentParams = new URLSearchParams(window.location.search);
+  const nextParams = new URLSearchParams();
+  const passThroughKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'source'];
+
+  passThroughKeys.forEach((key) => {
+    const value = currentParams.get(key);
+    if (value) {
+      nextParams.set(key, value);
+    }
+  });
+
+  nextParams.set('from', 'lite_quiz');
+  nextParams.set('lite_variant', version);
+
+  if (resultId != null) {
+    nextParams.set('lite_result', String(resultId));
+  }
+
+  return `/quiz?${nextParams.toString()}`;
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const StateTest: React.FC = () => {
-  const version = new URLSearchParams(window.location.search).get('v') === 'b' ? 'B' : 'A';
+  const [{ version, sourceHint }] = useState(resolveLiteAssignment);
   const questions = version === 'B' ? QUESTIONS_B : QUESTIONS_A;
 
   const [currentQ, setCurrentQ] = useState(0);
@@ -372,6 +445,34 @@ const StateTest: React.FC = () => {
 
   const progressPct = (currentQ / questions.length) * 100;
   const question = questions[currentQ];
+
+  useEffect(() => {
+    trackAction('lite_quiz_start', {
+      route: window.location.pathname,
+      version,
+      sourceHint,
+    });
+  }, [version, sourceHint]);
+
+  useEffect(() => {
+    if (!result) {
+      return;
+    }
+
+    trackAction('lite_quiz_complete', {
+      version,
+      sourceHint,
+      resultId: result.id,
+      resultTitle: result.title,
+    });
+
+    trackAction('lite_result_view', {
+      version,
+      sourceHint,
+      resultId: result.id,
+      resultTitle: result.title,
+    });
+  }, [result, version, sourceHint]);
 
   const handleSelect = useCallback(
     (optionId: string, value: number) => {
@@ -395,7 +496,7 @@ const StateTest: React.FC = () => {
 
   const handleCopy = useCallback(() => {
     if (!result) return;
-    const text = result.lineCTA;
+    const text = `${result.title}｜${result.description}`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
         setCopied(true);
@@ -417,6 +518,21 @@ const StateTest: React.FC = () => {
       setTimeout(() => setCopied(false), 2000);
     }
   }, [result]);
+
+  const handleReset = useCallback(() => {
+    window.location.assign('/');
+  }, []);
+
+  const handleContinueToV1 = useCallback(() => {
+    trackAction('lite_to_v1_click', {
+      version,
+      sourceHint,
+      resultId: result?.id,
+      resultTitle: result?.title,
+    });
+
+    window.location.assign(buildFullQuizUrl(version, result?.id));
+  }, [result, sourceHint, version]);
 
   // ── Result page ─────────────────────────────────────────────────────────────
   if (result) {
@@ -463,7 +579,7 @@ const StateTest: React.FC = () => {
                 className="inline-block px-3 py-1 rounded-full font-mono text-[10px] font-medium tracking-widest uppercase mb-4"
                 style={{ backgroundColor: 'rgba(26,26,26,0.06)', color: 'rgba(26,26,26,0.5)' }}
               >
-                {version === 'B' ? '躺平邊界派' : '數位焦慮派'}
+                {version === 'B' ? 'B Variant · 邊界原型' : 'A Variant · 數位生存原型'}
               </div>
 
               {/* Illustration */}
@@ -506,6 +622,21 @@ const StateTest: React.FC = () => {
                 </p>
               </div>
 
+              <div
+                className="mt-5 rounded-2xl border border-dashed p-4"
+                style={{ borderColor: 'rgba(26,26,26,0.12)', backgroundColor: '#FAFAF6' }}
+              >
+                <p
+                  className="font-mono text-[10px] font-medium tracking-widest uppercase mb-2"
+                  style={{ color: 'rgba(26,26,26,0.45)' }}
+                >
+                  5 題前導結果
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: 'rgba(26,26,26,0.72)' }}>
+                  這是 A/B test 漏斗中的前導狀態卡，不是完整版 MBTI。下一步進入免費 V1，才會拿到正式人格類型與完整基礎報告。
+                </p>
+              </div>
+
             </div>
           </div>
 
@@ -517,10 +648,10 @@ const StateTest: React.FC = () => {
               className="font-mono text-[10px] font-medium tracking-widest uppercase mb-2"
               style={{ color: 'rgba(26,26,26,0.4)' }}
             >
-              傳送預訂訊息
+              一句 teaser
             </p>
             <p className="text-sm font-medium mb-3" style={{ color: '#1A1A1A' }}>
-              {result.lineCTA}
+              {result.description}
             </p>
             <button
               onClick={handleCopy}
@@ -533,31 +664,26 @@ const StateTest: React.FC = () => {
 
           {/* CTA buttons */}
           <div className="flex flex-col gap-3">
-            <a
-              href="https://lin.ee/4O7A5r8"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="kiwimu-btn kiwimu-btn-primary block w-full text-center py-4 text-sm font-medium tracking-wide"
+            <button
+              onClick={handleContinueToV1}
+              className="kiwimu-btn kiwimu-btn-primary block w-full py-4 text-sm font-black tracking-[0.18em] uppercase"
               style={{ color: '#1A1A1A' }}
             >
-              立即預訂
-            </a>
-            <a
-              href="https://map.kiwimu.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="kiwimu-btn block w-full text-center py-4 text-sm font-medium tracking-wide"
+              進入免費完整版 V1
+            </button>
+            <button
+              onClick={handleReset}
+              className="kiwimu-btn block w-full py-4 text-sm font-medium tracking-wide"
               style={{ color: '#1A1A1A' }}
             >
-              前往月島
-            </a>
-            <a
-              href="/"
-              className="block w-full text-center py-3 font-mono text-[10px] font-medium tracking-widest uppercase"
-              style={{ color: 'rgba(26,26,26,0.4)' }}
+              重新測一次 5 題
+            </button>
+            <p
+              className="text-center font-mono text-[10px] font-medium tracking-widest uppercase"
+              style={{ color: 'rgba(26,26,26,0.35)' }}
             >
-              做完整版測驗（40 題）
-            </a>
+              A/B test variant {version}
+            </p>
           </div>
 
         </div>
