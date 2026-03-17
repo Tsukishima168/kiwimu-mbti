@@ -8,6 +8,7 @@ import { getRarityData, getRarityLabel, getRarityMessage } from '../data/rarityD
 import { getCelebrityArchetypes } from '../data/celebrityData';
 import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
+import ResultRecommendation from './ResultRecommendation';
 import { shareResultToLine } from '../utils/liffShare';
 import { trackResultDownload, trackResultShare, trackButtonClick } from '../utils/analytics';
 import { buildDessertOrderLink, trackOutboundClick } from '../utils/utmTracking';
@@ -24,6 +25,8 @@ interface ResultProps {
   onLogout?: () => void;
   isSharedView?: boolean;
 }
+
+const LINE_OFFICIAL_URL = 'https://lin.ee/z0BmDE9';
 
 const ALL_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
 
@@ -863,6 +866,18 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               ))}
             </div>
           </div>
+
+          <ResultRecommendation
+            resultType={resultData.id}
+            lineUrl={LINE_OFFICIAL_URL}
+            onCtaClick={() =>
+              trackOutboundClick('LINE_OA', 'result-cta', {
+                section: 'zh-result-dessert-recommendation',
+                mbti_type: resultData.id,
+                url: LINE_OFFICIAL_URL,
+              })
+            }
+          />
 
           {/* DISCLAIMER & FOOTER */}
           <div className="text-center max-w-2xl mx-auto py-16 md:py-24 border-t border-gray-100 px-6">
