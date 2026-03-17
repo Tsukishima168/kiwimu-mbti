@@ -33,7 +33,7 @@ export const EXTERNAL_LINKS: Record<string, ExternalLink> = {
   // Dessert Booking - 訂購系統
   DESSERT_BOOKING: {
     name: '月島甜點菜單',
-    baseUrl: 'https://map.kiwimu.com',
+    baseUrl: 'https://map.kiwimu.com/menu',
     defaultSource: 'mbti-lab'
   },
 
