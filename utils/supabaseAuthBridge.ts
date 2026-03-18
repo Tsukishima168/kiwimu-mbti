@@ -99,3 +99,26 @@ export async function signOutSupabase(): Promise<void> {
   if (!supabase) return;
   await supabase.auth.signOut();
 }
+
+/**
+ * 用 hashed_token 在 Supabase 建立 session（LINE 登入使用）
+ * server 端（api/line-auth）產生後傳回，client 呼叫此函式完成同步
+ *
+ * @param hashedToken - api/line-auth 回傳的 supabaseHashedToken
+ */
+export async function syncLineToSupabase(hashedToken: string): Promise<void> {
+  const supabase = getAuthSupabaseClient();
+  if (!supabase) return;
+
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: hashedToken,
+    type: 'magiclink',
+  });
+
+  if (error) {
+    console.error('⚠️ Supabase LINE sync failed (non-blocking):', error.message);
+    return;
+  }
+
+  console.log('✅ Supabase session synced from LINE login');
+}

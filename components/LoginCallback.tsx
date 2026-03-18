@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { auth } from '../firebase';
 import { signInWithCustomToken } from 'firebase/auth';
 import { linkAnonymousAccount } from '../utils/accountLinking';
+import { syncLineToSupabase } from '../utils/supabaseAuthBridge';
 
 interface LoginCallbackProps {
     onLoginSuccess: () => void;
@@ -68,6 +69,11 @@ const LoginCallback: React.FC<LoginCallbackProps> = ({ onLoginSuccess }) => {
                 setStatus('Linking account...');
 
                 await linkAnonymousAccount(data.firebaseCustomToken);
+
+                // [Bridge] 同步 LINE 登入至 Supabase（非阻塞，cookie domain = .kiwimu.com）
+                if (data.supabaseHashedToken) {
+                    syncLineToSupabase(data.supabaseHashedToken).catch(() => {});
+                }
 
                 setStatus('Finalizing...');
 

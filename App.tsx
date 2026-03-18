@@ -51,6 +51,7 @@ import { initReferralTracking, parseReferralParams, saveReferralToFirebase, upda
 
 // Moon Island 整合
 import { saveMBTIToMoonIsland } from './utils/moonIslandSync';
+import { signOutSupabase } from './utils/supabaseAuthBridge';
 // 測驗完成寄結果信（已登入且有 email）
 import { sendResultEmail } from './utils/sendResultEmail';
 
@@ -482,6 +483,7 @@ const App: React.FC = () => {
   const handleLogout = async () => {
     try {
       await auth.signOut();
+      signOutSupabase().catch(() => {}); // 非阻塞，清除 .kiwimu.com SSO cookie
       // After logout, Firebase will auto-create a new anonymous user via onAuthStateChanged
       // Don't clear sessionStorage here - user might want to see their results
       // Only clear auth-related data
