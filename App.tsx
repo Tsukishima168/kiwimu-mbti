@@ -70,11 +70,11 @@ const ROOT_PATHS = new Set(['/', '/index.html']);
 const V1_PATHS = new Set(['/quiz', '/v1']);
 
 const isV1Pathname = (pathname: string) => V1_PATHS.has(pathname);
-const isLiteFunnelPathname = (pathname: string) => ROOT_PATHS.has(pathname) || pathname === '/state-test';
+const isLiteFunnelPathname = (pathname: string) => pathname === '/state-test';
 
 const getStagePath = (currentStage: Stage, pathname: string) => {
   if (currentStage === 'state-test') {
-    return '/';
+    return '/state-test';
   }
 
   if (isV1Pathname(pathname)) {
@@ -283,7 +283,7 @@ const App: React.FC = () => {
         setStage('state-test');
       } else if (pathname === '/today') {
         setStage('today');
-      } else if (isV1Route) {
+      } else if (isV1Route || ROOT_PATHS.has(pathname)) {
         setStage('intro');
       } else if (!pathname.startsWith('/v2')) {
         setStage('404');
@@ -448,7 +448,7 @@ const App: React.FC = () => {
       sessionStorage.removeItem('flow_stage');
     } else {
       console.log('No saved results, routing by current path');
-      setStage(isV1Pathname(window.location.pathname) ? 'intro' : 'state-test');
+      setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
     }
   };
 
@@ -490,7 +490,7 @@ const App: React.FC = () => {
 
       // If on result page, stay there. Otherwise go to intro
       if (stage !== 'result') {
-        setStage(isV1Pathname(window.location.pathname) ? 'intro' : 'state-test');
+        setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
       }
     } catch (error) {
       console.error('Logout failed:', error);
@@ -514,7 +514,7 @@ const App: React.FC = () => {
     if (resultData && scores) {
       setStage('result');
     } else {
-      setStage(isV1Pathname(window.location.pathname) ? 'intro' : 'state-test');
+      setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
     }
   };
 
