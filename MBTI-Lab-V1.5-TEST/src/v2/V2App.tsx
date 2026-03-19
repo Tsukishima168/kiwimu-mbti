@@ -6,6 +6,7 @@ import { V2Landing } from "./V2Landing"
 import { V2QuizQuestion } from "./V2QuizQuestion"
 import { V2TransitionBeat } from "./V2TransitionBeat"
 import { V2ResultPage } from "./V2ResultPage"
+import { trackV2Event } from "./v2Analytics"
 
 type V2Step = "landing" | "quiz" | "transition" | "result"
 
@@ -25,6 +26,7 @@ export default function V2App() {
   }, [])
 
   const handleStart = () => {
+    trackV2Event("quiz_start", { quiz_id: quiz.id })
     setStep("quiz")
     setCurrentIndex(0)
     setAnswers([])
@@ -35,12 +37,16 @@ export default function V2App() {
     setAnswers(newAnswers)
     setCurrentVisual(visual)
     setStep("transition")
+    trackV2Event("v2_transition", { question_index: currentIndex, answer: value })
 
     setTimeout(() => {
       if (currentIndex < quiz.questions.length - 1) {
         setCurrentIndex(currentIndex + 1)
         setStep("quiz")
       } else {
+        const type = `${newAnswers[0]}${newAnswers[1]}${newAnswers[2]}${newAnswers[3]}`
+        const aOrT = newAnswers[4] as "A" | "T"
+        trackV2Event("v2_complete", { type, aOrT })
         setStep("result")
       }
     }, 2000)

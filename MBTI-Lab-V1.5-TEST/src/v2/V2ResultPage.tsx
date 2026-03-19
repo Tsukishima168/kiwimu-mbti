@@ -1,6 +1,6 @@
 import * as React from "react"
 import { motion } from "motion/react"
-import { RotateCcw, Share2, ShoppingBag } from "lucide-react"
+import { Lock, RotateCcw, Share2, ShoppingBag } from "lucide-react"
 import {
   KiwimuCard,
   KiwimuCardContent,
@@ -12,6 +12,9 @@ import {
 import { kiwimuStates } from "@/src/data"
 import { V2_TW_REPORTS } from "../../../data/v2TaiwanDrafts.generated"
 import { KiwimuStable, KiwimuAnxious } from "./KiwimuCharacter"
+import { getV2Entitlement, unlockV2Preview, hasV2UnlockQuery } from "../../../utils/v2Access"
+import { useSupabaseAuth, loginWithGoogle } from "./useSupabaseAuth"
+import { trackV2Event } from "./v2Analytics"
 import type { Dimension } from "@/src/types"
 
 // --- helpers ---
@@ -338,6 +341,89 @@ function V2CTABlock({ closing, onReset }: { closing: string; onReset: () => void
   )
 }
 
+// --- V2LockOverlay ---
+function V2LockOverlay({
+  isLoggedIn,
+  isLoading,
+  onReset,
+}: {
+  isLoggedIn: boolean
+  isLoading: boolean
+  onReset: () => void
+}) {
+  return (
+    <>
+      <KiwimuCard>
+        <KiwimuCardContent className="p-6 space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full border-[1.5px] border-ink bg-ink/5 flex items-center justify-center shrink-0">
+              <Lock className="w-4 h-4 text-ink" />
+            </div>
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+                完整報告鎖定中
+              </p>
+              <p className="font-display text-base font-bold text-ink leading-tight">
+                解鎖靈魂深層報告
+              </p>
+            </div>
+          </div>
+
+          <div className="border-l-2 border-ink/20 pl-4 space-y-1.5">
+            {["當下狀態 × 靈魂核心", "靈魂甜點配方", "靈魂拷問 3 題"].map((item) => (
+              <p
+                key={item}
+                className="font-mono text-[10px] text-ink/50 uppercase tracking-widest"
+              >
+                → {item}
+              </p>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            {isLoading ? (
+              <div className="h-12 rounded-full bg-ink/5 animate-pulse" />
+            ) : !isLoggedIn ? (
+              <KiwimuButton
+                variant="ink"
+                size="lg"
+                onClick={loginWithGoogle}
+                className="w-full flex items-center justify-center gap-2 uppercase tracking-wider"
+              >
+                Google 登入 · 解鎖報告
+              </KiwimuButton>
+            ) : (
+              <KiwimuButton
+                variant="acid"
+                size="lg"
+                onClick={() =>
+                  window.open("https://shop.kiwimu.com", "_blank", "noopener")
+                }
+                className="w-full flex items-center justify-center gap-2 uppercase tracking-wider"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                購買靈魂甜點 · 解鎖報告
+              </KiwimuButton>
+            )}
+
+            <p className="text-center font-mono text-[10px] text-ink/30 uppercase tracking-widest">
+              {!isLoggedIn ? "登入後可驗證購買紀錄" : "購買完成後報告自動解鎖"}
+            </p>
+          </div>
+        </KiwimuCardContent>
+      </KiwimuCard>
+
+      <button
+        onClick={onReset}
+        className="w-full flex items-center justify-center gap-2 font-mono text-[10px] uppercase tracking-widest text-ink/40 hover:text-ink transition-colors py-2"
+      >
+        <RotateCcw className="w-3 h-3" />
+        重新測驗
+      </button>
+    </>
+  )
+}
+
 // --- V2ResultPage (main) ---
 interface V2ResultPageProps {
   type: string
@@ -347,6 +433,34 @@ interface V2ResultPageProps {
 }
 
 export function V2ResultPage({ type, aOrT, answers, onReset }: V2ResultPageProps) {
+  const { isLoggedIn, isLoading } = useSupabaseAuth()
+
+  const [isLocked, setIsLocked] = React.useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (hasV2UnlockQuery(params)) {
+      unlockV2Preview()
+      return false
+    }
+    return getV2Entitlement().status === "locked"
+  })
+
+  // Re-check entitlement when auth state resolves
+  React.useEffect(() => {
+    if (!isLoading) {
+      const params = new URLSearchParams(window.location.search)
+      if (hasV2UnlockQuery(params)) {
+        setIsLocked(false)
+        return
+      }
+      setIsLocked(getV2Entitlement().status === "locked")
+    }
+  }, [isLoading])
+
+  // Analytics: result_view
+  React.useEffect(() => {
+    trackV2Event("v2_result_view", { type, aOrT, locked: isLocked })
+  }, [])
+
   const report = getV2Report(type)
   const subtype = report.professional.subtypes[aOrT]
   const subtypeDesc = subtype.items[0]?.body ?? ""
@@ -365,19 +479,30 @@ export function V2ResultPage({ type, aOrT, answers, onReset }: V2ResultPageProps
         kiwimuSays={report.abstract.body}
       />
       <V2SpectrumBlock answers={answers} />
-      <V2StateBlock
-        aOrT={aOrT}
-        coreTitle={report.professional.coreTitle}
-        coreBody={report.professional.coreBody}
-        subtypeTitle={subtype.title}
-        subtypeDesc={subtypeDesc}
-      />
-      <V2DessertBlock
-        name={report.dessert.name}
-        visualLogic={report.dessert.visualLogic}
-      />
-      <V2AbyssalBlock questions={report.abyssal} />
-      <V2CTABlock closing={report.closing} onReset={onReset} />
+
+      {isLocked ? (
+        <V2LockOverlay
+          isLoggedIn={isLoggedIn}
+          isLoading={isLoading}
+          onReset={onReset}
+        />
+      ) : (
+        <>
+          <V2StateBlock
+            aOrT={aOrT}
+            coreTitle={report.professional.coreTitle}
+            coreBody={report.professional.coreBody}
+            subtypeTitle={subtype.title}
+            subtypeDesc={subtypeDesc}
+          />
+          <V2DessertBlock
+            name={report.dessert.name}
+            visualLogic={report.dessert.visualLogic}
+          />
+          <V2AbyssalBlock questions={report.abyssal} />
+          <V2CTABlock closing={report.closing} onReset={onReset} />
+        </>
+      )}
     </motion.div>
   )
 }
