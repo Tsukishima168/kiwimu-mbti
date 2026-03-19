@@ -9,9 +9,20 @@ import {
   KiwimuProgress,
   ImageSlot,
 } from "@/src/components/kiwimu"
-import { personalities, kiwimuStates } from "@/src/data"
+import { kiwimuStates } from "@/src/data"
+import { V2_TW_REPORTS } from "../../../data/v2TaiwanDrafts.generated"
 import { KiwimuStable, KiwimuAnxious } from "./KiwimuCharacter"
 import type { Dimension } from "@/src/types"
+
+// --- helpers ---
+type V2Report = (typeof V2_TW_REPORTS)[keyof typeof V2_TW_REPORTS]
+
+function getV2Report(type: string): V2Report {
+  if (Object.hasOwn(V2_TW_REPORTS, type)) {
+    return V2_TW_REPORTS[type as keyof typeof V2_TW_REPORTS]
+  }
+  return V2_TW_REPORTS["INFP"]
+}
 
 // --- TypeBadge ---
 function TypeBadge({ type, aOrT }: { type: string; aOrT: "A" | "T" }) {
@@ -31,10 +42,12 @@ function TypeBadge({ type, aOrT }: { type: string; aOrT: "A" | "T" }) {
 function V2HeroBlock({
   type,
   aOrT,
+  title,
   kiwimuSays,
 }: {
   type: string
   aOrT: "A" | "T"
+  title: string
   kiwimuSays: string
 }) {
   return (
@@ -46,6 +59,11 @@ function V2HeroBlock({
             <div className="pt-2">
               <TypeBadge type={type} aOrT={aOrT} />
             </div>
+            {title && (
+              <p className="font-display text-xs font-semibold uppercase tracking-widest text-ink/60">
+                {title}
+              </p>
+            )}
           </div>
           <div className="w-24 h-24 shrink-0">
             <ImageSlot type="character" aspect="1/1" alt={`${type} character`} />
@@ -59,13 +77,13 @@ function V2HeroBlock({
           </div>
         </div>
 
-        {/* Soul quote */}
+        {/* Soul positioning statement */}
         <div className="border-l-2 border-acid pl-4 py-1">
           <p className="font-mono text-[10px] text-ink/40 uppercase tracking-widest mb-1">
-            Kiwimu Says
+            2026 定位語
           </p>
-          <p className="font-sans font-medium text-sm leading-relaxed text-ink/90 italic">
-            "{kiwimuSays}"
+          <p className="font-sans font-medium text-sm leading-relaxed text-ink/90">
+            {kiwimuSays}
           </p>
         </div>
       </KiwimuCardContent>
@@ -124,7 +142,19 @@ function V2SpectrumBlock({ answers }: { answers: Dimension[] }) {
 }
 
 // --- V2StateBlock ---
-function V2StateBlock({ aOrT }: { aOrT: "A" | "T" }) {
+function V2StateBlock({
+  aOrT,
+  coreTitle,
+  coreBody,
+  subtypeTitle,
+  subtypeDesc,
+}: {
+  aOrT: "A" | "T"
+  coreTitle: string
+  coreBody: string
+  subtypeTitle: string
+  subtypeDesc: string
+}) {
   const state = kiwimuStates[aOrT]
   return (
     <KiwimuCard>
@@ -138,26 +168,48 @@ function V2StateBlock({ aOrT }: { aOrT: "A" | "T" }) {
           </KiwimuBadge>
         </div>
 
-        <h2 className="font-display text-3xl font-bold uppercase text-ink leading-none">
-          {state.title}
-        </h2>
+        {/* Kiwimu A/T state */}
+        <div>
+          <h2 className="font-display text-3xl font-bold uppercase text-ink leading-none mb-2">
+            {state.title}
+          </h2>
+          <p className="font-sans text-sm text-ink/60 leading-relaxed">
+            {state.description}
+          </p>
+        </div>
 
-        <p className="font-sans text-sm text-ink/70 leading-relaxed border-l-2 border-acid pl-4">
-          {state.description}
-        </p>
+        {/* Type-specific core identity */}
+        {coreTitle && (
+          <div className="border-t border-ink/10 pt-4 space-y-2">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+              靈魂核心
+            </p>
+            <h3 className="font-display text-xl font-bold text-ink">
+              {coreTitle}
+            </h3>
+            <p className="font-sans text-sm text-ink/80 leading-relaxed border-l-2 border-acid pl-4">
+              {coreBody}
+            </p>
+          </div>
+        )}
 
-        <p className="font-sans text-sm text-ink/60 leading-relaxed">
-          {aOrT === "A"
-            ? "你的靈魂像剛出爐的完美擠花，穩定、有形狀，面對外界的震動依然保有核心。這不是麻木，是一種深層的自我接納。"
-            : "你的靈魂像被攪拌過度的鮮奶油——邊緣有些塌陷，但那恰恰說明你對事情有感受、有溫度。焦慮是你追求完美的燃料。"}
-        </p>
+        {/* A/T subtype specific */}
+        {subtypeTitle && (
+          <div className="bg-ink/5 rounded-2xl p-4 space-y-1">
+            <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+              {aOrT === "A" ? "A 型 · 自信亞型" : "T 型 · 謹慎亞型"}
+            </p>
+            <p className="font-display text-base font-bold text-ink">{subtypeTitle}</p>
+            <p className="font-sans text-xs text-ink/70 leading-relaxed">{subtypeDesc}</p>
+          </div>
+        )}
       </KiwimuCardContent>
     </KiwimuCard>
   )
 }
 
 // --- V2DessertBlock ---
-function V2DessertBlock({ name, core }: { name: string; core: string }) {
+function V2DessertBlock({ name, visualLogic }: { name: string; visualLogic: string }) {
   return (
     <KiwimuCard variant="paper">
       <KiwimuCardContent className="p-6 space-y-4">
@@ -169,12 +221,12 @@ function V2DessertBlock({ name, core }: { name: string; core: string }) {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex-1 space-y-1">
+          <div className="flex-1 space-y-2">
             <h3 className="font-display text-2xl font-semibold uppercase text-ink leading-none">
               {name}
             </h3>
-            <p className="font-mono text-[10px] text-ink/50 uppercase tracking-widest">
-              {core}
+            <p className="font-sans text-xs text-ink/60 leading-relaxed">
+              {visualLogic}
             </p>
           </div>
           <div className="w-28 shrink-0">
@@ -186,8 +238,46 @@ function V2DessertBlock({ name, core }: { name: string; core: string }) {
   )
 }
 
+// --- V2AbyssalBlock ---
+function V2AbyssalBlock({
+  questions,
+}: {
+  questions: readonly { readonly title: string; readonly body: string }[]
+}) {
+  return (
+    <KiwimuCard>
+      <KiwimuCardContent className="p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
+            靈魂拷問
+          </p>
+          <KiwimuBadge variant="ink">Abyssal</KiwimuBadge>
+        </div>
+
+        <div className="space-y-3">
+          {questions.map((q, i) => (
+            <div key={i} className="flex gap-3">
+              <span className="font-mono text-[10px] text-ink/30 pt-0.5 shrink-0 w-4">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="space-y-0.5">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/60">
+                  {q.title}
+                </p>
+                <p className="font-sans text-sm text-ink/80 leading-relaxed">
+                  {q.body}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </KiwimuCardContent>
+    </KiwimuCard>
+  )
+}
+
 // --- V2CTABlock ---
-function V2CTABlock({ onReset }: { onReset: () => void }) {
+function V2CTABlock({ closing, onReset }: { closing: string; onReset: () => void }) {
   const handleShare = () => {
     if (navigator.share) {
       navigator
@@ -206,7 +296,15 @@ function V2CTABlock({ onReset }: { onReset: () => void }) {
   }
 
   return (
-    <div className="space-y-3 pt-2">
+    <div className="space-y-4 pt-2">
+      {closing && (
+        <div className="text-center px-4">
+          <p className="font-sans text-sm text-ink/60 leading-relaxed italic">
+            {closing}
+          </p>
+        </div>
+      )}
+
       <KiwimuButton
         variant="acid"
         size="lg"
@@ -249,7 +347,9 @@ interface V2ResultPageProps {
 }
 
 export function V2ResultPage({ type, aOrT, answers, onReset }: V2ResultPageProps) {
-  const personality = personalities[type] ?? personalities["INFP"]
+  const report = getV2Report(type)
+  const subtype = report.professional.subtypes[aOrT]
+  const subtypeDesc = subtype.items[0]?.body ?? ""
 
   return (
     <motion.div
@@ -258,11 +358,26 @@ export function V2ResultPage({ type, aOrT, answers, onReset }: V2ResultPageProps
       animate={{ opacity: 1, y: 0 }}
       className="max-w-md w-full space-y-4"
     >
-      <V2HeroBlock type={type} aOrT={aOrT} kiwimuSays={personality.kiwimuSays} />
+      <V2HeroBlock
+        type={type}
+        aOrT={aOrT}
+        title={report.title}
+        kiwimuSays={report.abstract.body}
+      />
       <V2SpectrumBlock answers={answers} />
-      <V2StateBlock aOrT={aOrT} />
-      <V2DessertBlock name={personality.name} core={personality.core} />
-      <V2CTABlock onReset={onReset} />
+      <V2StateBlock
+        aOrT={aOrT}
+        coreTitle={report.professional.coreTitle}
+        coreBody={report.professional.coreBody}
+        subtypeTitle={subtype.title}
+        subtypeDesc={subtypeDesc}
+      />
+      <V2DessertBlock
+        name={report.dessert.name}
+        visualLogic={report.dessert.visualLogic}
+      />
+      <V2AbyssalBlock questions={report.abyssal} />
+      <V2CTABlock closing={report.closing} onReset={onReset} />
     </motion.div>
   )
 }
