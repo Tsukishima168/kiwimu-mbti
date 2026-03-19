@@ -42,7 +42,7 @@ dev-previews/output
 
 # Local workflow / scratch files
 .claude/
-MBTI-Lab-V1.5-TEST/
+# MBTI-Lab-V1.5-TEST/ ← V2 開發環境，已納入 git 追蹤 (feat/mbti-v2)
 obsidian/
 live_index.html
 *.bak
