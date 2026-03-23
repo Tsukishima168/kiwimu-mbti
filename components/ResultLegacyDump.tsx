@@ -823,9 +823,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   title: '月島導覽地圖',
                   subtitle: 'ISLAND MAP',
                   description: '探索 Moon Moon 品牌生態，發現完整的島嶼世界',
-                  url: 'https://map.kiwimu.com/menu?src=mbti',
+                  url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
                   external: true,
-                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com/menu?src=mbti' }),
+                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
                 },
                 {
                   id: 'mbti-v2-upgrade',
