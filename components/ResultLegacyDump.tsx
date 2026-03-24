@@ -654,8 +654,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             {isLocked && (
               <div>
                 {/* Blurred peek strip */}
-                <div style={{ maxHeight: '280px', overflow: 'hidden', position: 'relative', pointerEvents: 'none' }}>
-                  <div style={{ filter: 'blur(7px)', userSelect: 'none', opacity: 0.8 }}>
+                <div className="max-h-64 overflow-hidden relative pointer-events-none">
+                  <div className="blur-md select-none opacity-80">
                     <div className="py-16 border-b border-gray-100">
                       <h3 className="text-center text-[10px] font-bold tracking-[0.5em] text-gray-300 mb-12 font-mono uppercase">LIFE INSIGHTS 生活洞見</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-16 text-left">
@@ -668,12 +668,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                       </div>
                     </div>
                   </div>
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '180px', background: 'linear-gradient(to bottom, transparent, white)' }} />
+                  <div className="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-b from-transparent to-white" />
                 </div>
 
                 {/* Login CTA */}
-                <div className="py-16 md:py-24 px-6 text-center border-b border-gray-100">
-                  <div className="max-w-xs mx-auto border border-kiwi-dark px-8 py-10 text-left shadow-xl">
+                <div className="py-10 md:py-24 px-6 text-center border-b border-gray-100">
+                  <div className="max-w-xs mx-auto border-2 border-kiwi-dark px-8 py-10 text-left">
                     <p className="text-[9px] font-mono tracking-[0.4em] uppercase text-gray-300 mb-5 font-bold">FULL REPORT LOCKED</p>
                     <h3 className="text-2xl font-serif font-bold text-kiwi-dark mb-3 leading-tight">解鎖完整報告</h3>
                     <p className="text-xs font-serif text-gray-400 leading-relaxed mb-8">
