@@ -162,6 +162,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [toastMsg, setToastMsg] = useState('已複製連結到剪貼簿');
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
+  // V1 Login Gate — locked when: not logged in (null or anonymous) AND not a shared view AND not archive mode
+  const isLocked = (user == null || user.isAnonymous) && !isSharedView && !isArchiveMode;
+
   const showCustomToast = (msg: string, durationMs = 3000) => {
     setToastMsg(msg);
     setShowToast(true);
@@ -647,6 +650,49 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </div>
             </div>
 
+            {/* === V1 LOGIN GATE === */}
+            {isLocked && (
+              <div>
+                {/* Blurred peek strip */}
+                <div style={{ maxHeight: '280px', overflow: 'hidden', position: 'relative', pointerEvents: 'none' }}>
+                  <div style={{ filter: 'blur(7px)', userSelect: 'none', opacity: 0.8 }}>
+                    <div className="py-16 border-b border-gray-100">
+                      <h3 className="text-center text-[10px] font-bold tracking-[0.5em] text-gray-300 mb-12 font-mono uppercase">LIFE INSIGHTS 生活洞見</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 text-left">
+                        <div className="border-l-2 border-kiwi-dark pl-6">
+                          <p className="text-lg font-serif text-gray-800 leading-relaxed">{resultData.career.style}</p>
+                        </div>
+                        <div className="border-l-2 border-kiwi-dark pl-6">
+                          <p className="text-lg font-serif text-gray-800 leading-relaxed">{resultData.relationships.style}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '180px', background: 'linear-gradient(to bottom, transparent, white)' }} />
+                </div>
+
+                {/* Login CTA */}
+                <div className="py-16 md:py-24 px-6 text-center border-b border-gray-100">
+                  <div className="max-w-xs mx-auto border border-kiwi-dark px-8 py-10 text-left shadow-xl">
+                    <p className="text-[9px] font-mono tracking-[0.4em] uppercase text-gray-300 mb-5 font-bold">FULL REPORT LOCKED</p>
+                    <h3 className="text-2xl font-serif font-bold text-kiwi-dark mb-3 leading-tight">解鎖完整報告</h3>
+                    <p className="text-xs font-serif text-gray-400 leading-relaxed mb-8">
+                      職涯策略、人際導航、名人原型、靈魂甜點全內容，登入即可永久解鎖。
+                    </p>
+                    <button
+                      onClick={onLogin}
+                      className="w-full bg-kiwi-dark text-white py-4 text-[10px] font-bold tracking-[0.3em] uppercase hover:bg-gray-800 transition-colors"
+                    >
+                      登入解鎖完整報告
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 06–13: LOCKED SECTIONS — only rendered when user is logged in */}
+            {!isLocked && (<>
+
             {/* 06. LIFE INSIGHTS */}
             <div className="py-16 md:py-24 border-b border-gray-100">
               <h3 className="text-center text-[10px] md:text-[11px] font-bold tracking-[0.5em] md:tracking-[0.8em] text-gray-300 mb-12 md:mb-20 font-mono uppercase">LIFE INSIGHTS 生活洞見</h3>
@@ -948,9 +994,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 </div>
               </div>
             </div> {/* closes soul-module */}
+
+            </>)} {/* closes !isLocked locked sections */}
           </div> {/* closes full-report-container */}
 
-          {showAlt && (
+          {!isLocked && showAlt && (
             <div className="soul-alt-box border-x border-b border-black fade-in text-left">
               <p className="text-[10px] font-mono tracking-[0.3em] md:tracking-[0.4em] uppercase text-gray-300 mb-6 md:mb-8 font-bold">Alternative Selection 替換建議（同系同象限）</p>
               <div className="flex flex-col md:flex-row gap-8 md:gap-10">
