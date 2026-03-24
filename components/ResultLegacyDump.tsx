@@ -654,7 +654,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             {isLocked && (
               <div>
                 {/* Blurred peek strip */}
-                <div className="max-h-64 overflow-hidden relative pointer-events-none">
+                <div className="max-h-64 overflow-hidden relative pointer-events-none" aria-hidden="true">
                   <div className="blur-md select-none opacity-80">
                     <div className="py-16 border-b border-gray-100">
                       <h3 className="text-center text-[10px] font-bold tracking-[0.5em] text-gray-300 mb-12 font-mono uppercase">LIFE INSIGHTS 生活洞見</h3>
@@ -680,7 +680,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                       職涯策略、人際導航、名人原型、靈魂甜點全內容，登入即可永久解鎖。
                     </p>
                     <button
-                      onClick={onLogin}
+                      onClick={() => onLogin?.()}
                       className="w-full bg-kiwi-dark text-white py-4 text-[10px] font-bold tracking-[0.3em] uppercase hover:bg-gray-800 transition-colors"
                     >
                       登入解鎖完整報告
@@ -690,7 +690,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </div>
             )}
 
-            {/* 06–13: LOCKED SECTIONS — only rendered when user is logged in */}
+            {/* 06–13: FULL REPORT SECTIONS — visible when logged in, shared view, or archive mode */}
             {!isLocked && (<>
 
             {/* 06. LIFE INSIGHTS */}
