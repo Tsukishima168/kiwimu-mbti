@@ -60,6 +60,8 @@ const MENU_DATA = {
   ]
 };
 
+const LINE_STICKER_SHOP_URL = 'https://store.line.me/stickershop/product/33314326/zh-Hant';
+
 /* IG Story dimension label map — 3 trait pillars per MBTI type */
 const IG_STORY_DIMENSION_MAP: Record<string, { zh: string; en: string }> = {
   INTJ: { zh: "策略 · 遠見 · 意志力",    en: "Strategy · Vision · Willpower" },
@@ -1168,6 +1170,17 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               </button>
             </>
           )}
+          <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          <a
+            href={LINE_STICKER_SHOP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackButtonClick('LINE 貼圖', 'result_floating', LINE_STICKER_SHOP_URL)}
+            className="shrink-0 px-3 md:px-6 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
+            title="購買 LINE 貼圖"
+          >
+            LINE 貼圖
+          </a>
           <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           {/* 複製連結 */}
           <button
