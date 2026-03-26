@@ -22,6 +22,7 @@ import ProfileSetupModal from './components/ProfileSetupModal';
 import { doc, getDoc } from 'firebase/firestore';
 import { trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin } from './utils/analytics';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import ExploreApp from './components/explore/ExploreApp';
 
 const FooterLinks = () => {
   const { language } = useLanguage();
@@ -515,6 +516,11 @@ const App: React.FC = () => {
 
     console.log(`[TEST MODE] Jumped to ${mbtiType} result page`);
   };
+
+  // V1.5 /explore 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
+  if (window.location.pathname.startsWith('/explore')) {
+    return <ExploreApp />;
+  }
 
   if (loadingAuth && stage !== 'callback') {
     return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;
