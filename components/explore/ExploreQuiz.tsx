@@ -183,7 +183,17 @@ export default function ExploreQuiz({ quiz, onComplete }: Props) {
             gap: 10,
             animation: 'fadeIn 0.2s ease',
           }}>
-            <span style={{ fontSize: 20 }}>🍦</span>
+            <span style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.2em',
+              color: tk.ink,
+              background: tk.acid,
+              padding: '2px 6px',
+              border: `1px solid ${tk.ink}`,
+              flexShrink: 0,
+            }}>kiwimu</span>
             <span style={{
               fontSize: 12,
               color: tk.muted,

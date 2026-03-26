@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ExplorePersonality } from '../../data/questions-explore';
 
 const tk = {
@@ -17,7 +17,7 @@ interface Props {
 
 export default function ExploreResult({ mbtiType, suffix, personality, onRetest }: Props) {
   const fullType = `${mbtiType}-${suffix}`;
-  const suffixLabel = suffix === 'A' ? '完美擠花' : '過度攪拌';
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const w = window as Window & { gtag?: (...args: unknown[]) => void };
@@ -26,9 +26,26 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
         mbti_type: mbtiType,
         suffix,
         full_type: fullType,
+        state: personality.state,
       });
     }
   }, []);
+
+  const handleShare = async () => {
+    const url = window.location.origin + '/explore';
+    const text = `我是「${personality.state}」的 Kiwimu — ${personality.core}\n\n${url}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Kiwimu 狀態測驗', text, url });
+      } else {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch {
+      // user cancelled share
+    }
+  };
 
   return (
     <div style={{
@@ -48,6 +65,7 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
         margin: '0 auto',
         width: '100%',
       }}>
+
         {/* Type badge */}
         <div style={{ marginBottom: 32 }}>
           <span style={{
@@ -65,21 +83,47 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
           </span>
         </div>
 
-        {/* Dessert name — hero */}
+        {/* State image placeholder — 主理人提供圖後替換 */}
+        {personality.imageUrl ? (
+          <img
+            src={personality.imageUrl}
+            alt={`Kiwimu ${personality.state}`}
+            style={{ width: 120, height: 120, objectFit: 'contain', marginBottom: 24 }}
+          />
+        ) : (
+          <div style={{
+            width: 96,
+            height: 96,
+            border: `1.5px solid ${tk.ink}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 24,
+            background: tk.acid,
+            fontSize: 11,
+            fontFamily: "'JetBrains Mono', monospace",
+            letterSpacing: '0.1em',
+            color: tk.ink,
+          }}>
+            kiwimu
+          </div>
+        )}
+
+        {/* State label — hero */}
         <h1 style={{
           fontSize: 'clamp(36px, 10vw, 56px)',
           fontWeight: 800,
           color: tk.ink,
           lineHeight: 1.1,
-          marginBottom: 16,
+          marginBottom: 12,
           letterSpacing: '-0.02em',
         }}>
-          {personality.name}
+          {personality.state}
         </h1>
 
         {/* Core */}
         <p style={{
-          fontSize: 16,
+          fontSize: 15,
           color: tk.muted,
           marginBottom: 32,
           lineHeight: 1.5,
@@ -92,7 +136,7 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
         <div style={{ height: 1.5, background: tk.ink, marginBottom: 32 }} />
 
         {/* Kiwimu says */}
-        <div style={{ marginBottom: 48 }}>
+        <div style={{ marginBottom: 40 }}>
           <div style={{
             fontFamily: "'JetBrains Mono', monospace",
             fontSize: 10,
@@ -113,7 +157,7 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
           </p>
         </div>
 
-        {/* Share card */}
+        {/* Share card — 截圖分享用 */}
         <div style={{ marginBottom: 40 }}>
           <div style={{
             fontFamily: "'JetBrains Mono', monospace",
@@ -134,10 +178,9 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
               boxShadow: `6px 6px 0 ${tk.ink}`,
               display: 'flex',
               flexDirection: 'column' as const,
-              gap: 16,
+              gap: 14,
             }}
           >
-            {/* Card header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{
                 fontFamily: "'JetBrains Mono', monospace",
@@ -158,23 +201,21 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
                 letterSpacing: '0.15em',
                 color: tk.muted,
               }}>
-                🍦 kiwimu
+                kiwimu
               </span>
             </div>
 
-            {/* Dessert name */}
             <div style={{
-              fontSize: 'clamp(28px, 8vw, 40px)',
+              fontSize: 'clamp(24px, 7vw, 36px)',
               fontWeight: 800,
               color: tk.ink,
               lineHeight: 1.1,
               letterSpacing: '-0.02em',
               fontFamily: "'Space Grotesk', sans-serif",
             }}>
-              {personality.name}
+              {personality.state}
             </div>
 
-            {/* Core — truncated for card */}
             <div style={{
               fontSize: 13,
               color: tk.muted,
@@ -184,15 +225,9 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
               {personality.core}
             </div>
 
-            {/* Divider */}
             <div style={{ height: 1, background: tk.ink, opacity: 0.15 }} />
 
-            {/* Footer */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{
                 fontFamily: "'JetBrains Mono', monospace",
                 fontSize: 10,
@@ -214,53 +249,34 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
           </div>
         </div>
 
-        {/* Suffix state */}
-        <div style={{
-          border: `1.5px solid ${tk.ink}`,
-          padding: '16px 20px',
-          marginBottom: 40,
-          boxShadow: `4px 4px 0 ${tk.ink}`,
-        }}>
-          <div style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase' as const,
-            color: tk.muted,
-            marginBottom: 6,
-          }}>
-            狀態 · {suffix === 'A' ? 'Assertive' : 'Turbulent'}
-          </div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: tk.ink }}>
-            {suffixLabel}
-          </div>
-        </div>
-
         {/* CTA group */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {/* Primary CTA → V1 */}
-          <a
-            href="/"
+
+          {/* Primary — 傳給朋友（擴散） */}
+          <button
+            onClick={handleShare}
             style={{
               display: 'block',
+              width: '100%',
               padding: '16px 24px',
               background: tk.acid,
               border: `1.5px solid ${tk.ink}`,
               color: tk.ink,
               fontWeight: 700,
               fontSize: 14,
-              textDecoration: 'none',
               textAlign: 'center' as const,
               boxShadow: `4px 4px 0 ${tk.ink}`,
+              cursor: 'pointer',
+              fontFamily: "'Space Grotesk', 'Inter', sans-serif",
               transition: 'all 0.1s',
             }}
           >
-            做完整 40 題 → 解鎖完整報告
-          </a>
+            {copied ? '連結已複製 ✓' : '傳給朋友來測 →'}
+          </button>
 
-          {/* Secondary CTA → V2 */}
+          {/* Secondary — 做完整免費版 V1 */}
           <a
-            href="/v2"
+            href="/"
             style={{
               display: 'block',
               padding: '16px 24px',
@@ -273,7 +289,7 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
               textAlign: 'center' as const,
             }}
           >
-            NT$149 深度報告 →
+            做完整 40 題免費測驗 →
           </a>
 
           {/* Retest */}
