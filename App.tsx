@@ -121,7 +121,12 @@ const App: React.FC = () => {
       return;
     }
 
-    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+    const pathname = window.location.pathname;
+    if (pathname === '/quiz') {
+      setStage('quiz');
+      return;
+    }
+    if (pathname !== '/' && pathname !== '/index.html') {
       setStage('404');
     }
   };
@@ -517,8 +522,9 @@ const App: React.FC = () => {
     console.log(`[TEST MODE] Jumped to ${mbtiType} result page`);
   };
 
-  // V1.5 /explore 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
-  if (window.location.pathname.startsWith('/explore')) {
+  // V1.5 /explore + /state-test 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
+  const _path = window.location.pathname;
+  if (_path.startsWith('/explore') || _path.startsWith('/state-test')) {
     return <ExploreApp />;
   }
 
