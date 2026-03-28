@@ -292,6 +292,27 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
             做完整 40 題免費測驗 →
           </a>
 
+          {/* Tertiary — LINE 貼圖 */}
+          <a
+            href="https://store.line.me/stickershop/product/33314326/zh-Hant"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'block',
+              padding: '14px 24px',
+              background: 'transparent',
+              border: `1.5px solid ${tk.ink}`,
+              color: tk.ink,
+              fontWeight: 600,
+              fontSize: 14,
+              textDecoration: 'none',
+              textAlign: 'center' as const,
+              opacity: 0.7,
+            }}
+          >
+            收藏 Kiwimu LINE 貼圖 →
+          </a>
+
           {/* Retest */}
           <button
             onClick={onRetest}
