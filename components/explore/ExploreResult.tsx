@@ -66,8 +66,46 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
         width: '100%',
       }}>
 
+        {/* Character hero — 角色主視覺 */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginBottom: 24,
+          marginLeft: -24,
+          marginRight: -24,
+        }}>
+          {personality.imageUrl ? (
+            <img
+              src={personality.imageUrl}
+              alt={`Kiwimu ${personality.state}`}
+              style={{
+                width: '100%',
+                maxWidth: 320,
+                height: 320,
+                objectFit: 'contain',
+              }}
+            />
+          ) : (
+            <div style={{
+              width: 240,
+              height: 240,
+              border: `1.5px solid ${tk.ink}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: tk.acid,
+              fontSize: 11,
+              fontFamily: "'JetBrains Mono', monospace",
+              letterSpacing: '0.1em',
+              color: tk.ink,
+            }}>
+              kiwimu
+            </div>
+          )}
+        </div>
+
         {/* Type badge */}
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 16 }}>
           <span style={{
             fontFamily: "'JetBrains Mono', monospace",
             fontSize: 11,
@@ -82,32 +120,6 @@ export default function ExploreResult({ mbtiType, suffix, personality, onRetest 
             {fullType}
           </span>
         </div>
-
-        {/* State image placeholder — 主理人提供圖後替換 */}
-        {personality.imageUrl ? (
-          <img
-            src={personality.imageUrl}
-            alt={`Kiwimu ${personality.state}`}
-            style={{ width: 120, height: 120, objectFit: 'contain', marginBottom: 24 }}
-          />
-        ) : (
-          <div style={{
-            width: 96,
-            height: 96,
-            border: `1.5px solid ${tk.ink}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 24,
-            background: tk.acid,
-            fontSize: 11,
-            fontFamily: "'JetBrains Mono', monospace",
-            letterSpacing: '0.1em',
-            color: tk.ink,
-          }}>
-            kiwimu
-          </div>
-        )}
 
         {/* State label — hero */}
         <h1 style={{
