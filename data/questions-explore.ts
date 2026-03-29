@@ -151,23 +151,32 @@ export const quizB: ExploreQuiz = {
 
 // ── 16 型 Kiwimu 今日狀態 ─────────────────────────────────────────
 
+const IMG = {
+  1: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774758443/Carton_Home_ww4nmq.webp',
+  2: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774758442/Hidden_in_Foam_mwzmej.webp',
+  3: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774758441/Melting_Cream_bvabdv.webp',
+  4: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774758439/Floating_on_Cocoa_akhrjp.webp',
+  5: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774758439/Fluffy_Laugh_t30avu.webp',
+  6: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774758439/Running_Dollop_tpb0xl.webp',
+} as const;
+
 export const explorePersonalities: Record<string, ExplorePersonality> = {
-  INTJ: { id: 'INTJ', state: '低電量靜止中', stateGroup: 1, core: '在規劃一個沒人知道的計畫', kiwimuSays: '你看了所有人三秒，就知道誰值得繼續說下去。然後你選擇安靜。Kiwimu 不怪你。' },
-  INTP: { id: 'INTP', state: '超頻思考中',   stateGroup: 2, core: '大腦跑太快，身體跟不上',   kiwimuSays: '你腦子裡正在進行一場沒有人被邀請的辯論。結束了再跟我說誰贏。Kiwimu 在外面等。' },
-  INFJ: { id: 'INFJ', state: '靜默感應中',   stateGroup: 4, core: '什麼都沒說，什麼都知道',   kiwimuSays: '你早就知道了，只是沒說。Kiwimu 也知道你知道。' },
-  INFP: { id: 'INFP', state: '緩慢融化中',   stateGroup: 3, core: '情緒太滿，需要一個角落',   kiwimuSays: '你在另一個宇宙裡沸騰，但別人看到的只有你安靜坐在那裡。Kiwimu 也覺得這樣很孤單。' },
-  ISTJ: { id: 'ISTJ', state: '穩定運作中',   stateGroup: 1, core: '不需要掌聲，只要不被打斷', kiwimuSays: '你已經把這件事做了很久，沒有人說謝謝。Kiwimu 知道。' },
-  ISTP: { id: 'ISTP', state: '冷靜觀察中',   stateGroup: 2, core: '沒在聽，但什麼都記住了',   kiwimuSays: '你沒在聽，你只是不想讓別人知道你都聽進去了。Kiwimu 也假裝沒注意到。' },
-  ISFJ: { id: 'ISFJ', state: '默默守護中',   stateGroup: 3, core: '不說愛，但一直在',         kiwimuSays: '你記得每個人的細節，但沒有人記得問你過得怎樣。Kiwimu 現在問你。' },
-  ISFP: { id: 'ISFP', state: '輕輕存在中',   stateGroup: 3, core: '不佔位，但少了就不對',     kiwimuSays: '你沒什麼主張，但你其實什麼都有主張。只是懶得跟不值得的人解釋。Kiwimu 懂。' },
-  ENTJ: { id: 'ENTJ', state: '全速執行中',   stateGroup: 6, core: '停下來才是真的累',         kiwimuSays: '你往前衝的速度讓大家跟不上，然後你回頭看，發現只剩你自己。Kiwimu 跑得比較慢，但一直在。' },
-  ENTP: { id: 'ENTP', state: '拋出問題中',   stateGroup: 5, core: '沒有答案，但有更好的問題', kiwimuSays: '你把對話帶進了沒人想去的深坑，然後自己跳進去。Kiwimu 佩服你，也有點替你捏把冷汗。' },
-  ENFJ: { id: 'ENFJ', state: '全頻接收中',   stateGroup: 4, core: '扛著所有人的情緒往前走',   kiwimuSays: '你扛著所有人的情緒往前走，臉上還掛著笑。Kiwimu 想知道，你真的還好嗎？' },
-  ENFP: { id: 'ENFP', state: '四散發光中',   stateGroup: 5, core: '能量滿載，方向待定',       kiwimuSays: '你同時在做六件事，都做到一半。但每一半都比別人的全部更有意思。Kiwimu 覺得這樣其實還行。' },
-  ESTJ: { id: 'ESTJ', state: '精準校準中',   stateGroup: 6, core: '一切都要在對的位置',       kiwimuSays: '你心裡有一個標準答案，大部分人交出來的都不對。你沒說，但你的臉說了。Kiwimu 建議你偶爾降低一點期待。' },
-  ESTP: { id: 'ESTP', state: '即時反應中',   stateGroup: 6, core: '先行動，再想清楚',         kiwimuSays: '你在每個當下都是最好的那個人。下一個當下再說。Kiwimu 跟不上你，但很享受看著你。' },
-  ESFJ: { id: 'ESFJ', state: '持續供暖中',   stateGroup: 6, core: '怕你冷，也怕你餓',         kiwimuSays: '你嘴上說不在意，但你把每個人的反應都記得一清二楚。Kiwimu 不會說出去。' },
-  ESFP: { id: 'ESFP', state: '燃燒當下中',   stateGroup: 5, core: '過了今天再說，今天先開心', kiwimuSays: '你不是不想深，你只是不願意在不值得的地方深。Kiwimu 覺得這是一種本能。' },
+  INTJ: { id: 'INTJ', state: '低電量靜止中', stateGroup: 1, core: '在規劃一個沒人知道的計畫', kiwimuSays: '你看了所有人三秒，就知道誰值得繼續說下去。然後你選擇安靜。Kiwimu 不怪你。', imageUrl: IMG[1] },
+  INTP: { id: 'INTP', state: '超頻思考中',   stateGroup: 2, core: '大腦跑太快，身體跟不上',   kiwimuSays: '你腦子裡正在進行一場沒有人被邀請的辯論。結束了再跟我說誰贏。Kiwimu 在外面等。', imageUrl: IMG[2] },
+  INFJ: { id: 'INFJ', state: '靜默感應中',   stateGroup: 4, core: '什麼都沒說，什麼都知道',   kiwimuSays: '你早就知道了，只是沒說。Kiwimu 也知道你知道。', imageUrl: IMG[4] },
+  INFP: { id: 'INFP', state: '緩慢融化中',   stateGroup: 3, core: '情緒太滿，需要一個角落',   kiwimuSays: '你在另一個宇宙裡沸騰，但別人看到的只有你安靜坐在那裡。Kiwimu 也覺得這樣很孤單。', imageUrl: IMG[3] },
+  ISTJ: { id: 'ISTJ', state: '穩定運作中',   stateGroup: 1, core: '不需要掌聲，只要不被打斷', kiwimuSays: '你已經把這件事做了很久，沒有人說謝謝。Kiwimu 知道。', imageUrl: IMG[1] },
+  ISTP: { id: 'ISTP', state: '冷靜觀察中',   stateGroup: 2, core: '沒在聽，但什麼都記住了',   kiwimuSays: '你沒在聽，你只是不想讓別人知道你都聽進去了。Kiwimu 也假裝沒注意到。', imageUrl: IMG[2] },
+  ISFJ: { id: 'ISFJ', state: '默默守護中',   stateGroup: 3, core: '不說愛，但一直在',         kiwimuSays: '你記得每個人的細節，但沒有人記得問你過得怎樣。Kiwimu 現在問你。', imageUrl: IMG[3] },
+  ISFP: { id: 'ISFP', state: '輕輕存在中',   stateGroup: 3, core: '不佔位，但少了就不對',     kiwimuSays: '你沒什麼主張，但你其實什麼都有主張。只是懶得跟不值得的人解釋。Kiwimu 懂。', imageUrl: IMG[3] },
+  ENTJ: { id: 'ENTJ', state: '全速執行中',   stateGroup: 6, core: '停下來才是真的累',         kiwimuSays: '你往前衝的速度讓大家跟不上，然後你回頭看，發現只剩你自己。Kiwimu 跑得比較慢，但一直在。', imageUrl: IMG[6] },
+  ENTP: { id: 'ENTP', state: '拋出問題中',   stateGroup: 5, core: '沒有答案，但有更好的問題', kiwimuSays: '你把對話帶進了沒人想去的深坑，然後自己跳進去。Kiwimu 佩服你，也有點替你捏把冷汗。', imageUrl: IMG[5] },
+  ENFJ: { id: 'ENFJ', state: '全頻接收中',   stateGroup: 4, core: '扛著所有人的情緒往前走',   kiwimuSays: '你扛著所有人的情緒往前走，臉上還掛著笑。Kiwimu 想知道，你真的還好嗎？', imageUrl: IMG[4] },
+  ENFP: { id: 'ENFP', state: '四散發光中',   stateGroup: 5, core: '能量滿載，方向待定',       kiwimuSays: '你同時在做六件事，都做到一半。但每一半都比別人的全部更有意思。Kiwimu 覺得這樣其實還行。', imageUrl: IMG[5] },
+  ESTJ: { id: 'ESTJ', state: '精準校準中',   stateGroup: 6, core: '一切都要在對的位置',       kiwimuSays: '你心裡有一個標準答案，大部分人交出來的都不對。你沒說，但你的臉說了。Kiwimu 建議你偶爾降低一點期待。', imageUrl: IMG[6] },
+  ESTP: { id: 'ESTP', state: '即時反應中',   stateGroup: 6, core: '先行動，再想清楚',         kiwimuSays: '你在每個當下都是最好的那個人。下一個當下再說。Kiwimu 跟不上你，但很享受看著你。', imageUrl: IMG[6] },
+  ESFJ: { id: 'ESFJ', state: '持續供暖中',   stateGroup: 6, core: '怕你冷，也怕你餓',         kiwimuSays: '你嘴上說不在意，但你把每個人的反應都記得一清二楚。Kiwimu 不會說出去。', imageUrl: IMG[6] },
+  ESFP: { id: 'ESFP', state: '燃燒當下中',   stateGroup: 5, core: '過了今天再說，今天先開心', kiwimuSays: '你不是不想深，你只是不願意在不值得的地方深。Kiwimu 覺得這是一種本能。', imageUrl: IMG[5] },
 };
 
 // ── 計算結果 ──────────────────────────────────────────────────────
