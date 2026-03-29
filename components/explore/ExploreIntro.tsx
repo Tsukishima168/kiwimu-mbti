@@ -1,5 +1,13 @@
 import React from 'react';
 
+// Design tokens — neo-brutalist ink/acid/paper (DESIGN.md)
+const tk = {
+  ink:   '#1A1A1A',
+  paper: '#F8F8F5',
+  acid:  '#CCFF00',
+  muted: '#888880',
+} as const;
+
 interface Props {
   quizTitle: string;
   onStart: () => void;
@@ -7,27 +15,35 @@ interface Props {
 
 const ExploreIntro: React.FC<Props> = ({ onStart }) => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 fade-in relative overflow-hidden"
-      style={{ background: '#F0ECFF' }}>
+    <div
+      className="flex flex-col items-center justify-center min-h-screen p-6 fade-in relative overflow-hidden"
+      style={{ background: tk.paper }}
+    >
 
       {/* 右上角標記 */}
       <div className="absolute top-6 right-6 z-50">
-        <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-gray-400">
+        <span
+          className="font-mono text-[10px] tracking-[0.25em] uppercase"
+          style={{ color: tk.muted }}
+        >
           5 題 · 1 min
         </span>
       </div>
 
       {/* 背景大字 */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] font-display font-bold select-none -z-10 pointer-events-none opacity-[0.06] text-[#6B3FA0]">
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] font-display font-bold select-none -z-10 pointer-events-none"
+        style={{ color: tk.ink, opacity: 0.04 }}
+      >
         STATE
       </div>
 
       <div className="flex flex-col items-center z-10 max-w-md w-full text-center">
 
-        {/* 圓形 Kiwimu 容器 — 與 V1 相同結構 */}
+        {/* 圓形 Kiwimu 容器 — V1 相同結構 */}
         <div
           className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden shadow-2xl mb-12 relative group cursor-pointer"
-          style={{ background: '#E4DCFF' }}
+          style={{ background: '#E8E8E4' }}
           onClick={onStart}
         >
           <img
@@ -44,30 +60,46 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
         </div>
 
         {/* 標題 */}
-        <h1 className="text-3xl md:text-4xl font-display font-bold tracking-widest mb-4"
-          style={{ color: '#1A1A1A' }}>
+        <h1
+          className="text-3xl md:text-4xl font-display font-bold tracking-widest mb-4"
+          style={{ color: tk.ink }}
+        >
           今天的你
           <br />
           打發到哪了？
         </h1>
 
-        <p className="text-xs font-mono text-gray-500 mb-2 tracking-[0.3em] uppercase">
+        <p
+          className="text-xs font-mono mb-2 tracking-[0.3em] uppercase"
+          style={{ color: tk.muted }}
+        >
           KIWIMU STATE TEST
         </p>
-        <p className="text-sm font-serif text-gray-400 mb-12 italic leading-relaxed px-4">
+        <p
+          className="text-sm font-serif mb-12 italic leading-relaxed px-4"
+          style={{ color: tk.muted }}
+        >
           5 個情境，找出你現在的 Kiwimu 狀態
         </p>
 
-        {/* CTA */}
+        {/* CTA — acid 黃，與 V1.5 其他頁一致 */}
         <button
           onClick={onStart}
-          className="px-12 py-4 border-2 border-black font-bold tracking-[0.2em] text-sm uppercase hover:scale-105 active:scale-95 transition-all duration-200"
-          style={{ background: '#CCFF00', color: '#1A1A1A' }}
+          className="px-12 py-4 border-2 font-bold tracking-[0.2em] text-sm uppercase hover:scale-105 active:scale-95 transition-all duration-200"
+          style={{
+            background: tk.acid,
+            color: tk.ink,
+            borderColor: tk.ink,
+            boxShadow: `4px 4px 0 ${tk.ink}`,
+          }}
         >
           開始打發 →
         </button>
 
-        <p className="mt-4 text-xs font-mono text-gray-400 tracking-wider">
+        <p
+          className="mt-4 text-xs font-mono tracking-wider"
+          style={{ color: tk.muted }}
+        >
           不需要登入 · 完全免費
         </p>
 
