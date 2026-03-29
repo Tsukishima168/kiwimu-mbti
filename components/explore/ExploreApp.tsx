@@ -1,7 +1,9 @@
 // V1.5 獨立入口 — 完全與 V1 路由隔離
 // Phase 2: 接 ExploreQuiz + ExploreResult
+// Phase 4: 加入 ExploreIntro（打發片頭）
 
 import React, { useState } from 'react';
+import ExploreIntro from './ExploreIntro';
 import ExploreQuiz from './ExploreQuiz';
 import ExploreResult from './ExploreResult';
 import {
@@ -12,7 +14,7 @@ import {
   ExploreQuiz as ExploreQuizType,
 } from '../../data/questions-explore';
 
-type Stage = 'quiz' | 'result';
+type Stage = 'intro' | 'quiz' | 'result';
 
 function getQuiz(): ExploreQuizType {
   const params = new URLSearchParams(window.location.search);
@@ -25,7 +27,7 @@ function getQuiz(): ExploreQuizType {
 
 export default function ExploreApp() {
   const [quiz] = useState<ExploreQuizType>(getQuiz);
-  const [stage, setStage] = useState<Stage>('quiz');
+  const [stage, setStage] = useState<Stage>('intro');
   const [result, setResult] = useState<{ mbtiType: string; suffix: 'A' | 'T' } | null>(null);
 
   const handleComplete = (answers: Record<string, string>) => {
@@ -36,10 +38,13 @@ export default function ExploreApp() {
 
   const handleRetest = () => {
     setResult(null);
-    setStage('quiz');
-    // 重置到題目第一題（ExploreQuiz 本身會 remount，因為 key 會改變）
+    setStage('intro');
     window.location.reload();
   };
+
+  if (stage === 'intro') {
+    return <ExploreIntro quizTitle={quiz.title} onStart={() => setStage('quiz')} />;
+  }
 
   if (stage === 'result' && result) {
     const personality = explorePersonalities[result.mbtiType];
