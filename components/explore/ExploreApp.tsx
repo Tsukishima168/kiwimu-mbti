@@ -13,7 +13,6 @@ import {
   calculateExploreResult,
   ExploreQuiz as ExploreQuizType,
 } from '../../data/questions-explore';
-import { sendDiscordNotification } from '../../utils/discord';
 
 type Stage = 'intro' | 'quiz' | 'result';
 
@@ -35,7 +34,19 @@ export default function ExploreApp() {
     const r = calculateExploreResult(answers);
     setResult(r);
     setStage('result');
-    sendDiscordNotification(r.mbtiType, r.suffix);
+    // 傳正確的 Explore state 名 + 標示來源，不用 V1 constants title
+    const personality = explorePersonalities[r.mbtiType];
+    if (personality) {
+      fetch('/api/notify-discord', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resultType: `${r.mbtiType}-${r.suffix}`,
+          personalityName: `${personality.state}（5題快測）`,
+          locale: 'zh',
+        }),
+      }).catch(() => {});
+    }
   };
 
   const handleRetest = () => {
