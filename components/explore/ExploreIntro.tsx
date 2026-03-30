@@ -1,12 +1,7 @@
 import React from 'react';
 
-// Design tokens — neo-brutalist ink/acid/paper (DESIGN.md)
-const tk = {
-  ink:   '#1A1A1A',
-  paper: '#F8F8F5',
-  acid:  '#CCFF00',
-  muted: '#888880',
-} as const;
+const COVER   = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774772303/redesigned-photo-1774598290392_wlohqn.png';
+const WORDMARK = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1769501231/%E6%A8%99%E6%BA%96%E5%AD%97-02_ndnf7x.png';
 
 interface Props {
   quizTitle: string;
@@ -16,93 +11,149 @@ interface Props {
 const ExploreIntro: React.FC<Props> = ({ onStart }) => {
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-screen p-6 fade-in relative overflow-hidden"
-      style={{ background: tk.paper }}
+      className="fade-in"
+      style={{
+        position: 'relative',
+        height: '100svh',
+        backgroundImage: `url(${COVER})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        overflow: 'hidden',
+        fontFamily: "'Space Grotesk', 'Inter', 'Noto Sans TC', sans-serif",
+      }}
     >
+      <style>{`
+        @keyframes subtitleIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .subtitle-anim {
+          animation: subtitleIn 0.8s ease 0.5s both;
+        }
+      `}</style>
+
+      {/* overlay */}
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,10,10,0.35)' }} />
 
       {/* 右上角標記 */}
-      <div className="absolute top-6 right-6 z-50">
-        <span
-          className="font-mono text-[10px] tracking-[0.25em] uppercase"
-          style={{ color: tk.muted }}
-        >
-          5 題 · 1 min
+      <div style={{ position: 'absolute', top: 24, right: 24, zIndex: 10 }}>
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 10,
+          letterSpacing: '0.25em',
+          textTransform: 'uppercase' as const,
+          color: 'rgba(255,255,255,0.4)',
+        }}>
+          5 題 · 1 MIN
         </span>
       </div>
 
-      {/* 背景大字 */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] font-display font-bold select-none -z-10 pointer-events-none"
-        style={{ color: tk.ink, opacity: 0.04 }}
-      >
-        STATE
+      {/* 右側直排英文點綴 */}
+      <div style={{
+        position: 'absolute',
+        right: 18,
+        top: '50%',
+        transform: 'translateY(-50%) rotate(90deg)',
+        transformOrigin: 'center center',
+        zIndex: 10,
+      }}>
+        <span style={{
+          fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 9,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase' as const,
+          color: 'rgba(255,255,255,0.28)',
+          whiteSpace: 'nowrap' as const,
+        }}>
+          KIWIMU STATE TEST
+        </span>
       </div>
 
-      <div className="flex flex-col items-center z-10 max-w-md w-full text-center">
+      {/* 上方：標準字 + 副標 */}
+      <div style={{
+        position: 'absolute',
+        top: 56,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        display: 'flex',
+        flexDirection: 'column' as const,
+        alignItems: 'center',
+        gap: 14,
+        padding: '0 28px',
+      }}>
+        {/* 標準字 */}
+        <img
+          src={WORDMARK}
+          alt="Kiwimu"
+          style={{
+            height: 32,
+            width: 'auto',
+            objectFit: 'contain',
+            filter: 'brightness(0) invert(1)',
+            opacity: 0.9,
+          }}
+        />
 
-        {/* 圓形 Kiwimu 容器 — V1 相同結構 */}
-        <div
-          className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden shadow-2xl mb-12 relative group cursor-pointer"
-          style={{ background: '#E8E8E4' }}
-          onClick={onStart}
-        >
-          <img
-            src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif"
-            alt="Kiwimu State"
-            className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-            loading="eager"
-          />
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-            <span className="text-white font-display text-xl tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              START
-            </span>
-          </div>
-        </div>
-
-        {/* 標題 */}
-        <h1
-          className="text-3xl md:text-4xl font-display font-bold tracking-widest mb-4"
-          style={{ color: tk.ink }}
-        >
-          今天的你
-          <br />
-          打發到哪了？
-        </h1>
-
+        {/* 副標 — 動畫 */}
         <p
-          className="text-xs font-mono mb-2 tracking-[0.3em] uppercase"
-          style={{ color: tk.muted }}
+          className="subtitle-anim"
+          style={{
+            fontSize: 15,
+            fontWeight: 400,
+            color: 'rgba(255,255,255,0.75)',
+            letterSpacing: '0.05em',
+            margin: 0,
+            fontFamily: "'Noto Sans TC', 'Inter', sans-serif",
+          }}
         >
-          KIWIMU STATE TEST
+          今天的你，打發到哪了？
         </p>
-        <p
-          className="text-sm font-serif mb-12 italic leading-relaxed px-4"
-          style={{ color: tk.muted }}
-        >
-          5 個情境，找出你現在的 Kiwimu 狀態
-        </p>
+      </div>
 
-        {/* CTA — acid 黃，與 V1.5 其他頁一致 */}
+      {/* 底部：半透明按鈕 */}
+      <div style={{
+        position: 'absolute',
+        bottom: 180,
+        left: 24,
+        right: 24,
+        zIndex: 10,
+        display: 'flex',
+        flexDirection: 'column' as const,
+        alignItems: 'center',
+        gap: 10,
+      }}>
         <button
           onClick={onStart}
-          className="px-12 py-4 border-2 font-bold tracking-[0.2em] text-sm uppercase hover:scale-105 active:scale-95 transition-all duration-200"
           style={{
-            background: tk.acid,
-            color: tk.ink,
-            borderColor: tk.ink,
-            boxShadow: `4px 4px 0 ${tk.ink}`,
+            width: '100%',
+            maxWidth: 400,
+            padding: '15px 24px',
+            background: 'rgba(255,255,255,0.18)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            color: '#FFFFFF',
+            border: '1px solid rgba(255,255,255,0.35)',
+            fontWeight: 600,
+            fontSize: 14,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase' as const,
+            cursor: 'pointer',
+            fontFamily: "'Space Grotesk', 'Inter', sans-serif",
           }}
         >
           開始打發 →
         </button>
 
-        <p
-          className="mt-4 text-xs font-mono tracking-wider"
-          style={{ color: tk.muted }}
-        >
+        <p style={{
+          fontSize: 10,
+          fontFamily: "'JetBrains Mono', monospace",
+          letterSpacing: '0.1em',
+          color: 'rgba(255,255,255,0.25)',
+          margin: 0,
+        }}>
           不需要登入 · 完全免費
         </p>
-
       </div>
     </div>
   );
