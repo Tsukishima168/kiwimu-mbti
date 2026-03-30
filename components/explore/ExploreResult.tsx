@@ -12,17 +12,24 @@ interface Props {
   mbtiType:    string;
   suffix:      'A' | 'T';
   personality: ExplorePersonality;
+  quizVersion: 'A' | 'B';
   onRetest:    () => void;
 }
 
-export default function ExploreResult({ mbtiType, suffix, personality, onRetest }: Props) {
+export default function ExploreResult({ mbtiType, suffix, personality, quizVersion, onRetest }: Props) {
   const fullType = `${mbtiType}-${suffix}`;
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const w = window as Window & { gtag?: (...args: unknown[]) => void };
     if (typeof w.gtag === 'function') {
-      w.gtag('event', 'explore_complete', { mbti_type: mbtiType, suffix, full_type: fullType, state: personality.state });
+      w.gtag('event', 'explore_complete', {
+        mbti_type:    mbtiType,
+        suffix,
+        full_type:    fullType,
+        state:        personality.state,
+        quiz_version: quizVersion,
+      });
     }
   }, []);
 
