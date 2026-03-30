@@ -13,6 +13,7 @@ import {
   calculateExploreResult,
   ExploreQuiz as ExploreQuizType,
 } from '../../data/questions-explore';
+import { sendDiscordNotification } from '../../utils/discord';
 
 type Stage = 'intro' | 'quiz' | 'result';
 
@@ -34,6 +35,7 @@ export default function ExploreApp() {
     const r = calculateExploreResult(answers);
     setResult(r);
     setStage('result');
+    sendDiscordNotification(r.mbtiType, r.suffix);
   };
 
   const handleRetest = () => {
