@@ -114,7 +114,7 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
       {/* 底部：半透明按鈕 */}
       <div style={{
         position: 'absolute',
-        bottom: 48,
+        bottom: 100,
         left: 24,
         right: 24,
         zIndex: 10,
