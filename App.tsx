@@ -22,6 +22,7 @@ import ProfileSetupModal from './components/ProfileSetupModal';
 import { doc, getDoc } from 'firebase/firestore';
 import { trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin } from './utils/analytics';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import ExploreApp from './components/explore/ExploreApp';
 
 const FooterLinks = () => {
   const { language } = useLanguage();
@@ -120,7 +121,12 @@ const App: React.FC = () => {
       return;
     }
 
-    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') {
+    const pathname = window.location.pathname;
+    if (pathname === '/quiz') {
+      setStage('quiz');
+      return;
+    }
+    if (pathname !== '/' && pathname !== '/index.html') {
       setStage('404');
     }
   };
@@ -515,6 +521,12 @@ const App: React.FC = () => {
 
     console.log(`[TEST MODE] Jumped to ${mbtiType} result page`);
   };
+
+  // V1.5 /explore + /state-test 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
+  const _path = window.location.pathname;
+  if (_path.startsWith('/explore') || _path.startsWith('/state-test')) {
+    return <ExploreApp />;
+  }
 
   if (loadingAuth && stage !== 'callback') {
     return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;

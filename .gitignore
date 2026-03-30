@@ -39,3 +39,7 @@ config.json
 
 # IG Story 匯出圖（可隨時用 export-story-images.cjs 重新產生）
 dev-previews/output
+.gstack/
+
+# V1.5 AI Studio scaffold（題庫已移植至 data/，此資料夾為參考用）
+MBTI-Lab-V1.5-TEST/
