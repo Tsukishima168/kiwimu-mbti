@@ -42,9 +42,12 @@ dev-previews/output
 
 # Local workflow / scratch files
 .claude/
-# MBTI-Lab-V1.5-TEST/ ← V2 開發環境，已納入 git 追蹤 (feat/mbti-v2)
+.gstack/
 obsidian/
 live_index.html
 *.bak
 *.backup
 *.backup.*
+
+# V1.5 AI Studio scaffold（題庫已移植至 data/，此資料夾為參考用）
+MBTI-Lab-V1.5-TEST/

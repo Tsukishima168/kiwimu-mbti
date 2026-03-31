@@ -22,6 +22,7 @@ import ProfileSetupModal from './components/ProfileSetupModal';
 import { doc, getDoc } from 'firebase/firestore';
 import { trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin } from './utils/analytics';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import ExploreApp from './components/explore/ExploreApp';
 
 const FooterLinks = () => {
   const { language } = useLanguage();
@@ -120,9 +121,65 @@ const App: React.FC = () => {
 
   const { saveCompletedTest, saveToCloud } = useFirestoreSync(user);
 
+  const applyRouteFromLocation = (hasSavedResult: boolean) => {
+    const rParam = new URLSearchParams(window.location.search).get('r');
+    if (rParam && !hasSavedResult) {
+      const shareMatch = rParam.match(/^([A-Z]{4})-([AT])$/);
+      if (shareMatch) {
+        const [, sharedType, sharedSuffix] = shareMatch;
+        const sharedData = getResultData(sharedType);
+        setResultData(sharedData);
+        setScores({
+          E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0,
+          A: sharedSuffix === 'A' ? 8 : 0,
+          Turbulent: sharedSuffix === 'T' ? 8 : 0
+        });
+        setIsSharedView(true);
+        setStage('result');
+        return;
+      }
+    }
+
+    if (window.location.pathname.includes('callback') || window.location.search.includes('code=')) {
+      setStage('callback');
+      return;
+    }
+
+    const ogMatch = window.location.pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/);
+    if (ogMatch && ogMatch[1]) {
+      const [type, suffix] = ogMatch[1].split('-');
+      const data = getResultData(type);
+      setResultData(data);
+      setScores({
+        E: 0, I: 0,
+        S: 0, N: 0,
+        T: 0, F: 0,
+        J: 0, P: 0,
+        A: suffix === 'A' ? 1 : 0,
+        Turbulent: suffix === 'T' ? 1 : 0
+      });
+      setStage('og-render');
+      return;
+    }
+
+    const pathname = window.location.pathname;
+    if (pathname.startsWith('/read') || pathname.startsWith('/explore') || pathname.startsWith('/state-test')) {
+      return; // handled by top-level render guard
+    }
+    if (pathname === '/quiz') {
+      setStage('quiz');
+      return;
+    }
+    if (pathname !== '/' && pathname !== '/index.html') {
+      setStage('404');
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
-      await auth.authStateReady();
+      if (auth?.authStateReady) {
+        await auth.authStateReady();
+      }
       setLoading(false);
 
       // 初始化行銷像素
@@ -152,7 +209,7 @@ const App: React.FC = () => {
 
       // 【新增】如果有推薦參數，儲存到 Firebase
       const referralData = parseReferralParams();
-      if (referralData && auth.currentUser) {
+      if (referralData && auth?.currentUser) {
         saveReferralToFirebase(auth.currentUser.uid, referralData, db).catch(console.error);
       }
     };
@@ -198,6 +255,24 @@ const App: React.FC = () => {
   }, [user, loading]);
 
   useEffect(() => {
+    if (!auth) {
+      const savedResult = sessionStorage.getItem('last_quiz_result');
+      const savedScores = sessionStorage.getItem('last_quiz_scores');
+
+      if (savedResult && savedScores) {
+        setResultData(JSON.parse(savedResult));
+        setScores(JSON.parse(savedScores));
+        const currentStage = sessionStorage.getItem('flow_stage');
+        if (currentStage) {
+          setStage(currentStage as Stage);
+        }
+      }
+
+      applyRouteFromLocation(Boolean(savedResult));
+      setLoadingAuth(false);
+      return;
+    }
+
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       const pathname = window.location.pathname;
       const isV1Route = isV1Pathname(pathname);
@@ -234,61 +309,7 @@ const App: React.FC = () => {
         }
       }
 
-      // 【分享連結】?r=INFP-A → 載入該類型結果並進入 result 頁（瀏覽模式）
-      const rParam = new URLSearchParams(window.location.search).get('r');
-      if (rParam && !savedResult) {
-        const shareMatch = rParam.match(/^([A-Z]{4})-([AT])$/);
-        if (shareMatch) {
-          const [, sharedType, sharedSuffix] = shareMatch;
-          const sharedData = getResultData(sharedType);
-          setResultData(sharedData);
-          setScores({
-            E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0,
-            A: sharedSuffix === 'A' ? 8 : 0,
-            Turbulent: sharedSuffix === 'T' ? 8 : 0
-          });
-          setIsSharedView(true);
-          setStage('result');
-          setLoadingAuth(false);
-          return;
-        }
-      }
-
-      if (pathname.includes('callback') || window.location.search.includes('code=')) {
-        setStage('callback');
-      } else if (pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/)) {
-        const match = pathname.match(/\/result\/([A-Z]+-[AT])\/og-render/);
-        if (match && match[1]) {
-          const [type, suffix] = match[1].split('-');
-          // Load result data directly from constants for the OG crawler
-          import('./constants').then(({ getResultData }) => {
-            const data = getResultData(type);
-            setResultData(data);
-            // Default dummy scores format
-            setScores({
-              E: 0, I: 0,
-              S: 0, N: 0,
-              T: 0, F: 0,
-              J: 0, P: 0,
-              A: suffix === 'A' ? 1 : 0,
-              Turbulent: suffix === 'T' ? 1 : 0
-            });
-            setStage('og-render');
-          });
-        } else {
-          setStage('404');
-        }
-      } else if (pathname.startsWith('/read')) {
-        // /read is rendered outside of the V1 stage machine
-      } else if (isLiteFunnelPathname(pathname)) {
-        setStage('state-test');
-      } else if (pathname === '/today') {
-        setStage('today');
-      } else if (isV1Route || ROOT_PATHS.has(pathname)) {
-        setStage('intro');
-      } else if (!pathname.startsWith('/read')) {
-        setStage('404');
-      }
+      applyRouteFromLocation(Boolean(savedResult));
 
       setLoadingAuth(false);
     });
@@ -481,6 +502,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = async () => {
+    if (!auth) return;
     try {
       await auth.signOut();
       signOutSupabase().catch(() => {}); // 非阻塞，清除 .kiwimu.com SSO cookie
@@ -551,20 +573,28 @@ const App: React.FC = () => {
     console.log(`[TEST MODE] Jumped to ${mbtiType} result page`);
   };
 
-  const isV2Path = window.location.pathname.startsWith('/read');
-  const isV2QuizPath = window.location.pathname === '/read/quiz';
+  // V1.5 /explore + /state-test 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
+  const _path = window.location.pathname;
+  if (_path.startsWith('/explore') || _path.startsWith('/state-test')) {
+    return <ExploreApp />;
+  }
+
+  // V2 /read 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
+  if (_path.startsWith('/read')) {
+    return _path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>;
+  }
+
+  if (loadingAuth && stage !== 'callback') {
+    return <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>;
+  }
+
 
   return (
     <LanguageProvider>
-      {loadingAuth && stage !== 'callback' && !isV2Path ? (
-        <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>
-      ) : isV2Path ? (
-        isV2QuizPath ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>
-      ) : (
-        <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
-          <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>
-          <DiscordLinkGate user={user} onLogin={handleLogin} />
-          {stage !== 'intro' && stage !== 'manifesto' && stage !== 'state-test' && (
+      <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
+        <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>
+          {stage !== 'og-render' && <DiscordLinkGate user={user} onLogin={handleLogin} />}
+          {stage !== 'intro' && stage !== 'manifesto' && stage !== 'og-render' && (
             <div className="fixed top-6 right-6 z-50">
               <UserMenu user={user} onLogin={handleLogin} onLogout={handleLogout} />
             </div>
@@ -617,7 +647,7 @@ const App: React.FC = () => {
           {stage === '404' && (
             <NotFound onHome={() => {
               window.history.pushState({}, '', '/'); // Reset URL
-              setStage('state-test');
+              setStage('intro');
             }} />
           )}
 
@@ -671,9 +701,8 @@ const App: React.FC = () => {
               </div>
             </div>
           )}
-          </div>
         </div>
-      )}
+      </div>
     </LanguageProvider>
   );
 };

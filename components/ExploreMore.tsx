@@ -10,7 +10,7 @@ interface ExploreMoreProps {
 export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, passportClaimUrl }) => {
   const dessertUrl = mbtiType
     ? buildDessertOrderLink(mbtiType, variant || 'A')
-    : 'https://shop.kiwimu.com?utm_source=mbti&utm_medium=result_page';
+    : 'https://map.kiwimu.com/menu?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q1-integration&utm_content=soul-dessert-button';
   const passportUrl = passportClaimUrl || buildPassportLink();
   const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType) : 'https://map.kiwimu.com';
 
@@ -18,9 +18,9 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
     {
       id: 'dessert-booking',
       number: '01',
-      title: '訂購靈魂甜點',
-      subtitle: 'ORDER DESSERT',
-      description: '線上預訂你的專屬甜點，到店取貨享受美味',
+      title: '查看靈魂甜點菜單',
+      subtitle: 'VIEW MENU',
+      description: '先看月島甜點菜單，再決定你想靠近哪一種風味',
       url: dessertUrl,
       onClick: () =>
         trackOutboundClick('DESSERT_BOOKING', 'navigation', {
