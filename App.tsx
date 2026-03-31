@@ -63,7 +63,7 @@ import { sendDiscordNotification } from './utils/discord';
 import ResultLegacyDump from './components/ResultLegacyDump';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
 import V2App from './components/v2/V2App';
-import V2QuizApp from './components/v2/V2QuizApp';
+import V2QuizFlow from './components/v2/V2QuizFlow';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
 
@@ -278,15 +278,15 @@ const App: React.FC = () => {
         } else {
           setStage('404');
         }
-      } else if (pathname.startsWith('/v2')) {
-        // /v2 is rendered outside of the V1 stage machine
+      } else if (pathname.startsWith('/read')) {
+        // /read is rendered outside of the V1 stage machine
       } else if (isLiteFunnelPathname(pathname)) {
         setStage('state-test');
       } else if (pathname === '/today') {
         setStage('today');
       } else if (isV1Route || ROOT_PATHS.has(pathname)) {
         setStage('intro');
-      } else if (!pathname.startsWith('/v2')) {
+      } else if (!pathname.startsWith('/read')) {
         setStage('404');
       }
 
@@ -300,7 +300,7 @@ const App: React.FC = () => {
   const previousStageRef = React.useRef<Stage | null>(null);
 
   useEffect(() => {
-    if (window.location.pathname.startsWith('/v2')) {
+    if (window.location.pathname.startsWith('/read')) {
       return;
     }
 
@@ -551,15 +551,15 @@ const App: React.FC = () => {
     console.log(`[TEST MODE] Jumped to ${mbtiType} result page`);
   };
 
-  const isV2Path = window.location.pathname.startsWith('/v2');
-  const isV2QuizPath = window.location.pathname === '/v2/quiz';
+  const isV2Path = window.location.pathname.startsWith('/read');
+  const isV2QuizPath = window.location.pathname === '/read/quiz';
 
   return (
     <LanguageProvider>
       {loadingAuth && stage !== 'callback' && !isV2Path ? (
         <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">Loading...</div>
       ) : isV2Path ? (
-        isV2QuizPath ? <V2QuizApp user={user} /> : <V2App user={user} />
+        isV2QuizPath ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>
       ) : (
         <div className="antialiased min-h-screen bg-kiwi-bg overflow-x-hidden">
           <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>

@@ -7,6 +7,7 @@ import { calculateResults, getVariant } from '../../utils/logic';
 import { loadResultData } from '../../utils/dataLoader';
 import { setLastV2PrototypeResult } from '../../utils/v2Access';
 import { trackAction } from '../../utils/userDataCollector';
+import './v2-tailwind.css';
 import './v2.css';
 
 interface V2QuizAppProps {

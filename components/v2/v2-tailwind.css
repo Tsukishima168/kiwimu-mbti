@@ -1,0 +1,12 @@
+/* Tailwind v4 utilities for V2 — no preflight to avoid conflicting with V1 CDN Tailwind */
+@import "tailwindcss/utilities";
+
+/* @theme tokens from MBTI-Lab-V1.5-TEST/src/index.css */
+@theme {
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-acid: #CCFF00;
+  --color-ink: #1A1A1A;
+  --color-paper: #F8F8F5;
+}

@@ -20,6 +20,7 @@ import {
   unlockV2Preview,
   V2Entitlement,
 } from '../../utils/v2Access';
+import './v2-tailwind.css';
 import './v2.css';
 
 interface V2AppProps {
@@ -365,23 +366,18 @@ export default function V2App({ user }: V2AppProps) {
           <div className="v2-panel w-full p-8 md:p-10">
             <p className="v2-eyebrow">MBTI V2 TAIWAN EDITION</p>
             <h1 className="mt-4 text-4xl font-bold leading-none md:text-5xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              先完成 V1 免費完整版
+              5 題找到你的深度靈魂報告
             </h1>
             <p className="mt-5 text-base leading-relaxed text-black/70">
-              V2 台灣版會直接吃你完成 V1 之後的正式結果。先做完免費完整版，我們才能把 2026 H2 草案庫裡對應人格的深報告展開給你看。
+              Kiwimu V2 需要你的測驗結果。用 5 題快速定位，或者先完成免費的 V1 完整版再回來。
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              {isLocalPreview ? (
-                <a href="/v2/quiz" className="kiwimu-btn kiwimu-btn-primary block flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
-                  跑本地 V2 題組 prototype
-                </a>
-              ) : null}
-              <a href="/quiz" className="kiwimu-btn kiwimu-btn-primary block flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
-                前往免費 V1
+              <a href="/read/quiz" className="kiwimu-btn kiwimu-btn-primary block flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
+                開始 5 題 V2 測驗
               </a>
-              <a href="/" className="kiwimu-btn block flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
-                回到 5 題漏斗
+              <a href="/quiz" className="kiwimu-btn block flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
+                使用 V1 結果
               </a>
             </div>
           </div>
