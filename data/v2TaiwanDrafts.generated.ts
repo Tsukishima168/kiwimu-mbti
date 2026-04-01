@@ -1,9 +1,9 @@
 /* eslint-disable */
 // AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY.
-// Source: /Users/pensoair/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_H2_V2_草案庫
-// Generated at: 2026-03-14T07:29:49.733Z
+// Source: /Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_H2_V2_草案庫
+// Generated at: 2026-04-01T08:12:05.460Z
 
-export const V2_TW_DRAFT_SOURCE = "/Users/pensoair/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_H2_V2_草案庫";
+export const V2_TW_DRAFT_SOURCE = "/Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_H2_V2_草案庫";
 
 export const V2_TW_REPORTS = {
   "ENTJ": {
