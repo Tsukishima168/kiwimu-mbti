@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync:v2:tw:reports": "node scripts/generate-v2-tw-drafts.mjs",
+    "sync:v2:tw:quiz": "node scripts/generate-v2-tw-quiz.mjs",
+    "sync:v2:tw": "npm run sync:v2:tw:reports && npm run sync:v2:tw:quiz"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
@@ -29,9 +32,11 @@
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
     "puppeteer": "^24.37.2",
+    "tailwindcss": "^4.2.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vite-plugin-pwa": "^1.2.0",

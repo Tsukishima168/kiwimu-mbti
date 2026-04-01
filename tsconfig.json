@@ -28,7 +28,10 @@
     "noEmit": true
   },
   "exclude": [
+    ".claude",
+    "MBTI-Lab-V1.5-TEST",
     "docs",
+    "obsidian",
     "supabase/scripts",
     "scripts",
     "api"

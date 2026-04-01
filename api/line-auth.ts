@@ -1,5 +1,16 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import admin from 'firebase-admin';
+import { createClient } from '@supabase/supabase-js';
+
+// ── Supabase Admin（LINE user session 建立）────────────────────────────────────
+function getSupabaseAdmin() {
+    const url = process.env.VITE_MOON_ISLAND_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) return null;
+    return createClient(url, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+    });
+}
 
 function normalizeOrigin(origin: string): string {
     return origin.trim().replace(/\/+$/, '').toLowerCase();
@@ -185,7 +196,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             pictureUrl: profile.pictureUrl || '',
         });
 
-        // 4. Return success with Firebase token
+        // 4. Create Supabase session for LINE user（for cross-subdomain SSO）
+        let supabaseHashedToken: string | undefined;
+        try {
+            const supabaseAdmin = getSupabaseAdmin();
+            if (supabaseAdmin) {
+                const syntheticEmail = `line_${profile.userId}@line.kiwimu.com`;
+
+                // Upsert user（createUser 若已存在會報錯，改用 admin.getUserByEmail → createUser）
+                const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(syntheticEmail);
+                if (!existingUser.user) {
+                    await supabaseAdmin.auth.admin.createUser({
+                        email: syntheticEmail,
+                        user_metadata: {
+                            provider: 'line',
+                            line_user_id: profile.userId,
+                            display_name: profile.displayName || '',
+                            picture_url: profile.pictureUrl || '',
+                        },
+                        email_confirm: true,
+                    });
+                }
+
+                // Generate magic link token for client to exchange for session
+                const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+                    type: 'magiclink',
+                    email: syntheticEmail,
+                });
+                supabaseHashedToken = linkData?.properties?.hashed_token;
+            }
+        } catch (supabaseErr: unknown) {
+            // 非阻塞：Supabase 失敗不影響 Firebase 登入主流程
+            console.error('⚠️ Supabase LINE session creation failed (non-blocking):', supabaseErr);
+        }
+
+        // 5. Return success with Firebase token (+ optional Supabase token)
         return res.status(200).json({
             ok: true,
             firebaseCustomToken: customToken,
@@ -194,6 +239,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 displayName: profile.displayName,
                 pictureUrl: profile.pictureUrl,
             },
+            ...(supabaseHashedToken && { supabaseHashedToken }),
         });
 
     } catch (error: any) {

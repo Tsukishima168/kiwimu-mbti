@@ -87,7 +87,7 @@ export function trackQuizComplete() {
 
     if (typeof gtag === 'undefined') return;
 
-    gtag('event', 'quiz_completed', {
+    gtag('event', 'quiz_completion', {
         campaign_source: campaign?.source || 'organic',
         campaign_content: campaign?.content || 'none',
         campaign_month: campaign?.month || 'unknown',

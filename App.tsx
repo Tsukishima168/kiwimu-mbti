@@ -52,16 +52,57 @@ import { initReferralTracking, parseReferralParams, saveReferralToFirebase, upda
 
 // Moon Island 整合
 import { saveMBTIToMoonIsland } from './utils/moonIslandSync';
+import { signOutSupabase } from './utils/supabaseAuthBridge';
 // 測驗完成寄結果信（已登入且有 email）
 import { sendResultEmail } from './utils/sendResultEmail';
 
 import NotFound from './components/NotFound';
+import StateTest from './pages/StateTest';
+import Today from './pages/Today';
 import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
 import ResultLegacyDump from './components/ResultLegacyDump';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
+import V2App from './components/v2/V2App';
+import V2QuizFlow from './components/v2/V2QuizFlow';
 
-type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | '404';
+type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
+
+const ROOT_PATHS = new Set(['/', '/index.html']);
+const V1_PATHS = new Set(['/quiz', '/v1']);
+
+const isV1Pathname = (pathname: string) => V1_PATHS.has(pathname);
+const isLiteFunnelPathname = (pathname: string) => pathname === '/state-test';
+
+const getStagePath = (currentStage: Stage, pathname: string) => {
+  if (currentStage === 'state-test') {
+    return '/state-test';
+  }
+
+  if (isV1Pathname(pathname)) {
+    if (currentStage === 'intro' || currentStage === 'manifesto' || currentStage === 'quiz') {
+      return '/quiz';
+    }
+
+    if (currentStage === 'loading') {
+      return '/quiz/loading';
+    }
+
+    if (currentStage === 'result') {
+      return '/quiz/result';
+    }
+
+    if (currentStage === 'archive') {
+      return '/quiz/archive';
+    }
+  }
+
+  if (currentStage === 'intro') {
+    return '/';
+  }
+
+  return `/${currentStage}`;
+};
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -122,6 +163,9 @@ const App: React.FC = () => {
     }
 
     const pathname = window.location.pathname;
+    if (pathname.startsWith('/read') || pathname.startsWith('/explore') || pathname.startsWith('/state-test')) {
+      return; // handled by top-level render guard
+    }
     if (pathname === '/quiz') {
       setStage('quiz');
       return;
@@ -230,6 +274,9 @@ const App: React.FC = () => {
     }
 
     const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
+      const pathname = window.location.pathname;
+      const isV1Route = isV1Pathname(pathname);
+
       if (!currentUser) {
         try {
           const anonymousUser = await signInAnonymously(auth);
@@ -250,7 +297,7 @@ const App: React.FC = () => {
 
       const savedResult = sessionStorage.getItem('last_quiz_result');
       const savedScores = sessionStorage.getItem('last_quiz_scores');
-      if (savedResult && savedScores) {
+      if (savedResult && savedScores && isV1Route) {
         setResultData(JSON.parse(savedResult));
         setScores(JSON.parse(savedScores));
         const currentStage = sessionStorage.getItem('flow_stage');
@@ -274,24 +321,25 @@ const App: React.FC = () => {
   const previousStageRef = React.useRef<Stage | null>(null);
 
   useEffect(() => {
+    if (window.location.pathname.startsWith('/read')) {
+      return;
+    }
+
     const now = Date.now();
     const prev = previousStageRef.current;
     const enteredAt = stageEnteredAtRef.current;
+    const pathname = window.location.pathname;
 
     if (prev != null && prev !== stage) {
       const seconds = Math.round((now - enteredAt) / 1000);
-      let path = `/${prev}`;
-      if (prev === 'intro') path = '/';
-      trackScreenEngagement(path, seconds);
+      trackScreenEngagement(getStagePath(prev, pathname), seconds);
     }
 
     previousStageRef.current = stage;
     stageEnteredAtRef.current = now;
     window.scrollTo(0, 0);
 
-    let path = `/${stage}`;
-    if (stage === 'intro') path = '/';
-    trackPageView(path);
+    trackPageView(getStagePath(stage, pathname));
   }, [stage]);
 
   const goToManifesto = () => {
@@ -337,6 +385,7 @@ const App: React.FC = () => {
 
     // 【新增】記錄用戶行為
     trackAction('complete_quiz', { mbtiType: type, variant });
+    trackAction('v1_complete', { mbtiType: type, variant });
 
     setStage('loading');
 
@@ -420,8 +469,8 @@ const App: React.FC = () => {
       // Clear flow_stage marker
       sessionStorage.removeItem('flow_stage');
     } else {
-      console.log('No saved results, going to intro');
-      setStage('intro');
+      console.log('No saved results, routing by current path');
+      setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
     }
   };
 
@@ -430,16 +479,17 @@ const App: React.FC = () => {
     trackMarketingEvent(MARKETING_EVENTS.RETEST);
     trackAction('retest', { previousType: resultData?.id });
 
-    if (user && !user.isAnonymous) {
-      setStage('result');
-    } else {
-      setStage('intro');
-    }
     setResultData(null);
     setScores(null);
     sessionStorage.removeItem('last_quiz_result');
     sessionStorage.removeItem('last_quiz_scores');
     sessionStorage.removeItem('flow_stage');
+
+    if (!isV1Pathname(window.location.pathname)) {
+      window.history.pushState({}, '', '/quiz');
+    }
+
+    setStage('intro');
   };
 
   const handleLogin = () => {
@@ -455,6 +505,7 @@ const App: React.FC = () => {
     if (!auth) return;
     try {
       await auth.signOut();
+      signOutSupabase().catch(() => {}); // 非阻塞，清除 .kiwimu.com SSO cookie
       // After logout, Firebase will auto-create a new anonymous user via onAuthStateChanged
       // Don't clear sessionStorage here - user might want to see their results
       // Only clear auth-related data
@@ -463,7 +514,7 @@ const App: React.FC = () => {
 
       // If on result page, stay there. Otherwise go to intro
       if (stage !== 'result') {
-        setStage('intro');
+        setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
       }
     } catch (error) {
       console.error('Logout failed:', error);
@@ -487,7 +538,7 @@ const App: React.FC = () => {
     if (resultData && scores) {
       setStage('result');
     } else {
-      setStage('intro');
+      setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
     }
   };
 
@@ -526,6 +577,11 @@ const App: React.FC = () => {
   const _path = window.location.pathname;
   if (_path.startsWith('/explore') || _path.startsWith('/state-test')) {
     return <ExploreApp />;
+  }
+
+  // V2 /read 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
+  if (_path.startsWith('/read')) {
+    return _path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>;
   }
 
   if (loadingAuth && stage !== 'callback') {
@@ -586,6 +642,8 @@ const App: React.FC = () => {
           {stage === 'archive' && user && (
             <MyArchive key={Date.now()} user={user} onBack={handleBackFromArchive} />
           )}
+          {stage === 'state-test' && <StateTest />}
+          {stage === 'today' && <Today />}
           {stage === '404' && (
             <NotFound onHome={() => {
               window.history.pushState({}, '', '/'); // Reset URL

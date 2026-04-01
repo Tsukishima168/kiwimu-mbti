@@ -13,7 +13,7 @@ import { IdentityCard } from './cards/IdentityCard';
 import { RadarCard } from './cards/RadarCard';
 import { DessertCard } from './cards/DessertCard';
 import { RegistrationGateCard } from './cards/RegistrationGateCard';
-import { DeepAnalysisCard } from './cards/DeepAnalysisCard';
+import { V2UpgradeCard } from './cards/V2UpgradeCard';
 
 interface ResultCardFlowProps {
     resultData: MbtiResultData;
@@ -110,7 +110,7 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
     }
 
     if (user || hasSkippedGate || isArchiveMode) {
-        cards.push({ id: 'deep_analysis', component: DeepAnalysisCard as any });
+        cards.push({ id: 'v2_upgrade', component: V2UpgradeCard as any });
     }
 
     const handleNext = () => {

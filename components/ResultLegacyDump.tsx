@@ -11,6 +11,7 @@ import UserMenu from './UserMenu';
 import { shareResultToLine } from '../utils/liffShare';
 import { trackResultDownload, trackResultShare, trackButtonClick } from '../utils/analytics';
 
+
 interface ResultProps {
   resultData: MbtiResultData;
   rawScores: Score;
@@ -1116,6 +1117,83 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* NEXT JOURNEY — 導流 CTA */}
+          <div className="max-w-5xl mx-auto px-6 py-20 md:py-32 border-t border-gray-100">
+            <div className="mb-16 md:mb-24 text-center">
+              <p className="text-[9px] md:text-[10px] font-mono text-gray-300 tracking-[0.5em] uppercase mb-2 font-bold">
+                NEXT JOURNEY
+              </p>
+              <div className="w-16 h-[1px] bg-kiwi-dark mx-auto"></div>
+            </div>
+            <div className="space-y-0">
+              {[
+                {
+                  id: 'dessert-booking',
+                  number: '01',
+                  title: '訂購靈魂甜點',
+                  subtitle: 'ORDER DESSERT',
+                  description: '線上預訂你的專屬甜點，到店取貨享受美味',
+                  url: 'https://shop.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
+                  external: true,
+                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://shop.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                },
+                {
+                  id: 'passport',
+                  number: '02',
+                  title: '領取護照印章',
+                  subtitle: 'PASSPORT STAMP',
+                  description: '完成 MBTI 後可直接領取護照印章',
+                  url: 'https://passport.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
+                  external: true,
+                  onClick: () => trackOutboundClick('PASSPORT', 'navigation', { section: 'zh-result-cta', url: 'https://passport.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                },
+                {
+                  id: 'moon-map',
+                  number: '03',
+                  title: '月島導覽地圖',
+                  subtitle: 'ISLAND MAP',
+                  description: '探索 Moon Moon 品牌生態，發現完整的島嶼世界',
+                  url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
+                  external: true,
+                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                },
+                {
+                  id: 'mbti-v2-upgrade',
+                  number: '04',
+                  title: '解鎖 MBTI V2 深度人格檔案',
+                  subtitle: 'MBTI V2',
+                  description: 'V1 永久免費保留。若你想看更深的職涯、關係、盲點與成長建議，這一站再往下一層。',
+                  url: `/v2?source=v1_result&mbti=${resultData.id}`,
+                  external: false,
+                  onClick: () => trackButtonClick('v2_upgrade', 'zh-result-cta'),
+                },
+              ].map((item) => (
+                <a
+                  key={item.id}
+                  href={item.url}
+                  target={item.external ? '_blank' : undefined}
+                  rel={item.external ? 'noopener noreferrer' : undefined}
+                  onClick={item.onClick}
+                  className="group block border-b border-gray-100 last:border-b-0 py-10 md:py-14 transition-all hover:bg-gray-50"
+                >
+                  <div className="flex items-start justify-between gap-6 md:gap-12">
+                    <div className="flex-shrink-0">
+                      <span className="text-5xl md:text-7xl font-display font-bold text-gray-100 group-hover:text-kiwi-dark transition-colors duration-500">{item.number}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[9px] md:text-[10px] font-mono text-gray-400 tracking-[0.3em] uppercase mb-3 font-bold">{item.subtitle}</p>
+                      <h3 className="text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-kiwi-dark mb-3 md:mb-4 group-hover:text-black transition-colors">{item.title}</h3>
+                      <p className="text-sm md:text-base text-gray-600 leading-relaxed font-serif max-w-2xl">{item.description}</p>
+                    </div>
+                    <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-kiwi-dark transform group-hover:translate-x-2 transition-transform duration-300"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                    </div>
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
 

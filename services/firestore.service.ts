@@ -51,7 +51,7 @@ export const createOrUpdateUser = async (
     void upsertUser(uid, {
         displayName: data.displayName,
         email: data.email,
-        profile: data.profile as Record<string, unknown> | undefined,
+        profile: data.profile ? (data.profile as unknown as Record<string, unknown>) : undefined,
     });
 };
 
