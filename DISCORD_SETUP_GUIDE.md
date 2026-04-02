@@ -258,7 +258,7 @@
 ### 步驟 1：準備本地環境
 
 ```bash
-cd /Users/penstudio/Desktop/color-of-kiwimu-mbti-lab-v5
+cd /Users/pensoair/Desktop/Web-Projects/sites/kiwimu-com
 npm install
 ```
 

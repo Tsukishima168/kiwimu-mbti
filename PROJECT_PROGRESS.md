@@ -1,4 +1,4 @@
-# PROJECT_PROGRESS.md — color-of-kiwimu-mbti-lab-v5
+# PROJECT_PROGRESS.md — kiwimu.com
 
 > Auto-managed sync mirror. Manual notes area is preserved.
 
@@ -6,10 +6,10 @@
 
 <!-- SYNC:BEGIN -->
 sync_id: color_of_kiwimu_mbti_lab_v5
-project_name: color-of-kiwimu-mbti-lab-v5
-repo_path: /Users/penstudio/Desktop/網路開發專案/color-of-kiwimu-mbti-lab-v5
+project_name: kiwimu.com
+repo_path: /Users/pensoair/Desktop/Web-Projects/sites/kiwimu-com
 obsidian_card: /Users/penstudio/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/08_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_專案.md
-progress_file: /Users/penstudio/Desktop/網路開發專案/color-of-kiwimu-mbti-lab-v5/PROJECT_PROGRESS.md
+progress_file: /Users/pensoair/Desktop/Web-Projects/sites/kiwimu-com/PROJECT_PROGRESS.md
 source_of_truth: obsidian
 last_synced: 2026-03-05T00:03:03+08:00
 sync_status: synced

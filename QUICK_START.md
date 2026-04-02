@@ -14,7 +14,7 @@
 
 ```bash
 # 進入項目目錄
-cd /Users/penstudio/Desktop/color-of-kiwimu-mbti-lab-v5
+cd /Users/pensoair/Desktop/Web-Projects/sites/kiwimu-com
 
 # 確保 Node.js 版本 >= 20
 node --version  # 應輸出 v20.x.x 或更高

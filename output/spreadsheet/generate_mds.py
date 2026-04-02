@@ -8,7 +8,7 @@ countries = [
     ('south_korea', 'South Korea (ko-KR)')
 ]
 
-csv_dir = '/Users/pensoair/Desktop/color-of-kiwimu-mbti-lab-v5/output/spreadsheet/'
+csv_dir = '/Users/pensoair/Desktop/Web-Projects/sites/kiwimu-com/output/spreadsheet/'
 obsidian_dir = '/Users/pensoair/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/08_專案工坊/'
 
 for slug, name in countries:
