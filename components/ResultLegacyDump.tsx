@@ -1160,16 +1160,6 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   external: true,
                   onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
                 },
-                {
-                  id: 'mbti-v2-upgrade',
-                  number: '04',
-                  title: '解鎖 MBTI V2 深度人格檔案',
-                  subtitle: 'MBTI V2',
-                  description: 'V1 永久免費保留。若你想看更深的職涯、關係、盲點與成長建議，這一站再往下一層。',
-                  url: `/v2?source=v1_result&mbti=${resultData.id}`,
-                  external: false,
-                  onClick: () => trackButtonClick('v2_upgrade', 'zh-result-cta'),
-                },
               ].map((item) => (
                 <a
                   key={item.id}
