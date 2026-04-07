@@ -1136,9 +1136,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   title: '訂購靈魂甜點',
                   subtitle: 'ORDER DESSERT',
                   description: '線上預訂你的專屬甜點，到店取貨享受美味',
-                  url: 'https://shop.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
+                  url: 'https://map.kiwimu.com/menu?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
                   external: true,
-                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://shop.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com/menu?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
                 },
                 {
                   id: 'passport',

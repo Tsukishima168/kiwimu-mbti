@@ -17,9 +17,11 @@ import {
   getLastV2PrototypeResult,
   getV2Entitlement,
   hasV2UnlockQuery,
+  setV2Entitlement,
   unlockV2Preview,
   V2Entitlement,
 } from '../../utils/v2Access';
+import { getAuthSupabaseClient } from '../../utils/supabaseAuthBridge';
 import './v2-tailwind.css';
 import './v2.css';
 
@@ -127,7 +129,7 @@ const buildCheckoutUrl = (mbtiType: string) => {
     mbti_type: mbtiType,
   });
 
-  return `https://shop.kiwimu.com?${params.toString()}`;
+  return `https://map.kiwimu.com/menu?${params.toString()}`;
 };
 
 const cleanQuote = (quote: string) => quote.replace(/[「」]/g, '').trim();
@@ -311,6 +313,40 @@ export default function V2App({ user }: V2AppProps) {
       hasUser: Boolean(user && !user.isAnonymous),
     });
   }, [entitlement.status, fullType, source, user]);
+
+  // Check Supabase DB entitlement on mount（付費後由 webhook 寫入 profiles.v2_unlocked_at）
+  useEffect(() => {
+    const checkSupabaseEntitlement = async () => {
+      if (getV2Entitlement().status === 'unlocked') return;
+
+      const supabase = getAuthSupabaseClient();
+      if (!supabase) return;
+
+      const { data: { user: sbUser } } = await supabase.auth.getUser();
+      if (!sbUser) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('v2_unlocked_at')
+        .eq('id', sbUser.id)
+        .single();
+
+      if ((profile as { v2_unlocked_at: string | null } | null)?.v2_unlocked_at) {
+        const unlocked: V2Entitlement = {
+          status: 'unlocked',
+          unlockType: 'one_time',
+          unlockedAt: (profile as { v2_unlocked_at: string }).v2_unlocked_at,
+          sourceOrderId: 'supabase-db',
+          expiresAt: null,
+        };
+        setV2Entitlement(unlocked);
+        setEntitlement(unlocked);
+        trackAction('v2_unlock_from_supabase', { mbtiType: fullType || 'unknown', source });
+      }
+    };
+
+    checkSupabaseEntitlement();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCheckout = () => {
     if (!fullType) {
