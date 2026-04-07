@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth, googleProvider } from '../firebase';
 import { signInWithPopup, User, GoogleAuthProvider } from 'firebase/auth';
 import { linkGoogleAccount } from '../utils/accountLinking';
-import { syncGoogleToSupabase, getAuthSupabaseClient } from '../utils/supabaseAuthBridge';
+import { syncGoogleToSupabase, trackSsoEvent } from '../utils/supabaseAuthBridge';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoginProps {
@@ -37,18 +37,8 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) =
             const credential = GoogleAuthProvider.credentialFromResult(result);
             if (credential?.idToken) {
                 syncGoogleToSupabase(credential.idToken)
-                    .then(() => {
-                        const supabase = getAuthSupabaseClient();
-                        if (supabase) {
-                            supabase.rpc('update_last_seen', { p_site: 'kiwimu' }).catch(() => {});
-                            supabase.rpc('insert_user_event', {
-                                p_event_type: 'login',
-                                p_site: 'kiwimu',
-                                p_metadata: { method: 'google' },
-                            }).catch(() => {});
-                        }
-                    })
-                    .catch(() => {}); // 失敗不影響主流程
+                    .then(() => trackSsoEvent('login', { method: 'google' }))
+                    .catch(() => {});
             }
 
             // Log user to Google Sheets

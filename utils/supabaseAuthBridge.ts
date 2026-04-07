@@ -122,3 +122,27 @@ export async function syncLineToSupabase(hashedToken: string): Promise<void> {
 
   console.log('✅ Supabase session synced from LINE login');
 }
+
+// ── Site event tracking ───────────────────────────────────────────────────────
+
+const KIWIMU_SITE = 'kiwimu' as const;
+
+/**
+ * Fire-and-forget: update last_seen + insert a user_event.
+ * Runs both RPCs in parallel; silently ignores failures so callers are never blocked.
+ */
+export function trackSsoEvent(
+  eventType: string,
+  metadata: Record<string, unknown> = {}
+): void {
+  const client = getAuthSupabaseClient();
+  if (!client) return;
+  Promise.all([
+    client.rpc('update_last_seen', { p_site: KIWIMU_SITE }),
+    client.rpc('insert_user_event', {
+      p_event_type: eventType,
+      p_site: KIWIMU_SITE,
+      p_metadata: metadata,
+    }),
+  ]).catch(() => {});
+}

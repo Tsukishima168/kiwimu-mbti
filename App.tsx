@@ -52,7 +52,7 @@ import { initReferralTracking, parseReferralParams, saveReferralToFirebase, upda
 
 // Moon Island 整合
 import { saveMBTIToMoonIsland } from './utils/moonIslandSync';
-import { signOutSupabase, getAuthSupabaseClient } from './utils/supabaseAuthBridge';
+import { signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
 // 測驗完成寄結果信（已登入且有 email）
 import { sendResultEmail } from './utils/sendResultEmail';
 
@@ -373,16 +373,7 @@ const App: React.FC = () => {
     // Notify Discord (Always, regardless of user login status)
     sendDiscordNotification(type, variant);
 
-    // [SSO] 記錄測驗完成事件至 Supabase（非阻塞）
-    const _ssoClient = getAuthSupabaseClient();
-    if (_ssoClient) {
-        _ssoClient.rpc('update_last_seen', { p_site: 'kiwimu' }).catch(() => {});
-        _ssoClient.rpc('insert_user_event', {
-            p_event_type: 'quiz_completed',
-            p_site: 'kiwimu',
-            p_metadata: { mbti_type: type, variant },
-        }).catch(() => {});
-    }
+    trackSsoEvent('quiz_completed', { mbti_type: type, variant });
 
     // 【新增】追蹤行銷轉換事件
     trackMarketingEvent(MARKETING_EVENTS.COMPLETE_QUIZ, {
