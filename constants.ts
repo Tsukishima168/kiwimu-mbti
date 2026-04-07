@@ -673,7 +673,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       },
       socialStyle: "溫和但有距離感，只對少數人敞開。", growthAdvice: "接受這世界的不完美，包括你自己在內，完美主義是你的牢籠。",
       soulQuestions: ["你總是在照顧別人的情緒，但上一次你真正被「接住」是什麼時候？", "你的孤獨感，是因為沒人懂你，還是因為你關上了門不讓人進來？", "如果這世界不需要被拯救，你的人生目標會變成什麼？"],
-      characterImage: characterImageUrl, dessert: { name: "茶香巴斯克", description: "沈穩的茶韻撫平外界的嘈雜，帶你潛入最深的內在宇宙。", imageUrl: DESSERT_IMAGES.BASQUE_TEA, ctaLink: "https://linktr.ee/moon_moon_dessert" }
+      characterImage: characterImageUrl, dessert: { name: "蜜香紅茶千層", description: "茶香在每一層奶霜之間靜靜流淌。你不是那種喧嘩的人——你是讓人回家後才想起來的那道餘韻。", imageUrl: DESSERT_IMAGES.MILLE_CREPE_LEMON, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "INFP": {
       id: "INFP", title: "治癒系詩人", summary: "溫柔的理想主義者，內心藏著整座宇宙。", quote: "「即使在陰溝裡，我也在仰望星空。」", keywords: ["夢幻", "真誠", "共情", "自由"], bgColor: getBgColor("INFP"),
@@ -693,7 +693,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       },
       socialStyle: "安靜的觀察者，熟了之後是瘋子。", growthAdvice: "不要等到感覺對了才行動，行動會帶來感覺。",
       soulQuestions: ["你愛的是這個人，還是你想像中愛情的樣子？", "如果不逃避衝突，最壞的結果真的是世界末日嗎？", "你的善良是否有底線？"],
-      characterImage: characterImageUrl, dessert: { name: "北海道十勝戚風", description: "輕盈柔軟的著陸點，在銳利的世界裡提供一場溫柔的安放。", imageUrl: DESSERT_IMAGES.CHIFFON_HOKKAIDO, ctaLink: "https://linktr.ee/moon_moon_dessert" }
+      characterImage: characterImageUrl, dessert: { name: "焦糖烤布丁戚風", description: "輕盈的蛋糕體裡藏著一顆焦糖的溫熱核心。你溫柔得像雲，卻比所有人都更真實地活著。", imageUrl: DESSERT_IMAGES.CHIFFON_BERRY, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ENFJ": {
       id: "ENFJ", title: "光輝導師", summary: "天生的導師與激勵者，散發溫暖的光芒。", quote: "「你的潛力，是我最想守護的寶藏。」", keywords: ["熱情", "領導", "利他", "影響"], bgColor: getBgColor("ENFJ"),
@@ -713,7 +713,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       },
       socialStyle: "社交場合的黏合劑，照顧到每一個人。", growthAdvice: "花點時間獨處，問問自己：如果沒有觀眾，你還是誰？",
       soulQuestions: ["你總是拯救別人，但誰來拯救你？", "當你脫下這層光鮮亮麗的外衣，你喜歡裡面的自己嗎？", "你是否在用「幫助別人」來逃避面對自己的空虛？"],
-      characterImage: characterImageUrl, dessert: { name: "檸檬蘋果戚風", description: "明亮如陽光的清新力量，溫暖並照亮每一個被遺忘的角落。", imageUrl: DESSERT_IMAGES.CHIFFON_LEMON, ctaLink: "https://linktr.ee/moon_moon_dessert" }
+      characterImage: characterImageUrl, dessert: { name: "摩卡焦糖提拉米蘇", description: "Tiramisu 在義大利文是「帶我向上」。你天生就是那個讓人感到被托舉的存在。摩卡的深沉，是你給予的溫度。", imageUrl: DESSERT_IMAGES.TIRAMISU_BAILEYS, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ENFP": {
       id: "ENFP", title: "熱血追夢人", summary: "充滿熱情的可能性探險家，永遠在追逐新奇。", quote: "「生活要麼是一場大膽的冒險，要麼什麼都不是。」", keywords: ["活力", "創意", "連結", "自由"], bgColor: getBgColor("ENFP"),
@@ -895,7 +895,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       },
       socialStyle: "我在哪裡，哪裡就是派對。", growthAdvice: "表面光鮮亮麗很好，但內在的厚度能讓你走得更遠；深度不代表沈重，而是根基。",
       soulQuestions: ["當派對結束，人群散去，你能面對孤獨嗎？", "你追求物質的享受，是在填補內心的什麼空洞？", "如果這輩子只能專注做一件事，那會是什麼？"],
-      characterImage: characterImageUrl, dessert: { name: "綜合水果戚風", description: "點亮全場的色彩盛宴，將每一刻都轉化為永恆的快樂慶典。", imageUrl: DESSERT_IMAGES.CHIFFON_FRUIT, ctaLink: "https://linktr.ee/moon_moon_dessert" }
+      characterImage: characterImageUrl, dessert: { name: "檸檬巴斯克", description: "帶著焦糖外殼登場，酸亮得不留退路。你不需要宣告自己來了——整個場域早已感受到你的存在。", imageUrl: DESSERT_IMAGES.BASQUE_CLASSIC, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "DEFAULT": {
       id: type, title: "邊界探索者", summary: "在黑白之間探索無限可能的適應者。", quote: "「在黑白之間，你看見了無限的灰階。」", keywords: ["適應", "多面", "潛力", "流動"], bgColor: getBgColor(type),
@@ -929,20 +929,20 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
 };
 
 export const SOUL_ANCHOR_MAP: Record<string, any> = {
-  INTJ: { name: "北海道經典巴斯克", series: "巴斯克", quad: "經典", alt: ["檸檬巴斯克", "茶香巴斯克"], drinkA: "美式咖啡", drinkT: "經典拿鐵", hook: "極致的濃度直達靈魂核心，是理智與感官的完美角力。", hookEn: "An intense depth that reaches the soul's core — the perfect duel between logic and sensation.", hookJa: "魂の核心に直接届く究極の濃厚さ——理性と感覚の完璧な対峙。", hookKo: "영혼의 핵심을 꿰뚫는 극도의 깊이 — 이성과 감각의 완벽한 대결." },
+  INTJ: { name: "北海道經典巴斯克", series: "巴斯克", quad: "經典", alt: ["檸檬巴斯克", "鹹蛋黃巴斯克"], drinkA: "美式咖啡", drinkT: "經典拿鐵", hook: "極致的濃度直達靈魂核心，是理智與感官的完美角力。", hookEn: "An intense depth that reaches the soul's core — the perfect duel between logic and sensation.", hookJa: "魂の核心に直接届く究極の濃厚さ——理性と感覚の完璧な対峙。", hookKo: "영혼의 핵심을 꿰뚫는 극도의 깊이 — 이성과 감각의 완벽한 대결." },
   INTP: { name: "檸檬柚子千層蛋糕", series: "千層", quad: "亮色", alt: ["蜜香紅茶千層", "草莓莓果千層"], drinkA: "日本柚子美式", drinkT: "薄荷茶", hook: "結構細膩且層次分明，適合在深度思考中尋求一絲清亮。", hookEn: "Delicately structured and luminously layered — a clear note of brightness in deep thought.", hookJa: "繊細な構造と鮮やかな層——深い思索の中にある一筋の清明さ。", hookKo: "섬세한 구조와 선명한 층 — 깊은 사유 속 한 줄기 청명함." },
   ENTJ: { name: "奶酒提拉米蘇", series: "提拉米蘇", quad: "深色", alt: ["經典提拉米蘇", "抹茶提拉米蘇"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "微醺的權力展演，苦甜之間盡是掌控局勢的餘韻。", hookEn: "A mildly intoxicating exercise of power — the lingering aftertaste of commanding the moment.", hookJa: "ほろ酔いの権力のパフォーマンス——苦甘の間に漂う、場を制した余韻。", hookKo: "은근하게 취하는 권력의 연출 — 쓰고 달콤한 사이에 남는 상황을 장악한 여운." },
   ENTP: { name: "柚子蘋果提拉米蘇", series: "提拉米蘇", quad: "亮色", alt: ["奶酒提拉米蘇", "抹茶提拉米蘇"], drinkA: "日本柚子美式", drinkT: "烤布丁拿鐵", hook: "打破常規的驚喜風味，在每一次味覺挑戰中看見邊界。", hookEn: "Rule-breaking flavors that surprise — pushing every boundary with each provocative bite.", hookJa: "常識を覆す驚きの風味——味覚への挑戦ごとに、限界が見えてくる。", hookKo: "규칙을 깨는 놀라운 맛 — 매번의 도전에서 경계를 발견한다." },
-  INFJ: { name: "茶香巴斯克", series: "巴斯克", quad: "深色", alt: ["北海道經典巴斯克", "檸檬巴斯克"], drinkA: "博士茶", drinkT: "抹茶拿鐵", hook: "沈穩的茶韻撫平外界的嘈雜，帶你潛入最深的內在宇宙。", hookEn: "A grounding tea note that quiets the noise — inviting you to dive into your deepest inner universe.", hookJa: "静かな茶の余韻が外の騒音を和らげ、最も深い内なる宇宙へと誘う。", hookKo: "차분한 차 향이 외부의 소음을 잠재우고 — 가장 깊은 내면의 세계로 이끈다." },
-  INFP: { name: "北海道十勝戚風蛋糕", series: "戚風", quad: "經典", alt: ["檸檬蘋果戚風", "莓果戚風"], drinkA: "博士茶", drinkT: "花草茶", hook: "輕盈柔軟的著陸點，在銳利的世界裡提供一場溫柔的安放。", hookEn: "A soft, weightless landing — gentle shelter in a world that can feel too sharp.", hookJa: "軽やかで柔らかな着地点——鋭すぎる世界で、やさしく包まれる場所。", hookKo: "가볍고 부드러운 안착지 — 날카로운 세상 속에서 포근한 안식처." },
-  ENFJ: { name: "檸檬蘋果戚風蛋糕", series: "戚風", quad: "亮色", alt: ["北海道十勝戚風", "莓果戚風"], drinkA: "西西里美式", drinkT: "抹茶拿鐵", hook: "明亮如陽光的清新力量，溫暖並照亮每一個被遺忘的角落。", hookEn: "Bright as sunlight — a warmth that reaches and illuminates every forgotten corner.", hookJa: "太陽のように明るく清々しいエネルギー——忘れられた隅々まで、温かく照らす。", hookKo: "햇빛처럼 밝고 청량한 힘 — 잊혀진 구석구석까지 따뜻하게 비춘다." },
+  INFJ: { name: "蜜香紅茶千層", series: "千層", quad: "深色", alt: ["檸檬柚子千層", "北海道十勝原味千層"], drinkA: "博士茶", drinkT: "抹茶拿鐵", hook: "茶香靜靜滲入每一層，你是讓人回家後才想起來的那道餘韻。", hookEn: "Tea quietly seeps through every layer — you're the kind of person people only remember on the way home.", hookJa: "茶の香りがそっと各層に染み渡る——あなたは、帰り道でふと思い出されるような存在。", hookKo: "차향이 조용히 모든 층에 스며든다 — 당신은 집에 돌아가는 길에야 비로소 떠오르는 그런 사람." },
+  INFP: { name: "焦糖烤布丁戚風", series: "戚風", quad: "暖色", alt: ["莓果戚風", "北海道十勝原味千層"], drinkA: "博士茶", drinkT: "花草茶", hook: "輕盈如詩，焦糖的溫熱藏在柔軟深處，是你內心最真實的那份溫柔。", hookEn: "Light as a poem, with caramel warmth hidden in the soft depth — the truest tenderness at your core.", hookJa: "詩のように軽やかで、柔らかな深みに焦げ糖の温かさが宿る——あなたの内側にある、最も真実の優しさ。", hookKo: "시처럼 가볍고, 부드러운 깊이에 감춰진 캐러멜의 온기 — 당신 마음속 가장 진실한 온도." },
+  ENFJ: { name: "摩卡焦糖提拉米蘇", series: "提拉米蘇", quad: "深色", alt: ["奶酒提拉米蘇", "柚子蘋果提拉米蘇"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "提拉米蘇的義文是「帶我向上」——你天生就是讓人感到被托舉的引力核心。", hookEn: "Tiramisu means \"lift me up\" in Italian — you are the gravity that pulls people upward.", hookJa: "ティラミスのイタリア語は「私を持ち上げて」——あなたは生まれながらに、人を上へ引き上げる引力の核心。", hookKo: "티라미수는 이탈리아어로 '나를 끌어올려줘' — 당신은 태어날 때부터 사람들을 위로 끌어올리는 인력의 중심." },
   ENFP: { name: "草莓莓果千層蛋糕", series: "千層", quad: "果香", alt: ["檸檬柚子千層", "蜜香紅茶千層"], drinkA: "日本柚子美式", drinkT: "花草茶", hook: "層次繽紛且富有生命力，裝滿奇奇怪怪且閃亮的靈感碎片。", hookEn: "Layers alive with color and vitality — bursting with strange, shimmering sparks of inspiration.", hookJa: "色彩豊かな層が命を宿し、奇妙で輝くインスピレーションの欠片で満たされている。", hookKo: "색채와 생명력으로 가득 찬 층 — 기묘하고 반짝이는 영감의 파편들로 넘쳐난다." },
   ISTJ: { name: "經典十勝原味千層", series: "千層", quad: "經典", alt: ["巧克力布朗尼千層", "蜜香紅茶千層"], drinkA: "美式咖啡", drinkT: "經典拿鐵", hook: "結構的絕對精準與對承諾的執著，最值得信賴的味覺基石。", hookEn: "Absolute structural precision and an unwavering commitment — the most trustworthy cornerstone of taste.", hookJa: "絶対的な構造の精度と約束への執着——最も信頼できる味覚の礎。", hookKo: "절대적인 구조의 정밀함과 약속에 대한 집착 — 가장 신뢰할 수 있는 미각의 초석." },
   ISFJ: { name: "經典烤布丁", series: "單品", quad: "經典", alt: ["本口味目前為最佳配對"], drinkA: "蕎麥茶", drinkT: "烤布丁拿鐵", hook: "安全感的終極錨點，最純粹、最直接的溫柔安撫與回歸。", hookEn: "The ultimate anchor of comfort — pure, direct, and gently drawing you back to what matters.", hookJa: "安心感の究極のアンカーポイント——最も純粋でシンプルな、やさしい慰めと帰還。", hookKo: "안정감의 궁극적인 닻 — 가장 순수하고 직접적인 따뜻한 위로와 귀환." },
-  ESTJ: { name: "鹹蛋黃巴斯克", series: "巴斯克", quad: "深色", alt: ["北海道經典巴斯克", "茶香巴斯克"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "鋼鐵意志與濃郁核心的結合，穩健中帶有不容忽視的力量。", hookEn: "Iron will fused with a rich core — steady strength that refuses to be overlooked.", hookJa: "鋼鉄の意志と濃厚なコアの融合——無視できない力を内包した、安定感。", hookKo: "강철 의지와 풍부한 핵심의 결합 — 무시할 수 없는 힘을 품은 안정감." },
-  ESFJ: { name: "莓果戚風蛋糕", series: "戚風", quad: "果香", alt: ["綜合水果戚風", "檸檬蘋果戚風"], drinkA: "日本柚子美式", drinkT: "經典拿鐵", hook: "溫和友善的包覆感，與摯愛分享這份純粹快樂的本質。", hookEn: "Warm and gently enveloping — sharing pure, simple joy with those who matter most.", hookJa: "温かく友好的な包み込む感覚——大切な人と分かち合う純粋な喜びの本質。", hookKo: "따뜻하고 친근한 포근함 — 소중한 사람과 나누는 순수한 행복의 본질." },
+  ESTJ: { name: "鹹蛋黃巴斯克", series: "巴斯克", quad: "深色", alt: ["北海道經典巴斯克", "檸檬巴斯克"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "鋼鐵意志與濃郁核心的結合，穩健中帶有不容忽視的力量。", hookEn: "Iron will fused with a rich core — steady strength that refuses to be overlooked.", hookJa: "鋼鉄の意志と濃厚なコアの融合——無視できない力を内包した、安定感。", hookKo: "강철 의지와 풍부한 핵심의 결합 — 무시할 수 없는 힘을 품은 안정감." },
+  ESFJ: { name: "莓果戚風蛋糕", series: "戚風", quad: "果香", alt: ["焦糖烤布丁戚風", "蜜香紅茶千層"], drinkA: "日本柚子美式", drinkT: "經典拿鐵", hook: "溫和友善的包覆感，與摯愛分享這份純粹快樂的本質。", hookEn: "Warm and gently enveloping — sharing pure, simple joy with those who matter most.", hookJa: "温かく友好的な包み込む感覚——大切な人と分かち合う純粋な喜びの本質。", hookKo: "따뜻하고 친근한 포근함 — 소중한 사람과 나누는 순수한 행복의 본질." },
   ISTP: { name: "經典提拉米蘇", series: "提拉米蘇", quad: "經典", alt: ["抹茶提拉米蘇", "柚子蘋果提拉米蘇"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "冷靜大膽的口感平衡，無需多言的硬派實力展現。", hookEn: "A cool, bold balance of flavor — quiet competence that needs no announcement.", hookJa: "冷静で大胆な味わいのバランス——多言を要しない、硬派な実力の表れ。", hookKo: "냉철하고 대담한 맛의 균형 — 굳이 말하지 않아도 드러나는 묵직한 실력." },
   ISFP: { name: "抹茶提拉米蘇", series: "提拉米蘇", quad: "深色", alt: ["經典提拉米蘇", "奶酒提拉米蘇"], drinkA: "日本柚子美式", drinkT: "花草茶", hook: "細膩美感的微苦回甘，用最溫柔的方式對抗世界的喧囂。", hookEn: "A delicately beautiful bittersweet finish — the gentlest resistance to the world's noise.", hookJa: "繊細な美意識が生む微かな苦みと甘みの余韻——最もやさしい方法で、世界の喧騒に抗う。", hookKo: "섬세한 미감의 은은한 쓴맛과 단맛 — 세상의 소음에 가장 부드럽게 맞서는 방식." },
   ESTP: { name: "巧克力布朗尼千層", series: "千層", quad: "深色", alt: ["經典十勝原味千層", "蜜香紅茶千層"], drinkA: "西西里美式", drinkT: "焙茶拿鐵", hook: "極致感官的爆發體驗，追求速度與最直白的生命熱情。", hookEn: "A full-throttle sensory explosion — speed, intensity, and the most unfiltered passion for living.", hookJa: "感覚の極限への爆発的な体験——スピードと、最も率直な生への情熱の追求。", hookKo: "극도의 감각적 폭발 — 속도와 가장 직접적인 삶의 열정을 추구한다." },
-  ESFP: { name: "綜合水果戚風蛋糕", series: "戚風", quad: "果香", alt: ["莓果戚風", "檸檬蘋果戚風"], drinkA: "日本柚子美式", drinkT: "烤布丁拿鐵", hook: "點亮全場的色彩盛宴，將每一刻都轉化為永恆的快樂慶典。", hookEn: "A radiant feast of color that lights up every room — transforming each moment into a timeless celebration.", hookJa: "会場を明るく照らす色彩の祝宴——すべての瞬間を永遠の喜びの祭典に変える。", hookKo: "공간을 밝히는 화려한 색채의 향연 — 모든 순간을 영원한 기쁨의 축제로 변환시킨다." }
+  ESFP: { name: "檸檬巴斯克", series: "巴斯克", quad: "亮色", alt: ["北海道經典巴斯克", "鹹蛋黃巴斯克"], drinkA: "日本柚子美式", drinkT: "烤布丁拿鐵", hook: "帶著焦糖外殼登場，酸亮得不留退路——你出現的地方，就是全場最亮的角落。", hookEn: "Entering with a caramelized crust and a bold lemon punch — wherever you show up, that's the brightest spot in the room.", hookJa: "焦げ糖の外殻を纏い、酸っぱく鮮やかに颯爽と登場——あなたがいるところが、会場で最も輝く角。", hookKo: "캐러멜 외피를 두르고 새콤하게 등장하는 당신 — 당신이 있는 곳이 바로 그 공간에서 가장 빛나는 구석." }
 };
