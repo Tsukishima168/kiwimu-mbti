@@ -10,10 +10,10 @@ import type { AppUser } from '../types';
 
 // @ts-ignore - Vite env variables
 const SUPABASE_URL = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
-  import.meta.env.NEXT_PUBLIC_SUPABASE_URL) as string;
+  import.meta.env.VITE_SUPABASE_USER_URL) as string;
 // @ts-ignore - Vite env variables
 const SUPABASE_ANON_KEY = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_ANON_KEY ||
-  import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) as string;
+  import.meta.env.VITE_SUPABASE_USER_ANON_KEY) as string;
 
 const COOKIE_DOMAIN = '.kiwimu.com';
 
