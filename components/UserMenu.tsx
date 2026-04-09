@@ -1,10 +1,9 @@
 import React from 'react';
-import { User } from 'firebase/auth';
-import { auth } from '../firebase';
+import type { AppUser } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface UserMenuProps {
-    user: User | null;
+    user: AppUser | null;
     onLogin: () => void;
     onLogout: () => void;
 }

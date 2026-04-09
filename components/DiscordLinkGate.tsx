@@ -1,14 +1,24 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import type { User } from 'firebase/auth';
+import type { AppUser } from '../types';
+import React, { useEffect, useState } from 'react';
 
 type Props = {
-  user: User | null;
+  user: AppUser | null;
   onLogin: () => void;
 };
 
 export default function DiscordLinkGate({ user, onLogin }: Props) {
-  const params = useMemo(() => new URLSearchParams(window.location.search), []);
-  const state = params.get('discord_link_state');
+  // Read discord_link_state from URL, or from sessionStorage as fallback
+  // (sessionStorage is set by handleLogin before OAuth redirect so state survives /callback)
+  const [state] = useState<string | null>(() => {
+    const urlState = new URLSearchParams(window.location.search).get('discord_link_state');
+    if (urlState) return urlState;
+    const ssState = sessionStorage.getItem('discord_link_state');
+    if (ssState) {
+      sessionStorage.removeItem('discord_link_state');
+      return ssState;
+    }
+    return null;
+  });
 
   const [status, setStatus] = useState<'idle' | 'linking' | 'linked' | 'error'>('idle');
   const [message, setMessage] = useState<string>('');

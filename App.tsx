@@ -1,14 +1,11 @@
 // Deployment trigger: 2026-01-27-moon-island
 import React, { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
-import { auth } from './firebase';
-import { db } from './firestore.config';
-import { Option, MbtiResultData, Score } from './types';
+import { AppUser, Option, MbtiResultData, Score } from './types';
+import { getAuthSupabaseClient, toAppUser, signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
+import { useFirestoreSync } from './hooks/useFirestoreSync';
 import { calculateResults, getVariant } from './utils/logic';
 import { getResultData } from './constants';
 import { loadResultData } from './utils/dataLoader';
-import { useFirestoreSync } from './hooks/useFirestoreSync';
-import { signInAnonymously } from 'firebase/auth';
 import Intro from './components/Intro';
 import Quiz from './components/Quiz';
 import Loading from './components/Loading';
@@ -19,7 +16,6 @@ import LoginCallback from './components/LoginCallback';
 import MyArchive from './components/MyArchive';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
-import { doc, getDoc } from 'firebase/firestore';
 import { trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin } from './utils/analytics';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import ExploreApp from './components/explore/ExploreApp';
@@ -52,7 +48,6 @@ import { initReferralTracking, parseReferralParams, saveReferralToFirebase, upda
 
 // Moon Island 整合
 import { saveMBTIToMoonIsland } from './utils/moonIslandSync';
-import { signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
 // 測驗完成寄結果信（已登入且有 email）
 import { sendResultEmail } from './utils/sendResultEmail';
 
@@ -105,7 +100,7 @@ const getStagePath = (currentStage: Stage, pathname: string) => {
 };
 
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [stage, setStage] = useState<Stage>('intro');
   const [resultData, setResultData] = useState<MbtiResultData | null>(null);
   const [scores, setScores] = useState<Score | null>(null);
@@ -177,9 +172,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-      if (auth?.authStateReady) {
-        await auth.authStateReady();
-      }
       setLoading(false);
 
       // 初始化行銷像素
@@ -207,11 +199,8 @@ const App: React.FC = () => {
         setShowTestPanel(true);
       }
 
-      // 【新增】如果有推薦參數，儲存到 Firebase
-      const referralData = parseReferralParams();
-      if (referralData && auth?.currentUser) {
-        saveReferralToFirebase(auth.currentUser.uid, referralData, db).catch(console.error);
-      }
+      // referral tracking (Firebase-based, skipped during Supabase migration)
+      parseReferralParams();
     };
     init();
   }, []);
@@ -229,40 +218,71 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const checkProfile = async () => {
-      if (user && !user.isAnonymous) {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            if (!data.isProfileSetup || !data.displayName) {
-              setShowProfileSetup(true);
-            }
-          } else {
-            setShowProfileSetup(true);
-          }
-        } catch (err) {
-          console.error("Error checking profile:", err);
-        }
+    // Profile setup prompt: show when user is logged in but has no displayName
+    if (!loading) {
+      if (user && !user.displayName) {
+        setShowProfileSetup(true);
       } else {
         setShowProfileSetup(false);
       }
-    };
-    if (!loading) {
-      checkProfile();
     }
   }, [user, loading]);
 
   useEffect(() => {
-    if (!auth) {
+    const supabase = getAuthSupabaseClient();
+
+    if (!supabase) {
+      // No auth client — restore any saved quiz result and proceed
       const savedResult = sessionStorage.getItem('last_quiz_result');
       const savedScores = sessionStorage.getItem('last_quiz_scores');
-
       if (savedResult && savedScores) {
         setResultData(JSON.parse(savedResult));
         setScores(JSON.parse(savedScores));
         const currentStage = sessionStorage.getItem('flow_stage');
+        if (currentStage) setStage(currentStage as Stage);
+      }
+      applyRouteFromLocation(Boolean(savedResult));
+      setLoadingAuth(false);
+      return;
+    }
+
+    const handleSession = (supabaseUser: import('@supabase/supabase-js').User | null) => {
+      const pathname = window.location.pathname;
+      const isV1Route = isV1Pathname(pathname);
+
+      if (supabaseUser) {
+        const appUser = toAppUser(supabaseUser);
+        setUser(appUser);
+        trackSsoEvent('session_restored', { provider: appUser.providerData[0]?.providerId });
+      } else {
+        setUser(null);
+      }
+
+      const savedResult = sessionStorage.getItem('last_quiz_result');
+      const savedScores = sessionStorage.getItem('last_quiz_scores');
+      const currentStage = sessionStorage.getItem('flow_stage');
+
+      // P1 Fix: check flow_stage=login outside isV1Route gate and return early
+      // so applyRouteFromLocation can't overwrite stage back to 'callback'.
+      // Also handles Discord-only flow (no quiz result).
+      if (currentStage === 'login' && supabaseUser) {
+        sessionStorage.removeItem('flow_stage');
+        if (savedResult && savedScores) {
+          setResultData(JSON.parse(savedResult));
+          setScores(JSON.parse(savedScores));
+          setStage('result');
+        } else {
+          // Discord-only login — DiscordLinkGate overlay reads discord_link_state
+          // from sessionStorage and renders on top of intro
+          setStage('intro');
+        }
+        setLoadingAuth(false);
+        return;
+      }
+
+      if (savedResult && savedScores && isV1Route) {
+        setResultData(JSON.parse(savedResult));
+        setScores(JSON.parse(savedScores));
         if (currentStage) {
           setStage(currentStage as Stage);
         }
@@ -270,50 +290,26 @@ const App: React.FC = () => {
 
       applyRouteFromLocation(Boolean(savedResult));
       setLoadingAuth(false);
-      return;
-    }
+    };
 
-    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-      const pathname = window.location.pathname;
-      const isV1Route = isV1Pathname(pathname);
-
-      if (!currentUser) {
-        try {
-          const anonymousUser = await signInAnonymously(auth);
-          setUser(anonymousUser.user);
-          console.log('Anonymous user created:', anonymousUser.user.uid);
-        } catch (error) {
-          console.error('Anonymous sign-in failed:', error);
-          setUser(null);
-        }
-      } else {
-        setUser(currentUser);
-        console.log('User authenticated:', {
-          uid: currentUser.uid,
-          isAnonymous: currentUser.isAnonymous,
-          provider: currentUser.providerData[0]?.providerId || 'anonymous'
-        });
-      }
-
-      const savedResult = sessionStorage.getItem('last_quiz_result');
-      const savedScores = sessionStorage.getItem('last_quiz_scores');
-      if (savedResult && savedScores && isV1Route) {
-        setResultData(JSON.parse(savedResult));
-        setScores(JSON.parse(savedScores));
-        const currentStage = sessionStorage.getItem('flow_stage');
-        if (currentStage === 'login' && currentUser && !currentUser.isAnonymous) {
-          setStage('result');
-          sessionStorage.removeItem('flow_stage');
-        } else if (currentStage) {
-          setStage(currentStage as Stage);
-        }
-      }
-
-      applyRouteFromLocation(Boolean(savedResult));
-
-      setLoadingAuth(false);
+    // Restore existing session immediately
+    supabase.auth.getSession().then(({ data }) => {
+      handleSession(data.session?.user ?? null);
     });
-    return () => unsubscribe();
+
+    // Listen for auth changes (login / logout / token refresh)
+    // P2 Fix: fire login analytics on fresh OAuth return (flow_stage=login present)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user && sessionStorage.getItem('flow_stage') === 'login') {
+        const appUser = toAppUser(session.user);
+        trackUserLogin('google', appUser.uid);
+        trackMarketingEvent(MARKETING_EVENTS.LOGIN);
+        trackAction('login', { provider: session.user.app_metadata?.provider || 'unknown' });
+      }
+      handleSession(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // 各頁停留時間：切換前送出上一頁的 engagement
@@ -407,8 +403,7 @@ const App: React.FC = () => {
       // 儲存用戶行為資料到 Firebase
       saveUserBehavior(user.uid, type, variant).catch(console.error);
 
-      // 【新增】如果是通過推薦進入的，更新轉換狀態
-      updateReferralConversion(user.uid, type, db).catch(console.error);
+      // referral conversion tracking skipped (Firebase db removed)
 
       // 【新增】同步 MBTI 結果到月島品牌資料庫
       const userEmail = user.email || user.providerData[0]?.email;
@@ -495,26 +490,26 @@ const App: React.FC = () => {
   };
 
   const handleLogin = () => {
+    // Always mark flow_stage so handleSession can return to correct stage after OAuth
+    sessionStorage.setItem('flow_stage', 'login');
     if (resultData && scores) {
       sessionStorage.setItem('last_quiz_result', JSON.stringify(resultData));
       sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
-      sessionStorage.setItem('flow_stage', 'login');
+    }
+    // Preserve discord_link_state across OAuth redirect (URL is lost after /callback)
+    const discordState = new URLSearchParams(window.location.search).get('discord_link_state');
+    if (discordState) {
+      sessionStorage.setItem('discord_link_state', discordState);
     }
     setStage('login');
   };
 
   const handleLogout = async () => {
-    if (!auth) return;
     try {
-      await auth.signOut();
-      signOutSupabase().catch(() => {}); // 非阻塞，清除 .kiwimu.com SSO cookie
-      // After logout, Firebase will auto-create a new anonymous user via onAuthStateChanged
-      // Don't clear sessionStorage here - user might want to see their results
-      // Only clear auth-related data
+      await signOutSupabase();
+      setUser(null);
       sessionStorage.removeItem('flow_stage');
       sessionStorage.removeItem('processed_line_code');
-
-      // If on result page, stay there. Otherwise go to intro
       if (stage !== 'result') {
         setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
       }

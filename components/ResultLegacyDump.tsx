@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { MbtiResultData, Score } from '../types';
 import { calculatePercentages } from '../utils/logic';
 import { DIMENSION_EXPLANATIONS, getResultData } from '../constants';
@@ -10,6 +10,7 @@ import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
 import { shareResultToLine } from '../utils/liffShare';
 import { trackResultDownload, trackResultShare, trackButtonClick } from '../utils/analytics';
+import { trackOutboundClick } from '../utils/utmTracking';
 
 
 interface ResultProps {
@@ -19,7 +20,7 @@ interface ResultProps {
   onOpenConsultant: () => void;
   onViewArchive?: () => void;
   isArchiveMode?: boolean;
-  user?: User | null;
+  user?: AppUser | null;
   onLogin?: () => void;
   onLogout?: () => void;
   isSharedView?: boolean;
@@ -1201,7 +1202,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         </div>
 
         {/* ── LOSS AVERSION BANNER — 匿名用戶才顯示，固定在浮動選單上方 */}
-        {!isSharedView && user?.isAnonymous && !isArchiveMode && (
+        {!isSharedView && (!user || user.isAnonymous) && !isArchiveMode && (
           <div className="fixed bottom-[88px] md:bottom-[100px] left-1/2 transform -translate-x-1/2 z-40 w-max max-w-[90vw]">
             <div
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-xl cursor-pointer transition-all hover:scale-105 active:scale-95"
@@ -1230,11 +1231,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             <>
               <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
               <button
-                onClick={() => { trackButtonClick(user?.isAnonymous ? '入籍宇宙' : '我的甜點館', 'result_floating'); onViewArchive(); }}
+                onClick={() => { trackButtonClick(!user || user.isAnonymous ? '入籍宇宙' : '我的甜點館', 'result_floating'); onViewArchive(); }}
                 className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] whitespace-nowrap hover:scale-105 active:scale-95"
-                title={user?.isAnonymous ? '入籍 Kiwimu 宇宙，永久保存你的靈魂配方' : '查看我的甜點館'}
+                title={!user || user.isAnonymous ? '入籍 Kiwimu 宇宙，永久保存你的靈魂配方' : '查看我的甜點館'}
               >
-                {user?.isAnonymous ? '入籍宇宙 ✦' : '我的甜點館'}
+                {!user || user.isAnonymous ? '入籍宇宙 ✦' : '我的甜點館'}
               </button>
             </>
           )}
