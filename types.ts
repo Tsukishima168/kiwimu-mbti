@@ -135,6 +135,19 @@ export interface UserProfile {
   };
 }
 
+/**
+ * AppUser — Supabase-primary user shape.
+ * Mirrors the Firebase User fields we actually use so components need only change imports.
+ */
+export interface AppUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  isAnonymous: false;
+  providerData: Array<{ providerId: string; email: string | null }>;
+}
+
 /** User Document（用戶基本資料） */
 export interface UserDocument {
   uid: string;

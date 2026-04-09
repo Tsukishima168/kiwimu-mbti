@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { TestRun } from '../types';
 import { useFirestoreSync } from '../hooks/useFirestoreSync';
 import { trackButtonClick } from '../utils/analytics';
@@ -12,7 +12,7 @@ import UserSettings from './UserSettings';
 import ExploreMore from './ExploreMore';
 
 interface MyArchiveProps {
-    user: User;
+    user: AppUser;
     onBack?: () => void;
 }
 

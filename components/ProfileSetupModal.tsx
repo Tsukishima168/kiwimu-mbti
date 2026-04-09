@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firestore.config';
 
 interface ProfileSetupModalProps {
-    user: User;
+    user: AppUser;
     onComplete: () => void;
     isOpen: boolean;
 }

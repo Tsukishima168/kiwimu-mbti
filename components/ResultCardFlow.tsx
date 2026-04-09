@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { MbtiResultData, Score } from '../types';
 import { calculatePercentages } from '../utils/logic';
 import { SOUL_ANCHOR_MAP } from '../constants';
@@ -24,7 +24,7 @@ interface ResultCardFlowProps {
     onOpenConsultant: () => void;
     onViewArchive?: () => void;
     isArchiveMode?: boolean;
-    user?: User | null;
+    user?: AppUser | null;
     onLogin?: () => void;
     onLogout?: () => void;
 }

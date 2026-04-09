@@ -2,7 +2,7 @@ import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import ResultCardFlow from './ResultCardFlow';
 import ResultLegacyDump from './ResultLegacyDump';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { MbtiResultData, Score } from '../types';
 import { getResultData } from '../constants';
 import { getVariant } from '../utils/logic';
@@ -14,7 +14,7 @@ interface ResultProps {
     onOpenConsultant: () => void;
     onViewArchive?: () => void;
     isArchiveMode?: boolean;
-    user?: User | null;
+    user?: AppUser | null;
     onLogin?: () => void;
     onLogout?: () => void;
     isSharedView?: boolean;

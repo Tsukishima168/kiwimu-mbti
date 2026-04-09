@@ -7,7 +7,8 @@
  * 這樣 kiwimu.com 所有子網域（passport / map / gacha）可共享登入狀態。
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
+import type { AppUser } from '../types';
 
 // @ts-ignore - Vite env variables
 const SUPABASE_URL = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
@@ -63,6 +64,24 @@ export function getAuthSupabaseClient(): SupabaseClient | null {
   });
 
   return _authClient;
+}
+
+// ── Supabase User → AppUser adapter ──────────────────────────────────────────
+
+export function toAppUser(u: SupabaseUser): AppUser {
+  const provider = u.app_metadata?.provider ?? 'google.com';
+  return {
+    uid: u.id,
+    email: u.email ?? null,
+    displayName:
+      u.user_metadata?.full_name ??
+      u.user_metadata?.name ??
+      u.user_metadata?.user_name ??
+      null,
+    photoURL: u.user_metadata?.avatar_url ?? u.user_metadata?.picture ?? null,
+    isAnonymous: false,
+    providerData: [{ providerId: provider, email: u.email ?? null }],
+  };
 }
 
 // ── Bridge：Firebase Google idToken → Supabase session ───────────────────────

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { User } from 'firebase/auth';
-import { Option, TestRun, Score } from '../types';
+import { AppUser, Option, TestRun, Score } from '../types';
 import { CURRENT_QUIZ_VERSION, CURRENT_SCORING_VERSION, CURRENT_DESSERT_VERSION } from '../firestore.config';
 import {
     createOrUpdateUser,
@@ -13,7 +12,7 @@ import {
 import { useProgressStorage } from './useProgressStorage';
 import { getResultData } from '../constants';
 
-export const useFirestoreSync = (user: User | null) => {
+export const useFirestoreSync = (user: AppUser | null) => {
     const [isSyncing, setIsSyncing] = useState(false);
     const { loadProgress: loadLocalProgress, clearProgress: clearLocalProgress } = useProgressStorage();
 

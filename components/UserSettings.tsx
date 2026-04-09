@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { UserProfile } from '../types';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firestore.config';
 
 interface UserSettingsProps {
-    user: User;
+    user: AppUser;
     onBack: () => void;
 }
 

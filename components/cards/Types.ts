@@ -1,4 +1,4 @@
-import { User } from 'firebase/auth';
+import type { AppUser } from '../../types';
 import { MbtiResultData, Score } from '../../types';
 
 export interface CardProps {
@@ -11,7 +11,7 @@ export interface CardProps {
     i18nContent: any;
     extraI18n: any;
     displayKeywords: string[];
-    user?: User | null;
+    user?: AppUser | null;
     onNext?: () => void;
     onPrev?: () => void;
     onSkipRegistration?: () => void;

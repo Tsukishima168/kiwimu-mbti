@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { Option, Question } from '../types';
 import { QUESTIONS } from '../constants';
 import { loadQuestions } from '../utils/dataLoader';
@@ -11,7 +11,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { questionTranslations } from '../i18n/questionsTranslations';
 
 interface QuizProps {
-    user: User | null;
+    user: AppUser | null;
     onComplete: (answers: Option[]) => void;
     onSaveToCloud?: (answers: Option[], currentIndex: number) => void;
 }

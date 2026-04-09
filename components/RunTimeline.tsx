@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { TestRun } from '../types';
 import { trackButtonClick } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -8,7 +8,7 @@ interface RunTimelineProps {
     runs: TestRun[];
     onSelect: (run: TestRun) => void;
     onBack?: () => void;
-    user: User;
+    user: AppUser;
 }
 
 export const RunTimeline: React.FC<RunTimelineProps> = ({ runs, onSelect, onBack, user }) => {

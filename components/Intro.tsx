@@ -1,12 +1,12 @@
 import React from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../types';
 import { trackButtonClick } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
 
 interface IntroProps {
   onStart: () => void;
-  user: User | null;
+  user: AppUser | null;
   onLogin: () => void;
   onViewArchive?: () => void;
   onLogout?: () => void;

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../../types';
 import { getResultData } from '../../constants';
 import { V2_TAIWAN_QUESTIONS, type V2GeneratedQuestion } from '../../data/v2TaiwanQuestions.generated';
 import type { Option } from '../../types';
@@ -11,7 +11,7 @@ import './v2-tailwind.css';
 import './v2.css';
 
 interface V2QuizAppProps {
-  user?: User | null;
+  user?: AppUser | null;
 }
 
 type TransitionBeat = {

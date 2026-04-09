@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { User } from 'firebase/auth';
+import type { AppUser } from '../../types';
 import { getCelebrityArchetypes } from '../../data/celebrityData';
 import { buildV2ImageSlots, type V2ImageSlotSpec, type V2ReportFamilyKey } from '../../data/v2ImageBlueprint';
 import { getRarityData, getRarityLabel, getRarityMessage } from '../../data/rarityData';
@@ -26,7 +26,7 @@ import './v2-tailwind.css';
 import './v2.css';
 
 interface V2AppProps {
-  user?: User | null;
+  user?: AppUser | null;
 }
 
 type ReportFamilyKey = 'analysts' | 'diplomats' | 'sentinels' | 'explorers';
