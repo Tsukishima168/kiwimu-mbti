@@ -8,6 +8,8 @@ interface ReferralData {
   campaign?: string;          // 活動代碼
 }
 
+const isLegacyFirestoreReferralEnabled = () => import.meta.env.VITE_ENABLE_FIREBASE_LEGACY_REFERRALS === 'true';
+
 // ============================================
 // 生成推薦連結
 // ============================================
@@ -208,6 +210,10 @@ export async function saveReferralToFirebase(
   referralData: ReferralData,
   db: any // Firestore instance
 ) {
+  if (!isLegacyFirestoreReferralEnabled()) {
+    return;
+  }
+
   try {
     const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
     
@@ -236,6 +242,10 @@ export async function updateReferralConversion(
   mbtiType: string,
   db: any
 ) {
+  if (!isLegacyFirestoreReferralEnabled()) {
+    return;
+  }
+
   try {
     const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
     

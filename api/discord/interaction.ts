@@ -1,6 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { verifyDiscordSignature } from '../../server/discord/verifyDiscordSignature';
-import { getAdminDb } from '../../server/firebase/admin';
+import {
+  createDiscordLinkState,
+  deleteDiscordLink,
+  getDiscordLink,
+  getLatestDiscordResult,
+  logDiscordAction,
+} from '../../server/discord/discord-data.service';
 import type { DiscordInteraction, DiscordInteractionResponse } from '../../server/discord/types';
 
 // Discord interaction types
@@ -33,25 +39,21 @@ async function logAction(params: {
   actionType: string;
   discordUserId?: string;
   guildId?: string;
-  firebaseUid?: string;
+  appUid?: string;
   payload?: any;
 }) {
-  const db = getAdminDb();
-  await db.collection('discord_actions').add({
+  await logDiscordAction({
     actionType: params.actionType,
-    discordUserId: params.discordUserId || null,
-    guildId: params.guildId || null,
-    firebaseUid: params.firebaseUid || null,
-    payload: params.payload || null,
-    createdAt: Date.now(),
-    createdAtServer: (await import('firebase-admin')).default.firestore.FieldValue.serverTimestamp(),
+    discordUserId: params.discordUserId,
+    guildId: params.guildId,
+    appUid: params.appUid,
+    payload: params.payload,
   });
 }
 
 async function handleLink(interaction: DiscordInteraction): Promise<DiscordInteractionResponse> {
   const discordUserId = getUserId(interaction);
   const guildId = interaction.guild_id;
-  const db = getAdminDb();
 
   if (!discordUserId) {
     return {
@@ -63,7 +65,7 @@ async function handleLink(interaction: DiscordInteraction): Promise<DiscordInter
   const state = crypto.randomUUID();
   const expiresAt = Date.now() + 10 * 60 * 1000;
 
-  await db.collection('discord_link_states').doc(state).set({
+  await createDiscordLinkState({
     state,
     discordUserId,
     guildId: guildId || null,
@@ -107,16 +109,12 @@ async function handleUnlink(interaction: DiscordInteraction): Promise<DiscordInt
     return { type: 4, data: { flags: EPHEMERAL, content: '無法取得你的 Discord 使用者資訊。' } };
   }
 
-  const db = getAdminDb();
-  const linkId = `${guildId || 'global'}_${discordUserId}`;
-  const ref = db.collection('discord_links').doc(linkId);
-  const snap = await ref.get();
-  if (!snap.exists) {
+  const deleted = await deleteDiscordLink(guildId, discordUserId);
+  if (!deleted) {
     await logAction({ actionType: 'discord_unlink_noop', discordUserId, guildId });
     return { type: 4, data: { flags: EPHEMERAL, content: '你目前沒有綁定任何帳號。' } };
   }
 
-  await ref.delete();
   await logAction({ actionType: 'discord_unlink', discordUserId, guildId });
   return { type: 4, data: { flags: EPHEMERAL, content: '已解除綁定。你可以隨時用 `/link` 重新綁定。' } };
 }
@@ -144,10 +142,8 @@ async function handleResult(interaction: DiscordInteraction): Promise<DiscordInt
     return { type: 4, data: { flags: EPHEMERAL, content: '無法取得你的 Discord 使用者資訊。' } };
   }
 
-  const db = getAdminDb();
-  const linkId = `${guildId || 'global'}_${discordUserId}`;
-  const linkSnap = await db.collection('discord_links').doc(linkId).get();
-  if (!linkSnap.exists) {
+  const link = await getDiscordLink(guildId, discordUserId);
+  if (!link) {
     await logAction({ actionType: 'discord_result_unlinked', discordUserId, guildId });
     return {
       type: 4,
@@ -155,20 +151,13 @@ async function handleResult(interaction: DiscordInteraction): Promise<DiscordInt
     };
   }
 
-  const { firebaseUid } = linkSnap.data() as { firebaseUid: string };
-  if (!firebaseUid) {
+  if (!link.appUid) {
     return { type: 4, data: { flags: EPHEMERAL, content: '綁定資料異常，請先 `/unlink` 再 `/link`。' } };
   }
 
-  // Read latest test run from Firestore (collection: test_runs)
-  const runsSnap = await db
-    .collection('test_runs')
-    .where('uid', '==', firebaseUid)
-    .limit(20)
-    .get();
-
-  if (runsSnap.empty) {
-    await logAction({ actionType: 'discord_result_no_runs', discordUserId, guildId, firebaseUid });
+  const latest = await getLatestDiscordResult(link.appUid);
+  if (!latest) {
+    await logAction({ actionType: 'discord_result_no_runs', discordUserId, guildId, appUid: link.appUid });
     return {
       type: 4,
       data: {
@@ -178,12 +167,8 @@ async function handleResult(interaction: DiscordInteraction): Promise<DiscordInt
     };
   }
 
-  const runs = runsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
-  runs.sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
-  const latest = runs[0];
-
-  const mbtiType = latest.mbtiType || latest.type || 'UNKNOWN';
-  const variant = latest.variant || latest.identity || '';
+  const mbtiType = latest.mbtiType || 'UNKNOWN';
+  const variant = latest.suffix || '';
   const fullType = variant ? `${mbtiType}-${variant}` : mbtiType;
 
   const base = process.env.DISCORD_REPORT_BASE_URL || 'https://kiwimu.com';
@@ -195,7 +180,7 @@ async function handleResult(interaction: DiscordInteraction): Promise<DiscordInt
     actionType: 'discord_result_viewed',
     discordUserId,
     guildId,
-    firebaseUid,
+    appUid: link.appUid,
     payload: { mbtiType: fullType, runId: latest.id },
   });
 
@@ -313,4 +298,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return json(res, { type: 4, data: { flags: EPHEMERAL, content: '發生錯誤，請稍後再試。' } });
   }
 }
-

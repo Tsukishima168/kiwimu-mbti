@@ -1,8 +1,6 @@
 // 用戶資料收集模組
 // 整合 Firebase + GA4 + Marketing Pixels
 
-import { db } from '../firestore.config';
-import { doc, setDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { saveUserBehaviorToSupabase, upsertUserStats } from '../services/supabase-user.service';
 
 // ============================================
@@ -48,6 +46,70 @@ export interface UserAction {
 let currentSession: string | null = null;
 let sessionStartTime: number | null = null;
 let userActions: UserAction[] = [];
+
+const isLegacyFirestoreWriteEnabled = () => import.meta.env.VITE_ENABLE_FIREBASE_LEGACY_WRITES === 'true';
+
+async function writeLegacyUserBehaviorToFirestore(uid: string, behaviorData: Partial<UserBehaviorData>) {
+  if (!isLegacyFirestoreWriteEnabled()) {
+    return;
+  }
+
+  try {
+    const [{ db }, firestore] = await Promise.all([
+      import('../firestore.config'),
+      import('firebase/firestore'),
+    ]);
+
+    const behaviorRef = firestore.doc(db, 'user_behaviors', `${uid}_${Date.now()}`);
+    await firestore.setDoc(behaviorRef, {
+      ...behaviorData,
+      createdAt: firestore.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error('⚠️ Legacy Firestore user_behaviors write failed:', error);
+  }
+}
+
+async function writeLegacyUserStatsToFirestore(
+  uid: string,
+  mbtiType?: string,
+  variant?: string,
+  utmSource?: string
+) {
+  if (!isLegacyFirestoreWriteEnabled()) {
+    return;
+  }
+
+  try {
+    const [{ db }, firestore] = await Promise.all([
+      import('../firestore.config'),
+      import('firebase/firestore'),
+    ]);
+
+    const statsRef = firestore.doc(db, 'user_stats', uid);
+    const updateData: Record<string, unknown> = {
+      lastActive: firestore.serverTimestamp(),
+      totalSessions: firestore.increment(1),
+    };
+
+    if (mbtiType) {
+      updateData.lastMbtiType = mbtiType;
+      updateData[`mbtiTypes.${mbtiType}`] = firestore.increment(1);
+    }
+
+    if (variant) {
+      updateData.lastVariant = variant;
+    }
+
+    if (utmSource) {
+      updateData[`sources.${utmSource}`] = firestore.increment(1);
+    }
+
+    await firestore.setDoc(statsRef, updateData, { merge: true });
+  } catch (error) {
+    console.error('⚠️ Legacy Firestore user_stats write failed:', error);
+  }
+}
 
 export function initSession() {
   // 生成 Session ID
@@ -159,17 +221,8 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
       device
     };
 
-    // 儲存到 Firestore
-    const behaviorRef = doc(db, 'user_behaviors', `${uid}_${Date.now()}`);
-    await setDoc(behaviorRef, {
-      ...behaviorData,
-      createdAt: serverTimestamp()
-    });
-
-    console.log('✅ 用戶行為已儲存到 Firebase');
-
-    // 雙寫到 Supabase（fire-and-forget，失敗不影響主流程）
-    void saveUserBehaviorToSupabase(uid, behaviorData);
+    await saveUserBehaviorToSupabase(uid, behaviorData);
+    void writeLegacyUserBehaviorToFirestore(uid, behaviorData);
 
     // 更新用戶統計
     await updateUserStats(uid, mbtiType, variant);
@@ -184,34 +237,9 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
 // ============================================
 async function updateUserStats(uid: string, mbtiType?: string, variant?: string) {
   try {
-    const statsRef = doc(db, 'user_stats', uid);
-
-    const updateData: any = {
-      lastActive: serverTimestamp(),
-      totalSessions: increment(1),
-    };
-
-    if (mbtiType) {
-      updateData.lastMbtiType = mbtiType;
-      updateData[`mbtiTypes.${mbtiType}`] = increment(1);
-    }
-
-    if (variant) {
-      updateData.lastVariant = variant;
-    }
-
-    // 更新來源統計
     const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
-    if (sessionData.utmSource) {
-      updateData[`sources.${sessionData.utmSource}`] = increment(1);
-    }
-
-    await updateDoc(statsRef, updateData);
-
-    console.log('✅ 用戶統計已更新');
-
-    // 雙寫到 Supabase（fire-and-forget）
-    void upsertUserStats(uid, mbtiType, variant, sessionData.utmSource);
+    await upsertUserStats(uid, mbtiType, variant, sessionData.utmSource);
+    void writeLegacyUserStatsToFirestore(uid, mbtiType, variant, sessionData.utmSource);
   } catch (error) {
     console.error('❌ 更新用戶統計失敗:', error);
   }

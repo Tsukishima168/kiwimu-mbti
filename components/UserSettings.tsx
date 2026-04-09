@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { AppUser } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { UserProfile } from '../types';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firestore.config';
+import { getUserPreferences, saveUserPreferences } from '../services/user-data.service';
 
 interface UserSettingsProps {
     user: AppUser;
@@ -34,12 +33,9 @@ export const UserSettings: React.FC<UserSettingsProps> = ({ user, onBack }) => {
     useEffect(() => {
         const loadPreferences = async () => {
             try {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
-                if (userDoc.exists()) {
-                    const profile = userDoc.data().profile as UserProfile | undefined;
-                    if (profile?.preferences) {
-                        setPreferences(profile.preferences);
-                    }
+                const loadedPreferences = await getUserPreferences(user.uid);
+                if (loadedPreferences) {
+                    setPreferences(loadedPreferences);
                 }
             } catch (error) {
                 console.error('Failed to load preferences:', error);
@@ -55,10 +51,7 @@ export const UserSettings: React.FC<UserSettingsProps> = ({ user, onBack }) => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await updateDoc(doc(db, 'users', user.uid), {
-                'profile.preferences': preferences,
-                lastActiveAt: Date.now()
-            });
+            await saveUserPreferences(user.uid, preferences);
 
             // Update language context
             setLanguage(preferences.language);

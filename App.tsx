@@ -44,7 +44,7 @@ import { initLiff } from './utils/liffShare';
 import { initUTMTracking } from './utils/utmTracking';
 
 // 推薦追蹤（新增）
-import { initReferralTracking, parseReferralParams, saveReferralToFirebase, updateReferralConversion } from './utils/referralTracking';
+import { initReferralTracking, parseReferralParams } from './utils/referralTracking';
 
 // Moon Island 整合
 import { saveMBTIToMoonIsland } from './utils/moonIslandSync';
@@ -262,7 +262,7 @@ const App: React.FC = () => {
       const savedScores = sessionStorage.getItem('last_quiz_scores');
       const currentStage = sessionStorage.getItem('flow_stage');
 
-      // P1 Fix: check flow_stage=login outside isV1Route gate and return early
+      // P1 Fix: check saved post-login restore state outside isV1Route gate
       // so applyRouteFromLocation can't overwrite stage back to 'callback'.
       // Also handles Discord-only flow (no quiz result).
       if (currentStage === 'login' && supabaseUser) {
@@ -276,6 +276,16 @@ const App: React.FC = () => {
           // from sessionStorage and renders on top of intro
           setStage('intro');
         }
+        setLoadingAuth(false);
+        return;
+      }
+
+      // Archive/login CTA can intentionally restore the last result view after OAuth.
+      if (currentStage === 'result' && supabaseUser && savedResult && savedScores) {
+        sessionStorage.removeItem('flow_stage');
+        setResultData(JSON.parse(savedResult));
+        setScores(JSON.parse(savedScores));
+        setStage('result');
         setLoadingAuth(false);
         return;
       }
@@ -442,35 +452,6 @@ const App: React.FC = () => {
     triggerMbtiCompletePoints();
   };
 
-  const handleLoginSuccess = () => {
-    console.log('Login successful! Checking for saved results...');
-
-    if (user) {
-      trackUserLogin('google', user.uid); // Assuming google/default for now or check provider
-
-      // 【新增】追蹤登入事件
-      trackMarketingEvent(MARKETING_EVENTS.LOGIN);
-      trackAction('login', { provider: user.providerData[0]?.providerId || 'unknown' });
-    }
-
-    // Try to restore previous results from session storage
-    const savedResult = sessionStorage.getItem('last_quiz_result');
-    const savedScores = sessionStorage.getItem('last_quiz_scores');
-
-    if (savedResult && savedScores) {
-      console.log('Restoring saved results...');
-      setResultData(JSON.parse(savedResult));
-      setScores(JSON.parse(savedScores));
-      setStage('result');
-
-      // Clear flow_stage marker
-      sessionStorage.removeItem('flow_stage');
-    } else {
-      console.log('No saved results, routing by current path');
-      setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
-    }
-  };
-
   const handleRetest = () => {
     // 【新增】追蹤重測事件
     trackMarketingEvent(MARKETING_EVENTS.RETEST);
@@ -509,7 +490,6 @@ const App: React.FC = () => {
       await signOutSupabase();
       setUser(null);
       sessionStorage.removeItem('flow_stage');
-      sessionStorage.removeItem('processed_line_code');
       if (stage !== 'result') {
         setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
       }
@@ -605,8 +585,8 @@ const App: React.FC = () => {
             />
           )}
 
-          {stage === 'callback' && <LoginCallback onLoginSuccess={handleLoginSuccess} />}
-          {stage === 'login' && <Login onLoginSuccess={handleLoginSuccess} isUnlockMode={true} />}
+          {stage === 'callback' && <LoginCallback />}
+          {stage === 'login' && <Login isUnlockMode={true} />}
           {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} onViewArchive={handleViewArchive} onLogout={handleLogout} />}
           {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
           {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}

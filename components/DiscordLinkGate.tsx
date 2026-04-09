@@ -42,7 +42,7 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             state,
-            firebaseUid: user.uid,
+            appUid: user.uid,
             email: user.email,
             displayName: user.displayName,
           }),
@@ -111,4 +111,3 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
     </div>
   );
 }
-

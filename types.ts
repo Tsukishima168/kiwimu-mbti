@@ -114,8 +114,16 @@ export interface TestRun {
 export interface UserProfile {
   displayName?: string;
   avatar?: string;
+  setup?: {
+    nickname?: string | null;
+    birthday?: string | null;
+    city?: string | null;
+    interests?: string[];
+    completed: boolean;
+    completedAt?: number | null;
+  };
 
-  preferences: {
+  preferences?: {
     language: 'zh' | 'en';
     notifications: {
       newFeatures: boolean;
@@ -133,6 +141,14 @@ export interface UserProfile {
     mostCommonType: string;
     lastTestDate: number;
   };
+}
+
+export interface UserProfileSetupInput {
+  displayName: string;
+  email?: string | null;
+  birthday?: string | null;
+  city?: string | null;
+  interests: string[];
 }
 
 /**

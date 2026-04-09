@@ -8,7 +8,7 @@ import {
     deleteProgress,
     saveTestRun,
     getTestRuns,
-} from '../services/firestore.service';
+} from '../services/user-data.service';
 import { useProgressStorage } from './useProgressStorage';
 import { getResultData } from '../constants';
 

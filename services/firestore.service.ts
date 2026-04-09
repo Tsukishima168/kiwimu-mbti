@@ -5,28 +5,40 @@ import {
     updateDoc,
     deleteDoc,
     collection,
-    addDoc,
     query,
     where,
     getDocs,
-    orderBy,
-    serverTimestamp
+    orderBy
 } from 'firebase/firestore';
 import { db, CURRENT_QUIZ_VERSION } from '../firestore.config';
-import { QuizProgress, TestRun, UserDocument } from '../types';
+import { QuizProgress, TestRun, UserDocument, UserProfile, UserProfileSetupInput } from '../types';
 import {
     upsertUser,
     saveQuizProgressToSupabase,
     deleteQuizProgressFromSupabase,
     saveTestRunToSupabase,
+    saveUserPreferencesToSupabase,
+    completeUserProfileSetupToSupabase,
 } from './supabase-user.service';
+
+type FirestoreMirrorOptions = {
+    skipSupabaseMirror?: boolean;
+};
+
+type FirestoreTestRunOptions = FirestoreMirrorOptions & {
+    preferredId?: string;
+    preferredShareId?: string;
+    preferredShareUrl?: string;
+    preferredFinishedAt?: number;
+};
 
 /**
  * User operations
  */
 export const createOrUpdateUser = async (
     uid: string,
-    data: Partial<UserDocument>
+    data: Partial<UserDocument>,
+    options: FirestoreMirrorOptions = {}
 ): Promise<void> => {
     const userRef = doc(db, 'users', uid);
     const userDoc = await getDoc(userRef);
@@ -48,11 +60,13 @@ export const createOrUpdateUser = async (
     }
 
     // 雙寫到 Supabase（fire-and-forget，失敗不影響主流程）
-    void upsertUser(uid, {
-        displayName: data.displayName,
-        email: data.email,
-        profile: data.profile ? (data.profile as unknown as Record<string, unknown>) : undefined,
-    });
+    if (!options.skipSupabaseMirror) {
+        void upsertUser(uid, {
+            displayName: data.displayName,
+            email: data.email,
+            profile: data.profile ? (data.profile as unknown as Record<string, unknown>) : undefined,
+        });
+    }
 };
 
 export const getUser = async (uid: string): Promise<UserDocument | null> => {
@@ -65,12 +79,78 @@ export const getUser = async (uid: string): Promise<UserDocument | null> => {
     return null;
 };
 
+export const getUserPreferences = async (
+    uid: string
+): Promise<UserProfile['preferences'] | null> => {
+    const userDoc = await getUser(uid);
+    return userDoc?.profile?.preferences ?? null;
+};
+
+export const saveUserPreferences = async (
+    uid: string,
+    preferences: UserProfile['preferences'],
+    options: FirestoreMirrorOptions = {}
+): Promise<void> => {
+    const userRef = doc(db, 'users', uid);
+
+    await setDoc(userRef, {
+        profile: {
+            preferences,
+        },
+        lastActiveAt: Date.now(),
+    }, { merge: true });
+
+    if (!options.skipSupabaseMirror) {
+        void saveUserPreferencesToSupabase(uid, preferences);
+    }
+};
+
+export const completeUserProfileSetup = async (
+    uid: string,
+    input: UserProfileSetupInput,
+    options: FirestoreMirrorOptions = {}
+): Promise<void> => {
+    const userRef = doc(db, 'users', uid);
+    const existingUser = await getUser(uid);
+    const nextProfile: UserProfile = {
+        ...(existingUser?.profile ?? {}),
+        setup: {
+            ...(existingUser?.profile?.setup ?? {}),
+            nickname: input.displayName,
+            birthday: input.birthday ?? null,
+            city: input.city ?? null,
+            interests: input.interests,
+            completed: true,
+            completedAt: Date.now(),
+        },
+    };
+
+    await setDoc(userRef, {
+        uid,
+        displayName: input.displayName,
+        birthday: input.birthday ?? null,
+        city: input.city ?? null,
+        interests: input.interests,
+        isProfileSetup: true,
+        email: input.email ?? null,
+        createdAt: existingUser?.createdAt ?? Date.now(),
+        updatedAt: Date.now(),
+        lastActiveAt: Date.now(),
+        profile: nextProfile,
+    }, { merge: true });
+
+    if (!options.skipSupabaseMirror) {
+        void completeUserProfileSetupToSupabase(uid, input);
+    }
+};
+
 /**
  * Quiz Progress operations
  */
 export const saveProgressToCloud = async (
     uid: string,
-    progress: Omit<QuizProgress, 'uid'>
+    progress: Omit<QuizProgress, 'uid'>,
+    options: FirestoreMirrorOptions = {}
 ): Promise<void> => {
     const progressDocId = `${uid}_${progress.quizVersion}`;
     const progressRef = doc(db, 'quiz_progress', progressDocId);
@@ -82,7 +162,9 @@ export const saveProgressToCloud = async (
     });
 
     // 雙寫到 Supabase（fire-and-forget）
-    void saveQuizProgressToSupabase(uid, progress);
+    if (!options.skipSupabaseMirror) {
+        void saveQuizProgressToSupabase(uid, progress);
+    }
 };
 
 export const loadProgressFromCloud = async (
@@ -101,14 +183,17 @@ export const loadProgressFromCloud = async (
 
 export const deleteProgress = async (
     uid: string,
-    quizVersion: string = CURRENT_QUIZ_VERSION
+    quizVersion: string = CURRENT_QUIZ_VERSION,
+    options: FirestoreMirrorOptions = {}
 ): Promise<void> => {
     const progressDocId = `${uid}_${quizVersion}`;
     const progressRef = doc(db, 'quiz_progress', progressDocId);
     await deleteDoc(progressRef);
 
     // 雙寫到 Supabase（fire-and-forget）
-    void deleteQuizProgressFromSupabase(uid, quizVersion);
+    if (!options.skipSupabaseMirror) {
+        void deleteQuizProgressFromSupabase(uid, quizVersion);
+    }
 };
 
 /**
@@ -120,21 +205,27 @@ const generateShareId = (): string => {
     return `${timestamp}${random}`.toUpperCase();
 };
 
+export const createFirestoreTestRunId = (): string => doc(collection(db, 'test_runs')).id;
+
 /**
  * Test Run operations
  */
 export const saveTestRun = async (
-    run: Omit<TestRun, 'id'>
+    run: Omit<TestRun, 'id'>,
+    options: FirestoreTestRunOptions = {}
 ): Promise<string> => {
     const runsCollection = collection(db, 'test_runs');
 
     // Generate share ID for this test
-    const shareId = generateShareId();
-    const shareUrl = `https://kiwimu.com/r/${shareId}`;
+    const shareId = options.preferredShareId ?? generateShareId();
+    const shareUrl = options.preferredShareUrl ?? `https://kiwimu.com/r/${shareId}`;
+    const finishedAt = options.preferredFinishedAt ?? Date.now();
+    const runId = options.preferredId ?? doc(runsCollection).id;
+    const runRef = doc(runsCollection, runId);
 
-    const docRef = await addDoc(runsCollection, {
+    await setDoc(runRef, {
         ...run,
-        finishedAt: Date.now(),
+        finishedAt,
         shareId,
         shareUrl,
         isPublic: true, // Allow sharing by default
@@ -144,15 +235,17 @@ export const saveTestRun = async (
     const shareLinkRef = doc(db, 'share_links', shareId);
     await setDoc(shareLinkRef, {
         uid: run.uid,
-        testId: docRef.id,
+        testId: runId,
         mbtiType: run.mbtiType,
         createdAt: Date.now(),
     });
 
-    // 雙寫到 Supabase（fire-and-forget）
-    void saveTestRunToSupabase(docRef.id, run, shareId, shareUrl);
+    if (!options.skipSupabaseMirror) {
+        // 雙寫到 Supabase（fire-and-forget）
+        void saveTestRunToSupabase(runId, run, shareId, shareUrl);
+    }
 
-    return docRef.id;
+    return runId;
 };
 
 export const getTestRuns = async (uid: string): Promise<TestRun[]> => {

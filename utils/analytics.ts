@@ -3,8 +3,6 @@
 
 import { logEvent, setUserProperties } from 'firebase/analytics';
 import { analytics } from '../firebase';
-import { doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firestore.config';
 
 const SITE_ID = 'mbti_lab';
 
@@ -28,6 +26,7 @@ export interface AnalyticsEvent {
 // ==================== Session Management ====================
 
 let sessionId: string | null = null;
+const isLegacyFirestoreAnalyticsEnabled = () => import.meta.env.VITE_ENABLE_FIREBASE_LEGACY_ANALYTICS === 'true';
 
 export const getSessionId = (): string => {
     if (sessionId) return sessionId;
@@ -516,6 +515,10 @@ const logToFirestore = async (
     eventName: string,
     properties: Record<string, any>
 ) => {
+    if (!isLegacyFirestoreAnalyticsEnabled()) {
+        return;
+    }
+
     try {
         const propertiesWithSite = withSiteId(properties);
         const event: AnalyticsEvent = {
@@ -527,11 +530,14 @@ const logToFirestore = async (
             source: getCampaignSource(),
         };
 
-        // Save to Firestore
-        const eventsRef = collection(db, 'analytics_events');
-        await setDoc(doc(eventsRef), {
+        const [{ db }, firestore] = await Promise.all([
+            import('../firestore.config'),
+            import('firebase/firestore'),
+        ]);
+        const eventsRef = firestore.collection(db, 'analytics_events');
+        await firestore.setDoc(firestore.doc(eventsRef), {
             ...event,
-            createdAt: serverTimestamp(),
+            createdAt: firestore.serverTimestamp(),
         });
     } catch (error) {
         console.error('Failed to log event to Firestore:', error);
@@ -600,16 +606,23 @@ const flushEventQueue = async () => {
     eventQueue = [];
     flushTimeout = null;
 
+    if (!isLegacyFirestoreAnalyticsEnabled()) {
+        return;
+    }
+
     try {
-        // Batch write to Firestore
+        const [{ db }, firestore] = await Promise.all([
+            import('../firestore.config'),
+            import('firebase/firestore'),
+        ]);
         const batch = [];
-        const eventsRef = collection(db, 'analytics_events');
+        const eventsRef = firestore.collection(db, 'analytics_events');
 
         for (const event of eventsToFlush) {
             batch.push(
-                setDoc(doc(eventsRef), {
+                firestore.setDoc(firestore.doc(eventsRef), {
                     ...event,
-                    createdAt: serverTimestamp(),
+                    createdAt: firestore.serverTimestamp(),
                 })
             );
         }

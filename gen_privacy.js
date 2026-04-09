@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const langs = [
     {
@@ -13,7 +17,7 @@ const langs = [
 
         h1: '1. What we save for your records',
         p1: 'In order for you to have your own test records and review them long-term after logging in, we will save:',
-        li1_1: '<strong>Login Account</strong>: The name, Email, and account identifier you provide when logging in with Google or LINE, used to verify your identity and keep records for you.',
+        li1_1: '<strong>Login Account</strong>: The name, email, and account identifier you provide when signing in with Google, used to verify your identity and keep records for you.',
         li1_2: '<strong>Your Test Results</strong>: Your MBTI results and related analysis, for your later review and comparison (if you are not logged in, they will only be saved on your device and will not be uploaded).',
         li1_3: '<strong>Login Time and Method</strong>: Used for your usage records and account security.',
         p1_end: 'You can play the test without logging in, but there will be no cross-device records and long-term tracking functions. The above saving is based on your consent and service needs.',
@@ -25,17 +29,17 @@ const langs = [
         li2_3: 'We may compile statistics anonymously to improve service quality',
 
         h3: '3. How your records are saved and protected',
-        li3_1: 'Logins and accounts are securely managed by <strong>Google Firebase</strong>, and your records are transmitted via HTTPS encryption.',
+        li3_1: 'Logins and accounts are securely managed by <strong>Supabase Auth</strong>, and your records are transmitted via HTTPS encryption.',
         li3_2: 'We only keep it for as long as you need to "have a record and review it"; if you delete your account or request deletion, we will delete it within a reasonable period, except as otherwise provided by law.',
         li3_3: 'We will not sell your personal data to anyone.',
 
         h31: '3-1. Storage Method of Records',
-        p31: 'We use cloud services such as Google and LINE to save your login and records. These services may operate outside the country, and we will choose service providers with security standards. Using this service indicates that you understand and agree to this arrangement.',
+        p31: 'We use cloud services such as Supabase, Google, and Cloudinary to save your login and records. These services may operate outside the country, and we will choose service providers with security standards. Using this service indicates that you understand and agree to this arrangement.',
 
         h4: '4. Services we use to keep records for you',
         p4: 'Logins and saving of records are completed through the following services, each with its own privacy explanation:',
-        li4_1: '<strong>Google Firebase</strong>: For user authentication <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Privacy Policy</a>',
-        li4_2: '<strong>LINE Login</strong>: For LINE account login <a href="https://line.me/en/terms/policy/" target="_blank" rel="noopener">Privacy Policy</a>',
+        li4_1: '<strong>Supabase</strong>: For user authentication and account session management <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>',
+        li4_2: '<strong>Google</strong>: For Google sign-in identity verification <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>',
         li4_3: '<strong>Cloudinary</strong>: For image storage and optimization <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>',
 
         h5: '5. Cookies',
@@ -68,7 +72,7 @@ const langs = [
 
         h1: '1. 記録のために保存するもの',
         p1: 'ログイン後、自分自身のテスト記録を持ち、長期的に見直すことができるように、私たちは以下を保存します：',
-        li1_1: '<strong>ログイン用アカウント</strong>: GoogleまたはLINEでログインする際に提供される氏名、Email、アカウント識別子は、本人確認および記録保持のために使用されます。',
+        li1_1: '<strong>ログイン用アカウント</strong>: Googleでログインする際に提供される氏名、Email、アカウント識別子は、本人確認および記録保持のために使用されます。',
         li1_2: '<strong>あなたのテスト結果</strong>: MBTIの診断結果と関連する分析。後で見直したり比較したりするためです（ログインしていない場合、デバイスにのみ保存され、アップロードされません）。',
         li1_3: '<strong>ログイン時間と方法</strong>: 利用履歴とアカウントのセキュリティのために使用されます。',
         p1_end: 'ログインしなくてもテストを受けることはできますが、クロスデバイスの記録や長期的な追跡機能は利用できません。上記の保存は、あなたの同意とサービス向上のために行われます。',
@@ -80,17 +84,17 @@ const langs = [
         li2_3: 'サービスの質を向上させるために、匿名化された形で統計処理を行う場合があります',
 
         h3: '3. 記録の保存と保護方法',
-        li3_1: 'ログインとアカウントは<strong>Google Firebase</strong>によって安全に管理され、記録の送信はすべてHTTPSで暗号化されます。',
+        li3_1: 'ログインとアカウントは<strong>Supabase Auth</strong>によって安全に管理され、記録の送信はすべてHTTPSで暗号化されます。',
         li3_2: '私たちは、あなたが「記録を持ち、見直せる」必要がある期間のみ保存します。アカウントを削除したり、削除を要請した場合は、法令に別段の定めがない限り、合理的な期間内に削除します。',
         li3_3: 'あなたの個人データを他人に販売することはありません。',
 
         h31: '3-1. 記録の保管場所',
-        p31: '私たちは、GoogleやLINEなどのクラウドサービスを使用して、ログインと記録を保存しています。これらのサービスは海外で運用される可能性がありますが、安全な基準を備えたサービス提供者を選択しています。本サービスを利用することで、この取り決めに理解し同意したことになります。',
+        p31: '私たちは、Supabase、Google、Cloudinary などのクラウドサービスを使用して、ログインと記録を保存しています。これらのサービスは海外で運用される可能性がありますが、安全な基準を備えたサービス提供者を選択しています。本サービスを利用することで、この取り決めに理解し同意したことになります。',
 
         h4: '4. 記録の保存に使用するサービス',
         p4: 'ログインと記録の保存は以下のサービスを介して行われ、それぞれに固有のプライバシー説明があります：',
-        li4_1: '<strong>Google Firebase</strong>: ユーザー認証用 <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">プライバシーポリシー</a>',
-        li4_2: '<strong>LINE Login</strong>: LINEアカウントログイン用 <a href="https://line.me/ja/terms/policy/" target="_blank" rel="noopener">プライバシーポリシー</a>',
+        li4_1: '<strong>Supabase</strong>: ユーザー認証とセッション管理用 <a href="https://supabase.com/privacy" target="_blank" rel="noopener">プライバシーポリシー</a>',
+        li4_2: '<strong>Google</strong>: Google サインインによる本人確認用 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">プライバシーポリシー</a>',
         li4_3: '<strong>Cloudinary</strong>: 画像の保存と最適化用 <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener">プライバシーポリシー</a>',
 
         h5: '5. クッキー (Cookies)',
@@ -123,7 +127,7 @@ const langs = [
 
         h1: '1. 기록을 위해 어떤 정보를 저장합니까?',
         p1: '로그인 후 자신의 테스트 기록을 유지하고 장기적으로 검토할 수 있도록 당사는 다음을 저장합니다:',
-        li1_1: '<strong>로그인 계정</strong>: Google 또는 LINE으로 로그인할 때 제공되는 이름, Email 및 계정 식별자는 본인을 확인하고 기록을 유지하는 데 사용됩니다.',
+        li1_1: '<strong>로그인 계정</strong>: Google로 로그인할 때 제공되는 이름, Email 및 계정 식별자는 본인을 확인하고 기록을 유지하는 데 사용됩니다.',
         li1_2: '<strong>귀하의 테스트 결과</strong>: 귀하의 MBTI 결과 및 관련 분석은 나중에 검토하고 비교할 수 있도록 저장됩니다 (로그인하지 않은 경우 장치에만 저장되고 업로드되지 않습니다).',
         li1_3: '<strong>로그인 시간 및 방법</strong>: 사용 내역 및 계정 보안을 위해 사용됩니다.',
         p1_end: '로그인하지 않고도 테스트를 이용할 수 있지만 기기 간 기록 및 장기 추적 기능은 없습니다. 위 사항의 저장은 귀하의 동의 및 서비스 요구 사항에 기반합니다.',
@@ -135,17 +139,17 @@ const langs = [
         li2_3: '서비스 품질 개선을 위해 익명으로 통계를 작성할 수 있습니다',
 
         h3: '3. 기록의 저장 및 보호 방법',
-        li3_1: '로그인 및 계정은 <strong>Google Firebase</strong>에 의해 안전하게 관리되며 귀하의 기록은 HTTPS 암호화를 통해 전송됩니다.',
+        li3_1: '로그인 및 계정은 <strong>Supabase Auth</strong>에 의해 안전하게 관리되며 귀하의 기록은 HTTPS 암호화를 통해 전송됩니다.',
         li3_2: '당사는 귀하가 "기록을 유지하고 검토할" 필요가 있는 기간 동안만 보관합니다. 계정을 삭제하거나 삭제를 요청하는 경우, 법률에 달리 규정되지 않는 한 합리적인 기간 내에 삭제됩니다.',
         li3_3: '당사는 귀하의 개인 데이터를 타인에게 판매하지 않습니다.',
 
         h31: '3-1. 기록의 보관 위치',
-        p31: '당사는 Google, LINE 등의 클라우드 서비스를 사용하여 로그인 및 기록을 저장합니다. 이러한 서비스는 해외에서 운영될 수 있으며, 당사는 안전 기준을 갖춘 서비스 제공자를 선택합니다. 이 서비스를 사용하면 이 사항을 이해하고 동의하는 것으로 간주됩니다.',
+        p31: '당사는 Supabase, Google, Cloudinary 등의 클라우드 서비스를 사용하여 로그인 및 기록을 저장합니다. 이러한 서비스는 해외에서 운영될 수 있으며, 당사는 안전 기준을 갖춘 서비스 제공자를 선택합니다. 이 서비스를 사용하면 이 사항을 이해하고 동의하는 것으로 간주됩니다.',
 
         h4: '4. 기록을 보관하기 위해 사용하는 서비스',
         p4: '로그인 및 기록의 저장은 다음 서비스를 통해 수행되며 각각 고유한 개인 정보 보호 정책이 있습니다:',
-        li4_1: '<strong>Google Firebase</strong>: 사용자 인증용 <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">개인정보 보호정책</a>',
-        li4_2: '<strong>LINE Login</strong>: LINE 계정 로그인용 <a href="https://line.me/ko/terms/policy/" target="_blank" rel="noopener">개인정보 보호정책</a>',
+        li4_1: '<strong>Supabase</strong>: 사용자 인증 및 세션 관리용 <a href="https://supabase.com/privacy" target="_blank" rel="noopener">개인정보 보호정책</a>',
+        li4_2: '<strong>Google</strong>: Google 로그인 본인 확인용 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">개인정보 보호정책</a>',
         li4_3: '<strong>Cloudinary</strong>: 이미지 저장 및 최적화용 <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener">개인정보 보호정책</a>',
 
         h5: '5. 쿠키 (Cookies)',
@@ -185,7 +189,7 @@ langs.forEach(lang => {
 
         .replace('1. 為了您的記錄，我們會保存什麼', lang.h1)
         .replace('為了讓您登入後能擁有自己的測驗記錄並長期回看，我們會保存：', lang.p1)
-        .replace('<strong>登入用帳號</strong>：您用 Google 或 LINE 登入時提供的姓名、Email、帳號識別，用來辨識是您本人並為您保留記錄。', lang.li1_1)
+        .replace('<strong>登入用帳號</strong>：您用 Google 登入時提供的姓名、Email、帳號識別，用來辨識是您本人並為您保留記錄。', lang.li1_1)
         .replace('<strong>您的測驗結果</strong>：您的 MBTI 結果與相關分析，供您之後回看與對比（未登入時若僅存於您裝置，則不會上傳）。', lang.li1_2)
         .replace('<strong>登入時間與方式</strong>：用於您的使用紀錄與帳號安全。', lang.li1_3)
         .replace('不登入也可以玩測驗，但就不會有跨裝置的記錄與長期追蹤功能。上述保存係基於您的同意與服務所需。', lang.p1_end)
@@ -197,17 +201,17 @@ langs.forEach(lang => {
         .replace('我們可能以匿名方式統計，用來改善服務品質', lang.li2_3)
 
         .replace('3. 您的記錄如何保存與保護', lang.h3)
-        .replace('登入與帳號由 <strong>Google Firebase</strong> 安全管理，您的記錄傳輸均透過 HTTPS 加密。', lang.li3_1)
+        .replace('登入與帳號由 <strong>Supabase Auth</strong> 安全管理，您的記錄傳輸均透過 HTTPS 加密。', lang.li3_1)
         .replace('我們僅在您需要「有記錄、可回看」的期間內保留；若您刪除帳號或要求刪除，我們會於合理期限內刪除，法律另有規定者除外。', lang.li3_2)
         .replace('我們不會將您的個人資料出售給任何人。', lang.li3_3)
 
         .replace('3-1. 記錄的存放方式', lang.h31)
-        .replace('我們使用 Google、LINE 等雲端服務來為您保存登入與記錄，這些服務可能於境外運作，我們會選擇具安全標準之服務商。使用本服務即表示您了解並同意此安排。', lang.p31)
+        .replace('我們使用 Supabase、Google、Cloudinary 等雲端服務來為您保存登入與記錄，這些服務可能於境外運作，我們會選擇具安全標準之服務商。使用本服務即表示您了解並同意此安排。', lang.p31)
 
         .replace('4. 我們用來為您保存記錄的服務', lang.h4)
         .replace('登入與記錄的保存會透過以下服務完成，它們各有自己的隱私說明：', lang.p4)
-        .replace(/<strong>Google Firebase<\/strong>：用於使用者認證\s*<a href="https:\/\/firebase.google.com\/support\/privacy" target="_blank" rel="noopener">隱私權政策<\/a>/, lang.li4_1)
-        .replace(/<strong>LINE Login<\/strong>：用於 LINE 帳號登入\s*<a href="https:\/\/line.me\/zh-hant\/terms\/policy\/" target="_blank" rel="noopener">隱私權政策<\/a>/, lang.li4_2)
+        .replace(/<strong>Supabase Auth<\/strong>：用於使用者認證與帳號 session 管理\s*<a href="https:\/\/supabase.com\/privacy" target="_blank" rel="noopener">隱私權政策<\/a>/, lang.li4_1)
+        .replace(/<strong>Google<\/strong>：用於 Google 登入身分驗證\s*<a href="https:\/\/policies.google.com\/privacy" target="_blank" rel="noopener">隱私權政策<\/a>/, lang.li4_2)
         .replace(/<strong>Cloudinary<\/strong>：用於圖片儲存與優化\s*<a href="https:\/\/cloudinary.com\/privacy" target="_blank" rel="noopener">隱私權政策<\/a>/, lang.li4_3)
 
         .replace('5. Cookies', lang.h5)

@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
 import type { AppUser } from '../types';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firestore.config';
+import { completeUserProfileSetup } from '../services/user-data.service';
 
 interface ProfileSetupModalProps {
     user: AppUser;
@@ -53,19 +52,13 @@ const ProfileSetupModal: React.FC<ProfileSetupModalProps> = ({ user, onComplete,
         setIsSubmitting(true);
 
         try {
-            const userRef = doc(db, 'users', user.uid);
-
-            // Use setDoc with merge to create document if it doesn't exist
-            await setDoc(userRef, {
+            await completeUserProfileSetup(user.uid, {
                 displayName: nickname,
                 birthday: birthday || null,
                 city: city || null,
-                interests: interests,
-                isProfileSetup: true,
+                interests,
                 email: user.email || null,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            }, { merge: true });
+            });
 
             console.log('Profile saved successfully!', { uid: user.uid, nickname });
             onComplete();

@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getAuthSupabaseClient, trackSsoEvent } from '../utils/supabaseAuthBridge';
+import { getAuthSupabaseClient } from '../utils/supabaseAuthBridge';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoginProps {
-    onLoginSuccess: () => void;
     isUnlockMode?: boolean;
 }
 
-const Login: React.FC<LoginProps> = ({ onLoginSuccess, isUnlockMode = false }) => {
+const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
     const [error, setError] = useState<string | null>(null);
     const [isInAppBrowser, setIsInAppBrowser] = useState(false);
     const { language } = useLanguage();

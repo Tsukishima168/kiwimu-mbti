@@ -1,10 +1,8 @@
 /**
- * Supabase Auth Bridge（Firebase → Supabase 並行）
+ * Shared Supabase auth client for kiwimu.com.
  *
- * 用途：Firebase Google 登入成功後，取得 Google idToken，
- *       再用 signInWithIdToken 建立 Supabase session（cookie domain = .kiwimu.com）
- *
- * 這樣 kiwimu.com 所有子網域（passport / map / gacha）可共享登入狀態。
+ * This is now the primary auth path for the MBTI frontend and persists the
+ * session in a .kiwimu.com cookie so sibling subdomains can read the same user.
  */
 
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
@@ -84,62 +82,13 @@ export function toAppUser(u: SupabaseUser): AppUser {
   };
 }
 
-// ── Bridge：Firebase Google idToken → Supabase session ───────────────────────
-
 /**
- * 用 Google idToken 在 Supabase 建立 session
- * 在 Firebase Google 登入成功後立刻呼叫
- *
- * @param idToken - GoogleAuthProvider.credentialFromResult(result)?.idToken
- */
-export async function syncGoogleToSupabase(idToken: string): Promise<void> {
-  const supabase = getAuthSupabaseClient();
-  if (!supabase) return;
-
-  const { error } = await supabase.auth.signInWithIdToken({
-    provider: 'google',
-    token: idToken,
-  });
-
-  if (error) {
-    // 非阻塞性：Firebase 主流程照跑，Supabase 失敗只印 log
-    console.error('⚠️ Supabase sync failed (non-blocking):', error.message);
-    return;
-  }
-
-  console.log('✅ Supabase session synced from Google login');
-}
-
-/**
- * 登出 Supabase session（配合 Firebase 登出使用）
+ * Sign out the shared Supabase session.
  */
 export async function signOutSupabase(): Promise<void> {
   const supabase = getAuthSupabaseClient();
   if (!supabase) return;
   await supabase.auth.signOut();
-}
-
-/**
- * 用 hashed_token 在 Supabase 建立 session（LINE 登入使用）
- * server 端（api/line-auth）產生後傳回，client 呼叫此函式完成同步
- *
- * @param hashedToken - api/line-auth 回傳的 supabaseHashedToken
- */
-export async function syncLineToSupabase(hashedToken: string): Promise<void> {
-  const supabase = getAuthSupabaseClient();
-  if (!supabase) return;
-
-  const { error } = await supabase.auth.verifyOtp({
-    token_hash: hashedToken,
-    type: 'magiclink',
-  });
-
-  if (error) {
-    console.error('⚠️ Supabase LINE sync failed (non-blocking):', error.message);
-    return;
-  }
-
-  console.log('✅ Supabase session synced from LINE login');
 }
 
 // ── Site event tracking ───────────────────────────────────────────────────────
