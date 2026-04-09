@@ -36,7 +36,7 @@ import {
   getSharedTestResultFromSupabase,
 } from './supabase-user.service';
 
-import { CURRENT_QUIZ_VERSION } from '../firestore.config';
+import { CURRENT_QUIZ_VERSION } from '../constants/versions';
 import type { UserDocument, QuizProgress, TestRun, UserProfile, UserProfileSetupInput } from '../types';
 
 // ─── Reads: Supabase-first ────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TestRun } from '../types';
 import { getResultData } from '../constants';
-import { CURRENT_DESSERT_VERSION } from '../firestore.config';
+import { CURRENT_DESSERT_VERSION } from '../constants/versions';
 import { useLanguage } from '../contexts/LanguageContext';
 import Result from './Result';
 

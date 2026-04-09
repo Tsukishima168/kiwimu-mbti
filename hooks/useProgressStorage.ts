@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Option } from '../types';
-import { CURRENT_QUIZ_VERSION } from '../firestore.config';
+import { CURRENT_QUIZ_VERSION } from '../constants/versions';
 
 const STORAGE_KEY = 'kiwimu_quiz_progress';
 

@@ -10,7 +10,8 @@ import {
     getDocs,
     orderBy
 } from 'firebase/firestore';
-import { db, CURRENT_QUIZ_VERSION } from '../firestore.config';
+import { db } from '../firestore.config';
+import { CURRENT_QUIZ_VERSION } from '../constants/versions';
 import { QuizProgress, TestRun, UserDocument, UserProfile, UserProfileSetupInput } from '../types';
 import {
     upsertUser,

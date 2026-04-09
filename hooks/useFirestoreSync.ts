@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AppUser, Option, TestRun, Score } from '../types';
-import { CURRENT_QUIZ_VERSION, CURRENT_SCORING_VERSION, CURRENT_DESSERT_VERSION } from '../firestore.config';
+import { CURRENT_QUIZ_VERSION, CURRENT_SCORING_VERSION, CURRENT_DESSERT_VERSION } from '../constants/versions';
 import {
     createOrUpdateUser,
     saveProgressToCloud,

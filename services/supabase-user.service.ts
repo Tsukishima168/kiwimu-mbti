@@ -63,7 +63,7 @@ const getRawUserRowFromSupabase = async (uid: string): Promise<Record<string, un
   try {
     const { data, error } = await userDb
       .from('users')
-      .select('uid, display_name, email, profile, last_active_at')
+      .select('uid, display_name, email, profile, last_active_at, created_at')
       .eq('uid', uid)
       .single();
 
@@ -276,7 +276,7 @@ export const getUserFromSupabase = async (uid: string): Promise<UserDocument | n
     uid: row.uid as string,
     displayName: (row.display_name as string | null) ?? undefined,
     email: (row.email as string | null) ?? undefined,
-    createdAt: 0,
+    createdAt: row.created_at ? new Date(row.created_at as string).getTime() : 0,
     lastActiveAt: new Date(row.last_active_at as string).getTime() || 0,
     profile: row.profile as UserProfile | undefined,
   };
