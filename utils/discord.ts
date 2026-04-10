@@ -1,14 +1,28 @@
 import { getResultData } from '../constants';
 
+export interface DiscordNotificationMetadata {
+    funnel: 'v1' | 'v1_5';
+    personalityNameOverride?: string;
+    stage?: string;
+    source?: string;
+    quizVersion?: string;
+    path?: string;
+    sessionId?: string;
+    userId?: string;
+    isLoggedIn?: boolean;
+}
+
 export const sendDiscordNotification = async (
     resultType: string,
     suffix: 'A' | 'T',
     locale: string = 'zh',
-    userId?: string
+    userId?: string,
+    metadata?: DiscordNotificationMetadata
 ) => {
     try {
         // 獲取人格數據
         const personalityData = getResultData(resultType, suffix);
+        const personalityName = metadata?.personalityNameOverride || personalityData.title;
 
         // 發送請求到 API
         const response = await fetch('/api/notify-discord', {
@@ -16,9 +30,13 @@ export const sendDiscordNotification = async (
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 resultType: `${resultType}-${suffix}`,
-                personalityName: personalityData.title,
+                personalityName,
                 locale, // 傳遞 locale
-                userId  // 傳遞用戶 ID（用於 Firestore 分析）
+                userId,  // 傳遞用戶 ID（用於 Firestore 分析）
+                metadata: {
+                    ...metadata,
+                    userId: userId ?? metadata?.userId,
+                }
             })
         });
 

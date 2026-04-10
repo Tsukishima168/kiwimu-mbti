@@ -29,11 +29,17 @@
   },
   "exclude": [
     ".claude",
+    "dist",
     "MBTI-Lab-V1.5-TEST",
     "docs",
     "obsidian",
+    "supabase/.temp",
     "supabase/scripts",
     "scripts",
-    "api"
+    "api",
+    "**/* 2.ts",
+    "**/* 2.tsx",
+    "**/* 2.css",
+    "**/llms 2.txt"
   ]
 }

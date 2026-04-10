@@ -3,6 +3,21 @@ import { createClient } from '@supabase/supabase-js';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
 const CHANNEL_ID = process.env.DISCORD_CHANNEL_ID || '1466020032310939823'; // #results channel
+const DETAIL_CHANNEL_ID =
+    process.env.DISCORD_DETAIL_CHANNEL_ID ||
+    process.env.DISCORD_EVENTS_CHANNEL_ID ||
+    CHANNEL_ID;
+
+interface NotifyMetadata {
+    funnel?: 'v1' | 'v1_5';
+    stage?: string;
+    source?: string;
+    quizVersion?: string;
+    path?: string;
+    sessionId?: string;
+    userId?: string;
+    isLoggedIn?: boolean;
+}
 
 function getAdminDb() {
     const url = process.env.SUPABASE_USER_URL || process.env.VITE_SUPABASE_USER_URL;
@@ -56,7 +71,13 @@ export default async function handler(
         return response.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { resultType, personalityName, locale = 'zh' } = request.body;
+    const { resultType, personalityName, locale = 'zh', userId, metadata = {} } = request.body as {
+        resultType: string;
+        personalityName: string;
+        locale?: string;
+        userId?: string;
+        metadata?: NotifyMetadata;
+    };
     const botToken = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN;
 
     if (!botToken) {
@@ -97,14 +118,15 @@ export default async function handler(
             console.warn('[DISCORD] Failed to get count', e);
         }
 
-        const discordPayload = {
+        const funnelLabel = metadata.funnel === 'v1_5' ? 'V1.5 快測' : 'V1 完整版';
+        const summaryPayload = {
             content: '@everyone',
             allowed_mentions: {
                 parse: ['everyone']
             },
             embeds: [{
                 title: `${localeConfig.emoji} ${localeConfig.header}`,
-                description: `**${personalityName}** (${resultType})\n\n🏆 總計第 **${totalCount}** 份靈魂檔案！`,
+                description: `**${personalityName}** (${resultType})\n\n來自 **${funnelLabel}** 的新完成回報。${totalCount > 0 ? `\n🏆 已入庫測驗紀錄 **${totalCount}** 筆` : ''}`,
                 color: localeConfig.color,
                 fields: [
                     {
@@ -115,6 +137,11 @@ export default async function handler(
                     {
                         name: '🎯 Type / 類型',
                         value: resultType,
+                        inline: true
+                    },
+                    {
+                        name: '🪜 Funnel / 漏斗',
+                        value: funnelLabel,
                         inline: true
                     },
                     {
@@ -135,30 +162,62 @@ export default async function handler(
             }]
         };
 
-        const discordRes = await fetch(`${DISCORD_API_URL}/channels/${CHANNEL_ID}/messages`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bot ${botToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(discordPayload),
-        });
+        const detailPayload = {
+            embeds: [{
+                title: `🧾 Completion Detail · ${resultType}`,
+                color: 0x2F3136,
+                fields: [
+                    { name: 'funnel', value: metadata.funnel || 'unknown', inline: true },
+                    { name: 'stage', value: metadata.stage || 'result', inline: true },
+                    { name: 'source', value: metadata.source || 'direct', inline: true },
+                    { name: 'quiz_version', value: metadata.quizVersion || '-', inline: true },
+                    { name: 'path', value: metadata.path || '-', inline: true },
+                    { name: 'logged_in', value: String(Boolean(metadata.isLoggedIn)), inline: true },
+                    { name: 'user_id', value: metadata.userId || userId || 'anonymous', inline: false },
+                    { name: 'session_id', value: metadata.sessionId || 'unknown', inline: false },
+                ],
+                footer: {
+                    text: `detail → ${DETAIL_CHANNEL_ID === CHANNEL_ID ? '#results (same channel)' : '#events/detail'}`,
+                },
+                timestamp: new Date().toISOString(),
+            }],
+        };
 
-        const responseData = await discordRes.json() as { id?: string };
-
-        if (!discordRes.ok) {
-            console.error('[DISCORD] ❌ Discord API error:', {
-                status: discordRes.status,
-                statusText: discordRes.statusText,
-                response: responseData,
-                channel: CHANNEL_ID
+        const sendDiscordMessage = async (channelId: string, payload: unknown) => {
+            const discordRes = await fetch(`${DISCORD_API_URL}/channels/${channelId}/messages`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bot ${botToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload),
             });
-            throw new Error(`Discord API error: ${discordRes.statusText} - ${JSON.stringify(responseData)}`);
-        }
+
+            const responseData = await discordRes.json() as { id?: string };
+
+            if (!discordRes.ok) {
+                console.error('[DISCORD] ❌ Discord API error:', {
+                    status: discordRes.status,
+                    statusText: discordRes.statusText,
+                    response: responseData,
+                    channel: channelId
+                });
+                throw new Error(`Discord API error: ${discordRes.statusText} - ${JSON.stringify(responseData)}`);
+            }
+
+            return responseData;
+        };
+
+        const [summaryResponse, detailResponse] = await Promise.all([
+            sendDiscordMessage(CHANNEL_ID, summaryPayload),
+            sendDiscordMessage(DETAIL_CHANNEL_ID, detailPayload),
+        ]);
 
         console.log('[DISCORD] ✅ Notification sent successfully:', {
-            messageId: responseData.id,
+            messageId: summaryResponse.id,
+            detailMessageId: detailResponse.id,
             channel: CHANNEL_ID,
+            detailChannel: DETAIL_CHANNEL_ID,
             resultType,
             locale,
             timestamp: new Date().toISOString()
@@ -166,9 +225,10 @@ export default async function handler(
 
         return response.status(200).json({
             status: 'sent',
-            messageId: responseData.id,
+            messageId: summaryResponse.id,
+            detailMessageId: detailResponse.id,
             locale,
-            debug: { resultType, personalityName }
+            debug: { resultType, personalityName, metadata }
         });
     } catch (error) {
         console.error('[DISCORD] ❌ Failed to send Discord notification:', error);

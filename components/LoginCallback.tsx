@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAuthSupabaseClient, restoreAuthSessionFromUrl } from '../utils/supabaseAuthBridge';
+import { trackLoginCallback, trackLoginFailure } from '../utils/analytics';
+import { trackAction } from '../utils/userDataCollector';
 
 /**
  * Supabase OAuth callback handler.
@@ -19,6 +21,19 @@ const LoginCallback: React.FC = () => {
         let active = true;
         const fail = (message: string) => {
             if (!active) return;
+            trackLoginCallback('error', 'google', {
+                path: window.location.pathname,
+                error_message: message,
+            });
+            trackLoginFailure('google', message, {
+                path: window.location.pathname,
+                stage: 'callback',
+            });
+            trackAction('login_callback_error', {
+                provider: 'google',
+                path: window.location.pathname,
+                error: message,
+            });
             setError(message);
         };
 
@@ -37,7 +52,17 @@ const LoginCallback: React.FC = () => {
 
             if (!data.session) {
                 fail('登入逾時，請重新嘗試');
+                return;
             }
+
+            trackLoginCallback('restored', 'google', {
+                path: window.location.pathname,
+                provider: data.session.user.app_metadata?.provider || 'google',
+            });
+            trackAction('login_callback_restored', {
+                provider: data.session.user.app_metadata?.provider || 'google',
+                path: window.location.pathname,
+            });
         };
 
         void finalize();

@@ -17,6 +17,8 @@ import {
   calculateExploreResult,
   ExploreQuiz as ExploreQuizType,
 } from '../../data/questions-explore';
+import { sendDiscordNotification } from '../../utils/discord';
+import { getSession, trackAction } from '../../utils/userDataCollector';
 
 type Stage = 'intro' | 'quiz' | 'result';
 
@@ -57,17 +59,24 @@ export default function ExploreApp() {
     const r = calculateExploreResult(answers);
     setResult(r);
     setStage('result');
+    trackAction('v1_5_complete', {
+      mbtiType: r.mbtiType,
+      variant: r.suffix,
+      quizVersion,
+      source,
+    });
     const personality = explorePersonalities[r.mbtiType];
     if (personality) {
-      fetch('/api/notify-discord', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          resultType:      `${r.mbtiType}-${r.suffix}`,
-          personalityName: `${personality.state}（5題快測 Quiz-${quizVersion} / ${source}）`,
-          locale:          'zh',
-        }),
-      }).catch(() => {});
+      void sendDiscordNotification(r.mbtiType, r.suffix, 'zh', undefined, {
+        funnel: 'v1_5',
+        personalityNameOverride: `${personality.state}（5題快測 Quiz-${quizVersion} / ${source}）`,
+        stage: 'result',
+        source,
+        quizVersion,
+        path: window.location.pathname,
+        sessionId: getSession(),
+        isLoggedIn: false,
+      });
     }
   };
 
