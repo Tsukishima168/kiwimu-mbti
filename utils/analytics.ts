@@ -1,8 +1,14 @@
 // Complete Analytics Tracking System for KIWIMU MBTI Lab
-// Integrates with Firebase Analytics (GA4) and custom event tracking
+// Integrates with GA4 via global gtag() loaded in index.html
 
-import { logEvent, setUserProperties } from 'firebase/analytics';
-import { analytics } from '../firebase';
+// gtag.js 由 index.html 全域載入，此處只做型別宣告
+declare function gtag(command: string, ...args: unknown[]): void;
+
+const gtagSafe = (command: string, ...args: unknown[]): void => {
+  if (typeof window !== 'undefined' && typeof gtag === 'function') {
+    gtag(command, ...args);
+  }
+};
 
 const SITE_ID = 'mbti_lab';
 
@@ -56,9 +62,7 @@ export const trackQuizStart = (source?: string, campaignId?: string) => {
         timestamp: new Date().toISOString(),
     };
 
-    if (analytics) {
-        logEvent(analytics, 'quiz_start', withSiteId(eventData));
-    }
+    gtagSafe('event', 'quiz_start', withSiteId(eventData));
 };
 
 /**
@@ -78,9 +82,7 @@ export const trackQuizProgress = (
         time_spent_seconds: timeSpent,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'quiz_progress', withSiteId(eventData));
-    }
+    gtagSafe('event', 'quiz_progress', withSiteId(eventData));
 };
 
 /**
@@ -98,9 +100,7 @@ export const trackQuizAbandon = (
         time_spent_seconds: timeSpent,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'quiz_abandon', withSiteId(eventData));
-    }
+    gtagSafe('event', 'quiz_abandon', withSiteId(eventData));
 };
 
 /**
@@ -118,13 +118,11 @@ export const trackQuizComplete = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'quiz_completion', withSiteId(eventData));
-    }
+    gtagSafe('event', 'quiz_completion', withSiteId(eventData));
 
     // Set user property for MBTI type
-    if (analytics && mbtiType) {
-        setUserProperties(analytics, {
+    if (mbtiType) {
+        gtagSafe('set', 'user_properties', {
             mbti_type: mbtiType.split('-')[0], // e.g., "INFP"
             mbti_variant: mbtiType, // e.g., "INFP-A"
         });
@@ -142,9 +140,7 @@ export const trackResultView = (mbtiType: string, userId?: string) => {
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'result_view', withSiteId(eventData));
-    }
+    gtagSafe('event', 'result_view', withSiteId(eventData));
 };
 
 /**
@@ -162,9 +158,7 @@ export const trackResultShare = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'result_share', withSiteId(eventData));
-    }
+    gtagSafe('event', 'result_share', withSiteId(eventData));
 };
 
 /**
@@ -179,9 +173,7 @@ export const trackResultDownload = (
         mbti_type: mbtiType,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'result_download', withSiteId(eventData));
-    }
+    gtagSafe('event', 'result_download', withSiteId(eventData));
 };
 
 /**
@@ -196,9 +188,7 @@ export const trackStampClaim = (
         ...(data || {}),
     };
 
-    if (analytics) {
-        logEvent(analytics, 'stamp_claim', withSiteId(eventData));
-    }
+    gtagSafe('event', 'stamp_claim', withSiteId(eventData));
 };
 
 // ==================== Social/Community Events ====================
@@ -216,14 +206,12 @@ export const trackLineCTA = (
         timestamp: new Date().toISOString(),
     };
 
-    if (analytics) {
-        logEvent(analytics, 'line_cta_click', withSiteId({
-            ...eventData,
-            event_category: 'conversion',
-            event_label: location,
-            value: 1,
-        }));
-    }
+    gtagSafe('event', 'line_cta_click', withSiteId({
+        ...eventData,
+        event_category: 'conversion',
+        event_label: location,
+        value: 1,
+    }));
 };
 
 /**
@@ -236,9 +224,7 @@ export const trackDiscordJoin = (mbtiType?: string, userId?: string) => {
         platform: 'web',
     };
 
-    if (analytics) {
-        logEvent(analytics, 'discord_join', withSiteId(eventData));
-    }
+    gtagSafe('event', 'discord_join', withSiteId(eventData));
 };
 
 /**
@@ -255,9 +241,7 @@ export const trackDiscordVerify = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'discord_verify_complete', withSiteId(eventData));
-    }
+    gtagSafe('event', 'discord_verify_complete', withSiteId(eventData));
 };
 
 // ==================== O2O Events ====================
@@ -278,9 +262,7 @@ export const trackQRScan = (
         timestamp: new Date().toISOString(),
     };
 
-    if (analytics) {
-        logEvent(analytics, 'qr_code_scan', withSiteId(eventData));
-    }
+    gtagSafe('event', 'qr_code_scan', withSiteId(eventData));
 };
 
 /**
@@ -297,9 +279,7 @@ export const trackTaskCardGenerate = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'task_card_generate', withSiteId(eventData));
-    }
+    gtagSafe('event', 'task_card_generate', withSiteId(eventData));
 };
 
 /**
@@ -317,9 +297,7 @@ export const trackStoreVisit = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'store_visit', withSiteId(eventData));
-    }
+    gtagSafe('event', 'store_visit', withSiteId(eventData));
 };
 
 /**
@@ -336,9 +314,7 @@ export const trackRewardRedemption = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'reward_redemption', withSiteId(eventData));
-    }
+    gtagSafe('event', 'reward_redemption', withSiteId(eventData));
 };
 
 // ==================== User Events ====================
@@ -355,9 +331,7 @@ export const trackUserLogin = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'login', withSiteId(eventData));
-    }
+    gtagSafe('event', 'login', withSiteId(eventData));
 };
 
 /**
@@ -372,9 +346,7 @@ export const trackUserSignup = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'sign_up', withSiteId(eventData));
-    }
+    gtagSafe('event', 'sign_up', withSiteId(eventData));
 };
 
 /**
@@ -389,9 +361,7 @@ export const trackProfileUpdate = (
         user_id: userId,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'profile_update', withSiteId(eventData));
-    }
+    gtagSafe('event', 'profile_update', withSiteId(eventData));
 };
 
 // ==================== Navigation Events ====================
@@ -408,9 +378,7 @@ export const trackPageView = (
         referrer: referrer || document.referrer,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'page_view', withSiteId(eventData));
-    }
+    gtagSafe('event', 'page_view', withSiteId(eventData));
 };
 
 /**
@@ -429,9 +397,7 @@ export const trackScreenEngagement = (
         page_name: screenName,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'screen_engagement', withSiteId(eventData));
-    }
+    gtagSafe('event', 'screen_engagement', withSiteId(eventData));
 };
 
 /**
@@ -448,9 +414,7 @@ export const trackButtonClick = (
         destination_url: destination,
     };
 
-    if (analytics) {
-        logEvent(analytics, 'button_click', withSiteId(eventData));
-    }
+    gtagSafe('event', 'button_click', withSiteId(eventData));
 };
 
 // ==================== Campaign Source ====================
