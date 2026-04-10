@@ -1,31 +1,25 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, EmbedBuilder } = require('discord.js');
-const admin = require('firebase-admin');
-const serviceAccount = require('./firebase-adminsdk-key.json');
+const { createClient } = require('@supabase/supabase-js');
 const { CHANNEL_NAMES, MBTI_TO_CHANNEL, findChannel } = require('./channelConfig');
 
-// 初始化 Firebase
-if (!admin.apps.length) {
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-    });
+// 初始化 Supabase（使用 service_role key，mbti schema）
+const supabaseUrl = process.env.SUPABASE_USER_URL;
+const supabaseKey = process.env.SUPABASE_USER_SERVICE_ROLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+    console.error('❌ 缺少 SUPABASE_USER_URL 或 SUPABASE_USER_SERVICE_ROLE_KEY');
+    process.exit(1);
 }
 
-const db = admin.firestore();
+const supabase = createClient(supabaseUrl, supabaseKey, {
+    db: { schema: 'mbti' },
+    auth: { persistSession: false, autoRefreshToken: false },
+});
 
-// Helper to log analytics events
-async function logAnalyticsEvent(eventName, eventData) {
-    try {
-        await db.collection('analytics_events').add({
-            eventName,
-            ...eventData,
-            platform: 'discord',
-            timestamp: Date.now(),
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-    } catch (error) {
-        console.error(`Failed to log ${eventName}:`, error);
-    }
+// Helper to log analytics events (Discord-specific, console only)
+function logAnalyticsEvent(eventName, eventData) {
+    console.log(`[analytics] ${eventName}`, JSON.stringify(eventData));
 }
 
 // 創建 Discord Client
@@ -86,7 +80,6 @@ function buildProductLinks(source = 'bot', campaign = 'community') {
     };
 }
 
-
 // Slash Command Definitions
 const commands = [
     new SlashCommandBuilder()
@@ -95,7 +88,7 @@ const commands = [
         .addStringOption(option =>
             option
                 .setName('userid')
-                .setDescription('你的 Firebase User ID（在測驗結果頁面可以找到）')
+                .setDescription('你的 User ID（在測驗結果頁面右上角「我的檔案」可以找到）')
                 .setRequired(true)
         ),
     new SlashCommandBuilder()
@@ -142,31 +135,25 @@ async function deployCommands() {
     }
 }
 
-// 從 Firebase 查詢用戶的 MBTI 類型
+// 從 Supabase 查詢用戶的 MBTI 類型（最新一筆 test_run）
 async function getUserMBTI(userId) {
     try {
-        const userDoc = await db.collection('users').doc(userId).get();
+        const { data, error } = await supabase
+            .from('test_runs')
+            .select('result_type, suffix')
+            .eq('uid', userId)
+            .order('finished_at', { ascending: false })
+            .limit(1)
+            .single();
 
-        if (!userDoc.exists) {
+        if (error || !data) {
             return null;
         }
 
-        const userData = userDoc.data();
-        const runs = userData.runs || {};
-
-        // 找最新的測驗結果
-        const runEntries = Object.entries(runs);
-        if (runEntries.length === 0) {
-            return null;
-        }
-
-        const latestRun = runEntries.sort((a, b) =>
-            b[1].timestamp - a[1].timestamp
-        )[0][1];
-
-        return latestRun.mbtiType || null;
+        // e.g. "INFP" + "A" → "INFP-A"
+        return `${data.result_type}-${data.suffix}`;
     } catch (error) {
-        console.error('查詢 Firebase 失敗:', error);
+        console.error('查詢 Supabase 失敗:', error);
         return null;
     }
 }
@@ -233,7 +220,7 @@ client.on('interactionCreate', async interaction => {
 
         const userId = interaction.options.getString('userid');
 
-        // 從 Firebase 查詢 MBTI 類型
+        // 從 Supabase 查詢 MBTI 類型
         const mbtiType = await getUserMBTI(userId);
 
         if (!mbtiType) {
@@ -242,10 +229,10 @@ client.on('interactionCreate', async interaction => {
                     '❌ **找不到你的測驗結果！**\n\n' +
                     '請確認：\n' +
                     '1. 你已經完成 KIWIMU MBTI 測驗\n' +
-                    '2. User ID 正確（可在結果頁面找到）\n' +
-                    '3. 測驗結果已儲存\n\n' +
+                    '2. User ID 正確（可在結果頁面右上角「我的檔案」找到）\n' +
+                    '3. 測驗結果已儲存（需登入帳號）\n\n' +
                     '💡 **如何找到 User ID？**\n' +
-                    '在測驗結果頁面，點擊右上角「我的檔案」，可以看到你的 User ID。'
+                    '登入後，點擊右上角「我的檔案」，可以看到你的 User ID。'
             });
         }
 
@@ -277,11 +264,11 @@ client.on('interactionCreate', async interaction => {
                     `開始你的自由航行吧！🚀`
             });
 
-            // 在 results 頻道發歡迎訊息（優化版）
+            // 在 results 頻道發歡迎訊息
             const resultsChannel = findChannel(interaction.guild, [
                 CHANNEL_NAMES.RESULTS,
                 'results',
-                '📊-測驗結果', // 向後兼容舊名稱
+                '📊-測驗結果',
                 '📯-最新消息',
                 '📣-最新消息'
             ]);
@@ -291,7 +278,7 @@ client.on('interactionCreate', async interaction => {
                 const embed = new EmbedBuilder()
                     .setTitle(`🎉 新的航行者：${result.mbtiType}`)
                     .setDescription(`歡迎 ${interaction.member} 加入 ${result.role.name} 的航行！`)
-                    .setColor(0xD8E038) // Kiwi yellow
+                    .setColor(0xD8E038)
                     .setFooter({ text: '點擊下方按鈕探索更多' })
                     .setTimestamp();
 
@@ -323,12 +310,11 @@ client.on('interactionCreate', async interaction => {
                 });
             }
 
-            // Track Verification
-            await logAnalyticsEvent('discord_verify_complete', {
-                userId: userId, // Firebase UID
+            logAnalyticsEvent('discord_verify_complete', {
+                userId,
                 discord_id: interaction.user.id,
                 discord_username: interaction.user.username,
-                mbti_type: mbtiType
+                mbti_type: mbtiType,
             });
 
         } catch (error) {
@@ -362,11 +348,10 @@ client.on('interactionCreate', async interaction => {
             'creative': '創作模式中'
         };
 
-        // 找到狀態分享頻道（優化版，支援新舊名稱）
         const stateChannel = findChannel(interaction.guild, [
             CHANNEL_NAMES.DAILY_STATE,
             'daily-state',
-            '💬-跨類型閒聊', // 向後兼容
+            '💬-跨類型閒聊',
             CHANNEL_NAMES.GENERAL,
             'general'
         ]);
@@ -378,39 +363,33 @@ client.on('interactionCreate', async interaction => {
             });
         }
 
-        // 發布狀態
         const message = note
             ? `${stateEmojis[status]} **${interaction.user.username}** 今天：${stateMessages[status]}\n💬 "${note}"`
             : `${stateEmojis[status]} **${interaction.user.username}** 今天：${stateMessages[status]}`;
 
         await stateChannel.send(message);
 
-        // Track State Share
-        await logAnalyticsEvent('discord_state_share', {
+        logAnalyticsEvent('discord_state_share', {
             discord_id: interaction.user.id,
             discord_username: interaction.user.username,
             emotional_state: status,
             state_message: stateMessages[status],
-            note: note || null
+            note: note || null,
         });
 
-        // 回覆用戶
         await interaction.reply({
             content: `✅ 已分享你的航行狀態！\n\n${message}\n\n繼續你的航行吧！⛵`,
             ephemeral: true
         });
-
-        // TODO: 儲存到數據庫用於統計
     }
 });
 
-// 新成員加入事件（優化版）
+// 新成員加入事件
 client.on('guildMemberAdd', async member => {
-    // 找到 start-here 頻道（優先新結構，向後兼容）
     const welcomeChannel = findChannel(member.guild, [
         CHANNEL_NAMES.START_HERE,
         'start-here',
-        '📯-最新消息', // 向後兼容
+        '📯-最新消息',
         '📣-最新消息'
     ]);
 
@@ -464,11 +443,10 @@ client.on('guildMemberAdd', async member => {
         });
     }
 
-    // Track Join
-    await logAnalyticsEvent('discord_join', {
+    logAnalyticsEvent('discord_join', {
         discord_id: member.id,
         discord_username: member.user.username,
-        platform: 'discord'
+        platform: 'discord',
     });
 });
 
