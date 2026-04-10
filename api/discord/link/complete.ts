@@ -9,6 +9,7 @@ import {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // firebaseUid: legacy field sent by older discord-bot versions; appUid is preferred
   const { state, appUid, firebaseUid, email, displayName } = req.body || {};
   const resolvedAppUid = appUid || firebaseUid;
   if (!state || !resolvedAppUid) return res.status(400).json({ error: 'Missing state or appUid' });

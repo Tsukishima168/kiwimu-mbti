@@ -11,6 +11,7 @@ import {
 import type { MbtiResultData, Score } from '../../types';
 import { calculatePercentages, getVariant } from '../../utils/logic';
 import { trackAction } from '../../utils/userDataCollector';
+import { trackV2PaywallView, trackV2CheckoutStart, trackV2Unlocked } from '../../utils/analytics';
 import {
   clearV2Entitlement,
   getLastV1Result,
@@ -300,6 +301,7 @@ export default function V2App({ user }: V2AppProps) {
       unlockType: unlocked.unlockType,
       source,
     });
+    trackV2Unlocked(fullType, unlocked.unlockType, source);
   }, [fullType, params, source]);
 
   useEffect(() => {
@@ -312,6 +314,7 @@ export default function V2App({ user }: V2AppProps) {
       source,
       hasUser: Boolean(user && !user.isAnonymous),
     });
+    trackV2PaywallView(fullType, source);
   }, [entitlement.status, fullType, source, user]);
 
   // Check Supabase DB entitlement on mount（付費後由 webhook 寫入 profiles.v2_unlocked_at）
@@ -342,6 +345,7 @@ export default function V2App({ user }: V2AppProps) {
         setV2Entitlement(unlocked);
         setEntitlement(unlocked);
         trackAction('v2_unlock_from_supabase', { mbtiType: fullType || 'unknown', source });
+        trackV2Unlocked(fullType || 'unknown', 'one_time', 'supabase-db');
       }
     };
 
@@ -359,6 +363,7 @@ export default function V2App({ user }: V2AppProps) {
       checkoutUrl,
       mode: isLocalPreview ? 'local_simulation' : 'shop_redirect',
     });
+    trackV2CheckoutStart(fullType, source, checkoutUrl);
 
     if (DEV_ONLY_V2) {
       if (!isLocalPreview) {

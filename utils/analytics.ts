@@ -417,6 +417,71 @@ export const trackButtonClick = (
     gtagSafe('event', 'button_click', withSiteId(eventData));
 };
 
+// ==================== V2 Paywall Funnel ====================
+
+/**
+ * Track V2 paywall view (user sees locked state)
+ * GA4 standard: view_item
+ */
+export const trackV2PaywallView = (mbtiType: string, source: string) => {
+    gtagSafe('event', 'view_item', withSiteId({
+        item_list_id: 'v2_deep_report',
+        item_list_name: 'V2 Deep Report',
+        items: [{
+            item_id: `v2_report_${mbtiType}`,
+            item_name: `V2 深度靈魂報告 — ${mbtiType}`,
+            item_category: 'deep_report',
+            price: 149,
+            currency: 'TWD',
+        }],
+        mbti_type: mbtiType,
+        source,
+    }));
+};
+
+/**
+ * Track V2 checkout start (user clicks unlock CTA → map.kiwimu.com)
+ * GA4 standard: begin_checkout
+ */
+export const trackV2CheckoutStart = (mbtiType: string, source: string, checkoutUrl: string) => {
+    gtagSafe('event', 'begin_checkout', withSiteId({
+        currency: 'TWD',
+        value: 149,
+        items: [{
+            item_id: `v2_report_${mbtiType}`,
+            item_name: `V2 深度靈魂報告 — ${mbtiType}`,
+            item_category: 'deep_report',
+            price: 149,
+            quantity: 1,
+        }],
+        mbti_type: mbtiType,
+        source,
+        checkout_url: checkoutUrl,
+    }));
+};
+
+/**
+ * Track V2 unlock success (entitlement granted, paywall cleared)
+ * GA4 standard: purchase
+ */
+export const trackV2Unlocked = (mbtiType: string, unlockType: string, source: string) => {
+    gtagSafe('event', 'purchase', withSiteId({
+        currency: 'TWD',
+        value: unlockType === 'query-preview' ? 0 : 149,
+        transaction_id: `v2_${mbtiType}_${Date.now()}`,
+        items: [{
+            item_id: `v2_report_${mbtiType}`,
+            item_name: `V2 深度靈魂報告 — ${mbtiType}`,
+            item_category: 'deep_report',
+            price: 149,
+            quantity: 1,
+        }],
+        mbti_type: mbtiType,
+        unlock_type: unlockType,
+        source,
+    }));
+};
+
 // ==================== Campaign Source ====================
 
 /**
