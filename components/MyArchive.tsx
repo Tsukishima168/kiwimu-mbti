@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { AppUser } from '../types';
 import { TestRun } from '../types';
-import { useFirestoreSync } from '../hooks/useFirestoreSync';
+import { useCloudSync } from '../hooks/useCloudSync';
 import { trackButtonClick } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
 import RunTimeline from './RunTimeline';
@@ -24,7 +24,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<ViewMode>('timeline');
 
-    const { getUserTestRuns } = useFirestoreSync(user);
+    const { getUserTestRuns } = useCloudSync(user);
     const { t } = useLanguage();
 
     useEffect(() => {

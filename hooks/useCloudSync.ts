@@ -12,7 +12,7 @@ import {
 import { useProgressStorage } from './useProgressStorage';
 import { getResultData } from '../constants';
 
-export const useFirestoreSync = (user: AppUser | null) => {
+export const useCloudSync = (user: AppUser | null) => {
     const [isSyncing, setIsSyncing] = useState(false);
     const { loadProgress: loadLocalProgress, clearProgress: clearLocalProgress } = useProgressStorage();
 

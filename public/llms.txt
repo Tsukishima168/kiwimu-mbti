@@ -14,7 +14,12 @@ Kiwimu（kiwimu.com）是台灣唯一將 MBTI 人格心理學與真實甜點體�
 品牌：月島甜點（Moon Island Dessert）
 IP 宇宙：Creambirds Universe
 測驗語言：繁體中文、English、日本語、한국어
-測驗入口：kiwimu.com
+
+## 三層漏斗入口
+
+- **V1 完整測驗**（免費，永久）：`kiwimu.com/` — 40 題，16 型 MBTI 完整報告，無需登入
+- **V1.5 快速漏斗**（免費）：`kiwimu.com/explore` — 5 題快速定位，Kiwimu 今日狀態角色卡，社群擴散設計
+- **V2 深度靈魂報告**（付費）：`kiwimu.com/read` — 5 題 → 台灣在地視角深度解析，認知模式、人際節奏與抗壓策略；一次性付費，NT$149
 
 ---
 

@@ -8,6 +8,14 @@
     <priority>1.0</priority>
   </url>
 
+  <!-- V1.5 快速漏斗 / Explore -->
+  <url>
+    <loc>https://kiwimu.com/explore</loc>
+    <lastmod>2026-03-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- 隱私政策 -->
   <url>
     <loc>https://kiwimu.com/privacy.html</loc>

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppUser, Option, MbtiResultData, Score } from './types';
 import { getAuthSupabaseClient, toAppUser, signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
-import { useFirestoreSync } from './hooks/useFirestoreSync';
+import { useCloudSync } from './hooks/useCloudSync';
 import { calculateResults, getVariant } from './utils/logic';
 import { getResultData } from './constants';
 import { loadResultData } from './utils/dataLoader';
@@ -114,7 +114,7 @@ const App: React.FC = () => {
   // 【新增】測試模式狀態
   const [showTestPanel, setShowTestPanel] = useState(false);
 
-  const { saveCompletedTest, saveToCloud } = useFirestoreSync(user);
+  const { saveCompletedTest, saveToCloud } = useCloudSync(user);
 
   const applyRouteFromLocation = (hasSavedResult: boolean) => {
     const rParam = new URLSearchParams(window.location.search).get('r');
