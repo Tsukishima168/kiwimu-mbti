@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getAuthSupabaseClient } from '../utils/supabaseAuthBridge';
 import { useLanguage } from '../contexts/LanguageContext';
+import { trackLoginAttempt, trackLoginFailure } from '../utils/analytics';
+import { trackAction } from '../utils/userDataCollector';
 
 interface LoginProps {
     isUnlockMode?: boolean;
@@ -25,11 +27,21 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
     }, []);
 
     const handleGoogleLogin = async () => {
+        const loginContext = {
+            path: window.location.pathname,
+            is_unlock_mode: isUnlockMode,
+            flow_stage: sessionStorage.getItem('flow_stage') || 'unknown',
+        };
         try {
             const supabase = getAuthSupabaseClient();
             if (!supabase) throw new Error('Auth client not available');
 
             const redirectTo = `${window.location.origin}/callback`;
+            trackLoginAttempt('google', loginContext);
+            trackAction('login_attempt', {
+                provider: 'google',
+                ...loginContext,
+            });
             const { error: oauthError } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: { redirectTo },
@@ -39,6 +51,12 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
             // Browser will redirect to Google — no further action needed here
         } catch (err: any) {
             setError(err.message);
+            trackLoginFailure('google', err.message || 'unknown_error', loginContext);
+            trackAction('login_failure', {
+                provider: 'google',
+                reason: err.message || 'unknown_error',
+                ...loginContext,
+            });
             console.error(err);
         }
     };
@@ -53,17 +71,17 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
                         </svg>
                     </div>
                     <h1 className="text-3xl font-display font-bold text-gray-800 mb-3">
-                        {isUnlockMode ? '儲存你的人格紀錄' : '開始你的人格探索'}
+                        {isUnlockMode ? '解鎖你的完整人格報告' : '開始你的人格探索'}
                     </h1>
                     <p className="text-gray-600 leading-relaxed">
                         {isUnlockMode
-                            ? '登入以保存你的測驗結果，並追蹤你的成長軌跡。每一次的測驗，都是下一次冒險的起點。'
+                            ? '登入後即可查看完整解析，包含職涯策略、人際導航、名人原型與靈魂甜點推薦。'
                             : '請登入以將測驗進度同步至雲端，並追蹤你的靈魂甜點歷險記。'
                         }
                     </p>
                     <p className="text-sm text-gray-400 mt-4">
                         {isUnlockMode
-                            ? '儲存後你可以隨時回看、對比不同時期的自己'
+                            ? '你現在看到的是部分報告，登入後會直接回到完整版本'
                             : '無論您在哪裡，都能續寫您的故事'
                         }
                     </p>

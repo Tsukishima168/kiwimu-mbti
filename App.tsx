@@ -16,7 +16,7 @@ import LoginCallback from './components/LoginCallback';
 import MyArchive from './components/MyArchive';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
-import { trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin } from './utils/analytics';
+import { trackLoginCallback, trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin } from './utils/analytics';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import ExploreApp from './components/explore/ExploreApp';
 
@@ -37,7 +37,7 @@ const FooterLinks = () => {
 
 // 行銷像素追蹤
 import { initAllPixels, trackMarketingEvent, MARKETING_EVENTS, createCustomAudience } from './utils/marketingPixels';
-import { initSession, trackAction, saveUserBehavior } from './utils/userDataCollector';
+import { getSession, initSession, trackAction, saveUserBehavior } from './utils/userDataCollector';
 import { initLiff } from './utils/liffShare';
 
 // UTM 追蹤（新增）
@@ -62,9 +62,11 @@ import V2App from './components/v2/V2App';
 import V2QuizFlow from './components/v2/V2QuizFlow';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
+type PostLoginDestination = 'intro' | 'result' | 'archive';
 
 const ROOT_PATHS = new Set(['/', '/index.html']);
 const V1_PATHS = new Set(['/quiz', '/v1']);
+const POST_LOGIN_DESTINATION_KEY = 'post_login_destination';
 
 const isV1Pathname = (pathname: string) => V1_PATHS.has(pathname);
 const isLiteFunnelPathname = (pathname: string) => pathname === '/state-test';
@@ -97,6 +99,17 @@ const getStagePath = (currentStage: Stage, pathname: string) => {
   }
 
   return `/${currentStage}`;
+};
+
+const getPostLoginPath = (destination: PostLoginDestination) => {
+  if (destination === 'result') return '/quiz/result';
+  if (destination === 'archive') return '/quiz/archive';
+  return '/';
+};
+
+const replaceRoute = (pathname: string) => {
+  if (window.location.pathname === pathname) return;
+  window.history.replaceState({}, '', pathname);
 };
 
 const App: React.FC = () => {
@@ -250,6 +263,7 @@ const App: React.FC = () => {
     const handleSession = (supabaseUser: import('@supabase/supabase-js').User | null) => {
       const pathname = window.location.pathname;
       const isV1Route = isV1Pathname(pathname);
+      const postLoginDestination = sessionStorage.getItem(POST_LOGIN_DESTINATION_KEY) as PostLoginDestination | null;
 
       if (supabaseUser) {
         const appUser = toAppUser(supabaseUser);
@@ -268,13 +282,26 @@ const App: React.FC = () => {
       // Also handles Discord-only flow (no quiz result).
       if (currentStage === 'login' && supabaseUser) {
         sessionStorage.removeItem('flow_stage');
-        if (savedResult && savedScores) {
-          setResultData(JSON.parse(savedResult));
-          setScores(JSON.parse(savedScores));
+        sessionStorage.removeItem(POST_LOGIN_DESTINATION_KEY);
+        if (postLoginDestination === 'archive') {
+          replaceRoute(getPostLoginPath('archive'));
+          setStage('archive');
+        } else if (savedResult && savedScores) {
+          const restoredResult = JSON.parse(savedResult);
+          const restoredScores = JSON.parse(savedScores);
+          setResultData(restoredResult);
+          setScores(restoredScores);
+          replaceRoute(getPostLoginPath('result'));
+          trackAction('report_unlock_success', {
+            path: pathname,
+            mbtiType: restoredResult.id,
+            sessionId: getSession(),
+          });
           setStage('result');
         } else {
           // Discord-only login — DiscordLinkGate overlay reads discord_link_state
           // from sessionStorage and renders on top of intro
+          replaceRoute(getPostLoginPath('intro'));
           setStage('intro');
         }
         setLoadingAuth(false);
@@ -284,8 +311,10 @@ const App: React.FC = () => {
       // Archive/login CTA can intentionally restore the last result view after OAuth.
       if (currentStage === 'result' && supabaseUser && savedResult && savedScores) {
         sessionStorage.removeItem('flow_stage');
+        sessionStorage.removeItem(POST_LOGIN_DESTINATION_KEY);
         setResultData(JSON.parse(savedResult));
         setScores(JSON.parse(savedScores));
+        replaceRoute(getPostLoginPath('result'));
         setStage('result');
         setLoadingAuth(false);
         return;
@@ -308,9 +337,21 @@ const App: React.FC = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user && sessionStorage.getItem('flow_stage') === 'login') {
         const appUser = toAppUser(session.user);
+        const provider = session.user.app_metadata?.provider || 'google';
         trackUserLogin('google', appUser.uid);
+        trackLoginCallback('success', 'google', {
+          provider,
+          path: window.location.pathname,
+          previous_stage: sessionStorage.getItem('flow_stage') || 'unknown',
+        });
         trackMarketingEvent(MARKETING_EVENTS.LOGIN);
-        trackAction('login', { provider: session.user.app_metadata?.provider || 'unknown' });
+        trackAction('login', { provider });
+        trackAction('login_success', {
+          provider,
+          path: window.location.pathname,
+          sessionId: getSession(),
+        });
+        trackSsoEvent('login_success', { provider, path: window.location.pathname });
       }
       handleSession(session?.user ?? null);
     });
@@ -389,7 +430,14 @@ const App: React.FC = () => {
     trackQuizComplete(type, 0, user?.uid || undefined);
 
     // Notify Discord (Always, regardless of user login status)
-    sendDiscordNotification(type, variant);
+    void sendDiscordNotification(type, variant, 'zh', user?.uid, {
+      funnel: 'v1',
+      stage: 'result',
+      source: isV1Pathname(window.location.pathname) ? 'quiz_route' : 'home_route',
+      path: window.location.pathname,
+      sessionId: getSession(),
+      isLoggedIn: Boolean(user && !user.isAnonymous),
+    });
 
     trackSsoEvent('quiz_completed', { mbti_type: type, variant });
 
@@ -458,6 +506,7 @@ const App: React.FC = () => {
       trackAction('view_result', { mbtiType: resultData.id });
     }
 
+    replaceRoute('/quiz/result');
     setStage('result');
 
     // 🎮 W2-6 / LIFF-3：MBTI 完成積分觸發（+2 pts，每週限一次）
@@ -485,15 +534,24 @@ const App: React.FC = () => {
   const handleLogin = () => {
     // Always mark flow_stage so handleSession can return to correct stage after OAuth
     sessionStorage.setItem('flow_stage', 'login');
+    sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, resultData && scores ? 'result' : 'intro');
     if (resultData && scores) {
       sessionStorage.setItem('last_quiz_result', JSON.stringify(resultData));
       sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+    } else {
+      sessionStorage.removeItem('last_quiz_result');
+      sessionStorage.removeItem('last_quiz_scores');
     }
     // Preserve discord_link_state across OAuth redirect (URL is lost after /callback)
     const discordState = new URLSearchParams(window.location.search).get('discord_link_state');
     if (discordState) {
       sessionStorage.setItem('discord_link_state', discordState);
     }
+    trackAction('login_gate_opened', {
+      path: window.location.pathname,
+      has_result: Boolean(resultData && scores),
+      sessionId: getSession(),
+    });
     setStage('login');
   };
 
@@ -516,9 +574,15 @@ const App: React.FC = () => {
     trackAction('view_archive');
 
     if (!user || user.isAnonymous) {
-      sessionStorage.setItem('flow_stage', 'result');
+      sessionStorage.setItem('flow_stage', 'login');
+      sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, 'archive');
+      if (resultData && scores) {
+        sessionStorage.setItem('last_quiz_result', JSON.stringify(resultData));
+        sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+      }
       setStage('login');
     } else {
+      replaceRoute('/quiz/archive');
       setStage('archive');
     }
   };
@@ -598,7 +662,7 @@ const App: React.FC = () => {
           )}
 
           {stage === 'callback' && <LoginCallback />}
-          {stage === 'login' && <Login isUnlockMode={true} />}
+          {stage === 'login' && <Login isUnlockMode={Boolean(resultData && scores)} />}
           {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} onViewArchive={handleViewArchive} onLogout={handleLogout} />}
           {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
           {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}

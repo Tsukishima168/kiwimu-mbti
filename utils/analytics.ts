@@ -134,10 +134,15 @@ export const trackQuizComplete = (
 /**
  * Track result page view
  */
-export const trackResultView = (mbtiType: string, userId?: string) => {
+export const trackResultView = (
+    mbtiType: string,
+    userId?: string,
+    context: Record<string, any> = {}
+) => {
     const eventData = {
         mbti_type: mbtiType,
         user_id: userId,
+        ...context,
     };
 
     gtagSafe('event', 'result_view', withSiteId(eventData));
@@ -334,6 +339,40 @@ export const trackUserLogin = (
     gtagSafe('event', 'login', withSiteId(eventData));
 };
 
+export const trackLoginAttempt = (
+    method: 'google' | 'email' | 'discord',
+    context: Record<string, any> = {}
+) => {
+    gtagSafe('event', 'login_attempt', withSiteId({
+        login_method: method,
+        ...context,
+    }));
+};
+
+export const trackLoginCallback = (
+    status: 'success' | 'error' | 'restored',
+    method: 'google' | 'email' | 'discord',
+    context: Record<string, any> = {}
+) => {
+    gtagSafe('event', 'login_callback', withSiteId({
+        login_status: status,
+        login_method: method,
+        ...context,
+    }));
+};
+
+export const trackLoginFailure = (
+    method: 'google' | 'email' | 'discord',
+    reason: string,
+    context: Record<string, any> = {}
+) => {
+    gtagSafe('event', 'login_failure', withSiteId({
+        login_method: method,
+        failure_reason: reason,
+        ...context,
+    }));
+};
+
 /**
  * Track user signup
  */
@@ -524,6 +563,9 @@ export default {
     trackStoreVisit,
     trackRewardRedemption,
     trackUserLogin,
+    trackLoginAttempt,
+    trackLoginCallback,
+    trackLoginFailure,
     trackUserSignup,
     trackProfileUpdate,
     trackPageView,

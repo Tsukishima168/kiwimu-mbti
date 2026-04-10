@@ -9,7 +9,7 @@ import { getCelebrityArchetypes } from '../data/celebrityData';
 import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
 import { shareResultToLine } from '../utils/liffShare';
-import { trackResultDownload, trackResultShare, trackButtonClick } from '../utils/analytics';
+import { trackResultDownload, trackResultShare, trackButtonClick, trackResultView } from '../utils/analytics';
 import { trackOutboundClick } from '../utils/utmTracking';
 
 
@@ -166,8 +166,20 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [toastMsg, setToastMsg] = useState('已複製連結到剪貼簿');
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
-  // V1 Login Gate — locked when: not logged in (null or anonymous) AND not a shared view AND not archive mode
-  const isLocked = (user == null || user.isAnonymous) && !isSharedView && !isArchiveMode;
+  // V1 Login Gate — shared links also stay partial until login.
+  const isLocked = (user == null || user.isAnonymous) && !isArchiveMode;
+  const visibleTabs = isLocked
+    ? [
+      { id: 'overview', label: '總覽', en: 'Overview' },
+      { id: 'analysis', label: '深度分析', en: 'Analysis' },
+    ]
+    : [
+      { id: 'overview', label: '總覽', en: 'Overview' },
+      { id: 'analysis', label: '深度分析', en: 'Analysis' },
+      { id: 'soul', label: '靈魂甜點', en: 'Soul Food' },
+      { id: 'life', label: '職涯 & 關係', en: 'Life' },
+      { id: 'archetypes', label: '名人原型', en: 'Archetypes' }
+    ];
 
   const showCustomToast = (msg: string, durationMs = 3000) => {
     setToastMsg(msg);
@@ -190,6 +202,28 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
+
+  useEffect(() => {
+    if (isLocked && activeTab !== 'overview' && activeTab !== 'analysis') {
+      setActiveTab('overview');
+    }
+  }, [activeTab, isLocked]);
+
+  useEffect(() => {
+    trackResultView(resultData.id, user?.uid, {
+      mbti_variant: identitySuffix,
+      report_access_level: isLocked ? 'preview' : 'full',
+      is_logged_in: Boolean(user && !user.isAnonymous),
+      is_shared_view: isSharedView,
+      is_archive_mode: isArchiveMode,
+    });
+  }, [identitySuffix, isArchiveMode, isLocked, isSharedView, resultData.id, user]);
+
+  const triggerFullReportLogin = (entryPoint: 'locked_section' | 'floating_banner') => {
+    sessionStorage.setItem('post_login_destination', 'result');
+    sessionStorage.setItem('result_unlock_entry_point', entryPoint);
+    onLogin?.();
+  };
 
   const handleLineShare = async () => {
     trackResultShare('line', `${resultData.id}-${identitySuffix}`, user?.uid);
@@ -553,13 +587,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
             <div className="max-w-4xl mx-auto px-6">
               <div className="flex gap-1 overflow-x-auto scrollbar-hide">
-                {[
-                  { id: 'overview', label: '總覽', en: 'Overview' },
-                  { id: 'analysis', label: '深度分析', en: 'Analysis' },
-                  { id: 'soul', label: '靈魂甜點', en: 'Soul Food' },
-                  { id: 'life', label: '職涯 & 關係', en: 'Life' },
-                  { id: 'archetypes', label: '名人原型', en: 'Archetypes' }
-                ].map(tab => (
+                {visibleTabs.map(tab => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
@@ -684,7 +712,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                       職涯策略、人際導航、名人原型、靈魂甜點全內容，登入即可永久解鎖。
                     </p>
                     <button
-                      onClick={() => onLogin?.()}
+                      onClick={() => triggerFullReportLogin('locked_section')}
                       className="w-full bg-kiwi-dark text-white py-4 text-[10px] font-bold tracking-[0.3em] uppercase hover:bg-gray-800 transition-colors"
                     >
                       登入解鎖完整報告
@@ -1082,6 +1110,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
           )}
 
+          {!isLocked && (
+            <>
           {/* BRAND INTRO & GIF */}
           <div className="flex flex-col items-center py-20 md:py-32 border-t border-gray-100 bg-white/30">
             <a href="https://linktr.ee/moon_moon_dessert" target="_blank" rel="noopener noreferrer" className="group relative w-20 h-20 md:w-24 md:h-24 mb-10 rounded-full overflow-hidden border border-gray-100 shadow-2xl hover:scale-110 transition-all duration-500">
@@ -1187,6 +1217,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               ))}
             </div>
           </div>
+            </>
+          )}
 
           {/* DISCLAIMER & FOOTER */}
           <div className="text-center max-w-2xl mx-auto py-16 md:py-24 border-t border-gray-100 px-6">
@@ -1202,12 +1234,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         </div>
 
         {/* ── LOSS AVERSION BANNER — 匿名用戶才顯示，固定在浮動選單上方 */}
-        {!isSharedView && (!user || user.isAnonymous) && !isArchiveMode && (
+        {(user == null || user.isAnonymous) && !isArchiveMode && (
           <div className="fixed bottom-[88px] md:bottom-[100px] left-1/2 transform -translate-x-1/2 z-40 w-max max-w-[90vw]">
             <div
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-xl cursor-pointer transition-all hover:scale-105 active:scale-95"
               style={{ background: '#C6FF00', color: '#000' }}
-              onClick={() => { trackButtonClick('login_gate_banner', 'result_floating'); onLogin?.(); }}
+              onClick={() => { trackButtonClick('login_gate_banner', 'result_floating'); triggerFullReportLogin('floating_banner'); }}
             >
               <span className="text-[10px] md:text-[11px] font-black tracking-[0.08em] leading-tight whitespace-nowrap">
                 ✦ 你的靈魂配方將在離開後消散 — 入籍宇宙永久封存
