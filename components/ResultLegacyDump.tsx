@@ -166,8 +166,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [toastMsg, setToastMsg] = useState('已複製連結到剪貼簿');
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
-  // V1 Login Gate — shared links also stay partial until login.
-  const isLocked = (user == null || user.isAnonymous) && !isArchiveMode;
+  // V1 Login Gate — shared links always stay partial and should not unlock via login.
+  const isLocked = ((user == null || user.isAnonymous) || isSharedView) && !isArchiveMode;
   const visibleTabs = isLocked
     ? [
       { id: 'overview', label: '總覽', en: 'Overview' },
@@ -709,13 +709,15 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     <p className="text-[9px] font-mono tracking-[0.4em] uppercase text-gray-300 mb-5 font-bold">FULL REPORT LOCKED</p>
                     <h3 className="text-2xl font-serif font-bold text-kiwi-dark mb-3 leading-tight">解鎖完整報告</h3>
                     <p className="text-xs font-serif text-gray-400 leading-relaxed mb-8">
-                      職涯策略、人際導航、名人原型、靈魂甜點全內容，登入即可永久解鎖。
+                      {isSharedView
+                        ? '你正在查看朋友的部分報告。開始你的測驗後，才能查看屬於你的完整解析。'
+                        : '職涯策略、人際導航、名人原型、靈魂甜點全內容，登入即可永久解鎖。'}
                     </p>
                     <button
-                      onClick={() => triggerFullReportLogin('locked_section')}
+                      onClick={() => (isSharedView ? onRetest() : triggerFullReportLogin('locked_section'))}
                       className="w-full bg-kiwi-dark text-white py-4 text-[10px] font-bold tracking-[0.3em] uppercase hover:bg-gray-800 transition-colors"
                     >
-                      登入解鎖完整報告
+                      {isSharedView ? '開始你的測驗' : '登入解鎖完整報告'}
                     </button>
                   </div>
                 </div>
@@ -1234,7 +1236,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         </div>
 
         {/* ── LOSS AVERSION BANNER — 匿名用戶才顯示，固定在浮動選單上方 */}
-        {(user == null || user.isAnonymous) && !isArchiveMode && (
+        {!isSharedView && (user == null || user.isAnonymous) && !isArchiveMode && (
           <div className="fixed bottom-[88px] md:bottom-[100px] left-1/2 transform -translate-x-1/2 z-40 w-max max-w-[90vw]">
             <div
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-xl cursor-pointer transition-all hover:scale-105 active:scale-95"

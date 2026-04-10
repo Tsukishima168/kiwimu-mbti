@@ -68,7 +68,8 @@ const ROOT_PATHS = new Set(['/', '/index.html']);
 const V1_PATHS = new Set(['/quiz', '/v1']);
 const POST_LOGIN_DESTINATION_KEY = 'post_login_destination';
 
-const isV1Pathname = (pathname: string) => V1_PATHS.has(pathname);
+const isV1Pathname = (pathname: string) =>
+  Array.from(V1_PATHS).some((basePath) => pathname === basePath || pathname.startsWith(`${basePath}/`));
 const isLiteFunnelPathname = (pathname: string) => pathname === '/state-test';
 
 const getStagePath = (currentStage: Stage, pathname: string) => {
@@ -126,6 +127,7 @@ const App: React.FC = () => {
 
   // 【新增】測試模式狀態
   const [showTestPanel, setShowTestPanel] = useState(false);
+  const lastSessionRestoreUidRef = React.useRef<string | null>(null);
 
   const { saveCompletedTest, saveToCloud } = useCloudSync(user);
 
@@ -176,6 +178,19 @@ const App: React.FC = () => {
     }
     if (pathname === '/quiz') {
       setStage('quiz');
+      return;
+    }
+    if (pathname === '/quiz/result') {
+      if (hasSavedResult) {
+        setStage('result');
+      } else {
+        replaceRoute('/quiz');
+        setStage('intro');
+      }
+      return;
+    }
+    if (pathname === '/quiz/archive') {
+      setStage('archive');
       return;
     }
     if (pathname !== '/' && pathname !== '/index.html') {
@@ -268,14 +283,20 @@ const App: React.FC = () => {
       if (supabaseUser) {
         const appUser = toAppUser(supabaseUser);
         setUser(appUser);
-        trackSsoEvent('session_restored', { provider: appUser.providerData[0]?.providerId });
+        if (lastSessionRestoreUidRef.current !== appUser.uid) {
+          lastSessionRestoreUidRef.current = appUser.uid;
+          trackSsoEvent('session_restored', { provider: appUser.providerData[0]?.providerId });
+        }
       } else {
         setUser(null);
+        lastSessionRestoreUidRef.current = null;
       }
 
       const savedResult = sessionStorage.getItem('last_quiz_result');
       const savedScores = sessionStorage.getItem('last_quiz_scores');
       const currentStage = sessionStorage.getItem('flow_stage');
+      const isResultRoute = pathname === '/quiz/result';
+      const isArchiveRoute = pathname === '/quiz/archive';
 
       // P1 Fix: check saved post-login restore state outside isV1Route gate
       // so applyRouteFromLocation can't overwrite stage back to 'callback'.
@@ -315,6 +336,27 @@ const App: React.FC = () => {
         setResultData(JSON.parse(savedResult));
         setScores(JSON.parse(savedScores));
         replaceRoute(getPostLoginPath('result'));
+        setStage('result');
+        setLoadingAuth(false);
+        return;
+      }
+
+      if (isArchiveRoute && supabaseUser) {
+        setStage('archive');
+        setLoadingAuth(false);
+        return;
+      }
+
+      if (isArchiveRoute && !supabaseUser) {
+        replaceRoute('/');
+        setStage('intro');
+        setLoadingAuth(false);
+        return;
+      }
+
+      if (isResultRoute && savedResult && savedScores) {
+        setResultData(JSON.parse(savedResult));
+        setScores(JSON.parse(savedScores));
         setStage('result');
         setLoadingAuth(false);
         return;
@@ -534,8 +576,9 @@ const App: React.FC = () => {
   const handleLogin = () => {
     // Always mark flow_stage so handleSession can return to correct stage after OAuth
     sessionStorage.setItem('flow_stage', 'login');
-    sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, resultData && scores ? 'result' : 'intro');
-    if (resultData && scores) {
+    const shouldRestoreResult = Boolean(resultData && scores && !isSharedView);
+    sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, shouldRestoreResult ? 'result' : 'intro');
+    if (shouldRestoreResult && resultData && scores) {
       sessionStorage.setItem('last_quiz_result', JSON.stringify(resultData));
       sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
     } else {
@@ -549,7 +592,8 @@ const App: React.FC = () => {
     }
     trackAction('login_gate_opened', {
       path: window.location.pathname,
-      has_result: Boolean(resultData && scores),
+      has_result: shouldRestoreResult,
+      is_shared_view: isSharedView,
       sessionId: getSession(),
     });
     setStage('login');
@@ -560,7 +604,9 @@ const App: React.FC = () => {
       await signOutSupabase();
       setUser(null);
       sessionStorage.removeItem('flow_stage');
+      sessionStorage.removeItem(POST_LOGIN_DESTINATION_KEY);
       if (stage !== 'result') {
+        replaceRoute('/');
         setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
       }
     } catch (error) {
@@ -589,8 +635,10 @@ const App: React.FC = () => {
 
   const handleBackFromArchive = () => {
     if (resultData && scores) {
+      replaceRoute('/quiz/result');
       setStage('result');
     } else {
+      replaceRoute('/');
       setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
     }
   };
