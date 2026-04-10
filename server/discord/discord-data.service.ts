@@ -1,5 +1,11 @@
-import { getAdminDb } from '../firebase/admin';
 import { getUserAdminDb } from '../supabase/user-admin';
+
+// Dynamic import — Firebase admin SDK is NOT loaded at cold start.
+// Only resolved when the legacy Firestore gate is explicitly enabled.
+async function getFirestoreDb() {
+  const { getAdminDb } = await import('../firebase/admin');
+  return getAdminDb();
+}
 
 const isLegacyFirestoreDiscordEnabled = () =>
   process.env.ENABLE_FIREBASE_LEGACY_DISCORD === 'true';
@@ -246,7 +252,7 @@ export async function createDiscordLinkState(state: DiscordLinkState): Promise<v
   }
   if (!isLegacyFirestoreDiscordEnabled()) return;
 
-  const db = getAdminDb();
+  const db = await getFirestoreDb();
   await db.collection('discord_link_states').doc(state.state).set({
     state: state.state,
     discordUserId: state.discordUserId,
@@ -264,7 +270,7 @@ export async function getDiscordLinkState(state: string): Promise<DiscordLinkSta
   }
   if (!isLegacyFirestoreDiscordEnabled()) return null;
 
-  const db = getAdminDb();
+  const db = await getFirestoreDb();
   const snap = await db.collection('discord_link_states').doc(state).get();
   if (!snap.exists) return null;
 
@@ -287,7 +293,7 @@ export async function markDiscordLinkStateUsed(state: string, appUid: string): P
   }
   if (!isLegacyFirestoreDiscordEnabled()) return;
 
-  const db = getAdminDb();
+  const db = await getFirestoreDb();
   await db.collection('discord_link_states').doc(state).update({
     used: true,
     usedAt: Date.now(),
@@ -302,7 +308,7 @@ export async function upsertDiscordLink(record: DiscordLinkRecord): Promise<void
   }
   if (!isLegacyFirestoreDiscordEnabled()) return;
 
-  const db = getAdminDb();
+  const db = await getFirestoreDb();
   await db.collection('discord_links').doc(buildDiscordLinkId(record.guildId, record.discordUserId)).set({
     discordUserId: record.discordUserId,
     guildId: record.guildId,
@@ -324,7 +330,7 @@ export async function getDiscordLink(
   }
   if (!isLegacyFirestoreDiscordEnabled()) return null;
 
-  const db = getAdminDb();
+  const db = await getFirestoreDb();
   const snap = await db.collection('discord_links').doc(buildDiscordLinkId(guildId, discordUserId)).get();
   if (!snap.exists) return null;
 
@@ -346,7 +352,7 @@ export async function deleteDiscordLink(
   const supabaseDeleted = await deleteDiscordLinkFromSupabase(guildId, discordUserId);
 
   if (isLegacyFirestoreDiscordEnabled()) {
-    const db = getAdminDb();
+    const db = await getFirestoreDb();
     const ref = db.collection('discord_links').doc(buildDiscordLinkId(guildId, discordUserId));
     const snap = await ref.get();
     if (snap.exists) {
@@ -365,7 +371,7 @@ export async function getLatestDiscordResult(appUid: string): Promise<DiscordLat
   }
   if (!isLegacyFirestoreDiscordEnabled()) return null;
 
-  const db = getAdminDb();
+  const db = await getFirestoreDb();
   const runsSnap = await db
     .collection('test_runs')
     .where('uid', '==', appUid)
@@ -403,7 +409,7 @@ export async function logDiscordAction(record: DiscordActionRecord): Promise<voi
   }
   if (!isLegacyFirestoreDiscordEnabled()) return;
 
-  const db = getAdminDb();
+  const db = await getFirestoreDb();
   const admin = await import('firebase-admin');
   await db.collection('discord_actions').add({
     actionType: record.actionType,
