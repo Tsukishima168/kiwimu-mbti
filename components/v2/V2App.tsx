@@ -285,7 +285,7 @@ export default function V2App({ user }: V2AppProps) {
 
   const variant = resultBundle ? getVariant(resultBundle.scores) : 'A';
   const fullType = resultBundle ? `${resultBundle.resultData.id}-${variant}` : null;
-  const checkoutUrl = fullType ? buildCheckoutUrl(fullType) : 'https://shop.kiwimu.com';
+  const checkoutUrl = fullType ? buildCheckoutUrl(fullType) : 'https://map.kiwimu.com/menu';
   const report = useMemo(() => (resultBundle ? getV2TaiwanDraft(resultBundle.resultData.id) : null), [resultBundle]);
 
   useEffect(() => {
@@ -472,7 +472,7 @@ export default function V2App({ user }: V2AppProps) {
       ? '本地模擬解鎖 V2'
       : DEV_ONLY_V2
         ? 'DEV 階段暫不開放'
-        : '前往 shop 解鎖 V2';
+        : '前往 Kiwimu Map 解鎖 V2';
 
   return (
     <div className="v2-root min-h-screen px-5 pt-24 pb-16" style={rootStyle}>
