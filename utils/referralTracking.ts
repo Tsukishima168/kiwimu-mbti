@@ -8,8 +8,6 @@ interface ReferralData {
   campaign?: string;          // 活動代碼
 }
 
-const isLegacyFirestoreReferralEnabled = () => import.meta.env.VITE_ENABLE_FIREBASE_LEGACY_REFERRALS === 'true';
-
 // ============================================
 // 生成推薦連結
 // ============================================
@@ -195,69 +193,6 @@ export function trackLinkCopy(mbtiType: string) {
       content_type: 'referral_link',
       mbti_type: mbtiType
     });
-  }
-}
-
-// ============================================
-// Firebase 整合（儲存推薦關係）
-// ============================================
-
-/**
- * 儲存推薦關係到 Firebase
- */
-export async function saveReferralToFirebase(
-  newUserId: string,
-  referralData: ReferralData,
-  db: any // Firestore instance
-) {
-  if (!isLegacyFirestoreReferralEnabled()) {
-    return;
-  }
-
-  try {
-    const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
-    
-    await setDoc(doc(db, 'referrals', newUserId), {
-      user_id: newUserId,
-      referrer_id: referralData.referrer_id,
-      referrer_type: referralData.referrer_type,
-      share_method: referralData.share_method,
-      campaign: referralData.campaign,
-      created_at: serverTimestamp(),
-      converted: false, // 當用戶完成測驗時設為 true
-      conversion_date: null
-    });
-    
-    console.log('[REFERRAL] Saved to Firebase:', newUserId);
-  } catch (error) {
-    console.error('[REFERRAL] Failed to save:', error);
-  }
-}
-
-/**
- * 更新推薦轉換狀態
- */
-export async function updateReferralConversion(
-  userId: string,
-  mbtiType: string,
-  db: any
-) {
-  if (!isLegacyFirestoreReferralEnabled()) {
-    return;
-  }
-
-  try {
-    const { doc, updateDoc, serverTimestamp } = await import('firebase/firestore');
-    
-    await updateDoc(doc(db, 'referrals', userId), {
-      converted: true,
-      conversion_date: serverTimestamp(),
-      converted_mbti_type: mbtiType
-    });
-    
-    console.log('[REFERRAL] Conversion updated:', userId);
-  } catch (error) {
-    console.error('[REFERRAL] Failed to update conversion:', error);
   }
 }
 

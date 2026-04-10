@@ -26,7 +26,6 @@ export interface AnalyticsEvent {
 // ==================== Session Management ====================
 
 let sessionId: string | null = null;
-const isLegacyFirestoreAnalyticsEnabled = () => import.meta.env.VITE_ENABLE_FIREBASE_LEGACY_ANALYTICS === 'true';
 
 export const getSessionId = (): string => {
     if (sessionId) return sessionId;
@@ -57,13 +56,9 @@ export const trackQuizStart = (source?: string, campaignId?: string) => {
         timestamp: new Date().toISOString(),
     };
 
-    // Log to GA4
     if (analytics) {
         logEvent(analytics, 'quiz_start', withSiteId(eventData));
     }
-
-    // Log to Firestore for detailed analysis
-    logToFirestore('quiz_start', eventData);
 };
 
 /**
@@ -83,14 +78,8 @@ export const trackQuizProgress = (
         time_spent_seconds: timeSpent,
     };
 
-    // Log all progress to GA4
     if (analytics) {
         logEvent(analytics, 'quiz_progress', withSiteId(eventData));
-    }
-
-    // Log all progress to Firestore
-    if (questionNumber % 5 === 0) {
-        logToFirestore('quiz_progress', eventData);
     }
 };
 
@@ -112,8 +101,6 @@ export const trackQuizAbandon = (
     if (analytics) {
         logEvent(analytics, 'quiz_abandon', withSiteId(eventData));
     }
-
-    logToFirestore('quiz_abandon', eventData);
 };
 
 /**
@@ -134,8 +121,6 @@ export const trackQuizComplete = (
     if (analytics) {
         logEvent(analytics, 'quiz_completion', withSiteId(eventData));
     }
-
-    logToFirestore('quiz_completion', eventData);
 
     // Set user property for MBTI type
     if (analytics && mbtiType) {
@@ -160,8 +145,6 @@ export const trackResultView = (mbtiType: string, userId?: string) => {
     if (analytics) {
         logEvent(analytics, 'result_view', withSiteId(eventData));
     }
-
-    logToFirestore('result_view', eventData);
 };
 
 /**
@@ -182,8 +165,6 @@ export const trackResultShare = (
     if (analytics) {
         logEvent(analytics, 'result_share', withSiteId(eventData));
     }
-
-    logToFirestore('result_share', eventData);
 };
 
 /**
@@ -201,8 +182,6 @@ export const trackResultDownload = (
     if (analytics) {
         logEvent(analytics, 'result_download', withSiteId(eventData));
     }
-
-    logToFirestore('result_download', eventData);
 };
 
 /**
@@ -220,8 +199,6 @@ export const trackStampClaim = (
     if (analytics) {
         logEvent(analytics, 'stamp_claim', withSiteId(eventData));
     }
-
-    logToFirestore('stamp_claim', eventData);
 };
 
 // ==================== Social/Community Events ====================
@@ -247,8 +224,6 @@ export const trackLineCTA = (
             value: 1,
         }));
     }
-
-    logToFirestore('line_cta_click', eventData);
 };
 
 /**
@@ -264,8 +239,6 @@ export const trackDiscordJoin = (mbtiType?: string, userId?: string) => {
     if (analytics) {
         logEvent(analytics, 'discord_join', withSiteId(eventData));
     }
-
-    logToFirestore('discord_join', eventData);
 };
 
 /**
@@ -285,8 +258,6 @@ export const trackDiscordVerify = (
     if (analytics) {
         logEvent(analytics, 'discord_verify_complete', withSiteId(eventData));
     }
-
-    logToFirestore('discord_verify_complete', eventData);
 };
 
 // ==================== O2O Events ====================
@@ -310,8 +281,6 @@ export const trackQRScan = (
     if (analytics) {
         logEvent(analytics, 'qr_code_scan', withSiteId(eventData));
     }
-
-    logToFirestore('qr_code_scan', eventData);
 };
 
 /**
@@ -331,8 +300,6 @@ export const trackTaskCardGenerate = (
     if (analytics) {
         logEvent(analytics, 'task_card_generate', withSiteId(eventData));
     }
-
-    logToFirestore('task_card_generate', eventData);
 };
 
 /**
@@ -353,8 +320,6 @@ export const trackStoreVisit = (
     if (analytics) {
         logEvent(analytics, 'store_visit', withSiteId(eventData));
     }
-
-    logToFirestore('store_visit', eventData);
 };
 
 /**
@@ -374,8 +339,6 @@ export const trackRewardRedemption = (
     if (analytics) {
         logEvent(analytics, 'reward_redemption', withSiteId(eventData));
     }
-
-    logToFirestore('reward_redemption', eventData);
 };
 
 // ==================== User Events ====================
@@ -395,8 +358,6 @@ export const trackUserLogin = (
     if (analytics) {
         logEvent(analytics, 'login', withSiteId(eventData));
     }
-
-    logToFirestore('user_login', eventData);
 };
 
 /**
@@ -414,8 +375,6 @@ export const trackUserSignup = (
     if (analytics) {
         logEvent(analytics, 'sign_up', withSiteId(eventData));
     }
-
-    logToFirestore('user_signup', eventData);
 };
 
 /**
@@ -433,8 +392,6 @@ export const trackProfileUpdate = (
     if (analytics) {
         logEvent(analytics, 'profile_update', withSiteId(eventData));
     }
-
-    logToFirestore('profile_update', eventData);
 };
 
 // ==================== Navigation Events ====================
@@ -454,8 +411,6 @@ export const trackPageView = (
     if (analytics) {
         logEvent(analytics, 'page_view', withSiteId(eventData));
     }
-
-    logToFirestore('page_view', eventData);
 };
 
 /**
@@ -477,8 +432,6 @@ export const trackScreenEngagement = (
     if (analytics) {
         logEvent(analytics, 'screen_engagement', withSiteId(eventData));
     }
-
-    logToFirestore('screen_engagement', eventData);
 };
 
 /**
@@ -498,65 +451,21 @@ export const trackButtonClick = (
     if (analytics) {
         logEvent(analytics, 'button_click', withSiteId(eventData));
     }
-
-    // Log important buttons to Firestore for 按鈕點擊分析
-    const importantButtons = ['download', 'share', 'join', 'login', 'signup', 'retest', 'archive', 'discord', '訂購', '開始', '重測', '檔案館', '設定', '登出', '時間線', '對比', '統計', '返回', '月島', '完整菜單', '同象限', 'Discord', '我準備好了'];
-    if (importantButtons.some(btn => buttonName.toLowerCase().includes(btn) || buttonName.includes(btn))) {
-        logToFirestore('button_click', eventData);
-    }
 };
 
-// ==================== Firestore Logging ====================
-
-/**
- * Log event to Firestore for detailed analysis
- */
-const logToFirestore = async (
-    eventName: string,
-    properties: Record<string, any>
-) => {
-    if (!isLegacyFirestoreAnalyticsEnabled()) {
-        return;
-    }
-
-    try {
-        const propertiesWithSite = withSiteId(properties);
-        const event: AnalyticsEvent = {
-            eventName,
-            sessionId: getSessionId(),
-            timestamp: Date.now(),
-            properties: propertiesWithSite,
-            platform: 'web',
-            source: getCampaignSource(),
-        };
-
-        const [{ db }, firestore] = await Promise.all([
-            import('../firestore.config'),
-            import('firebase/firestore'),
-        ]);
-        const eventsRef = firestore.collection(db, 'analytics_events');
-        await firestore.setDoc(firestore.doc(eventsRef), {
-            ...event,
-            createdAt: firestore.serverTimestamp(),
-        });
-    } catch (error) {
-        console.error('Failed to log event to Firestore:', error);
-    }
-};
+// ==================== Campaign Source ====================
 
 /**
  * Get campaign source from URL or localStorage
  */
-const getCampaignSource = (): string => {
+export const getCampaignSource = (): string => {
     if (typeof window === 'undefined') return 'unknown';
 
-    // Check URL parameters first
     const params = new URLSearchParams(window.location.search);
     const source = params.get('source') || params.get('utm_source');
 
     if (source) return source;
 
-    // Check localStorage for saved campaign data
     try {
         const campaignData = localStorage.getItem('campaign_data');
         if (campaignData) {
@@ -569,78 +478,6 @@ const getCampaignSource = (): string => {
 
     return 'organic';
 };
-
-// ==================== Batch Logging (for performance) ====================
-
-let eventQueue: AnalyticsEvent[] = [];
-let flushTimeout: NodeJS.Timeout | null = null;
-
-/**
- * Queue event for batch logging
- */
-export const queueEvent = (event: Omit<AnalyticsEvent, 'sessionId' | 'timestamp'>) => {
-    eventQueue.push({
-        ...event,
-        sessionId: getSessionId(),
-        timestamp: Date.now(),
-    });
-
-    // Schedule flush if not already scheduled
-    if (!flushTimeout) {
-        flushTimeout = setTimeout(flushEventQueue, 5000); // Flush every 5 seconds
-    }
-
-    // Immediate flush if queue is large
-    if (eventQueue.length >= 10) {
-        flushEventQueue();
-    }
-};
-
-/**
- * Flush queued events to Firestore
- */
-const flushEventQueue = async () => {
-    if (eventQueue.length === 0) return;
-
-    const eventsToFlush = [...eventQueue];
-    eventQueue = [];
-    flushTimeout = null;
-
-    if (!isLegacyFirestoreAnalyticsEnabled()) {
-        return;
-    }
-
-    try {
-        const [{ db }, firestore] = await Promise.all([
-            import('../firestore.config'),
-            import('firebase/firestore'),
-        ]);
-        const batch = [];
-        const eventsRef = firestore.collection(db, 'analytics_events');
-
-        for (const event of eventsToFlush) {
-            batch.push(
-                firestore.setDoc(firestore.doc(eventsRef), {
-                    ...event,
-                    createdAt: firestore.serverTimestamp(),
-                })
-            );
-        }
-
-        await Promise.all(batch);
-    } catch (error) {
-        console.error('Failed to flush event queue:', error);
-    }
-};
-
-// Flush on page unload
-if (typeof window !== 'undefined') {
-    window.addEventListener('beforeunload', () => {
-        if (eventQueue.length > 0) {
-            flushEventQueue();
-        }
-    });
-}
 
 export default {
     trackQuizStart,

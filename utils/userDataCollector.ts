@@ -47,70 +47,6 @@ let currentSession: string | null = null;
 let sessionStartTime: number | null = null;
 let userActions: UserAction[] = [];
 
-const isLegacyFirestoreWriteEnabled = () => import.meta.env.VITE_ENABLE_FIREBASE_LEGACY_WRITES === 'true';
-
-async function writeLegacyUserBehaviorToFirestore(uid: string, behaviorData: Partial<UserBehaviorData>) {
-  if (!isLegacyFirestoreWriteEnabled()) {
-    return;
-  }
-
-  try {
-    const [{ db }, firestore] = await Promise.all([
-      import('../firestore.config'),
-      import('firebase/firestore'),
-    ]);
-
-    const behaviorRef = firestore.doc(db, 'user_behaviors', `${uid}_${Date.now()}`);
-    await firestore.setDoc(behaviorRef, {
-      ...behaviorData,
-      createdAt: firestore.serverTimestamp(),
-    });
-  } catch (error) {
-    console.error('⚠️ Legacy Firestore user_behaviors write failed:', error);
-  }
-}
-
-async function writeLegacyUserStatsToFirestore(
-  uid: string,
-  mbtiType?: string,
-  variant?: string,
-  utmSource?: string
-) {
-  if (!isLegacyFirestoreWriteEnabled()) {
-    return;
-  }
-
-  try {
-    const [{ db }, firestore] = await Promise.all([
-      import('../firestore.config'),
-      import('firebase/firestore'),
-    ]);
-
-    const statsRef = firestore.doc(db, 'user_stats', uid);
-    const updateData: Record<string, unknown> = {
-      lastActive: firestore.serverTimestamp(),
-      totalSessions: firestore.increment(1),
-    };
-
-    if (mbtiType) {
-      updateData.lastMbtiType = mbtiType;
-      updateData[`mbtiTypes.${mbtiType}`] = firestore.increment(1);
-    }
-
-    if (variant) {
-      updateData.lastVariant = variant;
-    }
-
-    if (utmSource) {
-      updateData[`sources.${utmSource}`] = firestore.increment(1);
-    }
-
-    await firestore.setDoc(statsRef, updateData, { merge: true });
-  } catch (error) {
-    console.error('⚠️ Legacy Firestore user_stats write failed:', error);
-  }
-}
-
 export function initSession() {
   // 生成 Session ID
   currentSession = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -222,7 +158,6 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
     };
 
     await saveUserBehaviorToSupabase(uid, behaviorData);
-    void writeLegacyUserBehaviorToFirestore(uid, behaviorData);
 
     // 更新用戶統計
     await updateUserStats(uid, mbtiType, variant);
@@ -239,7 +174,6 @@ async function updateUserStats(uid: string, mbtiType?: string, variant?: string)
   try {
     const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
     await upsertUserStats(uid, mbtiType, variant, sessionData.utmSource);
-    void writeLegacyUserStatsToFirestore(uid, mbtiType, variant, sessionData.utmSource);
   } catch (error) {
     console.error('❌ 更新用戶統計失敗:', error);
   }
