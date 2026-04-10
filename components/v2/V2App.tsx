@@ -402,10 +402,10 @@ export default function V2App({ user }: V2AppProps) {
           <div className="v2-panel w-full p-8 md:p-10">
             <p className="v2-eyebrow">MBTI V2 TAIWAN EDITION</p>
             <h1 className="mt-4 text-4xl font-bold leading-none md:text-5xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              5 題找到你的深度靈魂報告
+              你的 MBTI 深度靈魂報告
             </h1>
             <p className="mt-5 text-base leading-relaxed text-black/70">
-              Kiwimu V2 需要你的測驗結果。用 5 題快速定位，或者先完成免費的 V1 完整版再回來。
+              超越四個字母的類型標籤——V2 以台灣在地視角深度解析你的認知模式、人際節奏與抗壓策略。用 5 題快速定位，或帶入 V1 完整測驗結果直接生成。
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -413,7 +413,7 @@ export default function V2App({ user }: V2AppProps) {
                 開始 5 題 V2 測驗
               </a>
               <a href="/quiz" className="kiwimu-btn block flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
-                使用 V1 結果
+                帶入 V1 結果
               </a>
             </div>
           </div>
