@@ -1,7 +1,4 @@
-// 資料載入器
-// 直接從 constants.ts 載入所有靜態資料
-
-import { QUESTIONS, DIMENSION_EXPLANATIONS, getResultData as getResultDataFromConstants } from '../constants';
+import { QUESTIONS, getResultData as getResultDataFromConstants } from '../constants';
 import type { Question, MbtiResultData } from '../types';
 
 interface UnifiedDessertContract {
@@ -15,12 +12,15 @@ interface UnifiedDessertContract {
   cta_url?: string;
 }
 
+const dessertCache = new Map<string, UnifiedDessertContract | null>();
+
 const UNIFIED_DESSERT_API_URL =
   import.meta.env.VITE_UNIFIED_DESSERT_API_URL ||
   import.meta.env.VITE_SHOP_MENU_RESOLVE_URL ||
   '/api/mbti-dessert';
 
 async function loadUnifiedDessertContract(type: string): Promise<UnifiedDessertContract | null> {
+  if (dessertCache.has(type)) return dessertCache.get(type)!;
   try {
     const endpoint = UNIFIED_DESSERT_API_URL.startsWith('http')
       ? new URL(UNIFIED_DESSERT_API_URL)
@@ -32,28 +32,31 @@ async function loadUnifiedDessertContract(type: string): Promise<UnifiedDessertC
     endpoint.searchParams.set('mbti', type);
 
     const response = await fetch(endpoint.toString());
-    if (!response.ok) return null;
+    if (!response.ok) {
+      dessertCache.set(type, null);
+      return null;
+    }
 
     const payload = await response.json();
-    if (!payload?.success || !payload.data) return null;
+    if (!payload?.success || !payload.data) {
+      dessertCache.set(type, null);
+      return null;
+    }
 
-    return payload.data as UnifiedDessertContract;
+    const contract = payload.data as UnifiedDessertContract;
+    dessertCache.set(type, contract);
+    return contract;
   } catch (error) {
     console.warn('Failed to load unified dessert contract:', error);
+    dessertCache.set(type, null);
     return null;
   }
 }
 
-/**
- * 取得測驗題目（從 constants.ts）
- */
-export async function loadQuestions(): Promise<Question[]> {
+export function loadQuestions(): Question[] {
   return QUESTIONS;
 }
 
-/**
- * 取得 MBTI 結果資料（從 constants.ts）
- */
 export async function loadResultData(type: string, variant: 'A' | 'T' = 'A'): Promise<MbtiResultData> {
   const result = getResultDataFromConstants(type, variant);
 
@@ -72,15 +75,4 @@ export async function loadResultData(type: string, variant: 'A' | 'T' = 'A'): Pr
       ctaLink: unifiedDessert.cta_url || result.dessert.ctaLink,
     },
   };
-}
-
-/**
- * 取得維度說明（從 constants.ts）
- */
-export async function loadDimensionExplanations() {
-  return DIMENSION_EXPLANATIONS.map(d => ({
-    key: d.key,
-    label: d.label,
-    text: d.text
-  }));
 }
