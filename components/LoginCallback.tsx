@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { getAuthSupabaseClient } from '../utils/supabaseAuthBridge';
+import { getAuthSupabaseClient, restoreAuthSessionFromUrl } from '../utils/supabaseAuthBridge';
 
 /**
  * Supabase OAuth callback handler.
- * Supabase (detectSessionInUrl: true) automatically exchanges the code in the URL
- * for a session. onAuthStateChange in App.tsx will fire and handle routing.
- * This component just shows a loading state during the exchange.
+ * We explicitly exchange the PKCE code here so callback failures surface as
+ * real auth errors instead of a silent timeout.
  */
 const LoginCallback: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
@@ -23,37 +22,28 @@ const LoginCallback: React.FC = () => {
             setError(message);
         };
 
-        // If detectSessionInUrl cannot materialize a session, avoid spinning forever.
-        const timeoutId = window.setTimeout(async () => {
-            const { data } = await supabase.auth.getSession();
-            if (!data.session) {
-                fail('登入逾時，請重新嘗試');
-            }
-        }, 8000);
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session?.user) {
-                window.clearTimeout(timeoutId);
-            }
-        });
-
-        // getSession triggers detectSessionInUrl internally.
-        supabase.auth.getSession().then(({ data, error: e }) => {
-            if (e) {
-                window.clearTimeout(timeoutId);
-                fail(e.message);
+        const finalize = async () => {
+            const restore = await restoreAuthSessionFromUrl();
+            if (restore.error) {
+                fail(restore.error);
                 return;
             }
 
-            if (data.session) {
-                window.clearTimeout(timeoutId);
+            const { data, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError) {
+                fail(sessionError.message);
+                return;
             }
-        });
+
+            if (!data.session) {
+                fail('登入逾時，請重新嘗試');
+            }
+        };
+
+        void finalize();
 
         return () => {
             active = false;
-            window.clearTimeout(timeoutId);
-            subscription.unsubscribe();
         };
     }, []);
 

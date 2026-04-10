@@ -1,8 +1,10 @@
 /**
  * Shared Supabase auth client for kiwimu.com.
  *
- * This is now the primary auth path for the MBTI frontend and persists the
- * session in a .kiwimu.com cookie so sibling subdomains can read the same user.
+ * Use localStorage as the primary auth session store. Full Supabase sessions can
+ * exceed browser cookie limits, which makes OAuth callback recovery flaky
+ * (especially in Safari). We keep only lightweight mirror cookies for sibling
+ * subdomains that want a simple "logged in" hint.
  */
 
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
@@ -16,6 +18,9 @@ const SUPABASE_ANON_KEY = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_ANON_KEY ||
   import.meta.env.VITE_SUPABASE_USER_ANON_KEY) as string;
 
 const COOKIE_DOMAIN = '.kiwimu.com';
+const AUTH_HINT_COOKIE = 'kiwimu_auth';
+const AUTH_UID_COOKIE = 'kiwimu_uid';
+const AUTH_EMAIL_COOKIE = 'kiwimu_email';
 
 // ── Cookie helpers ────────────────────────────────────────────────────────────
 
@@ -31,16 +36,50 @@ function setCookie(name: string, value: string, maxAgeSec = 60 * 60 * 24 * 365) 
     `path=/`,
     `max-age=${maxAgeSec}`,
     'SameSite=Lax',
+    'Secure',
   ].join('; ');
 }
 
 function deleteCookie(name: string) {
-  document.cookie = `${name}=; domain=${COOKIE_DOMAIN}; path=/; max-age=0`;
+  document.cookie = `${name}=; domain=${COOKIE_DOMAIN}; path=/; max-age=0; SameSite=Lax; Secure`;
+}
+
+function setAuthMirrorCookies(user: SupabaseUser | null) {
+  if (typeof document === 'undefined') return;
+  const incomingUid = user?.id ?? null;
+  if (incomingUid === _lastMirrorUid) return; // no-op on token refresh with same identity
+  _lastMirrorUid = incomingUid;
+
+  if (!user) {
+    deleteCookie(AUTH_HINT_COOKIE);
+    deleteCookie(AUTH_UID_COOKIE);
+    deleteCookie(AUTH_EMAIL_COOKIE);
+    return;
+  }
+
+  setCookie(AUTH_HINT_COOKIE, '1');
+  setCookie(AUTH_UID_COOKIE, user.id);
+  if (user.email) {
+    setCookie(AUTH_EMAIL_COOKIE, user.email);
+  } else {
+    deleteCookie(AUTH_EMAIL_COOKIE);
+  }
 }
 
 // ── Auth Supabase Client（單例，cookie storage）────────────────────────────
 
 let _authClient: SupabaseClient | null = null;
+let _mirrorCookieSubscription: { unsubscribe: () => void } | null = null;
+let _lastMirrorUid: string | null | undefined = undefined; // undefined = never written
+let _pendingAuthRestore: Promise<{ handled: boolean; error: string | null }> | null = null;
+let _authRestoreResult: { handled: boolean; error: string | null } | null = null;
+
+function clearOAuthParams(url: URL) {
+  url.searchParams.delete('code');
+  url.searchParams.delete('state');
+  url.searchParams.delete('error');
+  url.searchParams.delete('error_description');
+}
 
 export function getAuthSupabaseClient(): SupabaseClient | null {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
@@ -52,16 +91,76 @@ export function getAuthSupabaseClient(): SupabaseClient | null {
   _authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
       persistSession: true,
-      detectSessionInUrl: true,
-      storage: {
-        getItem: (key) => getCookie(key),
-        setItem: (key, value) => setCookie(key, value),
-        removeItem: (key) => deleteCookie(key),
-      },
+      detectSessionInUrl: false,
+      flowType: 'pkce',
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
     },
   });
 
+  void _authClient.auth.getSession().then(({ data }) => {
+    setAuthMirrorCookies(data.session?.user ?? null);
+  });
+
+  const { data: { subscription } } = _authClient.auth.onAuthStateChange((_event, session) => {
+    setAuthMirrorCookies(session?.user ?? null);
+  });
+  _mirrorCookieSubscription = subscription;
+
   return _authClient;
+}
+
+/**
+ * Recover an OAuth session from the current URL.
+ *
+ * This is safe to call multiple times; concurrent callers share the same
+ * in-flight restore so the PKCE code is exchanged at most once.
+ */
+export async function restoreAuthSessionFromUrl(): Promise<{ handled: boolean; error: string | null }> {
+  if (typeof window === 'undefined') {
+    return { handled: false, error: null };
+  }
+
+  if (_authRestoreResult) return _authRestoreResult;
+  if (_pendingAuthRestore) return _pendingAuthRestore;
+
+  const supabase = getAuthSupabaseClient();
+  if (!supabase) {
+    return { handled: false, error: 'Auth client not available' };
+  }
+
+  const url = new URL(window.location.href);
+  const redirectError =
+    url.searchParams.get('error_description') ||
+    url.searchParams.get('error');
+  const code = url.searchParams.get('code');
+
+  if (!redirectError && !code) {
+    return { handled: false, error: null };
+  }
+
+  _pendingAuthRestore = (async () => {
+    let result: { handled: boolean; error: string | null };
+
+    if (redirectError) {
+      result = { handled: true, error: redirectError };
+    } else {
+      const { error } = await supabase.auth.exchangeCodeForSession(code as string);
+      if (error) {
+        result = { handled: true, error: error.message };
+      } else {
+        clearOAuthParams(url);
+        window.history.replaceState(window.history.state, '', url.toString());
+        result = { handled: true, error: null };
+      }
+    }
+
+    _authRestoreResult = result; // cache before .finally() clears _pendingAuthRestore
+    return result;
+  })().finally(() => {
+    _pendingAuthRestore = null;
+  });
+
+  return _pendingAuthRestore;
 }
 
 // ── Supabase User → AppUser adapter ──────────────────────────────────────────

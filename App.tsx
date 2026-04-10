@@ -1,7 +1,7 @@
 // Deployment trigger: 2026-01-27-moon-island
 import React, { useState, useEffect } from 'react';
 import { AppUser, Option, MbtiResultData, Score } from './types';
-import { getAuthSupabaseClient, toAppUser, signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
+import { getAuthSupabaseClient, restoreAuthSessionFromUrl, toAppUser, signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
 import { useCloudSync } from './hooks/useCloudSync';
 import { calculateResults, getVariant } from './utils/logic';
 import { getResultData } from './constants';
@@ -230,6 +230,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const supabase = getAuthSupabaseClient();
+    let active = true;
 
     if (!supabase) {
       // No auth client — restore any saved quiz result and proceed
@@ -302,11 +303,6 @@ const App: React.FC = () => {
       setLoadingAuth(false);
     };
 
-    // Restore existing session immediately
-    supabase.auth.getSession().then(({ data }) => {
-      handleSession(data.session?.user ?? null);
-    });
-
     // Listen for auth changes (login / logout / token refresh)
     // P2 Fix: fire login analytics on fresh OAuth return (flow_stage=login present)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -319,7 +315,23 @@ const App: React.FC = () => {
       handleSession(session?.user ?? null);
     });
 
-    return () => subscription.unsubscribe();
+    void (async () => {
+      const restore = await restoreAuthSessionFromUrl();
+      if (!active) return;
+
+      // Skip getSession if we just exchanged a PKCE code — onAuthStateChange
+      // already fired handleSession via exchangeCodeForSession.
+      if (!restore.handled) {
+        const { data } = await supabase.auth.getSession();
+        if (!active) return;
+        handleSession(data.session?.user ?? null);
+      }
+    })();
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // 各頁停留時間：切換前送出上一頁的 engagement
