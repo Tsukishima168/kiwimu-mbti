@@ -3,9 +3,7 @@
 // 對外介面與 firestore.service.ts 盡量一致，讓 useFirestoreSync 與設定頁只依賴這層。
 // 策略：
 //   Writes → Supabase-first，成功後鏡像 Firestore；Supabase 失敗則 fallback Firestore
-//   Reads  → 保守 arbitration，只有 parity OK 才採用 Supabase
-//
-// Firebase uid ↔ Supabase uid 不一致的舊用戶：Supabase 命中失敗時維持 Firestore fallback。
+//   Reads  → Supabase-first；Supabase 回 null 時 fallback Firestore（保留舊用戶路徑）
 
 import {
   createOrUpdateUser as firestoreCreateOrUpdateUser,
@@ -19,6 +17,7 @@ import {
   getUserPreferences as firestoreGetUserPreferences,
   loadProgressFromCloud as firestoreLoadProgress,
   getTestRuns as firestoreGetTestRuns,
+  getLatestTestRun as firestoreGetLatestTestRun,
   getSharedTestResult as firestoreGetSharedTestResult,
 } from './firestore.service';
 
@@ -33,31 +32,17 @@ import {
   getUserPreferencesFromSupabase,
   loadQuizProgressFromSupabase,
   getTestRunsFromSupabase,
+  getLatestTestRunFromSupabase,
   getSharedTestResultFromSupabase,
 } from './supabase-user.service';
 
 import { CURRENT_QUIZ_VERSION } from '../constants/versions';
 import type { UserDocument, QuizProgress, TestRun, UserProfile, UserProfileSetupInput } from '../types';
 
-// ─── Reads: Supabase-first ────────────────────────────────────────────────────
-
-type SettledValue<T> = PromiseSettledResult<T>;
-
-const logReadFailure = (source: 'Supabase' | 'Firestore', method: string, reason: unknown) => {
-  console.error(`[user-data] ${method}: ${source} read failed`, reason);
-};
+// ─── Internal helpers ─────────────────────────────────────────────────────────
 
 const logWriteFailure = (source: 'Supabase' | 'Firestore', method: string, reason: unknown) => {
   console.error(`[user-data] ${method}: ${source} write failed`, reason);
-};
-
-const getSettledValue = <T>(result: SettledValue<T>, source: 'Supabase' | 'Firestore', method: string): T | null => {
-  if (result.status === 'fulfilled') {
-    return result.value;
-  }
-
-  logReadFailure(source, method, result.reason);
-  return null;
 };
 
 const generateShareId = (): string => {
@@ -93,124 +78,77 @@ const fallbackToFirestore = async <T>(
   }
 };
 
-const sortTestRunsByFinishedAtDesc = (runs: TestRun[]): TestRun[] =>
-  [...runs].sort((a, b) => (b.finishedAt || 0) - (a.finishedAt || 0));
+// ─── Reads: Supabase-first, Firestore fallback ────────────────────────────────
 
-const getUserSignature = (user: UserDocument | null): string => JSON.stringify(user ? {
-  uid: user.uid,
-  displayName: user.displayName ?? null,
-  email: user.email ?? null,
-  createdAt: user.createdAt,
-  lastActiveAt: user.lastActiveAt,
-  profile: user.profile ?? null,
-} : null);
-
-const getQuizProgressSignature = (progress: QuizProgress | null): string => JSON.stringify(progress ? {
-  uid: progress.uid,
-  answers: progress.answers,
-  currentIndex: progress.currentIndex,
-  quizVersion: progress.quizVersion,
-  updatedAt: progress.updatedAt,
-} : null);
-
-const getUserPreferencesSignature = (
-  preferences: UserProfile['preferences'] | null
-): string => JSON.stringify(preferences ?? null);
-
-const getTestRunSignature = (run: TestRun): string => JSON.stringify({
-  id: run.id ?? null,
-  uid: run.uid,
-  mbtiType: run.mbtiType ?? null,
-  resultType: run.resultType,
-  suffix: run.suffix,
-  scores: run.scores,
-  quizVersion: run.quizVersion,
-  scoringVersion: run.scoringVersion,
-  dessertCatalogVersion: run.dessertCatalogVersion,
-  finishedAt: run.finishedAt,
-  shareId: run.shareId ?? null,
-  shareUrl: run.shareUrl ?? null,
-  isPublic: run.isPublic ?? true,
-});
-
-const hasExactTestRunParity = (supabaseRuns: TestRun[], firestoreRuns: TestRun[]): boolean => {
-  if (supabaseRuns.length !== firestoreRuns.length) {
-    return false;
+export const getUser = async (uid: string): Promise<UserDocument | null> => {
+  try {
+    const user = await getUserFromSupabase(uid);
+    if (user != null) return user;
+  } catch (err) {
+    console.error('[user-data] getUser: Supabase failed', err);
   }
-
-  return supabaseRuns.every((run, index) => getTestRunSignature(run) === getTestRunSignature(firestoreRuns[index]));
+  console.log('[user-data] getUser: source=firestore-fallback uid=%s', uid);
+  return firestoreGetUser(uid);
 };
 
-const choosePreferredSingle = <T>(
-  method: string,
-  identifierLabel: string,
-  identifier: string,
-  supabaseValue: T | null,
-  firestoreValue: T | null,
-  getSignature: (value: T | null) => string
-): T | null => {
-  if (supabaseValue == null && firestoreValue == null) {
-    return null;
+export const loadProgressFromCloud = async (
+  uid: string,
+  quizVersion: string = CURRENT_QUIZ_VERSION
+): Promise<QuizProgress | null> => {
+  try {
+    const progress = await loadQuizProgressFromSupabase(uid, quizVersion);
+    if (progress != null) return progress;
+  } catch (err) {
+    console.error('[user-data] loadProgressFromCloud: Supabase failed', err);
   }
-
-  if (firestoreValue == null) {
-    console.log('[user-data] %s: source=supabase (firestore-empty %s=%s)', method, identifierLabel, identifier);
-    return supabaseValue;
-  }
-
-  if (supabaseValue == null) {
-    console.log('[user-data] %s: source=firestore (supabase-empty %s=%s)', method, identifierLabel, identifier);
-    return firestoreValue;
-  }
-
-  if (getSignature(supabaseValue) === getSignature(firestoreValue)) {
-    console.log('[user-data] %s: source=supabase (parity-ok %s=%s)', method, identifierLabel, identifier);
-    return supabaseValue;
-  }
-
-  console.warn('[user-data] %s: source=firestore (parity-mismatch %s=%s)', method, identifierLabel, identifier);
-  return firestoreValue;
+  console.log('[user-data] loadProgressFromCloud: source=firestore-fallback uid=%s', uid);
+  return firestoreLoadProgress(uid, quizVersion);
 };
 
-const loadPreferredTestRuns = async (uid: string): Promise<TestRun[]> => {
-  const [supabaseResult, firestoreResult] = await Promise.allSettled([
-    getTestRunsFromSupabase(uid),
-    firestoreGetTestRuns(uid),
-  ]);
-
-  const supabaseRuns = sortTestRunsByFinishedAtDesc(
-    getSettledValue(supabaseResult, 'Supabase', 'getTestRuns') ?? []
-  );
-  const firestoreRuns = sortTestRunsByFinishedAtDesc(
-    getSettledValue(firestoreResult, 'Firestore', 'getTestRuns') ?? []
-  );
-
-  if (supabaseRuns.length === 0 && firestoreRuns.length === 0) {
-    return [];
+export const getUserPreferences = async (
+  uid: string
+): Promise<UserProfile['preferences'] | null> => {
+  try {
+    const preferences = await getUserPreferencesFromSupabase(uid);
+    if (preferences != null) return preferences;
+  } catch (err) {
+    console.error('[user-data] getUserPreferences: Supabase failed', err);
   }
+  console.log('[user-data] getUserPreferences: source=firestore-fallback uid=%s', uid);
+  return firestoreGetUserPreferences(uid);
+};
 
-  if (firestoreRuns.length === 0) {
-    console.log('[user-data] getTestRuns: source=supabase (firestore-empty uid=%s)', uid);
-    return supabaseRuns;
+export const getTestRuns = async (uid: string): Promise<TestRun[]> => {
+  try {
+    const runs = await getTestRunsFromSupabase(uid);
+    if (runs.length > 0) return runs;
+  } catch (err) {
+    console.error('[user-data] getTestRuns: Supabase failed', err);
   }
+  console.log('[user-data] getTestRuns: source=firestore-fallback uid=%s', uid);
+  return firestoreGetTestRuns(uid);
+};
 
-  if (supabaseRuns.length === 0) {
-    console.log('[user-data] getTestRuns: source=firestore (supabase-empty uid=%s)', uid);
-    return firestoreRuns;
+export const getLatestTestRun = async (uid: string): Promise<TestRun | null> => {
+  try {
+    const run = await getLatestTestRunFromSupabase(uid);
+    if (run != null) return run;
+  } catch (err) {
+    console.error('[user-data] getLatestTestRun: Supabase failed', err);
   }
+  console.log('[user-data] getLatestTestRun: source=firestore-fallback uid=%s', uid);
+  return firestoreGetLatestTestRun(uid);
+};
 
-  if (hasExactTestRunParity(supabaseRuns, firestoreRuns)) {
-    console.log('[user-data] getTestRuns: source=supabase (parity-ok uid=%s count=%d)', uid, supabaseRuns.length);
-    return supabaseRuns;
+export const getSharedTestResult = async (shareId: string): Promise<TestRun | null> => {
+  try {
+    const run = await getSharedTestResultFromSupabase(shareId);
+    if (run != null) return run;
+  } catch (err) {
+    console.error('[user-data] getSharedTestResult: Supabase failed', err);
   }
-
-  console.warn(
-    '[user-data] getTestRuns: source=firestore (parity-mismatch uid=%s supabase=%d firestore=%d)',
-    uid,
-    supabaseRuns.length,
-    firestoreRuns.length
-  );
-  return firestoreRuns;
+  console.log('[user-data] getSharedTestResult: source=firestore-fallback shareId=%s', shareId);
+  return firestoreGetSharedTestResult(shareId);
 };
 
 // ─── Writes: Supabase-first with Firestore fallback ──────────────────────────
@@ -369,88 +307,5 @@ export const saveTestRun = async (
       preferredFinishedAt: finishedAt,
       skipSupabaseMirror: true,
     })
-  );
-};
-
-export const getUser = async (uid: string): Promise<UserDocument | null> => {
-  const [supabaseResult, firestoreResult] = await Promise.allSettled([
-    getUserFromSupabase(uid),
-    firestoreGetUser(uid),
-  ]);
-
-  const supabaseUser = getSettledValue(supabaseResult, 'Supabase', 'getUser');
-  const firestoreUser = getSettledValue(firestoreResult, 'Firestore', 'getUser');
-
-  return choosePreferredSingle('getUser', 'uid', uid, supabaseUser, firestoreUser, getUserSignature);
-};
-
-export const loadProgressFromCloud = async (
-  uid: string,
-  quizVersion: string = CURRENT_QUIZ_VERSION
-): Promise<QuizProgress | null> => {
-  const [supabaseResult, firestoreResult] = await Promise.allSettled([
-    loadQuizProgressFromSupabase(uid, quizVersion),
-    firestoreLoadProgress(uid, quizVersion),
-  ]);
-
-  const supabaseProgress = getSettledValue(supabaseResult, 'Supabase', 'loadProgressFromCloud');
-  const firestoreProgress = getSettledValue(firestoreResult, 'Firestore', 'loadProgressFromCloud');
-
-  return choosePreferredSingle(
-    'loadProgressFromCloud',
-    'uid',
-    uid,
-    supabaseProgress,
-    firestoreProgress,
-    getQuizProgressSignature
-  );
-};
-
-export const getUserPreferences = async (
-  uid: string
-): Promise<UserProfile['preferences'] | null> => {
-  const [supabaseResult, firestoreResult] = await Promise.allSettled([
-    getUserPreferencesFromSupabase(uid),
-    firestoreGetUserPreferences(uid),
-  ]);
-
-  const supabasePreferences = getSettledValue(supabaseResult, 'Supabase', 'getUserPreferences');
-  const firestorePreferences = getSettledValue(firestoreResult, 'Firestore', 'getUserPreferences');
-
-  return choosePreferredSingle(
-    'getUserPreferences',
-    'uid',
-    uid,
-    supabasePreferences,
-    firestorePreferences,
-    getUserPreferencesSignature
-  );
-};
-
-export const getTestRuns = async (uid: string): Promise<TestRun[]> => {
-  return loadPreferredTestRuns(uid);
-};
-
-export const getLatestTestRun = async (uid: string): Promise<TestRun | null> => {
-  const runs = await loadPreferredTestRuns(uid);
-  return runs[0] ?? null;
-};
-
-export const getSharedTestResult = async (shareId: string): Promise<TestRun | null> => {
-  const [supabaseResult, firestoreResult] = await Promise.allSettled([
-    getSharedTestResultFromSupabase(shareId),
-    firestoreGetSharedTestResult(shareId),
-  ]);
-
-  const supabaseRun = getSettledValue(supabaseResult, 'Supabase', 'getSharedTestResult');
-  const firestoreRun = getSettledValue(firestoreResult, 'Firestore', 'getSharedTestResult');
-
-  return choosePreferredSingle(
-    'getSharedTestResult',
-    'shareId',
-    shareId,
-    supabaseRun,
-    firestoreRun,
-    (run) => JSON.stringify(run ? getTestRunSignature(run) : null)
   );
 };

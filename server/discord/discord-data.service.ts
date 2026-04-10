@@ -1,15 +1,5 @@
 import { getUserAdminDb } from '../supabase/user-admin';
 
-// Dynamic import — Firebase admin SDK is NOT loaded at cold start.
-// Only resolved when the legacy Firestore gate is explicitly enabled.
-async function getFirestoreDb() {
-  const { getAdminDb } = await import('../firebase/admin');
-  return getAdminDb();
-}
-
-const isLegacyFirestoreDiscordEnabled = () =>
-  process.env.ENABLE_FIREBASE_LEGACY_DISCORD === 'true';
-
 type DiscordLinkState = {
   state: string;
   discordUserId: string;
@@ -76,9 +66,9 @@ const mapDiscordResultRow = (row: Record<string, unknown>): DiscordLatestResult 
   suffix: (row.suffix as string | null) ?? undefined,
 });
 
-async function createLinkStateInSupabase(state: DiscordLinkState): Promise<boolean> {
+export async function createDiscordLinkState(state: DiscordLinkState): Promise<void> {
   const db = getUserAdminDb();
-  if (!db) return false;
+  if (!db) return;
 
   const { error } = await db.from('discord_link_states').upsert({
     state: state.state,
@@ -90,14 +80,11 @@ async function createLinkStateInSupabase(state: DiscordLinkState): Promise<boole
   }, { onConflict: 'state' });
 
   if (error) {
-    console.error('[discord-data] createLinkStateInSupabase error:', error.message);
-    return false;
+    console.error('[discord-data] createDiscordLinkState error:', error.message);
   }
-
-  return true;
 }
 
-async function getLinkStateFromSupabase(state: string): Promise<DiscordLinkState | null> {
+export async function getDiscordLinkState(state: string): Promise<DiscordLinkState | null> {
   const db = getUserAdminDb();
   if (!db) return null;
 
@@ -108,18 +95,16 @@ async function getLinkStateFromSupabase(state: string): Promise<DiscordLinkState
     .single();
 
   if (error || !data) {
-    if (error) {
-      console.error('[discord-data] getLinkStateFromSupabase error:', error.message);
-    }
+    if (error) console.error('[discord-data] getDiscordLinkState error:', error.message);
     return null;
   }
 
   return mapDiscordLinkStateRow(data as Record<string, unknown>);
 }
 
-async function markLinkStateUsedInSupabase(state: string, appUid: string): Promise<boolean> {
+export async function markDiscordLinkStateUsed(state: string, appUid: string): Promise<void> {
   const db = getUserAdminDb();
-  if (!db) return false;
+  if (!db) return;
 
   const { error } = await db
     .from('discord_link_states')
@@ -131,16 +116,13 @@ async function markLinkStateUsedInSupabase(state: string, appUid: string): Promi
     .eq('state', state);
 
   if (error) {
-    console.error('[discord-data] markLinkStateUsedInSupabase error:', error.message);
-    return false;
+    console.error('[discord-data] markDiscordLinkStateUsed error:', error.message);
   }
-
-  return true;
 }
 
-async function upsertDiscordLinkInSupabase(record: DiscordLinkRecord): Promise<boolean> {
+export async function upsertDiscordLink(record: DiscordLinkRecord): Promise<void> {
   const db = getUserAdminDb();
-  if (!db) return false;
+  if (!db) return;
 
   const { error } = await db.from('discord_links').upsert({
     link_id: buildDiscordLinkId(record.guildId, record.discordUserId),
@@ -153,14 +135,11 @@ async function upsertDiscordLinkInSupabase(record: DiscordLinkRecord): Promise<b
   }, { onConflict: 'link_id' });
 
   if (error) {
-    console.error('[discord-data] upsertDiscordLinkInSupabase error:', error.message);
-    return false;
+    console.error('[discord-data] upsertDiscordLink error:', error.message);
   }
-
-  return true;
 }
 
-async function getDiscordLinkFromSupabase(
+export async function getDiscordLink(
   guildId: string | null | undefined,
   discordUserId: string
 ): Promise<DiscordLinkRecord | null> {
@@ -174,16 +153,14 @@ async function getDiscordLinkFromSupabase(
     .single();
 
   if (error || !data) {
-    if (error) {
-      console.error('[discord-data] getDiscordLinkFromSupabase error:', error.message);
-    }
+    if (error) console.error('[discord-data] getDiscordLink error:', error.message);
     return null;
   }
 
   return mapDiscordLinkRow(data as Record<string, unknown>);
 }
 
-async function deleteDiscordLinkFromSupabase(
+export async function deleteDiscordLink(
   guildId: string | null | undefined,
   discordUserId: string
 ): Promise<boolean> {
@@ -196,14 +173,14 @@ async function deleteDiscordLinkFromSupabase(
     .eq('link_id', buildDiscordLinkId(guildId, discordUserId));
 
   if (error) {
-    console.error('[discord-data] deleteDiscordLinkFromSupabase error:', error.message);
+    console.error('[discord-data] deleteDiscordLink error:', error.message);
     return false;
   }
 
   return true;
 }
 
-async function getLatestTestRunFromSupabase(appUid: string): Promise<DiscordLatestResult | null> {
+export async function getLatestDiscordResult(appUid: string): Promise<DiscordLatestResult | null> {
   const db = getUserAdminDb();
   if (!db) return null;
 
@@ -216,18 +193,16 @@ async function getLatestTestRunFromSupabase(appUid: string): Promise<DiscordLate
     .single();
 
   if (error || !data) {
-    if (error) {
-      console.error('[discord-data] getLatestTestRunFromSupabase error:', error.message);
-    }
+    if (error) console.error('[discord-data] getLatestDiscordResult error:', error.message);
     return null;
   }
 
   return mapDiscordResultRow(data as Record<string, unknown>);
 }
 
-async function logDiscordActionToSupabase(record: DiscordActionRecord): Promise<boolean> {
+export async function logDiscordAction(record: DiscordActionRecord): Promise<void> {
   const db = getUserAdminDb();
-  if (!db) return false;
+  if (!db) return;
 
   const { error } = await db.from('discord_actions').insert({
     action_type: record.actionType,
@@ -239,186 +214,6 @@ async function logDiscordActionToSupabase(record: DiscordActionRecord): Promise<
   });
 
   if (error) {
-    console.error('[discord-data] logDiscordActionToSupabase error:', error.message);
-    return false;
+    console.error('[discord-data] logDiscordAction error:', error.message);
   }
-
-  return true;
-}
-
-export async function createDiscordLinkState(state: DiscordLinkState): Promise<void> {
-  if (await createLinkStateInSupabase(state)) {
-    return;
-  }
-  if (!isLegacyFirestoreDiscordEnabled()) return;
-
-  const db = await getFirestoreDb();
-  await db.collection('discord_link_states').doc(state.state).set({
-    state: state.state,
-    discordUserId: state.discordUserId,
-    guildId: state.guildId,
-    expiresAt: state.expiresAt,
-    used: state.used,
-    createdAt: state.createdAt,
-  });
-}
-
-export async function getDiscordLinkState(state: string): Promise<DiscordLinkState | null> {
-  const supabaseState = await getLinkStateFromSupabase(state);
-  if (supabaseState) {
-    return supabaseState;
-  }
-  if (!isLegacyFirestoreDiscordEnabled()) return null;
-
-  const db = await getFirestoreDb();
-  const snap = await db.collection('discord_link_states').doc(state).get();
-  if (!snap.exists) return null;
-
-  const data = snap.data() as Record<string, unknown>;
-  return {
-    state,
-    discordUserId: data.discordUserId as string,
-    guildId: (data.guildId as string | null) ?? null,
-    expiresAt: data.expiresAt as number,
-    used: Boolean(data.used),
-    createdAt: data.createdAt as number,
-    usedAt: data.usedAt as number | undefined,
-    appUid: (data.appUid as string | undefined) ?? (data.firebaseUid as string | undefined),
-  };
-}
-
-export async function markDiscordLinkStateUsed(state: string, appUid: string): Promise<void> {
-  if (await markLinkStateUsedInSupabase(state, appUid)) {
-    return;
-  }
-  if (!isLegacyFirestoreDiscordEnabled()) return;
-
-  const db = await getFirestoreDb();
-  await db.collection('discord_link_states').doc(state).update({
-    used: true,
-    usedAt: Date.now(),
-    appUid,
-    firebaseUid: appUid,
-  });
-}
-
-export async function upsertDiscordLink(record: DiscordLinkRecord): Promise<void> {
-  if (await upsertDiscordLinkInSupabase(record)) {
-    return;
-  }
-  if (!isLegacyFirestoreDiscordEnabled()) return;
-
-  const db = await getFirestoreDb();
-  await db.collection('discord_links').doc(buildDiscordLinkId(record.guildId, record.discordUserId)).set({
-    discordUserId: record.discordUserId,
-    guildId: record.guildId,
-    appUid: record.appUid,
-    firebaseUid: record.appUid,
-    email: record.email ?? null,
-    displayName: record.displayName ?? null,
-    linkedAt: record.linkedAt,
-  });
-}
-
-export async function getDiscordLink(
-  guildId: string | null | undefined,
-  discordUserId: string
-): Promise<DiscordLinkRecord | null> {
-  const supabaseLink = await getDiscordLinkFromSupabase(guildId, discordUserId);
-  if (supabaseLink) {
-    return supabaseLink;
-  }
-  if (!isLegacyFirestoreDiscordEnabled()) return null;
-
-  const db = await getFirestoreDb();
-  const snap = await db.collection('discord_links').doc(buildDiscordLinkId(guildId, discordUserId)).get();
-  if (!snap.exists) return null;
-
-  const data = snap.data() as Record<string, unknown>;
-  return {
-    discordUserId,
-    guildId: (data.guildId as string | null) ?? null,
-    appUid: ((data.appUid as string | undefined) ?? (data.firebaseUid as string | undefined) ?? '') as string,
-    email: (data.email as string | null) ?? undefined,
-    displayName: (data.displayName as string | null) ?? undefined,
-    linkedAt: (data.linkedAt as number | undefined) ?? Date.now(),
-  };
-}
-
-export async function deleteDiscordLink(
-  guildId: string | null | undefined,
-  discordUserId: string
-): Promise<boolean> {
-  const supabaseDeleted = await deleteDiscordLinkFromSupabase(guildId, discordUserId);
-
-  if (isLegacyFirestoreDiscordEnabled()) {
-    const db = await getFirestoreDb();
-    const ref = db.collection('discord_links').doc(buildDiscordLinkId(guildId, discordUserId));
-    const snap = await ref.get();
-    if (snap.exists) {
-      await ref.delete();
-      return true;
-    }
-  }
-
-  return supabaseDeleted;
-}
-
-export async function getLatestDiscordResult(appUid: string): Promise<DiscordLatestResult | null> {
-  const supabaseRun = await getLatestTestRunFromSupabase(appUid);
-  if (supabaseRun) {
-    return supabaseRun;
-  }
-  if (!isLegacyFirestoreDiscordEnabled()) return null;
-
-  const db = await getFirestoreDb();
-  const runsSnap = await db
-    .collection('test_runs')
-    .where('uid', '==', appUid)
-    .limit(20)
-    .get();
-
-  if (runsSnap.empty) {
-    return null;
-  }
-
-  const runs = runsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Record<string, unknown>) })) as Array<
-    Record<string, unknown> & { id: string }
-  >;
-  runs.sort((a, b) => ((b.finishedAt as number | undefined) ?? 0) - ((a.finishedAt as number | undefined) ?? 0));
-  const latest = runs[0];
-
-  return {
-    id: latest.id as string,
-    finishedAt: (latest.finishedAt as number | undefined) ?? 0,
-    mbtiType:
-      ((latest.mbtiType as string | undefined)
-        ?? (latest.type as string | undefined)
-        ?? (latest.resultType as string | undefined)
-        ?? 'UNKNOWN'),
-    suffix:
-      ((latest.suffix as string | undefined)
-        ?? (latest.variant as string | undefined)
-        ?? (latest.identity as string | undefined)),
-  };
-}
-
-export async function logDiscordAction(record: DiscordActionRecord): Promise<void> {
-  if (await logDiscordActionToSupabase(record)) {
-    return;
-  }
-  if (!isLegacyFirestoreDiscordEnabled()) return;
-
-  const db = await getFirestoreDb();
-  const admin = await import('firebase-admin');
-  await db.collection('discord_actions').add({
-    actionType: record.actionType,
-    discordUserId: record.discordUserId ?? null,
-    guildId: record.guildId ?? null,
-    appUid: record.appUid ?? null,
-    firebaseUid: record.appUid ?? null,
-    payload: record.payload ?? null,
-    createdAt: Date.now(),
-    createdAtServer: admin.default.firestore.FieldValue.serverTimestamp(),
-  });
 }

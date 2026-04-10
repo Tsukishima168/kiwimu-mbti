@@ -1,30 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { createClient } from '@supabase/supabase-js';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
 const CHANNEL_ID = process.env.DISCORD_CHANNEL_ID || '1466020032310939823'; // #results channel
 
-// ── Firebase Admin：懶加載，避免 Vercel 啟動時因缺少憑證而 crash ──
-let _db: any = null;
-function getFirestore() {
-    if (_db) return _db;
-    try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const admin = require('firebase-admin');
-        if (!admin.apps.length) {
-            // 優先嘗試 JSON 格式的 service account（Vercel env var）
-            const svcJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-            if (svcJson) {
-                admin.initializeApp({ credential: admin.credential.cert(JSON.parse(svcJson)) });
-            } else {
-                admin.initializeApp({ credential: admin.credential.applicationDefault() });
-            }
-        }
-        _db = admin.firestore();
-        return _db;
-    } catch (e) {
-        console.warn('[DISCORD] Firebase init skipped (no credentials):', (e as Error).message);
-        return null;
-    }
+function getAdminDb() {
+    const url = process.env.SUPABASE_USER_URL || process.env.VITE_SUPABASE_USER_URL;
+    const serviceRoleKey =
+        process.env.SUPABASE_USER_SERVICE_ROLE_KEY ||
+        process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceRoleKey) return null;
+    return createClient(url, serviceRoleKey, {
+        db: { schema: 'mbti' },
+        auth: { persistSession: false, autoRefreshToken: false },
+    } as Parameters<typeof createClient>[2]);
 }
 
 // 多語言配置
@@ -67,7 +56,7 @@ export default async function handler(
         return response.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { resultType, personalityName, locale = 'zh', userId } = request.body;
+    const { resultType, personalityName, locale = 'zh' } = request.body;
     const botToken = process.env.DISCORD_TOKEN || process.env.DISCORD_BOT_TOKEN;
 
     if (!botToken) {
@@ -83,7 +72,7 @@ export default async function handler(
         });
     }
 
-    const localeConfig = (LOCALES as any)[locale] || LOCALES.zh;
+    const localeConfig = (LOCALES as Record<string, typeof LOCALES.zh>)[locale] || LOCALES.zh;
 
     console.log('[DISCORD] 📤 Preparing to send notification:', {
         channel: CHANNEL_ID,
@@ -94,13 +83,15 @@ export default async function handler(
     });
 
     try {
-        // 取得目前總測驗人數（Firebase 可選）
+        // 取得目前總測驗人數（Supabase test_runs）
         let totalCount = 0;
         try {
-            const db = getFirestore();
+            const db = getAdminDb();
             if (db) {
-                const countSnapshot = await db.collection('discord_notifications').count().get();
-                totalCount = countSnapshot.data().count + 1;
+                const { count } = await db
+                    .from('test_runs')
+                    .select('*', { count: 'exact', head: true });
+                totalCount = count ?? 0;
             }
         } catch (e) {
             console.warn('[DISCORD] Failed to get count', e);
@@ -153,7 +144,7 @@ export default async function handler(
             body: JSON.stringify(discordPayload),
         });
 
-        const responseData = await discordRes.json();
+        const responseData = await discordRes.json() as { id?: string };
 
         if (!discordRes.ok) {
             console.error('[DISCORD] ❌ Discord API error:', {
@@ -172,28 +163,6 @@ export default async function handler(
             locale,
             timestamp: new Date().toISOString()
         });
-
-        // 記錄到 Firestore（用於分析，可選）
-        try {
-            const db = getFirestore();
-            if (db) {
-                const { firestore } = require('firebase-admin');
-                await db.collection('discord_notifications').add({
-                    resultType,
-                    personalityName,
-                    locale,
-                    userId: userId || 'anonymous',
-                    sentAt: firestore.FieldValue.serverTimestamp(),
-                    messageId: responseData.id,
-                    channelId: CHANNEL_ID,
-                    platform: 'discord',
-                    market: localeConfig.country
-                });
-            }
-        } catch (firestoreError) {
-            console.warn('[DISCORD] Failed to log to Firestore:', firestoreError);
-            // 不中斷推播流程
-        }
 
         return response.status(200).json({
             status: 'sent',
