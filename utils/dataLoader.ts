@@ -1,14 +1,7 @@
 // 資料載入器
-// 這個檔案負責從 Supabase 或 constants.ts 載入資料
-// 優先使用 Supabase，如果不可用則 fallback 到 constants.ts
+// 直接從 constants.ts 載入所有靜態資料
 
 import { QUESTIONS, DIMENSION_EXPLANATIONS, getResultData as getResultDataFromConstants } from '../constants';
-import { 
-  getQuestions as getQuestionsFromSupabase, 
-  getResultData as getResultDataFromSupabase,
-  getDimensionExplanations as getDimensionExplanationsFromSupabase,
-  isSupabaseAvailable
-} from '../supabase/client';
 import type { Question, MbtiResultData } from '../types';
 
 interface UnifiedDessertContract {
@@ -52,36 +45,17 @@ async function loadUnifiedDessertContract(type: string): Promise<UnifiedDessertC
 }
 
 /**
- * 取得測驗題目（優先從 Supabase，fallback 到 constants）
+ * 取得測驗題目（從 constants.ts）
  */
 export async function loadQuestions(): Promise<Question[]> {
-  if (isSupabaseAvailable()) {
-    const questions = await getQuestionsFromSupabase();
-    if (questions) {
-      return questions as Question[];
-    }
-  }
-  
-  // Fallback 到 constants.ts
   return QUESTIONS;
 }
 
 /**
- * 取得 MBTI 結果資料（優先從 Supabase，fallback 到 constants）
+ * 取得 MBTI 結果資料（從 constants.ts）
  */
 export async function loadResultData(type: string, variant: 'A' | 'T' = 'A'): Promise<MbtiResultData> {
-  let result: MbtiResultData | null = null;
-
-  if (isSupabaseAvailable()) {
-    const supabaseResult = await getResultDataFromSupabase(type, variant);
-    if (supabaseResult) {
-      result = supabaseResult as MbtiResultData;
-    }
-  }
-
-  if (!result) {
-    result = getResultDataFromConstants(type, variant);
-  }
+  const result = getResultDataFromConstants(type, variant);
 
   const unifiedDessert = await loadUnifiedDessertContract(type);
   if (!unifiedDessert) {
@@ -101,27 +75,12 @@ export async function loadResultData(type: string, variant: 'A' | 'T' = 'A'): Pr
 }
 
 /**
- * 取得維度說明（優先從 Supabase，fallback 到 constants）
+ * 取得維度說明（從 constants.ts）
  */
 export async function loadDimensionExplanations() {
-  if (isSupabaseAvailable()) {
-    const explanations = await getDimensionExplanationsFromSupabase();
-    if (explanations) {
-      return explanations;
-    }
-  }
-  
-  // Fallback 到 constants.ts
   return DIMENSION_EXPLANATIONS.map(d => ({
     key: d.key,
     label: d.label,
     text: d.text
   }));
-}
-
-/**
- * 檢查是否使用 Supabase
- */
-export function isUsingSupabase() {
-  return isSupabaseAvailable();
 }
