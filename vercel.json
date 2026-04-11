@@ -5,6 +5,14 @@
             "destination": "/api/$1"
         },
         {
+            "source": "/explore",
+            "destination": "/explore.html"
+        },
+        {
+            "source": "/state-test",
+            "destination": "/explore.html"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

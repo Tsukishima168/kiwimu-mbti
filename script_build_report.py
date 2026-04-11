@@ -211,7 +211,7 @@ data = [
     }
 ]
 
-with open("/Users/pensoair/Library/Mobile Documents/iCloud~md~obsidian/Documents/Penso-OS/08_專案工坊/Kiwimu_MBTI_Lab_內容庫/2026_H1_跨國升級版/03_MBTI_Report_2026_Taiwan.md", "w") as f:
+with open("/Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_題庫_四國版/03_MBTI_Report_2026_Taiwan.md", "w") as f:
     f.write("---\n")
     f.write("title: 03_MBTI_Report_2026_Taiwan\n")
     f.write("created: 2026-02-22\n")

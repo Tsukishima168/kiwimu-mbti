@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const DEFAULT_OBSIDIAN_VAULT_ROOT = process.env.PENSO_OBSIDIAN_ROOT || '/Users/pensoair/Obsidian-Vaults/Penso-SSOT';
-const SOURCE_DIR = process.env.V2_TW_DRAFT_DIR || path.join(DEFAULT_OBSIDIAN_VAULT_ROOT, '07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_H2_V2_草案庫');
+const SOURCE_DIR = process.env.V2_TW_DRAFT_DIR || path.join(DEFAULT_OBSIDIAN_VAULT_ROOT, '07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_報告_草案庫');
 const OUTPUT_FILE = path.resolve(process.cwd(), 'data/v2TaiwanDrafts.generated.ts');
 
 const FAMILY_META = {

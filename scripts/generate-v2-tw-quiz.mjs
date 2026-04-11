@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const DEFAULT_OBSIDIAN_VAULT_ROOT = process.env.PENSO_OBSIDIAN_ROOT || '/Users/pensoair/Obsidian-Vaults/Penso-SSOT';
-const SOURCE_FILE = process.env.V2_TW_QUESTION_FILE || path.join(DEFAULT_OBSIDIAN_VAULT_ROOT, '07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_H1_跨國升級版/MBTI_Question_Bank_2026_Taiwan.md');
+const SOURCE_FILE = process.env.V2_TW_QUESTION_FILE || path.join(DEFAULT_OBSIDIAN_VAULT_ROOT, '07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_題庫_四國版/MBTI_Question_Bank_2026_Taiwan.md');
 const OUTPUT_FILE = path.resolve(process.cwd(), 'data/v2TaiwanQuestions.generated.ts');
 
 const DIMENSION_VALUE_MAP = {

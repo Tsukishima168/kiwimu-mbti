@@ -1,14 +1,22 @@
 import React from 'react';
+import LanguageToggle from '../LanguageToggle';
 
 const COVER   = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774772303/redesigned-photo-1774598290392_wlohqn.png';
 const WORDMARK = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1769501231/%E6%A8%99%E6%BA%96%E5%AD%97-02_ndnf7x.png';
 
 interface Props {
+  introCopy: {
+    eyebrow: string;
+    sideLabel: string;
+    subtitle: string;
+    cta: string;
+    note: string;
+  };
   quizTitle: string;
   onStart: () => void;
 }
 
-const ExploreIntro: React.FC<Props> = ({ onStart }) => {
+const ExploreIntro: React.FC<Props> = ({ introCopy, quizTitle, onStart }) => {
   return (
     <div
       className="fade-in"
@@ -35,6 +43,10 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
       {/* overlay */}
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(10,10,10,0.35)' }} />
 
+      <div style={{ position: 'absolute', top: 24, left: 24, zIndex: 10 }}>
+        <LanguageToggle />
+      </div>
+
       {/* 右上角標記 */}
       <div style={{ position: 'absolute', top: 24, right: 24, zIndex: 10 }}>
         <span style={{
@@ -44,7 +56,7 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
           textTransform: 'uppercase' as const,
           color: 'rgba(255,255,255,0.4)',
         }}>
-          5 題 · 1 MIN
+          {introCopy.eyebrow}
         </span>
       </div>
 
@@ -65,7 +77,7 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
           color: 'rgba(255,255,255,0.28)',
           whiteSpace: 'nowrap' as const,
         }}>
-          KIWIMU STATE TEST
+          {introCopy.sideLabel}
         </span>
       </div>
 
@@ -107,7 +119,7 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
             fontFamily: "'Noto Sans TC', 'Inter', sans-serif",
           }}
         >
-          今天的你，打發到哪了？
+          {introCopy.subtitle}
         </p>
       </div>
 
@@ -121,8 +133,18 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
         display: 'flex',
         flexDirection: 'column' as const,
         alignItems: 'center',
-        gap: 10,
+        gap: 12,
       }}>
+        <p style={{
+          fontSize: 10,
+          fontFamily: "'JetBrains Mono', monospace",
+          letterSpacing: '0.18em',
+          color: 'rgba(255,255,255,0.42)',
+          margin: 0,
+          textTransform: 'uppercase' as const,
+        }}>
+          {quizTitle}
+        </p>
         <button
           onClick={onStart}
           style={{
@@ -142,7 +164,7 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
             fontFamily: "'Space Grotesk', 'Inter', sans-serif",
           }}
         >
-          開始打發 →
+          {introCopy.cta}
         </button>
 
         <p style={{
@@ -152,7 +174,7 @@ const ExploreIntro: React.FC<Props> = ({ onStart }) => {
           color: 'rgba(255,255,255,0.25)',
           margin: 0,
         }}>
-          不需要登入 · 完全免費
+          {introCopy.note}
         </p>
       </div>
     </div>

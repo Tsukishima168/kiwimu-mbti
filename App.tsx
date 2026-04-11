@@ -677,7 +677,11 @@ const App: React.FC = () => {
   // V1.5 /explore + /state-test 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
   const _path = window.location.pathname;
   if (_path.startsWith('/explore') || _path.startsWith('/state-test')) {
-    return <ExploreApp />;
+    return (
+      <LanguageProvider>
+        <ExploreApp />
+      </LanguageProvider>
+    );
   }
 
   // V2 /read 路由 — 完全獨立，不觸發 V1 Firebase 邏輯

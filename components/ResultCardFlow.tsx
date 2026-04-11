@@ -4,8 +4,7 @@ import { MbtiResultData, Score } from '../types';
 import { calculatePercentages } from '../utils/logic';
 import { SOUL_ANCHOR_MAP } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
-import { mbtiReportTranslations } from '../i18n/mbtiReportTranslations';
-import { detailsTranslations } from '../i18n/detailsTranslations';
+import { v1ReportCopy } from '../i18n/v1Report.generated';
 import { trackResultView } from '../utils/analytics';
 import { shareResultToLine } from '../utils/liffShare';
 
@@ -43,27 +42,56 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
     const percentages = calculatePercentages(rawScores);
     const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
     const identitySuffix = resultAT;
+    const fullCode = `${resultData.id}-${resultAT}`;
 
     const { language, t } = useLanguage();
     const langKey = (language === 'zh-TW' ? 'zh' : language) as 'zh' | 'en' | 'ja' | 'ko';
 
-    const i18nContent = mbtiReportTranslations[resultData.id]?.[langKey] || mbtiReportTranslations[resultData.id]?.zh;
-    const extraI18n = langKey !== 'zh' ? (detailsTranslations[resultData.id]?.[langKey as 'en' | 'ja' | 'ko'] || null) : null;
+    const reportCopy =
+        v1ReportCopy[fullCode]?.[langKey]
+        || v1ReportCopy[fullCode]?.zh
+        || v1ReportCopy[`${resultData.id}-A`]?.[langKey]
+        || v1ReportCopy[`${resultData.id}-A`]?.zh
+        || null;
+
+    const i18nContent = reportCopy
+        ? {
+            title: reportCopy.title,
+            quote: reportCopy.quote,
+            coreAnalysis: reportCopy.coreAnalysis,
+            soulQuestions: reportCopy.soulQuestions.join(' | ')
+        }
+        : {
+            title: resultData.title,
+            quote: resultData.quote,
+            coreAnalysis: resultData.coreAnalysis,
+            soulQuestions: resultData.soulQuestions.join(' | ')
+        };
+
+    const extraI18n = reportCopy
+        ? {
+            keywords: reportCopy.keywords,
+            strengths: reportCopy.strengths,
+            blindSpots: reportCopy.blindSpots,
+            career: reportCopy.career,
+            relationships: reportCopy.relationships,
+        }
+        : null;
 
     const identityLabel = (percentages.A >= percentages.Turbulent)
         ? (t('assertive_label') || '堅定型')
         : (t('turbulent_label') || '動盪型');
 
-    const displayKeywords = (extraI18n as any)?.keywords || resultData.keywords;
+    const displayKeywords = reportCopy?.keywords?.length ? reportCopy.keywords : resultData.keywords;
     const anchor = SOUL_ANCHOR_MAP[resultData.id] || SOUL_ANCHOR_MAP["ISFP"];
 
-    const displayStrengths = extraI18n ? extraI18n.strengths : resultData.strengths;
-    const displayBlindSpots = extraI18n ? extraI18n.blindSpots : resultData.blindSpots;
-    const displayCareerStyle = extraI18n ? extraI18n.career.style : resultData.career.style;
-    const displayCareerAdvice = extraI18n ? extraI18n.career.advice : resultData.career.advice;
-    const displayRelStyle = extraI18n ? extraI18n.relationships.style : (resultData.relationships.romance || resultData.relationships.style);
-    const displayRelAdvice = extraI18n ? extraI18n.relationships.advice : resultData.relationships.advice;
-    const displayRelStrengths = extraI18n ? extraI18n.relationships.style : (resultData.relationships.strengths || resultData.relationships.style || resultData.relationships.romance);
+    const displayStrengths = reportCopy?.strengths?.length ? reportCopy.strengths : resultData.strengths;
+    const displayBlindSpots = reportCopy?.blindSpots?.length ? reportCopy.blindSpots : resultData.blindSpots;
+    const displayCareerStyle = reportCopy?.career?.style || resultData.career.style;
+    const displayCareerAdvice = reportCopy?.career?.advice || resultData.career.advice;
+    const displayRelStyle = reportCopy?.relationships?.style || resultData.relationships.romance || resultData.relationships.style;
+    const displayRelAdvice = reportCopy?.relationships?.advice || resultData.relationships.advice;
+    const displayRelStrengths = reportCopy?.relationships?.style || resultData.relationships.strengths || resultData.relationships.style || resultData.relationships.romance;
 
     // Pick localized hook for DessertCard
     const displayHook = langKey === 'zh'
