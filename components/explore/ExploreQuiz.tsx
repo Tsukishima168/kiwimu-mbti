@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ExploreQuiz as ExploreQuizType, ExploreOption } from '../../data/questions-explore';
+import { Language } from '../../contexts/LanguageContext';
 
 const tk = {
   ink:   '#1A1A1A',
@@ -12,11 +13,12 @@ const COVER  = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774772303/re
 const AVATAR = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774779587/Speak_all_bkpgxc.webp';
 
 interface Props {
+  language: Language;
   quiz: ExploreQuizType;
   onComplete: (answers: Record<string, string>) => void;
 }
 
-export default function ExploreQuiz({ quiz, onComplete }: Props) {
+export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers]       = useState<Record<string, string>>({});
   const [selected, setSelected]     = useState<string | null>(null);
@@ -25,6 +27,14 @@ export default function ExploreQuiz({ quiz, onComplete }: Props) {
   const question = quiz.questions[currentIdx];
   const total    = quiz.questions.length;
   const isLast   = currentIdx === total - 1;
+  const bodyFontFamily =
+    language === 'ja'
+      ? "'Noto Sans JP', 'Inter', sans-serif"
+      : language === 'ko'
+        ? "'Noto Sans KR', 'Inter', sans-serif"
+        : language === 'zh'
+          ? "'Noto Sans TC', 'Inter', sans-serif"
+          : "'Inter', sans-serif";
 
   const handleSelect = (option: ExploreOption) => {
     if (selected) return;
@@ -44,7 +54,7 @@ export default function ExploreQuiz({ quiz, onComplete }: Props) {
   };
 
   return (
-    <div style={{ minHeight: '100svh', position: 'relative', overflow: 'hidden', fontFamily: "'Space Grotesk', 'Inter', 'Noto Sans TC', sans-serif" }}>
+    <div style={{ minHeight: '100svh', position: 'relative', overflow: 'hidden', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
 
       {/* 模糊背景圖 */}
       <div style={{
@@ -128,7 +138,7 @@ export default function ExploreQuiz({ quiz, onComplete }: Props) {
                   <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, fontWeight: 700, color: isChosen ? tk.ink : tk.muted, letterSpacing: '0.1em', flexShrink: 0, marginTop: 2 }}>
                     {i === 0 ? 'A' : 'B'}
                   </span>
-                  <span style={{ fontSize: 14, lineHeight: 1.6, color: tk.ink, fontFamily: "'Inter', 'Noto Sans TC', sans-serif" }}>
+                  <span style={{ fontSize: 14, lineHeight: 1.6, color: tk.ink, fontFamily: bodyFontFamily }}>
                     {option.text}
                   </span>
                 </button>
@@ -154,7 +164,7 @@ export default function ExploreQuiz({ quiz, onComplete }: Props) {
                 borderRadius: '12px 12px 12px 0',
                 flex: 1,
               }}>
-                <span style={{ fontSize: 13, lineHeight: 1.6, color: tk.ink, fontFamily: "'Inter', 'Noto Sans TC', sans-serif" }}>
+                <span style={{ fontSize: 13, lineHeight: 1.6, color: tk.ink, fontFamily: bodyFontFamily }}>
                   {question.options.find(o => o.value === selected)?.visual}
                 </span>
               </div>
