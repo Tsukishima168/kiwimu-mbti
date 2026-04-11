@@ -1,10 +1,13 @@
 import React from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface NotFoundProps {
     onHome: () => void;
 }
 
 const NotFound: React.FC<NotFoundProps> = ({ onHome }) => {
+    const { t } = useLanguage();
+
     return (
         <div className="min-h-screen bg-kiwi-bg flex flex-col items-center justify-center p-6 text-center select-none fade-in">
 
@@ -31,11 +34,10 @@ const NotFound: React.FC<NotFoundProps> = ({ onHome }) => {
                     404
                 </h1>
                 <h2 className="text-xl md:text-2xl font-serif font-bold text-gray-500 italic">
-                    這裡只有虛無...
+                    {t('not_found_title')}
                 </h2>
-                <p className="text-sm md:text-base text-gray-400 font-mono leading-relaxed">
-                    看來你漫遊到了實驗室的邊界。<br />
-                    別擔心，迷路也是探索的一部分。
+                <p className="text-sm md:text-base text-gray-400 font-mono leading-relaxed whitespace-pre-line">
+                    {t('not_found_desc')}
                 </p>
             </div>
 
@@ -44,9 +46,9 @@ const NotFound: React.FC<NotFoundProps> = ({ onHome }) => {
                 onClick={onHome}
                 className="mt-12 group relative px-8 py-3 bg-white text-kiwi-dark border border-kiwi-dark rounded-full font-mono text-xs md:text-sm font-bold tracking-[0.2em] uppercase hover:bg-kiwi-dark hover:text-white transition-all duration-500 shadow-lg hover:shadow-xl hover:-translate-y-1"
             >
-                <span>Return to Lab</span>
+                <span>{t('not_found_button')}</span>
                 <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    回到實驗室
+                    {t('not_found_button_hint')}
                 </span>
             </button>
 

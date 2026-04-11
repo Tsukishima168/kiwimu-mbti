@@ -17,7 +17,7 @@ interface QuizProps {
 }
 
 const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
-    const { language } = useLanguage();
+    const { language, t } = useLanguage();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [answers, setAnswers] = useState<Option[]>([]);
     const [isAnimating, setIsAnimating] = useState(false);
@@ -184,12 +184,12 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                                     onClick={handlePrevious}
                                     className="text-xs text-gray-400 hover:text-kiwi-dark transition-colors tracking-wider uppercase"
                                 >
-                                    ← Previous
+                                    ← {t('quiz_previous')}
                                 </button>
                             )}
                         </div>
                         <span className="text-xs font-mono text-gray-400 tracking-wider">
-                            {questionsLoaded && currentQuestion ? `${currentIndex + 1} / ${questions.length}` : (language === 'zh' ? '載入中...' : 'Loading...')}
+                            {questionsLoaded && currentQuestion ? `${currentIndex + 1} / ${questions.length}` : t('quiz_loading')}
                         </span>
                     </div>
                     <div className="h-[1px] bg-gray-100 w-full">
@@ -206,7 +206,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                         {!questionsLoaded || !currentQuestion ? (
                             <div className="text-center py-20">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kiwi-dark mx-auto mb-4"></div>
-                                <p className="text-gray-500">{language === 'zh' ? '載入題目中...' : 'Loading...'}</p>
+                                <p className="text-gray-500">{t('quiz_loading_questions')}</p>
                             </div>
                         ) : (
                             <div className={`transition-all duration-500 transform ${isAnimating ? 'opacity-0 translate-y-[-10px]' : 'opacity-100 translate-y-0'}`}>

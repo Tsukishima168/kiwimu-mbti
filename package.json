@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "sync:v1:reports": "node scripts/generate-v1-report-from-obsidian.mjs",
     "sync:v2:tw:reports": "node scripts/generate-v2-tw-drafts.mjs",
     "sync:v2:tw:quiz": "node scripts/generate-v2-tw-quiz.mjs",
     "sync:v2:tw": "npm run sync:v2:tw:reports && npm run sync:v2:tw:quiz"
