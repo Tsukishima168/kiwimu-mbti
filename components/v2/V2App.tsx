@@ -8,10 +8,18 @@ import {
   V2_TW_DRAFT_SOURCE,
   type V2TaiwanDraftReport,
 } from '../../data/v2TaiwanDrafts.generated';
+import { getResultData } from '../../constants';
 import type { MbtiResultData, Score } from '../../types';
 import { calculatePercentages, getVariant } from '../../utils/logic';
 import { trackAction } from '../../utils/userDataCollector';
-import { trackV2PaywallView, trackV2CheckoutStart, trackV2Unlocked } from '../../utils/analytics';
+import {
+  trackPageView,
+  trackScreenEngagement,
+  trackV2CheckoutStart,
+  trackV2PaywallView,
+  trackV2Unlocked,
+} from '../../utils/analytics';
+import { applyRuntimeSeo } from '../../utils/seo';
 import {
   clearV2Entitlement,
   getLastV1Result,
@@ -23,6 +31,12 @@ import {
   V2Entitlement,
 } from '../../utils/v2Access';
 import { getAuthSupabaseClient } from '../../utils/supabaseAuthBridge';
+import {
+  buildV2ReportPath,
+  normalizeV2Pathname,
+  parseV2RouteTarget,
+  type V2VariantCode,
+} from '../../utils/v2Routes';
 import './v2-tailwind.css';
 import './v2.css';
 
@@ -170,6 +184,19 @@ const getDimensionDescription = (report: V2TaiwanDraftReport, selectedCode: stri
   return report.dimension.bullets.find((item) => item.label.startsWith(`${selectedCode} (`))?.body || '';
 };
 
+const buildSyntheticScores = (type: string, variant: V2VariantCode): Score => ({
+  E: type.includes('E') ? 74 : 26,
+  I: type.includes('I') ? 74 : 26,
+  S: type.includes('S') ? 71 : 29,
+  N: type.includes('N') ? 71 : 29,
+  T: type.includes('T') ? 68 : 32,
+  F: type.includes('F') ? 68 : 32,
+  J: type.includes('J') ? 64 : 36,
+  P: type.includes('P') ? 64 : 36,
+  A: variant === 'A' ? 66 : 34,
+  Turbulent: variant === 'T' ? 66 : 34,
+});
+
 const buildTagWall = (type: string, variant: VariantCode): TagPill[] => {
   const tags = type.split('').map((letter) => DIMENSION_TAGS[letter]).filter(Boolean);
   tags.push(variant === 'A' ? DIMENSION_TAGS.A : DIMENSION_TAGS.T_VARIANT);
@@ -273,23 +300,126 @@ function DevImageSlot({
 
 export default function V2App({ user }: V2AppProps) {
   const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(window.location.hostname);
+  const pathname = window.location.pathname;
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const routeTarget = useMemo(() => parseV2RouteTarget(pathname, params), [params, pathname]);
   const [entitlement, setEntitlement] = useState<V2Entitlement>(() =>
     isLocalPreview ? readCachedV2Entitlement() : { status: 'locked' },
   );
-  const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const source = params.get('source') || 'direct';
+  const routeBundle = useMemo(() => {
+    if (!routeTarget) return null;
+    return {
+      resultData: getResultData(routeTarget.type, routeTarget.variant),
+      scores: buildSyntheticScores(routeTarget.type, routeTarget.variant),
+    };
+  }, [routeTarget]);
   const resultBundle = useMemo(() => {
     if (source === 'v2_quiz') {
-      return getLastV2PrototypeResult() || getLastV1Result();
+      return getLastV2PrototypeResult() || routeBundle || getLastV1Result();
     }
 
-    return getLastV1Result();
-  }, [source]);
+    return routeBundle || getLastV1Result();
+  }, [routeBundle, source]);
 
-  const variant = resultBundle ? getVariant(resultBundle.scores) : 'A';
-  const fullType = resultBundle ? `${resultBundle.resultData.id}-${variant}` : null;
+  const variant = routeTarget?.variant || (resultBundle ? getVariant(resultBundle.scores) : 'A');
+  const fullType = routeTarget?.fullType || (resultBundle ? `${resultBundle.resultData.id}-${variant}` : null);
   const checkoutUrl = fullType ? buildCheckoutUrl(fullType) : 'https://map.kiwimu.com/menu';
   const report = useMemo(() => (resultBundle ? getV2TaiwanDraft(resultBundle.resultData.id) : null), [resultBundle]);
+  const canonicalPath = fullType ? buildV2ReportPath(fullType) : '/read';
+  const canonicalUrl = `https://kiwimu.com${canonicalPath}`;
+
+  useEffect(() => {
+    const normalizedPath = normalizeV2Pathname(window.location.pathname);
+    if (normalizedPath !== window.location.pathname) {
+      window.history.replaceState({}, '', `${normalizedPath}${window.location.search}`);
+      return;
+    }
+
+    if (window.location.pathname === '/read' && routeTarget) {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.pathname = buildV2ReportPath(routeTarget.fullType);
+      nextUrl.searchParams.delete('mbti');
+      window.history.replaceState({}, '', `${nextUrl.pathname}${nextUrl.search}`);
+    }
+  }, [routeTarget]);
+
+  useEffect(() => {
+    const title = fullType && report
+      ? `${fullType} 深度靈魂報告｜${report.title}｜Kiwimu MBTI V2`
+      : 'Kiwimu MBTI V2 深度靈魂報告｜Moon Moon 月島甜點';
+    const description = fullType && report && resultBundle
+      ? `${report.abstract.body} ${resultBundle.resultData.summary} 以台灣版視角拆解 ${fullType} 的認知模式、人際節奏與抗壓策略。`
+      : 'Kiwimu V2 台灣版深度靈魂報告，從 MBTI 類型延伸到認知模式、人際節奏與抗壓策略。';
+    const image = resultBundle?.resultData.characterImage || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
+    const keywords = fullType && resultBundle
+      ? ['Kiwimu', 'MBTI', 'V2', '深度報告', fullType, resultBundle.resultData.title, ...resultBundle.resultData.keywords].join(',')
+      : 'Kiwimu,MBTI,V2,深度報告,人格測驗,台灣版';
+
+    applyRuntimeSeo({
+      title,
+      description,
+      canonical: canonicalUrl,
+      ogType: 'article',
+      image,
+      keywords,
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'WebPage',
+            '@id': `${canonicalUrl}#webpage`,
+            name: title,
+            description,
+            url: canonicalUrl,
+            inLanguage: 'zh-TW',
+            about: fullType ? [
+              {
+                '@type': 'Thing',
+                name: fullType,
+              },
+              {
+                '@type': 'Thing',
+                name: resultBundle?.resultData.title,
+              },
+            ] : undefined,
+          },
+          {
+            '@type': 'BreadcrumbList',
+            '@id': `${canonicalUrl}#breadcrumbs`,
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Kiwimu MBTI',
+                item: 'https://kiwimu.com/',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'V2 深度報告',
+                item: 'https://kiwimu.com/read',
+              },
+              ...(fullType ? [{
+                '@type': 'ListItem',
+                position: 3,
+                name: fullType,
+                item: canonicalUrl,
+              }] : []),
+            ],
+          },
+        ],
+      },
+    });
+  }, [canonicalUrl, fullType, report, resultBundle]);
+
+  useEffect(() => {
+    const enteredAt = Date.now();
+    trackPageView(canonicalPath);
+    return () => {
+      trackScreenEngagement(canonicalPath, Math.round((Date.now() - enteredAt) / 1000));
+    };
+  }, [canonicalPath]);
 
   useEffect(() => {
     if (!fullType || !hasV2UnlockQuery(params, { allowPreview: IS_DEV })) {
@@ -454,7 +584,7 @@ export default function V2App({ user }: V2AppProps) {
             <p className="v2-eyebrow">V2 CONTENT SYNC REQUIRED</p>
             <h1 className="mt-4 text-3xl font-bold text-black md:text-4xl">{resultBundle.resultData.id} 的台灣版草案尚未同步</h1>
             <p className="mt-4 text-sm leading-relaxed text-black/70">
-              目前 `/v2` 會直接讀取 `{V2_TW_DRAFT_SOURCE}`。請先重新執行 `npm run sync:v2:tw`，再回來看本地版面。
+              目前 `/read` 會直接讀取 `{V2_TW_DRAFT_SOURCE}`。請先重新執行 `npm run sync:v2:tw`，再回來看本地版面。
             </p>
           </div>
         </div>

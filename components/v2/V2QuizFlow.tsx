@@ -5,6 +5,9 @@ import { getResultData } from '../../constants';
 import { loadResultData } from '../../utils/dataLoader';
 import { setLastV2PrototypeResult } from '../../utils/v2Access';
 import { trackAction } from '../../utils/userDataCollector';
+import { trackPageView, trackScreenEngagement } from '../../utils/analytics';
+import { applyRuntimeSeo } from '../../utils/seo';
+import { buildV2QuizPath, buildV2ReportPath, normalizeV2Pathname } from '../../utils/v2Routes';
 import type { Option } from '../../types';
 import './v2-tailwind.css';
 import './v2.css';
@@ -22,6 +25,54 @@ export default function V2QuizFlow() {
   const totalQuestions = quiz.questions.length;
   const question = quiz.questions[currentIndex];
   const progress = started ? Math.max((answers.length / totalQuestions) * 100, 2.5) : 0;
+  const quizPath = buildV2QuizPath();
+
+  React.useEffect(() => {
+    const normalizedPath = normalizeV2Pathname(window.location.pathname);
+    if (normalizedPath !== window.location.pathname) {
+      window.history.replaceState({}, '', `${normalizedPath}${window.location.search}`);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    applyRuntimeSeo({
+      title: 'Kiwimu V2 5 題深度人格測驗｜Moon Moon 月島甜點',
+      description: '用 5 題快速定位你的 MBTI 深度靈魂報告入口，直接接回 Kiwimu V2 台灣版報告。',
+      canonical: `https://kiwimu.com${quizPath}`,
+      ogType: 'website',
+      image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png',
+      keywords: 'Kiwimu,V2,MBTI,人格測驗,深度報告,台灣版',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'WebPage',
+            '@id': 'https://kiwimu.com/read/quiz#webpage',
+            name: 'Kiwimu V2 5 題深度人格測驗',
+            description: '用 5 題快速定位你的 MBTI 深度靈魂報告入口。',
+            url: 'https://kiwimu.com/read/quiz',
+            inLanguage: 'zh-TW',
+          },
+          {
+            '@type': 'Quiz',
+            '@id': 'https://kiwimu.com/read/quiz#quiz',
+            name: 'Kiwimu V2 5 題深度人格測驗',
+            description: '5 題快速定位 MBTI 深度靈魂報告入口。',
+            url: 'https://kiwimu.com/read/quiz',
+            inLanguage: 'zh-TW',
+          },
+        ],
+      },
+    });
+  }, [quizPath]);
+
+  React.useEffect(() => {
+    const enteredAt = Date.now();
+    trackPageView(quizPath);
+    return () => {
+      trackScreenEngagement(quizPath, Math.round((Date.now() - enteredAt) / 1000));
+    };
+  }, [quizPath]);
 
   const handleStart = () => {
     setStarted(true);
@@ -36,7 +87,7 @@ export default function V2QuizFlow() {
       const resultData = await loadResultData(type, variant) || getResultData(type, variant);
       setLastV2PrototypeResult({ resultData, scores });
       trackAction('v2_quiz_flow_complete', { mbtiType: type, variant });
-      window.location.assign(`/read?source=v2_quiz&mbti=${type}`);
+      window.location.assign(`${buildV2ReportPath(`${type}-${variant}`)}?source=v2_quiz`);
     } catch (err) {
       console.error('V2QuizFlow: failed to resolve result', err);
       setAnswers(nextAnswers.slice(0, -1));
@@ -117,7 +168,7 @@ export default function V2QuizFlow() {
                 開始掃描靈魂
               </button>
               <a
-                href="/read"
+                href={buildV2QuizPath().replace('/quiz', '')}
                 className="kiwimu-btn flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]"
                 style={{ color: '#1A1A1A' }}
               >
@@ -167,7 +218,7 @@ export default function V2QuizFlow() {
       </div>
       <div className="mx-auto max-w-2xl">
         <div className="v2-quiz-topbar">
-          <a href="/read" className="v2-quiz-link">← 回到 V2</a>
+          <a href={buildV2QuizPath().replace('/quiz', '')} className="v2-quiz-link">← 回到 V2</a>
           <div className="flex items-center gap-2">
             <span className="v2-pill">{currentIndex + 1} / {totalQuestions}</span>
           </div>

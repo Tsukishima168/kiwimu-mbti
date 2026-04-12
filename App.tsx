@@ -60,6 +60,7 @@ import ResultLegacyDump from './components/ResultLegacyDump';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
 import V2App from './components/v2/V2App';
 import V2QuizFlow from './components/v2/V2QuizFlow';
+import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
 type PostLoginDestination = 'intro' | 'result' | 'archive';
@@ -173,7 +174,7 @@ const App: React.FC = () => {
     }
 
     const pathname = window.location.pathname;
-    if (pathname.startsWith('/read') || pathname.startsWith('/explore') || pathname.startsWith('/state-test')) {
+    if (isV2Pathname(pathname) || pathname.startsWith('/explore') || pathname.startsWith('/state-test')) {
       return; // handled by top-level render guard
     }
     if (pathname === '/quiz') {
@@ -422,7 +423,7 @@ const App: React.FC = () => {
   const previousStageRef = React.useRef<Stage | null>(null);
 
   useEffect(() => {
-    if (window.location.pathname.startsWith('/read')) {
+    if (isV2Pathname(window.location.pathname)) {
       return;
     }
 
@@ -685,8 +686,9 @@ const App: React.FC = () => {
   }
 
   // V2 /read 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
-  if (_path.startsWith('/read')) {
-    return _path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>;
+  if (isV2Pathname(_path)) {
+    const normalizedV2Path = normalizeV2Pathname(_path);
+    return normalizedV2Path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>;
   }
 
   if (loadingAuth && stage !== 'callback') {

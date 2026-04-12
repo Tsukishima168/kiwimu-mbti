@@ -130,7 +130,7 @@ export default function V2QuizApp({ user }: V2QuizAppProps) {
         source: 'v2_dev_quiz',
       });
 
-      window.location.assign(`/v2?source=v2_quiz&mbti=${type}`);
+      window.location.assign(`/read/${type}-${variant}?source=v2_quiz`);
     } catch (error) {
       console.error('Failed to resolve V2 quiz result:', error);
       setAnswers(nextAnswers.slice(0, -1));
@@ -214,7 +214,7 @@ export default function V2QuizApp({ user }: V2QuizAppProps) {
                 <ul className="v2-quiz-intro-list">
                   <li>40 題完整台灣版題組</li>
                   <li>每 8 題一次 Kiwimu 轉場</li>
-                  <li>完成後直接接回現有 `/v2` 報告殼</li>
+                  <li>完成後直接接回現有 `/read` 報告殼</li>
                   <li>不影響 `V1` 正式入口，也不碰 `main`</li>
                 </ul>
               </div>
@@ -232,7 +232,7 @@ export default function V2QuizApp({ user }: V2QuizAppProps) {
                 <button type="button" className="kiwimu-btn kiwimu-btn-primary" onClick={startQuiz} style={{ color: '#1A1A1A' }}>
                   開始本地 V2 題組
                 </button>
-                <a href="/v2" className="kiwimu-btn" style={{ color: '#1A1A1A' }}>
+                <a href="/read" className="kiwimu-btn" style={{ color: '#1A1A1A' }}>
                   先回 V2 報告殼
                 </a>
               </div>
@@ -289,7 +289,7 @@ export default function V2QuizApp({ user }: V2QuizAppProps) {
             </p>
             <div className="v2-quiz-kiwimu-note mt-8">
               <span className="v2-pill v2-pill-solid">Kiwimu</span>
-              <p>再一下下就好。接著你會直接回到 `/v2`，看這次 prototype 跑出的完整結果殼。</p>
+              <p>再一下下就好。接著你會直接回到 `/read`，看這次 prototype 跑出的完整結果殼。</p>
             </div>
           </section>
         </div>
@@ -301,7 +301,7 @@ export default function V2QuizApp({ user }: V2QuizAppProps) {
     <div className="v2-root min-h-screen px-5 pt-24 pb-16">
       <div className="mx-auto max-w-5xl">
         <div className="v2-quiz-topbar">
-          <a href="/v2" className="v2-quiz-link">← 回 V2 報告殼</a>
+          <a href="/read" className="v2-quiz-link">← 回 V2 報告殼</a>
           <div className="flex items-center gap-2">
             <span className="v2-pill">DEV ONLY</span>
             <span className="v2-pill">Kiwimu prototype</span>
@@ -365,7 +365,7 @@ export default function V2QuizApp({ user }: V2QuizAppProps) {
             <div className="v2-quiz-loading-state">
               <p className="v2-eyebrow">FINAL PASS</p>
               <h3>Kiwimu 想把你一路以來的樣子，慢慢翻給你看。</h3>
-              <p>正在整理結果，接著就會回到 `/v2` 深報告殼。</p>
+              <p>正在整理結果，接著就會回到 `/read` 深報告殼。</p>
             </div>
           ) : null}
 

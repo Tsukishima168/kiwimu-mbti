@@ -1,6 +1,7 @@
 import React from 'react';
 import { CardProps } from './Types';
 import { trackAction } from '../../utils/userDataCollector';
+import { buildV2ReportPath } from '../../utils/v2Routes';
 
 export const V2UpgradeCard: React.FC<CardProps> = ({
   resultData,
@@ -16,7 +17,7 @@ export const V2UpgradeCard: React.FC<CardProps> = ({
       mbtiType: fullType,
     });
 
-    window.location.assign(`/v2?source=v1_result_card&mbti=${fullType}`);
+    window.location.assign(`${buildV2ReportPath(fullType)}?source=v1_result_card`);
   };
 
   return (

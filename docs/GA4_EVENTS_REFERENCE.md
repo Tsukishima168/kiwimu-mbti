@@ -8,10 +8,10 @@
 
 | 來源 | 檔案 | 說明 |
 |------|------|------|
-| Firebase Analytics | `utils/analytics.ts`、`firebase.ts` | 測驗、結果、登入、頁面瀏覽等 |
+| Runtime gtag wrapper | `utils/analytics.ts` | 測驗、結果、登入、頁面瀏覽、V2 funnel 等 |
 | gtag | `index.html`、`utils/utmTracking.ts`、`utils/referralTracking.ts`、`utils/campaignTracking.ts`、`utils/marketingPixels.ts` | UTM 著陸、外連、推薦、轉換、行銷 |
 
-**GA4 Measurement ID**：`G-2NBWRX24YR`（與 Firebase measurementId 相同）
+**GA4 Measurement ID**：優先讀 `VITE_GA4_ID`，其次 `VITE_FIREBASE_MEASUREMENT_ID`，最後 fallback `G-DM6F27KL8B`
 
 ---
 
@@ -21,7 +21,7 @@
 
 | 事件名稱 | 觸發位置 | 參數 | 說明 |
 |----------|----------|------|------|
-| `page_view` | App.tsx（stage 變更） | page_name, referrer | 虛擬頁：/、/manifesto、/quiz、/result、/archive |
+| `page_view` | App.tsx、V2App、V2QuizFlow | page_name, referrer | 虛擬頁：/、/manifesto、/quiz、/result、/archive、/read、/read/quiz、/read/\<TYPE\> |
 | `screen_engagement` | App.tsx（離開某 stage 時） | screen_name, engagement_time_seconds, page_name | **各頁停留秒數**；可分析「使用者在哪一頁待最久」 |
 | `first_visit` / 工作階段 | GA4 自動 | - | 由 GA4 自動收集 |
 
@@ -32,7 +32,7 @@
 | `quiz_start` | Quiz 開始 | source, campaign_id, timestamp | 開始測驗 |
 | `quiz_progress` | 每題／每 N 題 | question_number, total_questions, progress_percentage, time_spent_seconds | 進度與耗時 |
 | `quiz_abandon` | 離開未完成 | abandoned_at_question, total_questions, progress_percentage, time_spent_seconds | 流失 |
-| `quiz_complete` | 測驗完成 | mbti_type, time_spent_seconds, completion_rate, user_id | 轉換；並寫入 user property mbti_type / mbti_variant |
+| `quiz_completion` | 測驗完成 | mbti_type, time_spent_seconds, completion_rate, user_id | 轉換；並寫入 user property mbti_type / mbti_variant |
 
 ### 2.3 結果頁
 
@@ -85,6 +85,14 @@
 | `store_reward_generated` | campaignTracking | 店鋪獎勵產生 |
 | FB / TikTok / LINE 等 | marketingPixels | 各平台標準事件 |
 
+### 2.9 V2 商業漏斗
+
+| 事件名稱 | 觸發位置 | 參數 | 說明 |
+|----------|----------|------|------|
+| `view_item` | `components/v2/V2App.tsx` | items, mbti_type, source | 看見 V2 paywall / 商品頁 |
+| `begin_checkout` | `components/v2/V2App.tsx` | items, mbti_type, source, checkout_url | 點擊 V2 解鎖 CTA |
+| `purchase` | `components/v2/V2App.tsx` | transaction_id, items, mbti_type, unlock_type, source | V2 解鎖成功（含 Supabase entitlement / dev preview） |
+
 ---
 
 ## 三、自訂維度建議（GA4 後台）
@@ -94,7 +102,7 @@
 | 維度名稱 | 範圍 | 事件參數／User Property | 用途 |
 |----------|------|--------------------------|------|
 | `mbti_type` | 使用者 或 事件 | mbti_type（如 INFP、INTJ） | 結果類型分布、區隔 |
-| `page_path` | 事件 | page_name（/、/quiz、/result、/archive） | 動線、停留 |
+| `page_path` | 事件 | page_name（/、/quiz、/result、/archive、/read、/read/quiz、/read/\<TYPE\>） | 動線、停留 |
 | `traffic_source` | 使用者／工作階段 | utm_source 或第一筆 utm_landing | 來源分析 |
 | `campaign_name` | 事件 | utm_campaign | 活動成效 |
 | `outbound_section` | 事件 | section（explore-more、result 等） | 外連區塊成效 |
@@ -112,20 +120,22 @@
 
 | 轉換名稱 | 對應事件 | 說明 |
 |----------|----------|------|
-| 測驗完成 | quiz_complete | 主要轉換 |
+| 測驗完成 | quiz_completion | 主要轉換 |
 | 結果頁瀏覽 | result_view | 次要轉換 |
 | 分享結果 | result_share | 參與度 |
 | 下載報告 | result_download | 參與度 |
 | 外連訂購 | outbound_click（link_name = 訂購相關） | 商業意圖 |
+| V2 解鎖開始 | begin_checkout | V2 商業漏斗 |
+| V2 解鎖成功 | purchase | V2 商業漏斗 |
 
 ---
 
 ## 五、建議探索／報表
 
-- **漏斗**：page_view (/) → quiz_start → quiz_progress → quiz_complete → result_view。  
-- **流失**：quiz_abandon 的 abandoned_at_question、progress_percentage 分布。  
-- **MBTI 分布**：以 quiz_complete / result_view 的 mbti_type 做長條圖。  
-- **來源成效**：維度 traffic_source / campaign_name，轉換事件 quiz_complete。  
+- **漏斗**：page_view (/) → quiz_start → quiz_progress → quiz_completion → result_view。
+- **流失**：quiz_abandon 的 abandoned_at_question、progress_percentage 分布。
+- **MBTI 分布**：以 quiz_completion / result_view 的 mbti_type 做長條圖。
+- **來源成效**：維度 traffic_source / campaign_name，轉換事件 quiz_completion。
 - **外連成效**：事件 outbound_click，維度 link_name、section。
 
 ### 五之一、使用者在哪個頁面停留最久（screen_engagement）
