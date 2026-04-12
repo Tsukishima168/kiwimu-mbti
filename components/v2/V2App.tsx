@@ -16,7 +16,7 @@ import {
   clearV2Entitlement,
   getLastV1Result,
   getLastV2PrototypeResult,
-  getV2Entitlement,
+  readCachedV2Entitlement,
   hasV2UnlockQuery,
   setV2Entitlement,
   unlockV2Preview,
@@ -53,7 +53,7 @@ type TagPill = {
 
 const MARQUEE_TEXT = 'KIWIMU MBTI V2 TAIWAN EDITION · LOCAL PROTOTYPE · PAID WALL · DEEP REPORT · ';
 const LOCAL_PREVIEW_HOSTS = new Set(['localhost', '127.0.0.1']);
-const DEV_ONLY_V2 = true;
+const IS_DEV = import.meta.env.DEV;
 
 const FAMILY_THEMES: Record<ReportFamilyKey, { accent: string; ink: string; soft: string; glow: string; panel: string; line: string; haze: string; }> = {
   analysts: {
@@ -272,10 +272,12 @@ function DevImageSlot({
 }
 
 export default function V2App({ user }: V2AppProps) {
-  const [entitlement, setEntitlement] = useState<V2Entitlement>(() => getV2Entitlement());
+  const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(window.location.hostname);
+  const [entitlement, setEntitlement] = useState<V2Entitlement>(() =>
+    isLocalPreview ? readCachedV2Entitlement() : { status: 'locked' },
+  );
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const source = params.get('source') || 'direct';
-  const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(window.location.hostname);
   const resultBundle = useMemo(() => {
     if (source === 'v2_quiz') {
       return getLastV2PrototypeResult() || getLastV1Result();
@@ -290,7 +292,7 @@ export default function V2App({ user }: V2AppProps) {
   const report = useMemo(() => (resultBundle ? getV2TaiwanDraft(resultBundle.resultData.id) : null), [resultBundle]);
 
   useEffect(() => {
-    if (!fullType || !hasV2UnlockQuery(params)) {
+    if (!fullType || !hasV2UnlockQuery(params, { allowPreview: IS_DEV })) {
       return;
     }
 
@@ -320,13 +322,21 @@ export default function V2App({ user }: V2AppProps) {
   // Check Supabase DB entitlement on mount（付費後由 webhook 寫入 profiles.v2_unlocked_at）
   useEffect(() => {
     const checkSupabaseEntitlement = async () => {
-      if (getV2Entitlement().status === 'unlocked') return;
-
       const supabase = getAuthSupabaseClient();
-      if (!supabase) return;
+      if (!supabase) {
+        if (!isLocalPreview) {
+          clearV2Entitlement();
+        }
+        return;
+      }
 
       const { data: { user: sbUser } } = await supabase.auth.getUser();
-      if (!sbUser) return;
+      if (!sbUser) {
+        if (!isLocalPreview) {
+          clearV2Entitlement();
+        }
+        return;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -346,11 +356,13 @@ export default function V2App({ user }: V2AppProps) {
         setEntitlement(unlocked);
         trackAction('v2_unlock_from_supabase', { mbtiType: fullType || 'unknown', source });
         trackV2Unlocked(fullType || 'unknown', 'one_time', 'supabase-db');
+      } else if (!isLocalPreview) {
+        clearV2Entitlement();
       }
     };
 
     checkSupabaseEntitlement();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fullType, isLocalPreview, source]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCheckout = () => {
     if (!fullType) {
@@ -365,7 +377,7 @@ export default function V2App({ user }: V2AppProps) {
     });
     trackV2CheckoutStart(fullType, source, checkoutUrl);
 
-    if (DEV_ONLY_V2) {
+    if (IS_DEV) {
       if (!isLocalPreview) {
         trackAction('v2_checkout_blocked_dev', {
           mbtiType: fullType,
@@ -390,7 +402,7 @@ export default function V2App({ user }: V2AppProps) {
 
   const handleResetPreview = () => {
     clearV2Entitlement();
-    setEntitlement(getV2Entitlement());
+    setEntitlement({ status: 'locked' });
   };
 
   if (!resultBundle || !fullType) {
@@ -470,12 +482,12 @@ export default function V2App({ user }: V2AppProps) {
   const rarityLabel = rarityData ? getRarityLabel(rarityData.rank) : null;
   const rarityMessage = rarityData ? getRarityMessage(rarityData.rank) : null;
   const archetypes = getCelebrityArchetypes(resultData.id).slice(0, 2);
-  const isDevLocked = DEV_ONLY_V2 && !isUnlocked && !isLocalPreview;
+  const isDevLocked = IS_DEV && !isUnlocked && !isLocalPreview;
   const primaryButtonLabel = isUnlocked
     ? '下載 / 列印目前頁面'
     : isLocalPreview
       ? '本地模擬解鎖 V2'
-      : DEV_ONLY_V2
+      : IS_DEV
         ? 'DEV 階段暫不開放'
         : '前往 Kiwimu Map 解鎖 V2';
 
@@ -498,7 +510,7 @@ export default function V2App({ user }: V2AppProps) {
               <span className="v2-pill v2-pill-solid">TAIWAN EDITION</span>
               <span className="v2-pill">V1 永久免費核心</span>
               <span className="v2-pill">{isUnlocked ? 'V2 已解鎖' : 'V2 付費牆預覽'}</span>
-              {DEV_ONLY_V2 ? <span className="v2-pill">DEV ONLY / 不進 main</span> : null}
+              {IS_DEV ? <span className="v2-pill">DEV ONLY / 不進 main</span> : null}
             </div>
 
             <div className="mt-6 flex flex-wrap items-end gap-4">
@@ -798,7 +810,7 @@ export default function V2App({ user }: V2AppProps) {
                   ? '這份頁面現在直接使用 2026 H2 台灣版草案庫 + 現有 V1 結果資料在本地組裝。'
                   : 'V1 永久免費保留。V2 只鎖完整深報告，包含 A/T 對照、維度進化、職涯與關係深度段落。'}
               </p>
-              {DEV_ONLY_V2 ? (
+              {IS_DEV ? (
                 <div className="mt-4 rounded-[18px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-4 text-sm leading-relaxed text-black/72">
                   目前固定維持在 `dev/local prototype` 階段，不接正式金流、不影響 `main` 營運，也不作正式上線判定。等你的圖補齊後再進下一步整合。
                 </div>

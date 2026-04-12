@@ -27,7 +27,7 @@ function canUseStorage() {
   return typeof window !== 'undefined';
 }
 
-export function getV2Entitlement(): V2Entitlement {
+export function readCachedV2Entitlement(): V2Entitlement {
   if (!canUseStorage()) {
     return defaultEntitlement;
   }
@@ -47,6 +47,12 @@ export function getV2Entitlement(): V2Entitlement {
   }
 
   return defaultEntitlement;
+}
+
+// Backward-compatible alias for callers that still expect the old name.
+// The value is cache-only; Supabase remains the source of truth.
+export function getV2Entitlement(): V2Entitlement {
+  return readCachedV2Entitlement();
 }
 
 export function setV2Entitlement(entitlement: V2Entitlement) {
@@ -134,7 +140,23 @@ export function clearLastV2PrototypeResult() {
   sessionStorage.removeItem(V2_PROTOTYPE_SCORE_KEY);
 }
 
-export function hasV2UnlockQuery(params: URLSearchParams) {
+export function hasV2UnlockQuery(
+  params: URLSearchParams,
+  options: {
+    allowPreview?: boolean;
+    allowSuccess?: boolean;
+  } = {},
+) {
+  const { allowPreview = import.meta.env.DEV, allowSuccess = false } = options;
   const unlockParam = params.get('unlock');
-  return unlockParam === 'preview' || unlockParam === 'success';
+
+  if (unlockParam === 'preview') {
+    return allowPreview;
+  }
+
+  if (unlockParam === 'success') {
+    return allowSuccess;
+  }
+
+  return false;
 }
