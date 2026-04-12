@@ -22,6 +22,7 @@
 | **sitemap.xml** | 列出希望被收錄的 URL | `public/sitemap.xml` |
 | **robots.txt** | 不擋重要路徑、指向 sitemap | `public/robots.txt` |
 | **V2 公開入口** | `read` 入口 + `32` 個 `/read/<TYPE>-<VARIANT>` 可直接開啟 URL | `App.tsx`、`components/v2/V2App.tsx`、`public/sitemap.xml` |
+| **公開答案中心** | `answers` hub，集中回答 `16 型`、`A/T`、`32 變體` 與引用邊界 | `pages/AnswersHub.tsx`、`data/answersHubContent.ts` |
 | **主站 URL** | SPA 以首頁為主，但 `read` 已有可直接存取的 V2 URL | `https://kiwimu.com/` |
 
 **注意**：本專案仍是 SPA，但 V2 已補上 `read` 入口與 `32` 個 `/read/<TYPE>-<VARIANT>` 路徑，可直接被 sitemap 與 AI/搜尋系統引用。V1 主流程（intro／quiz／result／archive）仍以虛擬頁 `page_view` 追蹤。
@@ -50,11 +51,12 @@
 | 檔案 | 用途 |
 |------|------|
 | `public/robots.txt` | 允許爬蟲、指向 sitemap |
-| `public/sitemap.xml` | 首頁 + 靜態頁（如 privacy） |
+| `public/sitemap.xml` | 首頁 + 靜態頁 + `/answers` + `/read` 入口 |
 | `index.html` | 首頁 meta、JSON-LD、GA4 gtag |
 | `utils/seo.ts` | runtime meta / canonical / JSON-LD 更新 |
 | `components/v2/V2App.tsx` | `/read` 報告頁 SEO 與 GA4 |
 | `components/v2/V2QuizFlow.tsx` | `/read/quiz` SEO 與 GA4 |
+| `pages/AnswersHub.tsx` | `/answers` 公開答案中心 |
 | `public/llms.txt` | 提供 AI 可讀的產品與 V2 路由摘要 |
 
 ---
@@ -119,9 +121,10 @@
 ### AI SEO
 
 - [x] `public/robots.txt` 已建立並指向 sitemap
-- [x] `public/sitemap.xml` 已建立（首頁、靜態頁、`/read` 入口、`32` 個 V2 變體 URL）
+- [x] `public/sitemap.xml` 已建立（首頁、靜態頁、`/answers`、`/read` 入口、`32` 個 V2 變體 URL）
 - [x] `index.html` 已加入 JSON-LD（WebSite + Organization）
 - [x] `/read` 與 `/read/quiz` 已有 runtime meta / canonical / JSON-LD
+- [x] `/answers` 已有 runtime meta / canonical / JSON-LD + FAQ schema
 - [ ] 若有新增公開頁（如 /about、/faq），需更新 sitemap 與 meta
 
 ### GA4
@@ -140,10 +143,12 @@
 |------|------|
 | `docs/AI_SEO_GA4_DESIGN.md` | 本設計文件 |
 | `docs/GA4_EVENTS_REFERENCE.md` | GA4 事件與參數完整對照 |
+| `docs/GA4_ADMIN_SETUP_CHECKLIST.md` | GA4 後台實際設定清單 |
 | `docs/AI_SEO_PROPOSAL.md` | 整體 AI SEO 策略（三站、內容） |
 | `utils/analytics.ts` | Firebase / GA4 事件實作 |
 | `utils/seo.ts` | runtime SEO helper |
 | `utils/v2Routes.ts` | `/read` / `/v2` 路徑解析與 canonical 產生 |
+| `data/answersHubContent.ts` | `/answers` 固定內容來源 |
 | `utils/utmTracking.ts` | UTM 與 outbound_click |
 | `utils/referralTracking.ts` | 推薦著陸與轉換 |
 | `index.html` | GA4 ID loader（`VITE_GA4_ID` / `VITE_FIREBASE_MEASUREMENT_ID`） |

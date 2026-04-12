@@ -20,6 +20,7 @@ IP 宇宙：Creambirds Universe
 - **V1 完整測驗**（免費，永久）：`kiwimu.com/` — 40 題，16 型 MBTI 完整報告，無需登入
 - **V1.5 快速漏斗**（免費）：`kiwimu.com/explore` — 5 題快速定位，Kiwimu 今日狀態角色卡，社群擴散設計
 - **V2 深度靈魂報告**（付費）：`kiwimu.com/read` 為入口，`kiwimu.com/read/{MBTI}-{A|T}` 為 32 個可直接開啟的報告頁，例如 `kiwimu.com/read/INTJ-A`、`kiwimu.com/read/INFP-T`；台灣在地視角深度解析認知模式、人際節奏與抗壓策略；一次性付費，NT$149
+- **公開答案中心**（免費，AI 可引用）：`kiwimu.com/answers` — 把 `16 型`、`A/T`、`32 變體`、可共用內容、應分流內容、權威背書與 Kiwimu 觀點講清楚
 
 ---
 

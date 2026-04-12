@@ -28,6 +28,8 @@ const FooterLinks = () => {
 
   return (
     <footer className="py-3 text-center text-xs text-gray-400">
+      <a href="/answers" className="hover:text-kiwi-dark transition-colors">MBTI 答案中心</a>
+      <span className="mx-2">·</span>
       <a href={`/privacy${langSuffix}.html`} target="_blank" rel="noopener" className="hover:text-kiwi-dark transition-colors">{privacyText}</a>
       <span className="mx-2">·</span>
       <a href={`/terms${langSuffix}.html`} target="_blank" rel="noopener" className="hover:text-kiwi-dark transition-colors">{termsText}</a>
@@ -61,6 +63,7 @@ import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
 import V2App from './components/v2/V2App';
 import V2QuizFlow from './components/v2/V2QuizFlow';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
+import AnswersHub from './pages/AnswersHub';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
 type PostLoginDestination = 'intro' | 'result' | 'archive';
@@ -72,6 +75,7 @@ const POST_LOGIN_DESTINATION_KEY = 'post_login_destination';
 const isV1Pathname = (pathname: string) =>
   Array.from(V1_PATHS).some((basePath) => pathname === basePath || pathname.startsWith(`${basePath}/`));
 const isLiteFunnelPathname = (pathname: string) => pathname === '/state-test';
+const isPublicContentPathname = (pathname: string) => pathname.startsWith('/answers');
 
 const getStagePath = (currentStage: Stage, pathname: string) => {
   if (currentStage === 'state-test') {
@@ -174,7 +178,7 @@ const App: React.FC = () => {
     }
 
     const pathname = window.location.pathname;
-    if (isV2Pathname(pathname) || pathname.startsWith('/explore') || pathname.startsWith('/state-test')) {
+    if (isV2Pathname(pathname) || pathname.startsWith('/explore') || pathname.startsWith('/state-test') || isPublicContentPathname(pathname)) {
       return; // handled by top-level render guard
     }
     if (pathname === '/quiz') {
@@ -423,7 +427,7 @@ const App: React.FC = () => {
   const previousStageRef = React.useRef<Stage | null>(null);
 
   useEffect(() => {
-    if (isV2Pathname(window.location.pathname)) {
+    if (isV2Pathname(window.location.pathname) || isPublicContentPathname(window.location.pathname)) {
       return;
     }
 
@@ -683,6 +687,10 @@ const App: React.FC = () => {
         <ExploreApp />
       </LanguageProvider>
     );
+  }
+
+  if (_path.startsWith('/answers')) {
+    return <AnswersHub />;
   }
 
   // V2 /read 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
