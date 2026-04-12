@@ -19,8 +19,12 @@ import { Language, useLanguage } from '../../contexts/LanguageContext';
 import { exploreTranslations } from '../../i18n/exploreTranslations';
 import { sendDiscordNotification } from '../../utils/discord';
 import { getSession, trackAction } from '../../utils/userDataCollector';
+import { trackPageView, trackScreenEngagement } from '../../utils/analytics';
+import { applyRuntimeSeo } from '../../utils/seo';
 
 type Stage = 'intro' | 'quiz' | 'result';
+const SITE_URL = 'https://kiwimu.com';
+const DEFAULT_SOCIAL_IMAGE = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
 
 function getQuizVersion(): 'A' | 'B' {
   const params = new URLSearchParams(window.location.search);
@@ -67,12 +71,88 @@ export default function ExploreApp() {
   const quiz = localePack.quizzes[quizVersion] as ExploreQuizType;
 
   const source      = getSource();  // utm_source or 'direct'
+  const pathname = window.location.pathname;
+  const isStateTest = pathname.startsWith('/state-test');
+  const canonicalPath = isStateTest ? '/state-test' : '/explore';
+  const virtualPath = isStateTest
+    ? stage === 'intro'
+      ? '/state-test'
+      : stage === 'quiz'
+        ? '/state-test/quiz'
+        : '/state-test/result'
+    : stage === 'intro'
+      ? '/explore'
+      : stage === 'quiz'
+        ? '/explore/quiz'
+        : '/explore/result';
 
   useEffect(() => {
     if (requestedLanguage && requestedLanguage !== language) {
       setLanguage(requestedLanguage);
     }
   }, [language, requestedLanguage, setLanguage]);
+
+  useEffect(() => {
+    const isIndexableIntro = !isStateTest && stage === 'intro';
+    const canonical = `${SITE_URL}${canonicalPath}`;
+    const title =
+      stage === 'result' && result
+        ? `${result.mbtiType}-${result.suffix} 今日狀態卡｜Kiwimu Explore`
+        : stage === 'quiz'
+          ? 'Kiwimu 5 題快速人格測驗進行中｜今日狀態快測'
+          : isStateTest
+            ? 'Kiwimu State Test｜今日狀態快測'
+            : 'Kiwimu 5 題快速人格測驗｜今天的 MBTI 狀態卡';
+    const description =
+      stage === 'result' && result
+        ? `你的今天偏向 ${result.mbtiType}-${result.suffix} 狀態。用 5 題快速捕捉當下節奏，整理成一張可分享的 Kiwimu 狀態卡。`
+        : stage === 'quiz'
+          ? '用 5 題快速定位你今天的 MBTI 狀態節奏，看看當下更像哪一張 Kiwimu 狀態卡。'
+          : isStateTest
+            ? 'Kiwimu 的狀態測試入口，快速感受 5 題人格快測。'
+            : '用 5 題快速定位你今天的 MBTI 狀態節奏，生成一張可分享的 Kiwimu 狀態卡。';
+
+    applyRuntimeSeo({
+      title,
+      description,
+      canonical,
+      image: DEFAULT_SOCIAL_IMAGE,
+      keywords: 'Kiwimu,MBTI,快速人格測驗,Explore,狀態卡,今日狀態',
+      ogType: 'website',
+      robots: isIndexableIntro ? 'index,follow' : 'noindex,nofollow',
+      jsonLd: isIndexableIntro
+        ? {
+            '@context': 'https://schema.org',
+            '@graph': [
+              {
+                '@type': 'WebPage',
+                '@id': `${canonical}#webpage`,
+                name: 'Kiwimu 5 題快速人格測驗',
+                description: '用 5 題快速定位你今天的 MBTI 狀態節奏。',
+                url: canonical,
+                inLanguage: 'zh-TW',
+              },
+              {
+                '@type': 'Quiz',
+                '@id': `${canonical}#quiz`,
+                name: 'Kiwimu 今日狀態快測',
+                description: '5 題快速人格快測，生成 Kiwimu 今日狀態卡。',
+                url: canonical,
+                inLanguage: 'zh-TW',
+              },
+            ],
+          }
+        : undefined,
+    });
+  }, [canonicalPath, isStateTest, result, stage]);
+
+  useEffect(() => {
+    const enteredAt = Date.now();
+    trackPageView(virtualPath);
+    return () => {
+      trackScreenEngagement(virtualPath, Math.round((Date.now() - enteredAt) / 1000));
+    };
+  }, [virtualPath]);
 
   // ── 封面 CTA 點擊 → 記錄漏斗頂部 ──
   const handleStart = () => {

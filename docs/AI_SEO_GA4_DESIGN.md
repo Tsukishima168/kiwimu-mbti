@@ -8,7 +8,7 @@
 
 | 區塊 | 目的 | 產出／實作位置 |
 |------|------|----------------|
-| **AI SEO** | 讓 Google／爬蟲／AI 可抓取、可理解、敢引用 | sitemap、robots、meta、JSON-LD、llms.txt、V2 route-level SEO |
+| **AI SEO** | 讓公開頁可抓取、可理解、敢引用；未公開頁保留 noindex 與分享 meta | sitemap、robots、meta、JSON-LD、llms.txt、route-level SEO |
 | **GA4** | 流量、轉換、行為、來源分析 | gtag 事件、自訂維度、報表建議、V2 funnel |
 
 ---
@@ -21,18 +21,18 @@
 |------|------|------------|
 | **sitemap.xml** | 列出希望被收錄的 URL | `public/sitemap.xml` |
 | **robots.txt** | 不擋重要路徑、指向 sitemap | `public/robots.txt` |
-| **V2 公開入口** | `read` 入口 + `32` 個 `/read/<TYPE>-<VARIANT>` 可直接開啟 URL | `App.tsx`、`components/v2/V2App.tsx`、`public/sitemap.xml` |
+| **V2 未公開入口** | `read` 入口與 `/read/<TYPE>-<VARIANT>` 仍可直接開啟，但維持 `noindex`、不進 sitemap、也不列入 AI 可引用清單 | `App.tsx`、`components/v2/V2App.tsx`、`components/v2/V2QuizFlow.tsx`、`public/sitemap.xml`、`public/llms.txt` |
 | **公開答案中心** | `answers` hub，集中回答 `16 型`、`A/T`、`32 變體` 與引用邊界 | `pages/AnswersHub.tsx`、`data/answersHubContent.ts` |
-| **主站 URL** | SPA 以首頁為主，但 `read` 已有可直接存取的 V2 URL | `https://kiwimu.com/` |
+| **主站 URL** | SPA 以首頁為主；目前公開且可索引的核心內容為 `/`、`/explore`、`/answers` | `https://kiwimu.com/` |
 
-**注意**：本專案仍是 SPA，但 V2 已補上 `read` 入口與 `32` 個 `/read/<TYPE>-<VARIANT>` 路徑，可直接被 sitemap 與 AI/搜尋系統引用。V1 主流程（intro／quiz／result／archive）仍以虛擬頁 `page_view` 追蹤。
+**注意**：本專案仍是 SPA。公開可索引內容目前集中在 `V1 首頁 /`、`V1.5 /explore`、`/answers`；V2 路徑仍可直接開啟，但只保留 runtime meta 與 GA4，不對外公開索引。V1 / V1.5 的 quiz / result 階段則以虛擬頁 `page_view` 追蹤。
 
 ### 2.2 可理解（Understand）
 
 | 項目 | 說明 | 實作位置 |
 |------|------|----------|
 | **Meta 標籤** | title、description、og、twitter | `index.html` + `utils/seo.ts` |
-| **JSON-LD** | 首頁靜態 schema + `/read` 動態 schema，讓搜尋／AI 理解品牌與報告頁 | `index.html`、`utils/seo.ts`、`components/v2/V2App.tsx` |
+| **JSON-LD** | 首頁靜態 schema + 公開頁動態 schema，讓搜尋／AI 理解品牌與公開內容頁 | `index.html`、`utils/seo.ts`、`App.tsx`、`components/explore/ExploreApp.tsx`、`pages/AnswersHub.tsx` |
 | **語系** | 本專案為 zh-TW | `index.html` 的 `lang="zh-TW"` |
 
 **JSON-LD 結構（已加入 index.html）**：
@@ -51,13 +51,15 @@
 | 檔案 | 用途 |
 |------|------|
 | `public/robots.txt` | 允許爬蟲、指向 sitemap |
-| `public/sitemap.xml` | 首頁 + 靜態頁 + `/answers` + `/read` 入口 |
+| `public/sitemap.xml` | 首頁 + `/explore` + `/answers` + 靜態頁 |
 | `index.html` | 首頁 meta、JSON-LD、GA4 gtag |
 | `utils/seo.ts` | runtime meta / canonical / JSON-LD 更新 |
-| `components/v2/V2App.tsx` | `/read` 報告頁 SEO 與 GA4 |
-| `components/v2/V2QuizFlow.tsx` | `/read/quiz` SEO 與 GA4 |
+| `App.tsx` | V1 主漏斗 runtime SEO 與 GA4 |
+| `components/explore/ExploreApp.tsx` | V1.5 `/explore` runtime SEO 與 GA4 |
+| `components/v2/V2App.tsx` | `/read` 報告頁 noindex SEO 與 GA4 |
+| `components/v2/V2QuizFlow.tsx` | `/read/quiz` noindex SEO 與 GA4 |
 | `pages/AnswersHub.tsx` | `/answers` 公開答案中心 |
-| `public/llms.txt` | 提供 AI 可讀的產品與 V2 路由摘要 |
+| `public/llms.txt` | 提供 AI 可讀的產品摘要，僅列公開可引用內容並標記 V2 未公開 |
 
 ---
 
@@ -78,7 +80,7 @@
 
 | 事件名稱 | 觸發時機 | 主要參數 | 用途 |
 |----------|----------|----------|------|
-| `page_view` | 虛擬頁切換（V1）與 `/read`、`/read/quiz`、`/read/<TYPE>-<VARIANT>` | page_name, referrer | 流量、動線 |
+| `page_view` | 虛擬頁切換（V1 / V1.5）與 `/read`、`/read/quiz`、`/read/<TYPE>-<VARIANT>` | page_name, referrer | 流量、動線 |
 | `quiz_start` | 開始測驗 | source, campaign_id | 來源、活動 |
 | `quiz_progress` | 答題進度 | question_number, progress_percentage | 完成率、流失 |
 | `quiz_abandon` | 中途離開 | abandoned_at_question, progress_percentage | 流失分析 |
@@ -121,9 +123,10 @@
 ### AI SEO
 
 - [x] `public/robots.txt` 已建立並指向 sitemap
-- [x] `public/sitemap.xml` 已建立（首頁、靜態頁、`/answers`、`/read` 入口、`32` 個 V2 變體 URL）
+- [x] `public/sitemap.xml` 已建立，僅列公開可索引頁（首頁、`/explore`、`/answers`、靜態頁）
 - [x] `index.html` 已加入 JSON-LD（WebSite + Organization）
-- [x] `/read` 與 `/read/quiz` 已有 runtime meta / canonical / JSON-LD
+- [x] `V1 / V1.5` 公開入口已補 runtime meta / canonical / JSON-LD
+- [x] `/read` 與 `/read/quiz` 已改為 runtime `noindex` meta，且不進 sitemap / llms 公開清單
 - [x] `/answers` 已有 runtime meta / canonical / JSON-LD + FAQ schema
 - [ ] 若有新增公開頁（如 /about、/faq），需更新 sitemap 與 meta
 
@@ -131,7 +134,7 @@
 
 - [x] `utils/analytics.ts` 透過全域 `gtag()` 送主要事件到 GA4
 - [x] `index.html` 已啟用 GA4 loader，供 utm_landing、outbound_click、`/read` funnel 等使用
-- [x] `/read`、`/read/quiz` 已補上 page_view 與 screen_engagement
+- [x] `V1`、`V1.5`、`/read`、`/read/quiz` 已補上 page_view 與 screen_engagement
 - [ ] GA4 後台：自訂維度（mbti_type、page_path 等）依需建立
 - [ ] GA4 後台：轉換事件將 `quiz_completion` 設為主要轉換（若尚未設定）
 

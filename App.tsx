@@ -64,6 +64,7 @@ import V2App from './components/v2/V2App';
 import V2QuizFlow from './components/v2/V2QuizFlow';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 import AnswersHub from './pages/AnswersHub';
+import { applyRuntimeSeo } from './utils/seo';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
 type PostLoginDestination = 'intro' | 'result' | 'archive';
@@ -71,11 +72,17 @@ type PostLoginDestination = 'intro' | 'result' | 'archive';
 const ROOT_PATHS = new Set(['/', '/index.html']);
 const V1_PATHS = new Set(['/quiz', '/v1']);
 const POST_LOGIN_DESTINATION_KEY = 'post_login_destination';
+const SITE_URL = 'https://kiwimu.com';
+const DEFAULT_SOCIAL_IMAGE = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
 
 const isV1Pathname = (pathname: string) =>
   Array.from(V1_PATHS).some((basePath) => pathname === basePath || pathname.startsWith(`${basePath}/`));
-const isLiteFunnelPathname = (pathname: string) => pathname === '/state-test';
+const isExplorePathname = (pathname: string) => pathname.startsWith('/explore') || pathname.startsWith('/state-test');
 const isPublicContentPathname = (pathname: string) => pathname.startsWith('/answers');
+
+const normalizeCanonicalPath = (pathname: string) => pathname === '/index.html' ? '/' : pathname;
+
+const buildAbsoluteUrl = (pathname: string) => `${SITE_URL}${normalizeCanonicalPath(pathname)}`;
 
 const getStagePath = (currentStage: Stage, pathname: string) => {
   if (currentStage === 'state-test') {
@@ -111,6 +118,125 @@ const getPostLoginPath = (destination: PostLoginDestination) => {
   if (destination === 'result') return '/quiz/result';
   if (destination === 'archive') return '/quiz/archive';
   return '/';
+};
+
+const buildV1SeoConfig = (stage: Stage, pathname: string, resultData: MbtiResultData | null) => {
+  const normalizedPath = normalizeCanonicalPath(pathname);
+  const onRootPath = ROOT_PATHS.has(pathname);
+  const canonicalPath =
+    stage === 'intro' && onRootPath
+      ? '/'
+      : stage === 'manifesto' && onRootPath
+        ? '/'
+        : normalizedPath;
+  const canonical = buildAbsoluteUrl(canonicalPath);
+  const defaultKeywords = 'Kiwimu,MBTI,人格測驗,16型,靈魂甜點,月島甜點,台灣';
+  const defaultRobots = 'noindex,nofollow';
+
+  if (stage === 'intro' && onRootPath) {
+    return {
+      title: 'Kiwimu MBTI 人格測驗｜找到你的靈魂甜點｜Moon Moon 月島甜點',
+      description: '用 Kiwimu 16 型 MBTI 人格測驗找到你的靈魂甜點與人格語言，支援繁體中文、English、日本語、한국어。',
+      canonical,
+      image: DEFAULT_SOCIAL_IMAGE,
+      keywords: defaultKeywords,
+      ogType: 'website',
+      robots: 'index,follow',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'WebPage',
+            '@id': `${canonical}#webpage`,
+            name: 'Kiwimu MBTI 人格測驗',
+            description: '用 MBTI 找到你的靈魂甜點與人格語言。',
+            url: canonical,
+            inLanguage: 'zh-TW',
+          },
+          {
+            '@type': 'Quiz',
+            '@id': `${canonical}#quiz`,
+            name: 'Kiwimu MBTI 人格測驗',
+            description: '40 題 MBTI 人格測驗，定位你的類型與靈魂甜點。',
+            url: canonical,
+            inLanguage: 'zh-TW',
+          },
+        ],
+      },
+    };
+  }
+
+  if (stage === 'result' && resultData) {
+    return {
+      title: `${resultData.id} 人格結果｜${resultData.title}｜Kiwimu MBTI`,
+      description: `${resultData.summary} 對應靈魂甜點：${resultData.dessert}。`,
+      canonical,
+      image: resultData.characterImage || DEFAULT_SOCIAL_IMAGE,
+      keywords: `${defaultKeywords},${resultData.id},${resultData.title}`,
+      ogType: 'article',
+      robots: defaultRobots,
+    };
+  }
+
+  const fallbackMap: Record<Exclude<Stage, 'result' | 'intro'>, { title: string; description: string }> = {
+    manifesto: {
+      title: 'Kiwimu 測驗前言｜開始你的靈魂甜點測驗',
+      description: '在進入 MBTI 測驗前，先讀懂 Kiwimu 想用人格與甜點說的那句話。',
+    },
+    quiz: {
+      title: 'Kiwimu MBTI 測驗進行中｜16 型人格測驗',
+      description: '40 題完整測驗進行中，正在定位你的 MBTI 類型與靈魂甜點。',
+    },
+    loading: {
+      title: 'Kiwimu 正在整理你的結果',
+      description: 'Kiwimu 正在把你的作答節奏整理成 MBTI 結果與靈魂甜點。',
+    },
+    archive: {
+      title: 'Kiwimu 測驗存檔｜我的人格檔案',
+      description: '登入後查看你在 Kiwimu 留下的人格檔案與測驗記錄。',
+    },
+    login: {
+      title: 'Kiwimu 登入中',
+      description: '登入 Kiwimu，儲存你的測驗結果與人格檔案。',
+    },
+    callback: {
+      title: 'Kiwimu 登入回應中',
+      description: 'Kiwimu 正在完成登入流程。',
+    },
+    'og-render': {
+      title: 'Kiwimu 結果預覽',
+      description: 'Kiwimu MBTI 結果分享預覽。',
+    },
+    'state-test': {
+      title: 'Kiwimu State Test',
+      description: 'Kiwimu 狀態測試頁。',
+    },
+    today: {
+      title: 'Kiwimu Today',
+      description: 'Kiwimu 今日狀態頁。',
+    },
+    '404': {
+      title: '找不到這個頁面｜Kiwimu',
+      description: '這個 Kiwimu 頁面不存在，返回首頁重新開始。',
+    },
+  };
+
+  const fallback = stage === 'intro'
+    ? {
+        title: 'Kiwimu MBTI 人格測驗',
+        description: '用 MBTI 找到你的靈魂甜點與人格語言。',
+      }
+    : fallbackMap[stage];
+
+  return {
+    title: fallback.title,
+    description: fallback.description,
+    canonical,
+    image: DEFAULT_SOCIAL_IMAGE,
+    keywords: defaultKeywords,
+    ogType: 'website',
+    robots: defaultRobots,
+  };
 };
 
 const replaceRoute = (pathname: string) => {
@@ -427,6 +553,15 @@ const App: React.FC = () => {
   const previousStageRef = React.useRef<Stage | null>(null);
 
   useEffect(() => {
+    const pathname = window.location.pathname;
+    if (isV2Pathname(pathname) || isExplorePathname(pathname) || isPublicContentPathname(pathname)) {
+      return;
+    }
+
+    applyRuntimeSeo(buildV1SeoConfig(stage, pathname, resultData));
+  }, [resultData, stage]);
+
+  useEffect(() => {
     if (isV2Pathname(window.location.pathname) || isPublicContentPathname(window.location.pathname)) {
       return;
     }
@@ -435,6 +570,9 @@ const App: React.FC = () => {
     const prev = previousStageRef.current;
     const enteredAt = stageEnteredAtRef.current;
     const pathname = window.location.pathname;
+    if (isExplorePathname(pathname)) {
+      return;
+    }
 
     if (prev != null && prev !== stage) {
       const seconds = Math.round((now - enteredAt) / 1000);

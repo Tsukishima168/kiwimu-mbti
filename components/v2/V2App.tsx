@@ -346,11 +346,11 @@ export default function V2App({ user }: V2AppProps) {
 
   useEffect(() => {
     const title = fullType && report
-      ? `${fullType} 深度靈魂報告｜${report.title}｜Kiwimu MBTI V2`
-      : 'Kiwimu MBTI V2 深度靈魂報告｜Moon Moon 月島甜點';
+      ? `${fullType} 深度靈魂報告（未公開）｜${report.title}｜Kiwimu MBTI V2`
+      : 'Kiwimu MBTI V2 深度靈魂報告（未公開）｜Moon Moon 月島甜點';
     const description = fullType && report && resultBundle
-      ? `${report.abstract.body} ${resultBundle.resultData.summary} 以台灣版視角拆解 ${fullType} 的認知模式、人際節奏與抗壓策略。`
-      : 'Kiwimu V2 台灣版深度靈魂報告，從 MBTI 類型延伸到認知模式、人際節奏與抗壓策略。';
+      ? `${report.abstract.body} ${resultBundle.resultData.summary} 這是 Kiwimu V2 未公開台灣版深度報告，用來拆解 ${fullType} 的認知模式、人際節奏與抗壓策略。`
+      : 'Kiwimu V2 台灣版深度靈魂報告未公開預覽頁，從 MBTI 類型延伸到認知模式、人際節奏與抗壓策略。';
     const image = resultBundle?.resultData.characterImage || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
     const keywords = fullType && resultBundle
       ? ['Kiwimu', 'MBTI', 'V2', '深度報告', fullType, resultBundle.resultData.title, ...resultBundle.resultData.keywords].join(',')
@@ -363,53 +363,7 @@ export default function V2App({ user }: V2AppProps) {
       ogType: 'article',
       image,
       keywords,
-      jsonLd: {
-        '@context': 'https://schema.org',
-        '@graph': [
-          {
-            '@type': 'WebPage',
-            '@id': `${canonicalUrl}#webpage`,
-            name: title,
-            description,
-            url: canonicalUrl,
-            inLanguage: 'zh-TW',
-            about: fullType ? [
-              {
-                '@type': 'Thing',
-                name: fullType,
-              },
-              {
-                '@type': 'Thing',
-                name: resultBundle?.resultData.title,
-              },
-            ] : undefined,
-          },
-          {
-            '@type': 'BreadcrumbList',
-            '@id': `${canonicalUrl}#breadcrumbs`,
-            itemListElement: [
-              {
-                '@type': 'ListItem',
-                position: 1,
-                name: 'Kiwimu MBTI',
-                item: 'https://kiwimu.com/',
-              },
-              {
-                '@type': 'ListItem',
-                position: 2,
-                name: 'V2 深度報告',
-                item: 'https://kiwimu.com/read',
-              },
-              ...(fullType ? [{
-                '@type': 'ListItem',
-                position: 3,
-                name: fullType,
-                item: canonicalUrl,
-              }] : []),
-            ],
-          },
-        ],
-      },
+      robots: 'noindex,nofollow,noarchive',
     });
   }, [canonicalUrl, fullType, report, resultBundle]);
 

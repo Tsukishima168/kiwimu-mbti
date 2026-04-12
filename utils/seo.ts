@@ -23,6 +23,10 @@ const upsertMetaByName = (name: string, content: string) => {
   node.setAttribute('content', content);
 };
 
+const removeMetaByName = (name: string) => {
+  document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`)?.remove();
+};
+
 const upsertMetaByProperty = (property: string, content: string) => {
   let node = document.head.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
   if (!node) {
@@ -31,6 +35,10 @@ const upsertMetaByProperty = (property: string, content: string) => {
     document.head.appendChild(node);
   }
   node.setAttribute('content', content);
+};
+
+const removeMetaByProperty = (property: string) => {
+  document.head.querySelector<HTMLMetaElement>(`meta[property="${property}"]`)?.remove();
 };
 
 const upsertCanonical = (href: string) => {
@@ -52,6 +60,10 @@ const upsertJsonLd = (jsonLd: JsonLdValue) => {
     document.head.appendChild(node);
   }
   node.textContent = JSON.stringify(jsonLd);
+};
+
+const removeJsonLd = () => {
+  document.getElementById(RUNTIME_JSONLD_ID)?.remove();
 };
 
 export const applyRuntimeSeo = ({
@@ -82,13 +94,23 @@ export const applyRuntimeSeo = ({
 
   upsertMetaByName('twitter:title', title);
   upsertMetaByName('twitter:description', description);
+  upsertMetaByName('twitter:card', image ? 'summary_large_image' : 'summary');
 
   if (image) {
     upsertMetaByProperty('og:image', image);
     upsertMetaByName('twitter:image', image);
+  } else {
+    removeMetaByProperty('og:image');
+    removeMetaByName('twitter:image');
   }
 
   if (jsonLd) {
     upsertJsonLd(jsonLd);
+  } else {
+    removeJsonLd();
+  }
+
+  if (!keywords) {
+    removeMetaByName('keywords');
   }
 };
