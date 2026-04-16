@@ -1,532 +1,149 @@
-# Firebase Analytics Schema for KIWIMU MBTI Lab
+# KIWIMU MBTI Lab — GA4 Analytics Schema
 
-## Collections Structure
-
-### 1. `analytics_events` (主要事件追蹤)
-
-**通用欄位：**
-```javascript
-{
-  eventName: string,           // 事件名稱
-  sessionId: string,           // 工作階段 ID
-  userId: string | null,       // Firebase User ID (if logged in)
-  timestamp: number,           // Unix timestamp (ms)
-  platform: 'web' | 'line' | 'discord' | 'store',
-  source: string,              // 'organic', 'qr', 'line', 'instagram', etc.
-  properties: object,          // 事件特定屬性
-  createdAt: Timestamp        // Firestore server timestamp
-}
-```
+> **系統**：GA4（gtag.js）—— Firebase/Firestore 依賴已全數移除
+> **最後更新**：2026-04-16（CTA/Attribution Phase 1）
 
 ---
 
-### 2. Event Types Schema
+## Canonical Event 語彙
 
-#### Quiz Events
+以下是 GA4 報表的標準事件名稱。所有新的 CTA 或漏斗節點請優先使用這些名稱，不要新開自定義事件名。
 
-**`quiz_start`**
-```javascript
-{
-  eventName: "quiz_start",
-  properties: {
-    source: "direct" | "qr" | "line" | "instagram",
-    campaign_id: string | null,
-    referrer: string | null
-  }
-}
-```
-
-**`quiz_progress`**
-```javascript
-{
-  eventName: "quiz_progress",
-  properties: {
-    question_number: number,      // 1-50
-    total_questions: number,      // 50
-    progress_percentage: number,  // 0-100
-    time_spent_seconds: number | null
-  }
-}
-```
-
-**`quiz_abandon`**
-```javascript
-{
-  eventName: "quiz_abandon",
-  properties: {
-    abandoned_at_question: number,
-    total_questions: number,
-    progress_percentage: number,
-    time_spent_seconds: number
-  }
-}
-```
-
-**`quiz_complete`**
-```javascript
-{
-  eventName: "quiz_complete",
-  userId: string,
-  properties: {
-    mbti_type: string,           // "INFP-A"
-    time_spent_seconds: number,
-    completion_rate: 100
-  }
-}
-```
+| Event Name | 觸發時機 | Helper 位置 |
+|-----------|---------|------------|
+| `quiz_start` | 使用者進入測驗頁 | `utils/analytics.ts:trackQuizStart()` |
+| `quiz_completion` | 測驗完成，產出 MBTI 結果 | `utils/analytics.ts:trackQuizComplete()` |
+| `result_view` | 結果頁展示 | `utils/analytics.ts:trackResultView()` |
+| `login_gate_opened` | 登入 gate 展示或點擊 | `utils/analytics.ts:trackLoginGateOpened()` |
+| `login_success` | OAuth 登入成功回跳 | `utils/analytics.ts:trackLoginSuccess()` |
+| `archive_gate_opened` | 未登入點擊查看 archive | `utils/analytics.ts:trackArchiveGateOpened()` |
+| `archive_view` | 已登入進入 archive | `utils/analytics.ts:trackArchiveView()` |
+| `outbound_click` | 點擊任何外站 CTA | `utils/utmTracking.ts:trackOutboundClick()` |
 
 ---
 
-#### Result Events
+## 事件欄位定義
 
-**`result_view`**
-```javascript
-{
-  eventName: "result_view",
-  userId: string,
-  properties: {
-    mbti_type: string
-  }
-}
-```
-
-**`result_share`**
-```javascript
-{
-  eventName: "result_share",
-  userId: string,
-  properties: {
-    platform: "line" | "instagram" | "link" | "image",
-    mbti_type: string,
-    share_method: string
-  }
-}
-```
-
-**`result_download`**
-```javascript
-{
-  eventName: "result_download",
-  properties: {
-    download_format: "full" | "ig_story",
-    mbti_type: string
-  }
-}
-```
-
----
-
-#### Social/Community Events
-
-**`line_cta_click`**
-```javascript
-{
-  eventName: "line_cta_click",
-  properties: {
-    cta_location: "result_page" | "compact" | "minimal",
-    mbti_type: string | null
-  }
-}
-```
-
-**`discord_join`**
-```javascript
-{
-  eventName: "discord_join",
-  userId: string,
-  properties: {
-    mbti_type: string,
-    platform: "web"
-  }
-}
-```
-
-**`discord_verify_complete`**
-```javascript
-{
-  eventName: "discord_verify_complete",
-  userId: string,
-  platform: "discord",
-  properties: {
-    discord_id: string,
-    discord_username: string,
-    mbti_type: string
-  }
-}
-```
-
-**`discord_state_share`**
-```javascript
-{
-  eventName: "discord_state_share",
-  platform: "discord",
-  properties: {
-    discord_id: string,
-    discord_username: string,
-    emotional_state: "calm" | "storm" | "dawn" | "lost" | "thinking" | "creative",
-    state_message: string,
-    note: string | null
-  }
-}
-```
-
----
-
-#### O2O Events
-
-**`qr_code_scan`**
-```javascript
-{
-  eventName: "qr_code_scan",
-  properties: {
-    scan_location: string,        // "store_front", "table", "dm_card"
-    campaign_id: string | null,
-    campaign_content: string | null,
-    source: "offline"
-  }
-}
-```
-
-**`task_card_generate`**
-```javascript
-{
-  eventName: "task_card_generate",
-  userId: string | null,
-  properties: {
-    emotional_state: "calm" | "storm" | "dawn" | "lost" | "thinking",
-    mbti_type: string | null
-  }
-}
-```
-
-**`store_visit`**
-```javascript
-{
-  eventName: "store_visit",
-  userId: string | null,
-  properties: {
-    has_task_card: boolean,
-    task_card_state: string | null,
-    visit_type: "with_incentive" | "organic"
-  }
-}
-```
-
-**`reward_redemption`**
-```javascript
-{
-  eventName: "reward_redemption",
-  userId: string | null,
-  properties: {
-    reward_type: "sticker" | "card" | "discount",
-    mbti_type: string | null
-  }
-}
-```
-
----
-
-#### User Events
-
-**`user_login`**
-```javascript
-{
-  eventName: "user_login",
-  userId: string,
-  properties: {
-    login_method: "google" | "email" | "discord"
-  }
-}
-```
-
-**`user_signup`**
-```javascript
-{
-  eventName: "user_signup",
-  userId: string,
-  properties: {
-    signup_method: "google" | "email"
-  }
-}
-```
-
-**`profile_update`**
-```javascript
-{
-  eventName: "profile_update",
-  userId: string,
-  properties: {
-    updated_field: string  // "displayName", "avatar", etc.
-  }
-}
-```
-
----
-
-### 3. `user_sessions` (工作階段追蹤)
-
-```javascript
-{
-  sessionId: string,           // Unique session ID
-  userId: string | null,       // User ID if logged in
-  deviceId: string,            // Browser fingerprint
-  startTime: Timestamp,
-  endTime: Timestamp | null,
-  platform: string,            // "web", "mobile"
-  browser: string,             // "Chrome", "Safari"
-  source: string,              // Campaign source
-  campaignId: string | null,
-  eventsCount: number,         // Number of events in this session
-  quizCompleted: boolean,
-  resultViewed: boolean,
-  socialJoined: boolean,
-  storeVisited: boolean
-}
-```
-
----
-
-### 4. `daily_metrics` (每日彙總)
-
-```javascript
-{
-  date: string,                // "2026-01-23"
-  totalVisits: number,
-  quizStarts: number,
-  quizCompletions: number,
-  completionRate: number,      // Percentage
-  socialJoins: {
-    line: number,
-    discord: number,
-    total: number
-  },
-  o2o: {
-    qrScans: number,
-    taskCards: number,
-    storeVisits: number,
-    redemptions: number
-  },
-  mbtiDistribution: {
-    INFP: number,
-    ENFP: number,
-    // ... 16 types
-  },
-  topSources: [
-    { source: "organic", count: number },
-    { source: "qr", count: number },
-    // ...
-  ],
-  createdAt: Timestamp,
-  updatedAt: Timestamp
-}
-```
-
----
-
-### 5. `user_journey` (用戶旅程追蹤)
-
-記錄每個用戶的完整旅程：
-
-```javascript
-{
-  userId: string,
-  mbtiType: string,
-  journeyStages: {
-    discovered: {
-      timestamp: Timestamp,
-      source: string,
-      campaign: string | null
-    },
-    quizStarted: {
-      timestamp: Timestamp | null
-    },
-    quizCompleted: {
-      timestamp: Timestamp | null,
-      timeSpent: number
-    },
-    resultViewed: {
-      timestamp: Timestamp | null
-    },
-    socialJoined: {
-      line: Timestamp | null,
-      discord: Timestamp | null
-    },
-    storeVisited: {
-      first: Timestamp | null,
-      count: number,
-      lastVisit: Timestamp | null
-    }
-  },
-  totalEvents: number,
-  lastActive: Timestamp,
-  createdAt: Timestamp,
-  updatedAt: Timestamp
-}
-```
-
----
-
-## Indexes (需要建立的索引)
-
-### `analytics_events`
-```
-1. eventName + timestamp (DESC)
-2. userId + timestamp (DESC)
-3. platform + timestamp (DESC)
-4. eventName + userId + timestamp (DESC)
-5. source + timestamp (DESC)
-```
-
-### `user_sessions`
-```
-1. userId + startTime (DESC)
-2. source + startTime (DESC)
-3. startTime (DESC)
-```
-
-### `daily_metrics`
-```
-1. date (DESC)
-```
-
-### `user_journey`
-```
-1. userId
-2. mbtiType + lastActive (DESC)
-3. lastActive (DESC)
-```
-
----
-
-## Security Rules
-
-```javascript
-// firestore.rules
-
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    
-    // Analytics events - write only for authenticated users, read for admins
-    match /analytics_events/{eventId} {
-      allow create: if true; // Allow all creates (from web/discord)
-      allow read: if isAdmin();
-      allow update, delete: if false;
-    }
-    
-    // User sessions - similar to analytics_events
-    match /user_sessions/{sessionId} {
-      allow create: if true;
-      allow read: if isAdmin();
-      allow update: if request.auth != null;
-      allow delete: if false;
-    }
-    
-    // Daily metrics - read only for admins
-    match /daily_metrics/{date} {
-      allow read: if isAdmin();
-      allow write: if isServer(); // Only server can write
-    }
-    
-    // User journey - users can read their own
-    match /user_journey/{userId} {
-      allow read: if request.auth != null && 
-                     (request.auth.uid == userId || isAdmin());
-      allow write: if isServer();
-    }
-    
-    // Helper functions
-    function isAdmin() {
-      return request.auth != null && 
-             get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
-    }
-    
-    function isServer() {
-      // Server-side operations should use Firebase Admin SDK
-      return request.auth.token.admin == true;
-    }
-  }
-}
-```
-
----
-
-## Usage Examples
-
-### Web Application
+### `login_gate_opened`
 
 ```typescript
-// When quiz starts
-import { trackQuizStart } from './utils/analytics';
-
-trackQuizStart('qr', 'spring-2026');
-
-// When quiz completes
-trackQuizComplete('INFP-A', 180, userId);
+{
+  site_id: 'mbti_lab',
+  trigger: 'view' | 'click',   // view = gate 展示；click = 按鈕點擊
+  path?: string,                // window.location.pathname
+  has_result?: boolean,         // 是否有測驗結果可保存
+  is_shared_view?: boolean,
+  session_id?: string,
+  mbti_type?: string,
+}
 ```
 
-### Discord Bot
+### `login_success`
 
-```javascript
-// When user verifies
-await db.collection('analytics_events').add({
-  eventName: 'discord_verify_complete',
-  userId: firebaseUserId,
-  discordId: discordUserId,
-  mbtiType: 'INFP-A',
-  timestamp: Date.now(),
-  platform: 'discord'
-});
+```typescript
+{
+  site_id: 'mbti_lab',
+  from_stage?: string,                  // 登入前的 stage（result / archive 等）
+  restore_destination?: string,         // 'result' | 'archive' | 'intro'
+  had_result_before_login?: boolean,
+  provider?: string,                    // 'google'
+  session_id?: string,
+}
 ```
 
-### BigQuery Export (Optional)
+### `archive_gate_opened` / `archive_view`
 
-Enable automatic export to BigQuery for advanced analytics:
-```
-Project > Firestore > Export to BigQuery
-```
-
----
-
-## Dashboard Queries
-
-### Top MBTI Types This Week
-```javascript
-db.collection('analytics_events')
-  .where('eventName', '==', 'quiz_complete')
-  .where('timestamp', '>=', startOfWeek)
-  .get()
-  .then(snapshot => {
-    // Group by mbti_type
-  });
+```typescript
+{
+  site_id: 'mbti_lab',
+  has_result?: boolean,
+  session_id?: string,
+  mbti_type?: string,           // e.g. 'INFP'
+}
 ```
 
-### Conversion Funnel
-```javascript
-const funnelStages = [
-  'quiz_start',
-  'quiz_complete',
-  'discord_join',
-  'store_visit'
-];
+### `outbound_click`
 
-// Count each stage
-```
-
-### User Retention Cohort
-```javascript
-db.collection('user_journey')
-  .where('journeyStages.quizCompleted.timestamp', '>=', cohortStart)
-  .where('lastActive', '>=', retentionCheck)
-  .get();
+```typescript
+{
+  site_id: 'mbti_lab',
+  source_site: 'mbti_lab',
+  target_site: string,          // 'dessert_booking' | 'moon_map' | 'passport' | 'external'
+  destination_type: string,     // 'order_menu' | 'passport' | 'map_explore' | 'v2_unlock' | 'community'
+  entry_surface: string,        // 'result_dessert_card' | 'result_gate_card' | 'result_top_action' | 'result_explore_more'
+  mbti_type?: string,
+  mbti_variant?: string,        // 'A' | 'T'
+  utm_source?: string,
+  utm_medium?: string,
+  utm_campaign?: string,
+  utm_content?: string,
+  label: string,
+  url: string,
+}
 ```
 
 ---
 
-**這個 schema 現在已經準備好了！** ✅
+## CTA Destination Types
 
-所有追蹤都會自動儲存到 Firestore，可以用於：
-1. Real-time Dashboard
-2. BigQuery 深度分析
-3. 用戶旅程優化
-4. A/B 測試評估
+| destination_type | 目的地 | Entry Surface |
+|-----------------|--------|--------------|
+| `order_menu` | `https://map.kiwimu.com/menu` | `result_dessert_card` |
+| `passport` | `https://passport.kiwimu.com` | `result_explore_more` |
+| `map_explore` | `https://map.kiwimu.com` | `result_explore_more` |
+| `v2_unlock` | `/read`（未來） | `result_top_action` |
+| `community` | Discord / LINE | `result_explore_more` |
+
+---
+
+## UTM 標準 Campaign 命名
+
+| Campaign | 用途 |
+|---------|------|
+| `2026-q2-kiwimu-routing` | 目前主流程 CTA（DessertCard / result-cta） |
+| `v15_zh` | 中文結果頁舊路徑（ResultLegacyDump）— 保持原值不改，避免影響歷史分析 |
+| `2026-q1-community` | Discord / LINE 社群 CTA |
+| `2026-q1-line-growth` | LINE OA CTA |
+| `2026-q1-integration` | 舊版（已棄用，不再使用） |
+
+---
+
+## 已廢棄 / 不再使用
+
+- Firebase `analytics_events` collection — 已移除
+- Firebase `user_sessions` collection — 已移除
+- Firestore `daily_metrics` / `user_journey` — 已移除
+- `trackAction()` — 只寫 localStorage，不進 GA4，不作為報表依據
+
+---
+
+## 漏斗定義
+
+```
+L1 進站
+  quiz_start → quiz_completion → result_view
+
+L2 身份沉澱
+  login_gate_opened(trigger=view)
+  → login_gate_opened(trigger=click)
+  → login_success
+
+L3 跨站導流
+  outbound_click {destination_type=order_menu}
+  outbound_click {destination_type=passport}
+  outbound_click {destination_type=map_explore}
+
+L4 下游變現（需 map/shop 端配合）
+  map_order_submitted（需 map 端埋點）
+  shop_order_completed（需 shop 端埋點）
+```
+
+---
+
+## 報表可回答的問題（Phase 1 後）
+
+- 哪種 MBTI 類型最常點訂購 CTA（按 `mbti_type` 分群）
+- gate view 到 gate click 轉換率（`login_gate_opened` trigger=view vs click）
+- login_success 前的 `from_stage` 分布（從哪個階段進入登入）
+- 哪條外連 CTA 點擊最多（按 `destination_type` 分群）
+- `archive_gate_opened` vs `archive_view` 比率（未登入 vs 已登入用戶 archive 行為）

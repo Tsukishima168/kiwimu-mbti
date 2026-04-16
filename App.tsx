@@ -16,7 +16,7 @@ import LoginCallback from './components/LoginCallback';
 import MyArchive from './components/MyArchive';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
-import { trackLoginCallback, trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin } from './utils/analytics';
+import { trackLoginCallback, trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin, trackLoginGateOpened, trackLoginSuccess, trackArchiveGateOpened, trackArchiveView, getSessionId } from './utils/analytics';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import ExploreApp from './components/explore/ExploreApp';
 
@@ -524,6 +524,13 @@ const App: React.FC = () => {
           path: window.location.pathname,
           sessionId: getSession(),
         });
+        trackLoginSuccess({
+          from_stage: sessionStorage.getItem('login_origin_stage') || 'unknown',
+          restore_destination: sessionStorage.getItem(POST_LOGIN_DESTINATION_KEY) || 'intro',
+          had_result_before_login: Boolean(sessionStorage.getItem('last_quiz_result')),
+          provider,
+          session_id: getSessionId(),
+        });
         trackSsoEvent('login_success', { provider, path: window.location.pathname });
       }
       handleSession(session?.user ?? null);
@@ -718,6 +725,7 @@ const App: React.FC = () => {
 
   const handleLogin = () => {
     // Always mark flow_stage so handleSession can return to correct stage after OAuth
+    sessionStorage.setItem('login_origin_stage', stage);
     sessionStorage.setItem('flow_stage', 'login');
     const shouldRestoreResult = Boolean(resultData && scores && !isSharedView);
     sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, shouldRestoreResult ? 'result' : 'intro');
@@ -739,6 +747,13 @@ const App: React.FC = () => {
       is_shared_view: isSharedView,
       sessionId: getSession(),
     });
+    trackLoginGateOpened({
+      trigger: 'click',
+      path: window.location.pathname,
+      has_result: shouldRestoreResult,
+      is_shared_view: isSharedView,
+      session_id: getSessionId(),
+    });
     setStage('login');
   };
 
@@ -747,6 +762,7 @@ const App: React.FC = () => {
       await signOutSupabase();
       setUser(null);
       sessionStorage.removeItem('flow_stage');
+      sessionStorage.removeItem('login_origin_stage');
       sessionStorage.removeItem(POST_LOGIN_DESTINATION_KEY);
       if (stage !== 'result') {
         replaceRoute('/');
@@ -763,6 +779,11 @@ const App: React.FC = () => {
     trackAction('view_archive');
 
     if (!user || user.isAnonymous) {
+      trackArchiveGateOpened({
+        has_result: Boolean(resultData),
+        session_id: getSessionId(),
+        mbti_type: resultData?.id,
+      });
       sessionStorage.setItem('flow_stage', 'login');
       sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, 'archive');
       if (resultData && scores) {
@@ -771,6 +792,11 @@ const App: React.FC = () => {
       }
       setStage('login');
     } else {
+      trackArchiveView({
+        has_result: Boolean(resultData),
+        session_id: getSessionId(),
+        mbti_type: resultData?.id,
+      });
       replaceRoute('/quiz/archive');
       setStage('archive');
     }

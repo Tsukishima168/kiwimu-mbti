@@ -62,17 +62,17 @@ http://localhost:5173?test=true
    - [ ] 網址是否包含 `mbti=INTJ-A`
    - [ ] 網址是否包含 `utm_source=mbti-lab`
    - [ ] 網址是否包含 `utm_medium=result-cta`
-   - [ ] 網址是否包含 `utm_campaign=2026-q1-integration`
+   - [ ] 網址是否包含 `utm_campaign=2026-q2-kiwimu-routing`
 
 **預期網址**：
 ```
-https://shop.kiwimu.com?
+https://map.kiwimu.com/menu?
   mbti=INTJ-A
   &from=mbti-test
   &source=result-page
   &utm_source=mbti-lab
   &utm_medium=result-cta
-  &utm_campaign=2026-q1-integration
+  &utm_campaign=2026-q2-kiwimu-routing
   &utm_content=soul-dessert-button
 ```
 

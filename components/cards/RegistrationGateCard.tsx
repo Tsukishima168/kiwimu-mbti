@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { CardProps } from './Types';
-import { trackButtonClick } from '../../utils/analytics';
+import { trackButtonClick, trackLoginGateOpened } from '../../utils/analytics';
 
 export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogin, onSkipRegistration, t }) => {
     const hasLoggedView = useRef(false);
@@ -8,12 +8,11 @@ export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogi
     useEffect(() => {
         if (!hasLoggedView.current) {
             hasLoggedView.current = true;
-            trackButtonClick('login_gate_view', 'registration_gate_card');
+            trackLoginGateOpened({ trigger: 'view' });
         }
     }, []);
 
     const handleLogin = () => {
-        trackButtonClick('入籍宇宙', 'registration_gate_card');
         if (onLogin) onLogin();
     };
 

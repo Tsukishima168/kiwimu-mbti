@@ -40,14 +40,14 @@ export const EXTERNAL_LINKS: Record<string, ExternalLink> = {
   // Moon Map - 導覽地圖
   MOON_MAP: {
     name: '月島導覽地圖',
-    baseUrl: 'https://kiwimu.com/map',
+    baseUrl: 'https://map.kiwimu.com',
     defaultSource: 'mbti-lab'
   },
 
   // Passport - 趣味測驗
   PASSPORT: {
     name: '甜點護照測驗',
-    baseUrl: 'https://kiwimu.com/passport',
+    baseUrl: 'https://passport.kiwimu.com',
     defaultSource: 'mbti-lab'
   },
 
@@ -136,7 +136,7 @@ export function buildUTMLink(
  */
 export function buildDessertOrderLink(mbtiType: string, variant: string): string {
   return buildUTMLink('DESSERT_BOOKING', 'result-cta', {
-    campaign: '2026-q1-integration',
+    campaign: '2026-q2-kiwimu-routing',
     content: 'soul-dessert-button',
     additionalParams: {
       mbti: `${mbtiType}-${variant}`,
@@ -265,7 +265,10 @@ export function trackOutboundClick(
 export function trackDessertOrderClick(mbtiType: string, variant: string) {
   const orderUrl = buildDessertOrderLink(mbtiType, variant);
   trackOutboundClick('DESSERT_BOOKING', 'result-cta', {
+    destination_type: 'order_menu',
+    entry_surface: 'result_dessert_card',
     mbti_type: mbtiType,
+    mbti_variant: variant,
     variant: variant,
     conversion_type: 'dessert_order_intent',
     url: orderUrl,

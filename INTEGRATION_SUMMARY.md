@@ -21,10 +21,10 @@
 
 **連結格式**：
 ```
-https://shop.kiwimu.com?
+https://map.kiwimu.com/menu?
   mbti=INTJ-A
   &utm_source=mbti-lab
-  &utm_campaign=2026-q1-integration
+  &utm_campaign=2026-q2-kiwimu-routing
 ```
 
 ---

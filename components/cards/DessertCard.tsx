@@ -1,6 +1,6 @@
 import React from 'react';
 import { CardProps } from './Types';
-import { buildDessertOrderLink } from '../../utils/utmTracking';
+import { buildDessertOrderLink, trackDessertOrderClick } from '../../utils/utmTracking';
 
 interface DessertCardProps extends CardProps {
     anchor: any;
@@ -52,6 +52,7 @@ export const DessertCard: React.FC<DessertCardProps> = ({ resultData, identitySu
                             href={buildDessertOrderLink(resultData.id, identitySuffix)}
                             target="_blank"
                             rel="noopener noreferrer"
+                            onClick={() => trackDessertOrderClick(resultData.id, identitySuffix)}
                             className="block w-full text-center bg-kiwi-dark text-white py-4 text-xs font-bold tracking-[0.3em] uppercase hover:bg-gray-800 transition-colors"
                         >
                             {t('book_dessert')}

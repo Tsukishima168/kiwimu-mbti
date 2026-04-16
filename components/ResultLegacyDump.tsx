@@ -1171,7 +1171,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   description: '線上預訂你的專屬甜點，到店取貨享受美味',
                   url: 'https://map.kiwimu.com/menu?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
                   external: true,
-                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com/menu?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { destination_type: 'order_menu', entry_surface: 'result_dessert_card', section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com/menu?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
                 },
                 {
                   id: 'passport',
@@ -1181,7 +1181,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   description: '完成 MBTI 後可直接領取護照印章',
                   url: 'https://passport.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
                   external: true,
-                  onClick: () => trackOutboundClick('PASSPORT', 'navigation', { section: 'zh-result-cta', url: 'https://passport.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                  onClick: () => trackOutboundClick('PASSPORT', 'navigation', { destination_type: 'passport', entry_surface: 'result_explore_more', section: 'zh-result-cta', url: 'https://passport.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
                 },
                 {
                   id: 'moon-map',
@@ -1191,7 +1191,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   description: '探索 Moon Moon 品牌生態，發現完整的島嶼世界',
                   url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
                   external: true,
-                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { destination_type: 'map_explore', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
                 },
               ].map((item) => (
                 <a

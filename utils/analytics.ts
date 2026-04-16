@@ -547,6 +547,45 @@ export const getCampaignSource = (): string => {
     return 'organic';
 };
 
+// ==================== Funnel Canonical Events ====================
+
+export const trackLoginGateOpened = (context: {
+    trigger?: 'view' | 'click';
+    path?: string;
+    has_result?: boolean;
+    is_shared_view?: boolean;
+    session_id?: string;
+    mbti_type?: string;
+} = {}) => {
+    gtagSafe('event', 'login_gate_opened', withSiteId(context));
+};
+
+export const trackLoginSuccess = (context: {
+    from_stage?: string;
+    restore_destination?: string;
+    had_result_before_login?: boolean;
+    provider?: string;
+    session_id?: string;
+} = {}) => {
+    gtagSafe('event', 'login_success', withSiteId(context));
+};
+
+export const trackArchiveGateOpened = (context: {
+    has_result?: boolean;
+    session_id?: string;
+    mbti_type?: string;
+} = {}) => {
+    gtagSafe('event', 'archive_gate_opened', withSiteId(context));
+};
+
+export const trackArchiveView = (context: {
+    has_result?: boolean;
+    session_id?: string;
+    mbti_type?: string;
+} = {}) => {
+    gtagSafe('event', 'archive_view', withSiteId(context));
+};
+
 export default {
     trackQuizStart,
     trackQuizProgress,
@@ -571,4 +610,8 @@ export default {
     trackPageView,
     trackScreenEngagement,
     trackButtonClick,
+    trackLoginGateOpened,
+    trackLoginSuccess,
+    trackArchiveGateOpened,
+    trackArchiveView,
 };
