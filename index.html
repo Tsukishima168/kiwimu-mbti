@@ -194,9 +194,9 @@ Kiwimu 16 型人格化身，每型對應獨特的甜點風味與情緒主題。"
     document.head.appendChild(gaScript);
 
     window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', gaId);
+    window.gtag = function() { dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', gaId);
   </script>
 
   <!-- 結構化資料 (JSON-LD) - AI SEO 可理解、可引用 -->
