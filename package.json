@@ -12,7 +12,8 @@
     "generate:v2:32-reports": "node scripts/generate-v2-32-report-pack.mjs",
     "sync:v2:32:obsidian": "node scripts/sync-v2-32-reports-to-obsidian.mjs",
     "sync:v2:tw:quiz": "node scripts/generate-v2-tw-quiz.mjs",
-    "sync:v2:tw": "npm run sync:v2:tw:reports && npm run sync:v2:tw:quiz"
+    "sync:v2:tw": "npm run sync:v2:tw:reports && npm run sync:v2:tw:quiz",
+    "generate:v2:archetypes": "node scripts/generate-v2-psych-archetypes.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",

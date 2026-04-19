@@ -8,6 +8,7 @@ import {
   V2_TW_DRAFT_SOURCE,
   type V2TaiwanDraftReport,
 } from '../../data/v2TaiwanDrafts.generated';
+import { getV2PsychArchetype } from '../../data/v2PsychArchetypes.generated';
 import { getResultData } from '../../constants';
 import type { MbtiResultData, Score } from '../../types';
 import { calculatePercentages, getVariant } from '../../utils/logic';
@@ -566,6 +567,7 @@ export default function V2App({ user }: V2AppProps) {
   const rarityLabel = rarityData ? getRarityLabel(rarityData.rank) : null;
   const rarityMessage = rarityData ? getRarityMessage(rarityData.rank) : null;
   const archetypes = getCelebrityArchetypes(resultData.id).slice(0, 2);
+  const psychArchetype = fullType ? getV2PsychArchetype(fullType) : null;
   const isDevLocked = IS_DEV && !isUnlocked && !isLocalPreview;
   const primaryButtonLabel = isUnlocked
     ? '下載 / 列印目前頁面'
@@ -839,7 +841,38 @@ export default function V2App({ user }: V2AppProps) {
               </div>
             </SectionFrame>
 
-            <SectionFrame index="07" title="SOUL REFLECTION" subtitle={report.dessert.name} locked={!isUnlocked}>
+            {psychArchetype && (
+              <SectionFrame index="07" title="PSYCHOLOGICAL ARC" subtitle="心理原型與歷史軌跡" locked={!isUnlocked}>
+                <div className="space-y-5">
+                  {/* State naming paragraph */}
+                  <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/88 p-6">
+                    <p className="v2-card-eyebrow">STATE PATTERN</p>
+                    <p className="mt-4 text-base leading-relaxed text-black/80">{psychArchetype.stateName}</p>
+                  </div>
+
+                  {/* Historical figures */}
+                  <div className="space-y-4">
+                    <p className="v2-card-eyebrow px-1">同類過渡期的歷史原型</p>
+                    <div className="grid gap-4 lg:grid-cols-3">
+                      {psychArchetype.figures.map((fig) => (
+                        <div key={fig.name} className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-5">
+                          <p className="text-sm font-semibold text-[color:var(--v2-ink)]">{fig.name}</p>
+                          <p className="mt-3 text-sm leading-relaxed text-black/72">{fig.body}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Rarity statement */}
+                  <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-accent,#CCFF00)]/12 p-6">
+                    <p className="v2-card-eyebrow">RARITY PROFILE</p>
+                    <p className="mt-4 text-sm leading-relaxed text-black/78">{psychArchetype.rarity}</p>
+                  </div>
+                </div>
+              </SectionFrame>
+            )}
+
+            <SectionFrame index={psychArchetype ? '08' : '07'} title="SOUL REFLECTION" subtitle={report.dessert.name} locked={!isUnlocked}>
               <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
                 <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
                   <p className="v2-card-eyebrow">SOUL DESSERT</p>
