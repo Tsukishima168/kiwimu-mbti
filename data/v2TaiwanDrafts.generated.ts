@@ -1,7 +1,7 @@
 /* eslint-disable */
 // AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY.
 // Source: /Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_報告_草案庫
-// Generated at: 2026-04-12T08:06:27.084Z
+// Generated at: 2026-04-23T03:36:35.976Z
 
 export const V2_TW_DRAFT_SOURCE = "/Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_報告_草案庫";
 

@@ -60,9 +60,16 @@ function extractArchSection(content) {
  * Given the raw 🧬 section text, parse into structured data.
  */
 function parseArchSection(raw) {
+  const cleanSectionText = (value) =>
+    value
+      .trim()
+      .replace(/\n+---\s*$/u, '')
+      .replace(/\n+/g, ' ')
+      .trim();
+
   // ── stateName ──────────────────────────────────────────────────────────────
   const stateNameMatch = /### 這個狀態有個名字\n+([\s\S]+?)(?=\n###|\n---\n|$)/.exec(raw);
-  const stateName = stateNameMatch ? stateNameMatch[1].trim() : '';
+  const stateName = stateNameMatch ? cleanSectionText(stateNameMatch[1]) : '';
 
   // ── figures ────────────────────────────────────────────────────────────────
   const figuresBlockMatch = /### 同類過渡期的歷史原型\n+([\s\S]+?)(?=\n###|\n---\n|$)/.exec(raw);
@@ -76,14 +83,14 @@ function parseArchSection(raw) {
     while ((m = figRe.exec(figBlock)) !== null) {
       figures.push({
         name: m[1].trim(),
-        body: m[2].trim().replace(/\n+/g, ' '),
+        body: cleanSectionText(m[2]),
       });
     }
   }
 
   // ── rarity ─────────────────────────────────────────────────────────────────
-  const rarityMatch = /### 稀缺組合\n+([\s\S]+?)(?=\n###|\n---\n|$)/.exec(raw);
-  const rarity = rarityMatch ? rarityMatch[1].trim().replace(/\n+/g, ' ') : '';
+  const rarityMatch = /### 稀缺組合\n+([\s\S]+?)(?=\n###|\n---(?:\n|$)|$)/.exec(raw);
+  const rarity = rarityMatch ? cleanSectionText(rarityMatch[1]) : '';
 
   return { stateName, figures, rarity };
 }

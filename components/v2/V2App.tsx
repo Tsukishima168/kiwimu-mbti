@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AppUser } from '../../types';
-import { getCelebrityArchetypes } from '../../data/celebrityData';
-import { buildV2ImageSlots, type V2ImageSlotSpec, type V2ReportFamilyKey } from '../../data/v2ImageBlueprint';
-import { getRarityData, getRarityLabel, getRarityMessage } from '../../data/rarityData';
 import {
   getV2TaiwanDraft,
   V2_TW_DRAFT_SOURCE,
   type V2TaiwanDraftReport,
 } from '../../data/v2TaiwanDrafts.generated';
 import { getV2PsychArchetype } from '../../data/v2PsychArchetypes.generated';
+import { getV2VariantReport } from '../../data/v2VariantReports.generated';
+import { getRarityData } from '../../data/rarityData';
 import { getResultData } from '../../constants';
 import type { MbtiResultData, Score } from '../../types';
 import { calculatePercentages, getVariant } from '../../utils/logic';
@@ -28,8 +27,9 @@ import {
   readCachedV2Entitlement,
   hasV2UnlockQuery,
   setV2Entitlement,
+  unlockV2Purchase,
   unlockV2Preview,
-  V2Entitlement,
+  type V2Entitlement,
 } from '../../utils/v2Access';
 import { getAuthSupabaseClient } from '../../utils/supabaseAuthBridge';
 import {
@@ -38,6 +38,8 @@ import {
   parseV2RouteTarget,
   type V2VariantCode,
 } from '../../utils/v2Routes';
+import { buildDessertOrderLink, trackDessertOrderClick } from '../../utils/utmTracking';
+import { KiwimuCharacter, type KiwimuState } from './KiwimuCharacter';
 import './v2-tailwind.css';
 import './v2.css';
 
@@ -50,76 +52,96 @@ type VariantCode = 'A' | 'T';
 type PercentageKey = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P' | 'A' | 'Turbulent';
 
 type SpectrumRow = {
-  key: string;
   label: string;
   selectedCode: string;
   oppositeCode: string;
   selectedPct: number;
-  oppositePct: number;
   description: string;
-  v1Note: string;
 };
 
-type TagPill = {
+type TagCard = {
   code: string;
   zh: string;
   en: string;
 };
 
-const MARQUEE_TEXT = 'KIWIMU MBTI V2 TAIWAN EDITION · LOCAL PROTOTYPE · PAID WALL · DEEP REPORT · ';
+type CompareCard = {
+  code: VariantCode;
+  badge: string;
+  title: string;
+  tone: string;
+  strategyLabel: string;
+  strategy: string;
+  energyLabel: string;
+  energy: string;
+  cost?: string;
+};
+
+type VariantPrototypeCopy = {
+  eyebrow: string;
+  subtitle: string;
+  soulQuote: string;
+  heroLines: string[];
+  status: string;
+  tags: TagCard[];
+  professionalQuote: string;
+  compareCards: CompareCard[];
+  frequencyPrimary: string;
+  frequencyPrimaryLabel: string;
+  frequencySecondary: string;
+  frequencySecondaryLabel: string;
+  frequencyNote: string;
+  footerTitle: string;
+  footerSubtitle: string;
+};
+
+type ReportNavChapter = {
+  id: string;
+  label: string;
+  locked: boolean;
+};
+
 const LOCAL_PREVIEW_HOSTS = new Set(['localhost', '127.0.0.1']);
 const IS_DEV = import.meta.env.DEV;
 
-const FAMILY_THEMES: Record<ReportFamilyKey, { accent: string; ink: string; soft: string; glow: string; panel: string; line: string; haze: string; }> = {
+const FAMILY_META: Record<ReportFamilyKey, { familyLabel: string; familyAccent: string; familyKeyLabel: string; familyStage: string }> = {
   analysts: {
-    accent: '#D3FF3F',
-    ink: '#0F172A',
-    soft: '#EFF6FF',
-    glow: 'rgba(59, 130, 246, 0.14)',
-    panel: 'rgba(255, 255, 255, 0.92)',
-    line: 'rgba(15, 23, 42, 0.14)',
-    haze: 'rgba(211, 255, 63, 0.18)',
+    familyLabel: '分析家類 ANALYSTS',
+    familyAccent: '#B4DCFF',
+    familyKeyLabel: 'Midnight / 深夜思考的冷靜',
+    familyStage: '#0C1220',
   },
   diplomats: {
-    accent: '#FFC98B',
-    ink: '#7C2D12',
-    soft: '#FFF4EA',
-    glow: 'rgba(249, 115, 22, 0.12)',
-    panel: 'rgba(255, 251, 247, 0.94)',
-    line: 'rgba(124, 45, 18, 0.14)',
-    haze: 'rgba(255, 201, 139, 0.18)',
+    familyLabel: '外交家類 DIPLOMATS',
+    familyAccent: '#FFD6B4',
+    familyKeyLabel: 'Dusk / 感知先於語言',
+    familyStage: '#140D1E',
   },
   sentinels: {
-    accent: '#B9FBC0',
-    ink: '#0F4C45',
-    soft: '#EEFFF6',
-    glow: 'rgba(16, 185, 129, 0.12)',
-    panel: 'rgba(255, 255, 255, 0.93)',
-    line: 'rgba(15, 76, 69, 0.14)',
-    haze: 'rgba(185, 251, 192, 0.18)',
+    familyLabel: '守護者類 SENTINELS',
+    familyAccent: '#C9F3C2',
+    familyKeyLabel: 'Forest / 幾乎是黑的深綠',
+    familyStage: '#0E1510',
   },
   explorers: {
-    accent: '#FFD166',
-    ink: '#8A3B12',
-    soft: '#FFF6E5',
-    glow: 'rgba(245, 158, 11, 0.14)',
-    panel: 'rgba(255, 252, 246, 0.94)',
-    line: 'rgba(138, 59, 18, 0.14)',
-    haze: 'rgba(255, 209, 102, 0.18)',
+    familyLabel: '探險家類 EXPLORERS',
+    familyAccent: '#FFD98A',
+    familyKeyLabel: 'Ember / 熱度藏在最深處',
+    familyStage: '#1A0E08',
   },
 };
 
-const DIMENSION_TAGS: Record<string, TagPill> = {
-  E: { code: 'E', zh: '社群多巴胺節拍器', en: 'Social Pulse' },
-  I: { code: 'I', zh: '數位防空洞隱士', en: 'Inner Shelter' },
-  S: { code: 'S', zh: '碎片資訊體感收集者', en: 'Signal Sampler' },
-  N: { code: 'N', zh: '神經網絡預言者', en: 'Pattern Seer' },
-  T: { code: 'T', zh: '演算法邏輯執行者', en: 'Logic Engine' },
-  F: { code: 'F', zh: '人性溫度防火牆', en: 'Warmth Guard' },
-  J: { code: 'J', zh: '秩序建築師', en: 'Order Architect' },
-  P: { code: 'P', zh: '浪潮衝浪即興派', en: 'Fluid Surfer' },
-  A: { code: 'A', zh: '無感延遲穩定核心', en: 'Stable Core' },
-  T_VARIANT: { code: 'T', zh: '高頻迭代主角韌性', en: 'Iterative Resilience' },
+const DIMENSION_TAGS: Record<string, TagCard> = {
+  E: { code: 'SOC-PULSE', zh: '社群節拍驅動', en: 'Social Pulse' },
+  I: { code: 'INNER-SHLD', zh: '內在防空洞', en: 'Inner Shelter' },
+  S: { code: 'FACT-SCAN', zh: '現實感測系統', en: 'Fact Scanner' },
+  N: { code: 'PATTERN-SIGHT', zh: '模式預見者', en: 'Pattern Sight' },
+  T: { code: 'LOGIC-CORE', zh: '邏輯主控台', en: 'Logic Core' },
+  F: { code: 'AFFECT-LAYER', zh: '情感感應層', en: 'Affect Layer' },
+  J: { code: 'ORDER-RIG', zh: '秩序施工架', en: 'Order Rig' },
+  P: { code: 'FLOW-ADAPT', zh: '即興調頻器', en: 'Flow Adapt' },
+  A: { code: 'CORE-STEADY', zh: '穩定核心', en: 'Core Steady' },
+  T_VARIANT: { code: 'SELF-AUDIT', zh: '高頻自審', en: 'Self Audit' },
 };
 
 const SPECTRUM_CONFIG: Array<{
@@ -128,29 +150,54 @@ const SPECTRUM_CONFIG: Array<{
   selectedFromVariant?: VariantCode;
   selectedKey?: PercentageKey;
   oppositeKey: PercentageKey;
-  noteKey: keyof MbtiResultData['dimensionAnalysis'];
 }> = [
-  { label: '能量獲取', selectedFromType: 0, oppositeKey: 'I', noteKey: 'EI' },
-  { label: '資訊處理', selectedFromType: 1, oppositeKey: 'N', noteKey: 'SN' },
-  { label: '決策判斷', selectedFromType: 2, oppositeKey: 'F', noteKey: 'TF' },
-  { label: '生活態度', selectedFromType: 3, oppositeKey: 'P', noteKey: 'JP' },
-  { label: '自我抗壓', selectedFromVariant: 'A', selectedKey: 'A', oppositeKey: 'Turbulent', noteKey: 'AT' },
+  { label: '能量獲取', selectedFromType: 0, oppositeKey: 'I' },
+  { label: '資訊處理', selectedFromType: 1, oppositeKey: 'N' },
+  { label: '決策判斷', selectedFromType: 2, oppositeKey: 'F' },
+  { label: '生活態度', selectedFromType: 3, oppositeKey: 'P' },
+  { label: '自我抗壓', selectedFromVariant: 'A', selectedKey: 'A', oppositeKey: 'Turbulent' },
 ];
 
-const buildCheckoutUrl = (mbtiType: string) => {
-  const params = new URLSearchParams({
-    utm_source: 'mbti',
-    utm_medium: 'v2_paywall',
-    utm_campaign: 'mbti_v2_unlock',
-    mbti_type: mbtiType,
-  });
+const cleanText = (value?: string | null) => (value || '').replace(/\s*---\s*$/, '').replace(/[「」]/g, '').trim();
 
-  return `https://map.kiwimu.com/menu?${params.toString()}`;
+const toAnchorSentence = (value?: string | null) => {
+  const sentence = cleanText(value).split(/[。！？]/u)[0]?.trim();
+  if (!sentence) {
+    return '';
+  }
+
+  return `${sentence.replace(/[，、；：,:;]$/u, '')}。`;
 };
 
-const cleanQuote = (quote: string) => quote.replace(/[「」]/g, '').trim();
+const splitCoverQuote = (value?: string | null) => {
+  const normalized = cleanText(value);
+  if (!normalized) {
+    return { lead: '', tail: '' };
+  }
 
-const getSpectrumValue = (scores: ReturnType<typeof calculatePercentages>, key: PercentageKey) => scores[key];
+  const parts = normalized.split(/[，,]/u).map((part) => part.trim()).filter(Boolean);
+  if (parts.length <= 1) {
+    return { lead: normalized, tail: '' };
+  }
+
+  return {
+    lead: `${parts[0]}，`,
+    tail: parts.slice(1).join('，'),
+  };
+};
+
+const splitCoverSubcopy = (value?: string | null) => {
+  const normalized = cleanText(value);
+  if (!normalized) {
+    return [];
+  }
+
+  return normalized
+    .split(/[。！？]/u)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+};
 
 const getOppositeKey = (selectedKey: PercentageKey): PercentageKey => {
   switch (selectedKey) {
@@ -177,14 +224,6 @@ const getOppositeKey = (selectedKey: PercentageKey): PercentageKey => {
   }
 };
 
-const getDimensionDescription = (report: V2TaiwanDraftReport, selectedCode: string) => {
-  if (selectedCode === 'A' || selectedCode === 'T') {
-    return report.dimension.bullets.find((item) => item.label.startsWith('A / T'))?.body || '';
-  }
-
-  return report.dimension.bullets.find((item) => item.label.startsWith(`${selectedCode} (`))?.body || '';
-};
-
 const buildSyntheticScores = (type: string, variant: V2VariantCode): Score => ({
   E: type.includes('E') ? 74 : 26,
   I: type.includes('I') ? 74 : 26,
@@ -198,7 +237,7 @@ const buildSyntheticScores = (type: string, variant: V2VariantCode): Score => ({
   Turbulent: variant === 'T' ? 66 : 34,
 });
 
-const buildTagWall = (type: string, variant: VariantCode): TagPill[] => {
+const buildTagWall = (type: string, variant: VariantCode): TagCard[] => {
   const tags = type.split('').map((letter) => DIMENSION_TAGS[letter]).filter(Boolean);
   tags.push(variant === 'A' ? DIMENSION_TAGS.A : DIMENSION_TAGS.T_VARIANT);
   return tags;
@@ -208,106 +247,115 @@ const buildSpectrumRows = (
   type: string,
   variant: VariantCode,
   scores: Score,
-  resultData: MbtiResultData,
-  report: V2TaiwanDraftReport,
+  dimensionBullets: Array<{ label: string; body: string }>,
 ): SpectrumRow[] => {
   const percentages = calculatePercentages(scores);
+  const descriptions = new Map(dimensionBullets.map((item) => [item.label, item.body]));
 
   return SPECTRUM_CONFIG.map((config) => {
-    const selectedCode = config.selectedFromVariant
-      ? variant
-      : type[config.selectedFromType || 0];
+    const selectedCode = config.selectedFromVariant ? variant : type[config.selectedFromType || 0];
     const selectedKey = (config.selectedKey || selectedCode) as PercentageKey;
-    const oppositeKey = config.selectedFromVariant
-      ? getOppositeKey(selectedKey)
-      : getOppositeKey(selectedCode as PercentageKey);
+    const oppositeKey = config.selectedFromVariant ? getOppositeKey(selectedKey) : getOppositeKey(selectedCode as PercentageKey);
+    const descriptionKey = selectedCode === 'A' || selectedCode === 'T' ? 'A / T (自我認同)' : `${selectedCode} (${selectedCode === 'I' ? '內向' : selectedCode === 'N' ? '直覺' : selectedCode === 'T' ? '思考' : selectedCode === 'J' ? '判斷' : selectedCode === 'E' ? '外向' : selectedCode === 'S' ? '實感' : selectedCode === 'F' ? '情感' : '感知'})`;
 
     return {
-      key: config.label,
       label: config.label,
       selectedCode,
       oppositeCode: oppositeKey === 'Turbulent' ? 'T' : oppositeKey,
-      selectedPct: getSpectrumValue(percentages, selectedKey),
-      oppositePct: getSpectrumValue(percentages, oppositeKey),
-      description: getDimensionDescription(report, selectedCode),
-      v1Note: resultData.dimensionAnalysis[config.noteKey],
+      selectedPct: percentages[selectedKey],
+      description: descriptions.get(descriptionKey) || descriptions.get('A / T (自我認同)') || '',
     };
   });
 };
 
-function SectionFrame({
-  index,
-  title,
-  subtitle,
-  locked,
-  children,
-}: {
-  index: string;
-  title: string;
-  subtitle?: string;
-  locked?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="v2-panel">
-      <div className="v2-section-head">
-        <span className="v2-section-index">{index}</span>
-        <div>
-          <p className="v2-section-kicker">{title}</p>
-          {subtitle ? <h2 className="v2-section-title">{subtitle}</h2> : null}
-        </div>
-      </div>
+const buildPrototypeCopy = (
+  variant: VariantCode,
+  report: V2TaiwanDraftReport,
+  resultData: MbtiResultData,
+): VariantPrototypeCopy => {
+  const familyMeta = FAMILY_META[report.familyKey as ReportFamilyKey];
+  const typeTitle = variant === 'A' ? '穩定變體' : '高敏變體';
+  const aItems = report.professional.subtypes.A.items;
+  const tItems = report.professional.subtypes.T.items;
 
-      <div className={locked ? 'v2-lock-shell is-locked' : 'v2-lock-shell'}>
-        <div className={locked ? 'v2-lock-body' : ''}>{children}</div>
-        {locked ? (
-          <div className="v2-lock-overlay">
-            <p className="v2-lock-label">LOCKED IN V2</p>
-            <p className="v2-lock-copy">完成解鎖後，這裡會展開台灣版完整段落、A/T 對照與深度建議。</p>
-          </div>
-        ) : null}
-      </div>
-    </section>
-  );
-}
+  return {
+    eyebrow: `${familyMeta.familyLabel} · KIWIMU V2 深度報告`,
+    subtitle: `${report.title} · ${typeTitle}`,
+    soulQuote: cleanText(report.soulQuote || report.closing || resultData.quote || report.abstract.body),
+    heroLines: [report.abstract.body, report.design.quote, ...report.design.behaviorLogic.map((item) => item.body)].slice(0, 3),
+    status: variant === 'A' ? '當前狀態：穩定輸出期 / 低噪推進中' : '當前狀態：高頻調整期 / 自我監測中',
+    tags: buildTagWall(resultData.id, variant).slice(0, 6),
+    professionalQuote: report.professional.coreBody,
+    compareCards: [
+      {
+        code: 'A',
+        badge: variant === 'A' ? '你的型' : '相對型',
+        title: report.professional.subtypes.A.title,
+        tone: report.professional.subtypes.A.tone,
+        strategyLabel: aItems[0]?.label || '情緒能量',
+        strategy: aItems[0]?.body || report.professional.coreBody,
+        energyLabel: aItems[1]?.label || '穩定度',
+        energy: aItems[1]?.body || report.abstract.body,
+      },
+      {
+        code: 'T',
+        badge: variant === 'T' ? '你的型' : '另一型',
+        title: report.professional.subtypes.T.title,
+        tone: report.professional.subtypes.T.tone,
+        strategyLabel: tItems[0]?.label || '情緒能量',
+        strategy: tItems[0]?.body || report.professional.coreBody,
+        energyLabel: tItems[1]?.label || '內隱焦慮',
+        energy: tItems[1]?.body || report.abstract.body,
+      },
+    ],
+    frequencyPrimary: `${getRarityData(resultData.id)?.totalPopulation ?? 2.4}%`,
+    frequencyPrimaryLabel: '人口出現率',
+    frequencySecondary: variant === 'A' ? '1.0%' : '0.9%',
+    frequencySecondaryLabel: '變體切面',
+    frequencyNote: '這個比例不是要證明你多特別，而是讓你知道這種狀態確實有人活過。',
+    footerTitle: report.dessert.name,
+    footerSubtitle: report.dessert.visualLogic,
+  };
+};
 
-function DevImageSlot({
-  slot,
-  compact = false,
-}: {
-  slot: V2ImageSlotSpec;
-  compact?: boolean;
-}) {
-  return (
-    <div className={compact ? 'v2-image-slot is-compact' : 'v2-image-slot'}>
-      <div className="v2-image-slot-top">
-        <p className="v2-card-eyebrow">IMAGE SLOT</p>
-        <span className="v2-image-slot-status">{slot.status}</span>
-      </div>
-      <div className="v2-image-slot-frame">
-        <p className="v2-image-slot-key">{slot.key}</p>
-        <p className="v2-image-slot-ratio">{slot.ratio}</p>
-      </div>
-      <div className="v2-image-slot-meta">
-        <h3>{slot.title}</h3>
-        <p>{slot.placement}</p>
-        <p>Size: {slot.recommendedSize}</p>
-        <p>Path: {slot.assetPath}</p>
-        <p>{slot.notes}</p>
-      </div>
-    </div>
-  );
-}
+const buildVersionTagWall = (
+  report: V2TaiwanDraftReport,
+  variant: VariantCode,
+  fallbackTags: TagCard[],
+) => {
+  return [
+    report.professional.subtypes[variant].title,
+    report.abstract.label,
+    ...report.design.behaviorLogic.map((item) => item.label),
+    ...fallbackTags.map((tag) => tag.zh),
+  ]
+    .map((item) => cleanText(item))
+    .filter((item, index, source) => item && source.indexOf(item) === index)
+    .slice(0, 6);
+};
+
+const REPORT_CHAPTERS: ReportNavChapter[] = [
+  { id: 'ch-01', label: '01 當下的你', locked: false },
+  { id: 'ch-02', label: '02 你的版本', locked: false },
+  { id: 'ch-03', label: '03 四個維度', locked: true },
+  { id: 'ch-04', label: '04 你怎麼活', locked: true },
+  { id: 'ch-05', label: '05 你的原型', locked: true },
+  { id: 'ch-06', label: '06 帶走這個', locked: true },
+];
 
 export default function V2App({ user }: V2AppProps) {
   const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(window.location.hostname);
   const pathname = window.location.pathname;
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const routeTarget = useMemo(() => parseV2RouteTarget(pathname, params), [params, pathname]);
-  const [entitlement, setEntitlement] = useState<V2Entitlement>(() =>
+  const [entitlement, setEntitlementState] = useState<V2Entitlement>(() =>
     isLocalPreview ? readCachedV2Entitlement() : { status: 'locked' },
   );
+  const [activeChapter, setActiveChapter] = useState('ch-01');
+  const [scrollProgress, setScrollProgress] = useState(0);
   const source = params.get('source') || 'direct';
+  const isUnlocked = entitlement.status === 'unlocked';
+
   const routeBundle = useMemo(() => {
     if (!routeTarget) return null;
     return {
@@ -315,6 +363,7 @@ export default function V2App({ user }: V2AppProps) {
       scores: buildSyntheticScores(routeTarget.type, routeTarget.variant),
     };
   }, [routeTarget]);
+
   const resultBundle = useMemo(() => {
     if (source === 'v2_quiz') {
       return getLastV2PrototypeResult() || routeBundle || getLastV1Result();
@@ -325,8 +374,8 @@ export default function V2App({ user }: V2AppProps) {
 
   const variant = routeTarget?.variant || (resultBundle ? getVariant(resultBundle.scores) : 'A');
   const fullType = routeTarget?.fullType || (resultBundle ? `${resultBundle.resultData.id}-${variant}` : null);
-  const checkoutUrl = fullType ? buildCheckoutUrl(fullType) : 'https://map.kiwimu.com/menu';
   const report = useMemo(() => (resultBundle ? getV2TaiwanDraft(resultBundle.resultData.id) : null), [resultBundle]);
+  const seoVariantReport = useMemo(() => (fullType ? getV2VariantReport(fullType) : null), [fullType]);
   const canonicalPath = fullType ? buildV2ReportPath(fullType) : '/read';
   const canonicalUrl = `https://kiwimu.com${canonicalPath}`;
 
@@ -347,15 +396,12 @@ export default function V2App({ user }: V2AppProps) {
 
   useEffect(() => {
     const title = fullType && report
-      ? `${fullType} 深度靈魂報告（未公開）｜${report.title}｜Kiwimu MBTI V2`
-      : 'Kiwimu MBTI V2 深度靈魂報告（未公開）｜Moon Moon 月島甜點';
+      ? `${fullType} 深度報告｜${seoVariantReport?.title || report.title}｜Kiwimu MBTI V2`
+      : 'Kiwimu MBTI V2 深度報告';
     const description = fullType && report && resultBundle
-      ? `${report.abstract.body} ${resultBundle.resultData.summary} 這是 Kiwimu V2 未公開台灣版深度報告，用來拆解 ${fullType} 的認知模式、人際節奏與抗壓策略。`
-      : 'Kiwimu V2 台灣版深度靈魂報告未公開預覽頁，從 MBTI 類型延伸到認知模式、人際節奏與抗壓策略。';
+      ? `${seoVariantReport?.abstract.body || report.abstract.body} 讀完免費章節後，可以解鎖完整 V2 深度報告。`
+      : 'Kiwimu MBTI V2 深度報告：從 MBTI 類型出發，讀到更完整的 A/T 變體、維度、關係、原型與收束提問。';
     const image = resultBundle?.resultData.characterImage || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
-    const keywords = fullType && resultBundle
-      ? ['Kiwimu', 'MBTI', 'V2', '深度報告', fullType, resultBundle.resultData.title, ...resultBundle.resultData.keywords].join(',')
-      : 'Kiwimu,MBTI,V2,深度報告,人格測驗,台灣版';
 
     applyRuntimeSeo({
       title,
@@ -363,10 +409,10 @@ export default function V2App({ user }: V2AppProps) {
       canonical: canonicalUrl,
       ogType: 'article',
       image,
-      keywords,
-      robots: 'noindex,nofollow,noarchive',
+      keywords: ['Kiwimu', 'MBTI', 'V2', '深度報告', fullType || '人格報告'].join(','),
+      robots: fullType ? 'index,follow' : 'noindex,follow',
     });
-  }, [canonicalUrl, fullType, report, resultBundle]);
+  }, [canonicalUrl, fullType, report, resultBundle, seoVariantReport]);
 
   useEffect(() => {
     const enteredAt = Date.now();
@@ -377,12 +423,14 @@ export default function V2App({ user }: V2AppProps) {
   }, [canonicalPath]);
 
   useEffect(() => {
-    if (!fullType || !hasV2UnlockQuery(params, { allowPreview: IS_DEV })) {
+    if (!fullType || !hasV2UnlockQuery(params, { allowPreview: IS_DEV, allowSuccess: true })) {
       return;
     }
 
-    const unlocked = unlockV2Preview(params.get('order_id') || 'query-preview');
-    setEntitlement(unlocked);
+    const unlocked = params.get('unlock') === 'success'
+      ? unlockV2Purchase(params.get('order_id') || params.get('transaction_id') || 'linepay')
+      : unlockV2Preview(params.get('order_id') || 'query-preview');
+    setEntitlementState(unlocked);
     trackAction('v2_unlock_success', {
       mbtiType: fullType,
       unlockType: unlocked.unlockType,
@@ -404,7 +452,6 @@ export default function V2App({ user }: V2AppProps) {
     trackV2PaywallView(fullType, source);
   }, [entitlement.status, fullType, source, user]);
 
-  // Check Supabase DB entitlement on mount（付費後由 webhook 寫入 profiles.v2_unlocked_at）
   useEffect(() => {
     const checkSupabaseEntitlement = async () => {
       const supabase = getAuthSupabaseClient();
@@ -438,7 +485,7 @@ export default function V2App({ user }: V2AppProps) {
           expiresAt: null,
         };
         setV2Entitlement(unlocked);
-        setEntitlement(unlocked);
+        setEntitlementState(unlocked);
         trackAction('v2_unlock_from_supabase', { mbtiType: fullType || 'unknown', source });
         trackV2Unlocked(fullType || 'unknown', 'one_time', 'supabase-db');
       } else if (!isLocalPreview) {
@@ -446,14 +493,65 @@ export default function V2App({ user }: V2AppProps) {
       }
     };
 
-    checkSupabaseEntitlement();
-  }, [fullType, isLocalPreview, source]); // eslint-disable-line react-hooks/exhaustive-deps
+    void checkSupabaseEntitlement();
+  }, [fullType, isLocalPreview, source]);
 
-  const handleCheckout = () => {
+  useEffect(() => {
     if (!fullType) {
       return;
     }
 
+    setActiveChapter('ch-01');
+
+    const sections = REPORT_CHAPTERS.map((chapter) => document.getElementById(chapter.id)).filter(
+      (node): node is HTMLElement => Boolean(node),
+    );
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visible) {
+          setActiveChapter(visible.target.id);
+        }
+      },
+      {
+        rootMargin: '-20% 0px -60% 0px',
+        threshold: [0, 0.15, 0.3, 0.5, 0.75, 1],
+      },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fullType, isUnlocked]);
+
+  useEffect(() => {
+    const updateProgress = () => {
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      const nextProgress = total > 0 ? (window.scrollY / total) * 100 : 0;
+      setScrollProgress(nextProgress);
+    };
+
+    updateProgress();
+    window.addEventListener('scroll', updateProgress, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', updateProgress);
+    };
+  }, []);
+
+  const handleCheckout = () => {
+    void (async () => {
+    if (!fullType) {
+      return;
+    }
+
+    const checkoutUrl = '/api/linepay/request';
     trackAction('v2_checkout_start', {
       mbtiType: fullType,
       source,
@@ -473,7 +571,7 @@ export default function V2App({ user }: V2AppProps) {
       }
 
       const unlocked = unlockV2Preview(`local-${Date.now()}`);
-      setEntitlement(unlocked);
+      setEntitlementState(unlocked);
       trackAction('v2_unlock_success', {
         mbtiType: fullType,
         unlockType: unlocked.unlockType,
@@ -482,43 +580,81 @@ export default function V2App({ user }: V2AppProps) {
       return;
     }
 
-    window.location.assign(checkoutUrl);
+      try {
+        const response = await fetch('/api/linepay/request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            mbtiType: fullType,
+            source,
+            userUid: user?.uid || null,
+          }),
+        });
+
+        const result = await response.json() as {
+          ok?: boolean;
+          paymentUrl?: string;
+          error?: string;
+        };
+
+        if (!response.ok || !result.ok || !result.paymentUrl) {
+          throw new Error(result.error || 'LINE Pay request failed');
+        }
+
+        window.location.assign(result.paymentUrl);
+      } catch (error) {
+        console.error('Failed to start LINE Pay checkout', error);
+        trackAction('v2_checkout_error', {
+          mbtiType: fullType,
+          source,
+          error: error instanceof Error ? error.message : 'unknown',
+        });
+      }
+    })();
   };
 
   const handleResetPreview = () => {
     clearV2Entitlement();
-    setEntitlement({ status: 'locked' });
+    setEntitlementState({ status: 'locked' });
+  };
+
+  const handleShareStory = async () => {
+    if (!fullType) {
+      return;
+    }
+
+    trackAction('v2_story_share_click', { mbtiType: fullType, source });
+
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+    } catch (error) {
+      console.warn('Failed to copy V2 share URL', error);
+    }
+
+    window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
   };
 
   if (!resultBundle || !fullType) {
     return (
-      <div className="v2-root min-h-screen px-5 pt-24 pb-16">
-        <div className="marquee-container">
-          <div className="marquee-track">
-            <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
-            <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
-          </div>
-        </div>
-
-        <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl items-center">
-          <div className="v2-panel w-full p-8 md:p-10">
-            <p className="v2-eyebrow">MBTI V2 TAIWAN EDITION</p>
-            <h1 className="mt-4 text-4xl font-bold leading-none md:text-5xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              你的 MBTI 深度靈魂報告
-            </h1>
-            <p className="mt-5 text-base leading-relaxed text-black/70">
-              超越四個字母的類型標籤——V2 以台灣在地視角深度解析你的認知模式、人際節奏與抗壓策略。用 5 題快速定位，或帶入 V1 完整測驗結果直接生成。
+      <div className="v2-root">
+        <div className="v2-shell">
+          <section className="v2-panel v2-empty-panel">
+            <p className="v2-label">KIWIMU V2</p>
+            <h1 className="v2-empty-title">你的 MBTI 深度報告頁 prototype</h1>
+            <p className="v2-empty-copy">
+              目前 `/read` 會直接接到 V2 深度報告殼。你可以從 5 題測驗進來，或直接打開像 `/read/INTJ-A` 這種完整型別路徑。
             </p>
-
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a href="/read/quiz" className="kiwimu-btn kiwimu-btn-primary block flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
+            <div className="v2-empty-actions">
+              <a href="/read/quiz" className="kiwimu-btn kiwimu-btn-primary">
                 開始 5 題 V2 測驗
               </a>
-              <a href="/quiz" className="kiwimu-btn block flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
-                帶入 V1 結果
+              <a href="/quiz" className="kiwimu-btn">
+                回到 V1 測驗
               </a>
             </div>
-          </div>
+          </section>
         </div>
       </div>
     );
@@ -526,479 +662,607 @@ export default function V2App({ user }: V2AppProps) {
 
   if (!report) {
     return (
-      <div className="v2-root min-h-screen px-5 pt-24 pb-16">
-        <div className="marquee-container">
-          <div className="marquee-track">
-            <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
-            <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
-          </div>
-        </div>
-
-        <div className="mx-auto max-w-3xl">
-          <div className="v2-panel p-8 md:p-10">
-            <p className="v2-eyebrow">V2 CONTENT SYNC REQUIRED</p>
-            <h1 className="mt-4 text-3xl font-bold text-black md:text-4xl">{resultBundle.resultData.id} 的台灣版草案尚未同步</h1>
-            <p className="mt-4 text-sm leading-relaxed text-black/70">
-              目前 `/read` 會直接讀取 `{V2_TW_DRAFT_SOURCE}`。請先重新執行 `npm run sync:v2:tw`，再回來看本地版面。
-            </p>
-          </div>
+      <div className="v2-root">
+        <div className="v2-shell">
+          <section className="v2-panel v2-empty-panel">
+            <p className="v2-label">V2 CONTENT SYNC REQUIRED</p>
+            <h1 className="v2-empty-title">{resultBundle.resultData.id} 的台灣版草案尚未同步</h1>
+            <p className="v2-empty-copy">目前 `/read` 會直接讀取 `{V2_TW_DRAFT_SOURCE}`，請先同步草案資料再看這個 prototype。</p>
+          </section>
         </div>
       </div>
     );
   }
 
   const { resultData, scores } = resultBundle;
-  const isUnlocked = entitlement.status === 'unlocked';
-  const theme = FAMILY_THEMES[report.familyKey as ReportFamilyKey];
-  const imageSlots = buildV2ImageSlots(resultData.id, report.familyKey as V2ReportFamilyKey);
-  const rootStyle = {
-    '--v2-accent': theme.accent,
-    '--v2-ink': theme.ink,
-    '--v2-soft': theme.soft,
-    '--v2-glow': theme.glow,
-    '--v2-panel': theme.panel,
-    '--v2-line': theme.line,
-    '--v2-haze': theme.haze,
-  } as React.CSSProperties;
-  const soulQuote = cleanQuote(resultData.quote);
-  const tagWall = buildTagWall(resultData.id, variant as VariantCode);
-  const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, resultData, report);
+  const familyMeta = FAMILY_META[report.familyKey as ReportFamilyKey];
+  const currentVariant = variant as VariantCode;
+  const prototypeCopy = buildPrototypeCopy(currentVariant, report, resultData);
+  const variantReport = getV2VariantReport(fullType);
+  const oppositeVariant = currentVariant === 'A' ? 'T' : 'A';
+  const oppositeVariantReport = getV2VariantReport(`${resultData.id}-${oppositeVariant}`);
+  const psychArchetype = getV2PsychArchetype(fullType);
+  const dimensionBullets = variantReport?.dimension.bullets.length ? variantReport.dimension.bullets : report.dimension.bullets;
+  const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, dimensionBullets);
   const rarityData = getRarityData(resultData.id);
-  const rarityLabel = rarityData ? getRarityLabel(rarityData.rank) : null;
-  const rarityMessage = rarityData ? getRarityMessage(rarityData.rank) : null;
-  const archetypes = getCelebrityArchetypes(resultData.id).slice(0, 2);
-  const psychArchetype = fullType ? getV2PsychArchetype(fullType) : null;
-  const isDevLocked = IS_DEV && !isUnlocked && !isLocalPreview;
-  const primaryButtonLabel = isUnlocked
-    ? '下載 / 列印目前頁面'
+  const dessertOrderUrl = buildDessertOrderLink(resultData.id, variant);
+  const versionTags = variantReport?.tags.length
+    ? variantReport.tags.map((tag) => cleanText(tag.label)).filter(Boolean).slice(0, 6)
+    : buildVersionTagWall(report, currentVariant, prototypeCopy.tags);
+  const heroState: KiwimuState = variant === 'A' ? 'still' : 'hover';
+  const rootStyle = {
+    '--v2-ink': '#1A1A1A',
+    '--v2-acid': '#CCFF00',
+    '--v2-paper': '#F8F8F5',
+    '--v2-muted': '#888880',
+    '--v2-family': familyMeta.familyAccent,
+    '--v2-stage': familyMeta.familyStage,
+  } as React.CSSProperties;
+
+  const compareCards: CompareCard[] = (['A', 'T'] as VariantCode[]).map((code) => {
+    const sourceReport = code === currentVariant ? variantReport : oppositeVariantReport;
+    const fallbackCard = prototypeCopy.compareCards.find((card) => card.code === code) || prototypeCopy.compareCards[0];
+    const subtypeItems = sourceReport?.professional.subtypeItems || [];
+
+    return {
+      ...fallbackCard,
+      badge: code === currentVariant ? '你的型' : '另一型',
+      title: cleanText(sourceReport?.professional.subtypeTitle || fallbackCard.title),
+      tone: cleanText(sourceReport?.professional.subtypeLabel || fallbackCard.tone || (code === 'A' ? 'A 變體' : 'T 變體')),
+      strategyLabel: cleanText(subtypeItems[0]?.label || fallbackCard.strategyLabel),
+      strategy: cleanText(subtypeItems[0]?.body || fallbackCard.strategy),
+      energyLabel: cleanText(subtypeItems[1]?.label || fallbackCard.energyLabel),
+      energy: cleanText(subtypeItems[1]?.body || fallbackCard.energy),
+      cost: cleanText(subtypeItems[3]?.body || subtypeItems[2]?.body || fallbackCard.cost || '') || undefined,
+    };
+  });
+
+  const currentCompareCard =
+    compareCards.find((card) => card.code === currentVariant) || compareCards[0];
+  const oppositeCompareCard =
+    compareCards.find((card) => card.code !== currentVariant) || compareCards[1];
+  const oppositeSubtype = report.professional.subtypes[oppositeVariant];
+  const abstractContent = variantReport?.abstract.body || report.abstract.body;
+  const professionalTitle = cleanText(variantReport?.professional.coreTitle || report.professional.coreTitle);
+  const professionalBody = cleanText(variantReport?.professional.coreBody || report.professional.coreBody);
+  const dimensionTip = cleanText(variantReport?.dimension.tip || report.dimension.tip);
+  const careerContent = variantReport?.career.bullets.length ? variantReport.career : report.career;
+  const relationshipContent = variantReport?.relationship.bullets.length ? variantReport.relationship : report.relationship;
+  const dessertContent = variantReport?.dessert.name ? variantReport.dessert : report.dessert;
+  const abyssalContent = variantReport?.abyssal.length ? variantReport.abyssal : report.abyssal;
+  const carryFull = cleanText(variantReport?.carry || variantReport?.important || report.closing);
+  const oppositeSideTitle = cleanText(oppositeVariantReport?.professional.subtypeTitle || oppositeSubtype.title);
+  const oppositeSideItems = oppositeVariantReport?.professional.subtypeItems.length
+    ? oppositeVariantReport.professional.subtypeItems
+    : oppositeSubtype.items;
+  const coverQuote = cleanText(variantReport?.soulQuote || report.soulQuote || variantReport?.important || report.closing || resultData.quote || abstractContent);
+  const coverQuoteParts = splitCoverQuote(coverQuote);
+  const coverSubcopyParts = splitCoverSubcopy(abstractContent);
+  const carryLine = toAnchorSentence(carryFull || psychArchetype?.rarity || abstractContent);
+  const dimensionHeadline = `${resultData.id.split('').join(' · ')} 在你現在這個階段`;
+  const coverKicker = cleanText(variantReport?.abstract.label || report.abstract.label || currentCompareCard.tone);
+  const coverTitle = cleanText(variantReport?.title || report.title || professionalTitle);
+  const rawCoverVariantTitle = cleanText(currentCompareCard.title);
+  const coverVariantTitle =
+    rawCoverVariantTitle && rawCoverVariantTitle !== coverTitle && rawCoverVariantTitle !== coverKicker
+      ? rawCoverVariantTitle
+      : '';
+  const chapterTwoTitle = professionalTitle
+    ? `${professionalTitle} 的 A / T 雙版本`
+    : 'A 和 T，是兩種運作方式';
+  const chapterThreeTitle = dimensionTip || dimensionHeadline;
+  const chapterFiveLead = toAnchorSentence(psychArchetype?.stateName || psychArchetype?.rarity || prototypeCopy.frequencyNote);
+  const chapterSixLead = toAnchorSentence(dessertContent.visualLogic || abstractContent);
+  const chapterStatusCopy = isUnlocked ? '完整內容已展開' : '以下為預覽切片，解鎖後可讀全文';
+  const paywallPreviewItems = [
+    {
+      number: '03',
+      name: '四個維度',
+      description: toAnchorSentence(dimensionTip) || `${dimensionHeadline} 的完整光譜讀數。`,
+    },
+    {
+      number: '04',
+      name: '你怎麼活',
+      description: [
+        cleanText(careerContent.title),
+        cleanText(relationshipContent.title),
+        oppositeSideTitle,
+      ]
+        .filter(Boolean)
+        .join('、') + '。',
+    },
+    {
+      number: '05',
+      name: '你的原型',
+      description: toAnchorSentence(psychArchetype?.rarity || psychArchetype?.stateName || prototypeCopy.frequencyNote),
+    },
+    {
+      number: '06',
+      name: '帶走這個',
+      description: [cleanText(dessertContent.name), cleanText(abyssalContent[0]?.title)]
+        .filter(Boolean)
+        .join('、') + '，以及最後留下來的那句話。',
+    },
+  ].map((item) => ({
+    ...item,
+    description: item.description.replace(/^、/u, '').trim(),
+  }));
+  const archetypeTeaserTitle = (psychArchetype?.figures || [])
+    .slice(0, 3)
+    .map((figure) => cleanText(figure.name).split(/\s+[A-Z][a-z]+/u)[0]?.trim() || cleanText(figure.name))
+    .join(' · ');
+  const unlockPrimaryLabel = isUnlocked
+    ? '列印 / 收藏完整報告'
     : isLocalPreview
-      ? '本地模擬解鎖 V2'
+      ? '解鎖我的完整報告'
       : IS_DEV
         ? 'DEV 階段暫不開放'
-        : '前往 Kiwimu Map 解鎖 V2';
+        : '解鎖我的完整報告';
 
   return (
-    <div className="v2-root min-h-screen px-5 pt-24 pb-16" style={rootStyle}>
-      <div className="marquee-container">
-        <div className="marquee-track">
-          <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
-          <span className="marquee-text">{MARQUEE_TEXT.repeat(3)}</span>
-        </div>
+    <div className="v2-root v2-report-root" style={rootStyle}>
+      <div className="v2-report-progress" style={{ width: `${scrollProgress}%` }} />
+
+      <div className="v2-report-layer-bar">
+        <span className="v2-report-run-tag">第 1 次顯影</span>
+        <span className="v2-report-type-tag">{fullType} · {familyMeta.familyLabel}</span>
       </div>
 
-      <div className="v2-backdrop-orb v2-backdrop-orb-left" />
-      <div className="v2-backdrop-orb v2-backdrop-orb-right" />
+      <nav className="v2-report-nav" aria-label="V2 report chapters">
+        {REPORT_CHAPTERS.map((chapter, index) => {
+          const href = chapter.locked && !isUnlocked ? '#paywall' : `#${chapter.id}`;
+          const isActive = activeChapter === chapter.id && (!chapter.locked || isUnlocked);
 
-      <div className="mx-auto max-w-7xl">
-        <section className="v2-hero">
-          <div>
-            <div className="flex flex-wrap gap-2">
-              <span className="v2-pill v2-pill-solid">TAIWAN EDITION</span>
-              <span className="v2-pill">V1 永久免費核心</span>
-              <span className="v2-pill">{isUnlocked ? 'V2 已解鎖' : 'V2 付費牆預覽'}</span>
-              {IS_DEV ? <span className="v2-pill">DEV ONLY / 不進 main</span> : null}
-            </div>
+          return (
+            <React.Fragment key={chapter.id}>
+              {index === 2 ? <span className="v2-report-nav-divider" aria-hidden="true" /> : null}
+              <a
+                href={href}
+                className={[
+                  'v2-report-nav-pill',
+                  isActive ? 'is-active' : '',
+                  chapter.locked && !isUnlocked ? 'is-locked' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                {chapter.locked && !isUnlocked ? '🔒 ' : ''}
+                {chapter.label}
+              </a>
+            </React.Fragment>
+          );
+        })}
+      </nav>
 
-            <div className="mt-6 flex flex-wrap items-end gap-4">
-              <div>
-                <p className="v2-eyebrow">MBTI V2</p>
-                <h1 className="v2-hero-code">{fullType}</h1>
-              </div>
-              <p className="v2-hero-title">{report.title}</p>
-            </div>
-
-            <div className="mt-6 max-w-3xl space-y-4 text-base leading-relaxed text-black/75">
-              <p>
-                <span className="font-bold text-black">{report.abstract.label}</span>
-                <span className="mx-2 text-black/35">/</span>
-                {report.abstract.body}
-              </p>
-              {source === 'v2_quiz' ? (
-                <p className="font-medium text-black/70">
-                  目前顯示的是本地 `V2 quiz prototype` 跑出的結果，方便你直接測答題節奏和報告串接。
-                </p>
-              ) : null}
-              <p>{resultData.summary}</p>
-            </div>
-
-            <blockquote className="v2-quote-block mt-8">
-              <p className="v2-eyebrow">SOUL QUOTE</p>
-              <p className="v2-quote-body">「{soulQuote}」</p>
-            </blockquote>
-
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <DevImageSlot slot={imageSlots.heroDesktop} compact />
-              <DevImageSlot slot={imageSlots.heroMobile} compact />
-            </div>
+      <main className="v2-report-shell">
+        <section id="ch-01" className="v2-report-cover">
+          <div className="v2-report-cover-badge">
+            <span className="v2-report-cover-dot" />
+            {fullType} · {familyMeta.familyLabel}
           </div>
 
-          <div className="v2-hero-aside">
-            <div>
-              <p className="v2-eyebrow">REPORT SOURCE</p>
-              <p className="mt-3 text-sm font-semibold text-black/75">{report.familyLabel}</p>
-              <p className="mt-1 text-sm text-black/60">{report.sourcePath}</p>
+          <div className="v2-report-kiwimu-wrap">
+            <KiwimuCharacter className="v2-report-cover-kiwimu" state={heroState} />
+          </div>
+
+          <div className="v2-report-cover-title-stack">
+            {coverKicker ? <p className="v2-report-cover-kicker">{coverKicker}</p> : null}
+            {coverTitle ? <h1 className="v2-report-cover-title">{coverTitle}</h1> : null}
+            {coverVariantTitle ? <p className="v2-report-cover-variant">{coverVariantTitle}</p> : null}
+          </div>
+
+          <p className="v2-report-cover-quote">
+            「{coverQuoteParts.lead}
+            {coverQuoteParts.tail ? (
+              <>
+                <br />
+                <em>{coverQuoteParts.tail}</em>
+              </>
+            ) : null}
+            」
+          </p>
+
+          <div className="v2-report-cover-subcopy">
+            {coverSubcopyParts[0] ? <p>{coverSubcopyParts[0]}。</p> : null}
+            {coverSubcopyParts[1] ? <p><strong>{coverSubcopyParts[1]}。</strong></p> : null}
+            {coverSubcopyParts[2] ? <p>{coverSubcopyParts[2]}。</p> : null}
+          </div>
+
+          <div className="v2-report-identity-card">
+            <p className="v2-report-card-label">身份核心</p>
+            <h2 className="v2-report-cover-core-title">{professionalTitle}</h2>
+            <p>{professionalBody}</p>
+            <p>{currentCompareCard.energy}</p>
+          </div>
+        </section>
+
+        <hr className="v2-report-rule" />
+
+        <section id="ch-02" className="v2-report-paper-section">
+          <div className="v2-report-inner">
+            <p className="v2-report-eyebrow">02 · 你的兩個版本</p>
+            <h2 className="v2-report-title">{chapterTwoTitle}</h2>
+
+            <div className="v2-report-at-grid">
+              {compareCards.map((card) => (
+                <article
+                  key={card.code}
+                  className={[
+                    'v2-report-at-card',
+                    card.code === currentVariant ? 'is-active' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <p className="v2-report-at-label">
+                    {resultData.id}-{card.code} · {card.tone}
+                    {card.code === currentVariant ? ' ← 你' : ''}
+                  </p>
+                  <p className="v2-report-at-name">{card.title}</p>
+                  <div className="v2-report-at-copy-block">
+                    <p className="v2-report-at-copy-label">{card.strategyLabel}</p>
+                    <p>{card.strategy}</p>
+                  </div>
+                  <div className="v2-report-at-copy-block">
+                    <p className="v2-report-at-copy-label">{card.energyLabel}</p>
+                    <p>{card.energy}</p>
+                  </div>
+                  {card.cost ? <p className="v2-report-at-cost">{card.cost}</p> : null}
+                </article>
+              ))}
             </div>
 
-            <div className="v2-status-grid">
-              <div>
-                <p className="v2-status-label">人格稱號</p>
-                <p className="v2-status-value">{resultData.title}</p>
-              </div>
-              <div>
-                <p className="v2-status-label">變體</p>
-                <p className="v2-status-value">{variant}</p>
-              </div>
-              <div>
-                <p className="v2-status-label">資料版本</p>
-                <p className="v2-status-value">{report.meta.version}</p>
-              </div>
-              <div>
-                <p className="v2-status-label">本地狀態</p>
-                <p className="v2-status-value">{isLocalPreview ? 'localhost' : 'preview'}</p>
-              </div>
-            </div>
+            <p className="v2-report-eyebrow v2-report-tag-intro">你的關鍵標籤</p>
+          </div>
 
-            <div className="grid gap-4">
-              <DevImageSlot slot={imageSlots.reportCover} compact />
-              <DevImageSlot slot={imageSlots.familyMood} compact />
+          <div className="v2-report-fade-curtain">
+            <div className="v2-report-tag-wall">
+              {versionTags.map((tag) => (
+                <span key={tag} className="v2-report-tag-chip">{tag}</span>
+              ))}
             </div>
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-          <main className="space-y-6">
-            <SectionFrame index="01" title="DESIGN PHILOSOPHY" subtitle="設計初衷與變動世代觀點">
-              <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-                <div className="rounded-[26px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
-                  <p className="v2-card-eyebrow">WHY THIS REPORT EXISTS</p>
-                  <p className="mt-4 text-lg leading-relaxed text-[color:var(--v2-ink)]">{report.design.quote}</p>
+        <section id="paywall" className={isUnlocked ? 'v2-report-paywall is-unlocked' : 'v2-report-paywall'}>
+          <div className="v2-report-paywall-inner">
+            <p className="v2-report-paywall-eyebrow">
+              {isUnlocked ? '完整報告已解鎖' : '完整顯影在另一邊'}
+            </p>
+
+            <div className="v2-report-kiwimu-wrap v2-report-paywall-kiwimu-wrap">
+              <KiwimuCharacter className="v2-report-paywall-kiwimu" state={isUnlocked ? 'glow' : 'watch'} />
+            </div>
+
+            <h2 className="v2-report-paywall-headline">
+              {isUnlocked ? '完整內容已展開' : '你看到的是輪廓'}
+            </h2>
+            <p className="v2-report-paywall-subcopy">
+              {isUnlocked
+                ? '往下就是四個已解鎖章節。現在可以完整讀完這份報告。'
+                : '打開剩下的四個章節，看見你的完整版本。'}
+            </p>
+
+            <div className="v2-report-paywall-list">
+              {paywallPreviewItems.map((item) => (
+                <div
+                  key={item.number}
+                  className={[
+                    'v2-report-paywall-item',
+                    isUnlocked ? 'is-unlocked' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <span className="v2-report-paywall-number">{isUnlocked ? 'OPEN' : item.number}</span>
+                  <div>
+                    <p className="v2-report-paywall-name">{item.name}</p>
+                    <p className="v2-report-paywall-desc">{item.description}</p>
+                  </div>
+                  {isUnlocked ? <span className="v2-report-paywall-state">已展開</span> : null}
                 </div>
-                <div className="grid gap-4">
-                  {report.design.behaviorLogic.map((item) => (
-                    <div key={item.label} className="rounded-[22px] border border-[color:var(--v2-line)] bg-white/85 p-5">
-                      <p className="v2-card-eyebrow">{item.label}</p>
-                      <p className="mt-3 text-sm leading-relaxed text-black/72">{item.body}</p>
-                    </div>
+              ))}
+            </div>
+
+            {!isUnlocked ? (
+              <>
+                <button
+                  type="button"
+                  className="kiwimu-btn kiwimu-btn-cta v2-report-unlock-btn"
+                  onClick={handleCheckout}
+                  disabled={IS_DEV && !isLocalPreview}
+                >
+                  {unlockPrimaryLabel}
+                </button>
+                <p className="v2-report-paywall-price">NT$149 · 一次性 · 永久保存</p>
+              </>
+            ) : null}
+          </div>
+        </section>
+
+        <section id="ch-03" className={`v2-report-locked-section ${isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
+          <div className="v2-report-inner">
+            <div className="v2-report-locked-header">
+              <span className="v2-report-locked-label">03 · 四個維度</span>
+              {!isUnlocked ? <span className="v2-report-lock-icon">🔒</span> : null}
+            </div>
+            <h3 className="v2-report-locked-title">{chapterThreeTitle}</h3>
+            <p className="v2-report-section-state">{chapterStatusCopy}</p>
+
+            {isUnlocked ? (
+              <div className="v2-report-detail-stack">
+                <div className="v2-report-dimension-grid">
+                  {dimensionBullets.map((item) => (
+                    <article key={item.label} className="v2-report-detail-card">
+                      <p className="v2-report-card-label">{item.label}</p>
+                      <p>{item.body}</p>
+                    </article>
                   ))}
                 </div>
-              </div>
-            </SectionFrame>
 
-            <SectionFrame index="02" title="TAG WALL" subtitle="五個能瞬間辨識你的 V2 標籤">
-              <div className="flex flex-wrap gap-3">
-                {tagWall.map((tag) => (
-                  <div key={`${tag.code}-${tag.zh}`} className="v2-tag-pill">
-                    <span className="v2-tag-code">{tag.code}</span>
-                    <div>
-                      <p className="text-sm font-semibold text-[color:var(--v2-ink)]">{tag.zh}</p>
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-black/42">{tag.en}</p>
-                    </div>
+                <div className="v2-report-spectrum-panel">
+                  <p className="v2-report-card-label">認知光譜</p>
+                  <p className="v2-report-spectrum-tip">{dimensionTip}</p>
+                  <div className="v2-report-spectrum-list">
+                    {spectrumRows.map((row) => (
+                      <article key={row.label} className="v2-report-spectrum-row">
+                        <div className="v2-report-spectrum-head">
+                          <div>
+                            <h4>{row.label}</h4>
+                            <p>{row.description}</p>
+                          </div>
+                          <span>{row.selectedCode} / {row.oppositeCode}</span>
+                        </div>
+                        <div className="v2-report-spectrum-track">
+                          <div className="v2-report-spectrum-dot" style={{ left: `calc(${row.selectedPct}% - 8px)` }} />
+                        </div>
+                      </article>
+                    ))}
                   </div>
+                </div>
+              </div>
+            ) : (
+              <div className="v2-report-tease-grid">
+                {dimensionBullets.slice(0, 4).map((item) => (
+                  <article key={item.label} className="v2-report-tease-card">
+                    <p className="v2-report-tease-label">{item.label}</p>
+                    <p className="v2-report-tease-copy">{item.body}</p>
+                  </article>
                 ))}
               </div>
-            </SectionFrame>
-
-            <SectionFrame index="03" title="PROFESSIONAL INSIGHTS" subtitle={report.professional.coreTitle} locked={!isUnlocked}>
-              <div className="space-y-5">
-                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/88 p-6">
-                  <p className="text-base leading-relaxed text-black/80">{report.professional.coreBody}</p>
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {([report.professional.subtypes.A, report.professional.subtypes.T] as const).map((subtype) => (
-                    <div key={subtype.code} className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="v2-card-eyebrow">{subtype.code} / {subtype.tone}</p>
-                          <h3 className="mt-2 text-2xl font-semibold text-[color:var(--v2-ink)]">{subtype.title}</h3>
-                        </div>
-                        <span className="v2-variant-chip">{subtype.code}</span>
-                      </div>
-                      <div className="mt-5 space-y-4">
-                        {subtype.items.map((item) => (
-                          <div key={item.label}>
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">{item.label}</p>
-                            <p className="mt-2 text-sm leading-relaxed text-black/72">{item.body}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </SectionFrame>
-
-            <SectionFrame index="04" title="DIMENSION EVOLUTION" subtitle={report.dimension.tip} locked={!isUnlocked}>
-              <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-                <div className="space-y-4">
-                  {report.dimension.bullets.map((item) => (
-                    <div key={item.label} className="rounded-[22px] border border-[color:var(--v2-line)] bg-white/85 p-5">
-                      <p className="v2-card-eyebrow">{item.label}</p>
-                      <p className="mt-3 text-sm leading-relaxed text-black/72">{item.body}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-5 md:p-6">
-                  <p className="v2-card-eyebrow">COGNITIVE SPECTRUM</p>
-                  <div className="mt-5 space-y-4">
-                    {spectrumRows.map((row) => (
-                      <div key={row.key} className="v2-spectrum-row">
-                        <div className="flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-[color:var(--v2-ink)]">{row.label}</p>
-                            <p className="mt-1 text-xs leading-relaxed text-black/55">{row.description || row.v1Note}</p>
-                          </div>
-                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-black/45">{row.selectedCode} / {row.oppositeCode}</p>
-                        </div>
-                        <div className="mt-4 h-3 overflow-hidden rounded-full bg-black/8">
-                          <div className="v2-spectrum-fill" style={{ width: `${row.selectedPct}%` }} />
-                        </div>
-                        <div className="mt-3 flex items-start justify-between gap-4 text-xs text-black/55">
-                          <span>{row.selectedCode} {row.selectedPct}%</span>
-                          <span className="text-right">{row.oppositeCode} {row.oppositePct}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </SectionFrame>
-
-            <SectionFrame index="05" title="CULTURAL CONTEXT" subtitle="職涯策略與感情導航" locked={!isUnlocked}>
-              <div className="grid gap-4 lg:grid-cols-2">
-                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/86 p-6">
-                  <p className="v2-card-eyebrow">CAREER</p>
-                  <h3 className="mt-3 text-2xl font-semibold text-[color:var(--v2-ink)]">{report.career.title}</h3>
-                  <div className="mt-5 space-y-4">
-                    {report.career.bullets.map((item) => (
-                      <div key={item.label}>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">{item.label}</p>
-                        <p className="mt-2 text-sm leading-relaxed text-black/72">{item.body}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
-                  <p className="v2-card-eyebrow">RELATIONSHIP</p>
-                  <h3 className="mt-3 text-2xl font-semibold text-[color:var(--v2-ink)]">{report.relationship.title}</h3>
-                  <div className="mt-5 space-y-4">
-                    {report.relationship.bullets.map((item) => (
-                      <div key={item.label}>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">{item.label}</p>
-                        <p className="mt-2 text-sm leading-relaxed text-black/72">{item.body}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </SectionFrame>
-
-            <SectionFrame index="06" title="FREQUENCY & ARCHETYPES" subtitle="稀有度與共鳴原型" locked={!isUnlocked}>
-              <div className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
-                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
-                  <p className="v2-card-eyebrow">FREQUENCY</p>
-                  {rarityData ? (
-                    <>
-                      <div className="mt-4 flex items-end gap-3">
-                        <p className="text-5xl font-bold tracking-tight text-[color:var(--v2-ink)]">{rarityData.totalPopulation}%</p>
-                        <p className="pb-2 text-sm font-semibold uppercase tracking-[0.16em] text-black/45">{rarityLabel}</p>
-                      </div>
-                      <p className="mt-4 text-sm leading-relaxed text-black/72">{rarityMessage}</p>
-                      <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-black/68">
-                        <div className="rounded-[18px] border border-[color:var(--v2-line)] bg-white/80 p-4">
-                          <p className="v2-card-eyebrow">MALE</p>
-                          <p className="mt-2 text-xl font-semibold text-[color:var(--v2-ink)]">{rarityData.male}%</p>
-                        </div>
-                        <div className="rounded-[18px] border border-[color:var(--v2-line)] bg-white/80 p-4">
-                          <p className="v2-card-eyebrow">FEMALE</p>
-                          <p className="mt-2 text-xl font-semibold text-[color:var(--v2-ink)]">{rarityData.female}%</p>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="mt-4 text-sm leading-relaxed text-black/70">目前本地原型還沒有對應的稀有度資料。</p>
-                  )}
-                </div>
-
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {archetypes.map((archetype) => (
-                    <div key={archetype.name} className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/86 p-6">
-                      <p className="v2-card-eyebrow">ARCHETYPE</p>
-                      <h3 className="mt-3 text-2xl font-semibold text-[color:var(--v2-ink)]">{archetype.name}</h3>
-                      <p className="mt-1 text-sm text-black/52">{archetype.profession}</p>
-                      <ul className="mt-5 space-y-2 text-sm leading-relaxed text-black/72">
-                        {archetype.resonanceTraits.map((trait) => (
-                          <li key={trait}>• {trait}</li>
-                        ))}
-                      </ul>
-                      <div className="mt-5 rounded-[18px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-4">
-                        <p className="v2-card-eyebrow">DESSERT PAIRING</p>
-                        <p className="mt-2 font-semibold text-[color:var(--v2-ink)]">{archetype.dessertPairing}</p>
-                        <p className="mt-2 text-sm leading-relaxed text-black/68">{archetype.pairingReason}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </SectionFrame>
-
-            {psychArchetype && (
-              <SectionFrame index="07" title="PSYCHOLOGICAL ARC" subtitle="心理原型與歷史軌跡" locked={!isUnlocked}>
-                <div className="space-y-5">
-                  {/* State naming paragraph */}
-                  <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/88 p-6">
-                    <p className="v2-card-eyebrow">STATE PATTERN</p>
-                    <p className="mt-4 text-base leading-relaxed text-black/80">{psychArchetype.stateName}</p>
-                  </div>
-
-                  {/* Historical figures */}
-                  <div className="space-y-4">
-                    <p className="v2-card-eyebrow px-1">同類過渡期的歷史原型</p>
-                    <div className="grid gap-4 lg:grid-cols-3">
-                      {psychArchetype.figures.map((fig) => (
-                        <div key={fig.name} className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-5">
-                          <p className="text-sm font-semibold text-[color:var(--v2-ink)]">{fig.name}</p>
-                          <p className="mt-3 text-sm leading-relaxed text-black/72">{fig.body}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Rarity statement */}
-                  <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-accent,#CCFF00)]/12 p-6">
-                    <p className="v2-card-eyebrow">RARITY PROFILE</p>
-                    <p className="mt-4 text-sm leading-relaxed text-black/78">{psychArchetype.rarity}</p>
-                  </div>
-                </div>
-              </SectionFrame>
             )}
+          </div>
+        </section>
 
-            <SectionFrame index={psychArchetype ? '08' : '07'} title="SOUL REFLECTION" subtitle={report.dessert.name} locked={!isUnlocked}>
-              <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-                <div className="rounded-[24px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-6">
-                  <p className="v2-card-eyebrow">SOUL DESSERT</p>
-                  <div className="mt-4">
-                    <DevImageSlot slot={imageSlots.soulDessert} compact />
+        <section id="ch-04" className={`v2-report-locked-section ${isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
+          <div className="v2-report-inner">
+            <div className="v2-report-locked-header">
+              <span className="v2-report-locked-label">04 · 你怎麼活</span>
+              {!isUnlocked ? <span className="v2-report-lock-icon">🔒</span> : null}
+            </div>
+            <h3 className="v2-report-locked-title">職涯、感情，以及被壓住的另一面</h3>
+            <p className="v2-report-section-state">{chapterStatusCopy}</p>
+
+            {isUnlocked ? (
+              <div className="v2-report-life-grid">
+              <article className="v2-report-detail-card">
+                <p className="v2-report-card-label">職涯</p>
+                <h4>{careerContent.title}</h4>
+                {careerContent.bullets.map((item) => (
+                  <div key={item.label} className="v2-report-card-copy">
+                    <p className="v2-report-card-label">{item.label}</p>
+                    <p>{item.body}</p>
                   </div>
-                  <p className="mt-4 text-base leading-relaxed text-black/78">{report.dessert.visualLogic}</p>
-                  <div className="mt-5 space-y-3">
-                    {report.dessert.pairings.map((item) => (
-                      <div key={item.label} className="rounded-[18px] border border-[color:var(--v2-line)] bg-white/82 p-4">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">{item.label}</p>
-                        <p className="mt-2 text-sm leading-relaxed text-black/72">{item.body}</p>
-                      </div>
-                    ))}
+                ))}
+              </article>
+
+              <article className="v2-report-detail-card">
+                <p className="v2-report-card-label">關係</p>
+                <h4>{relationshipContent.title}</h4>
+                {relationshipContent.bullets.map((item) => (
+                  <div key={item.label} className="v2-report-card-copy">
+                    <p className="v2-report-card-label">{item.label}</p>
+                    <p>{item.body}</p>
                   </div>
+                ))}
+              </article>
+
+              <article className="v2-report-detail-card">
+                <p className="v2-report-card-label">另一面</p>
+                <h4>{oppositeSideTitle}</h4>
+                <div className="v2-report-card-copy">
+                  <p>{oppositeSideItems[0]?.body || oppositeCompareCard.strategy}</p>
                 </div>
+                <div className="v2-report-card-copy">
+                  <p>{oppositeSideItems[1]?.body || oppositeCompareCard.energy}</p>
+                </div>
+              </article>
+              </div>
+            ) : (
+              <div className="v2-report-tease-list">
+                <article className="v2-report-tease-row">
+                  <p className="v2-report-tease-label">職涯</p>
+                  <p className="v2-report-tease-copy">{careerContent.bullets[0]?.body || careerContent.title}</p>
+                </article>
+                <article className="v2-report-tease-row">
+                  <p className="v2-report-tease-label">關係</p>
+                  <p className="v2-report-tease-copy">{relationshipContent.bullets[0]?.body || relationshipContent.title}</p>
+                </article>
+                <article className="v2-report-tease-row">
+                  <p className="v2-report-tease-label">另一面</p>
+                  <p className="v2-report-tease-copy">{oppositeSideItems[0]?.body || oppositeSideTitle}</p>
+                </article>
+              </div>
+            )}
+          </div>
+        </section>
 
-                <div className="space-y-4">
-                  {report.abyssal.map((question, index) => (
-                    <div key={question.title} className="rounded-[24px] border border-[color:var(--v2-line)] bg-white/88 p-5">
-                      <p className="v2-card-eyebrow">ABYSSAL 0{index + 1}</p>
-                      <h3 className="mt-3 text-xl font-semibold text-[color:var(--v2-ink)]">{question.title}</h3>
-                      <p className="mt-3 text-sm leading-relaxed text-black/72">{question.body}</p>
+        <section id="ch-05" className={`v2-report-locked-section ${isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
+          <div className="v2-report-inner">
+            <div className="v2-report-locked-header">
+              <span className="v2-report-locked-label">05 · 你的原型</span>
+              {!isUnlocked ? <span className="v2-report-lock-icon">🔒</span> : null}
+            </div>
+            <h3 className="v2-report-locked-title">{isUnlocked ? '世界上的位置，不只是一個人口比例' : archetypeTeaserTitle || '世界上的位置，不只是一個人口比例'}</h3>
+            <p className="v2-report-section-state">{chapterStatusCopy}</p>
+            {chapterFiveLead ? <p className="v2-report-section-lead">{chapterFiveLead}</p> : null}
+
+            {isUnlocked ? (
+              <div className="v2-report-archetype-grid">
+                <article className="v2-report-rarity-card">
+                  <p className="v2-report-card-label">{prototypeCopy.frequencyPrimaryLabel}</p>
+                  <p className="v2-report-rarity-value">{prototypeCopy.frequencyPrimary}</p>
+                  <p>{psychArchetype?.rarity || prototypeCopy.frequencyNote}</p>
+                  <p className="v2-muted-copy">{prototypeCopy.frequencySecondaryLabel} · {prototypeCopy.frequencySecondary}</p>
+                  {rarityData ? (
+                    <p className="v2-muted-copy">資料底：{resultData.id} 基礎人口占比約 {rarityData.totalPopulation}%</p>
+                  ) : null}
+                </article>
+
+                {psychArchetype ? (
+                  <article className="v2-report-detail-card v2-report-archetype-state-card">
+                    <p className="v2-report-card-label">切面說明</p>
+                    <p>{psychArchetype.stateName}</p>
+                    <div className="v2-report-card-copy">
+                      <p>{psychArchetype.rarity}</p>
                     </div>
+                  </article>
+                ) : null}
+
+                {(psychArchetype?.figures || []).slice(0, 3).map((figure) => (
+                  <article key={figure.name} className="v2-report-detail-card">
+                    <p className="v2-report-card-label">人物切面</p>
+                    <h4>{figure.name}</h4>
+                    <p>{figure.body}</p>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="v2-report-tease-grid">
+                {chapterFiveLead ? (
+                  <article className="v2-report-tease-card">
+                    <p className="v2-report-tease-label">心理切面</p>
+                    <p className="v2-report-tease-copy">{chapterFiveLead}</p>
+                  </article>
+                ) : null}
+                {(psychArchetype?.figures || []).slice(0, 2).map((figure) => (
+                  <article key={figure.name} className="v2-report-tease-card">
+                    <p className="v2-report-tease-label">{figure.name}</p>
+                    <p className="v2-report-tease-copy">{figure.body}</p>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section id="ch-06" className={`v2-report-locked-section v2-report-carry-section ${isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
+          <div className="v2-report-inner">
+            <div className="v2-report-locked-header">
+              <span className="v2-report-locked-label">06 · 帶走這個</span>
+              {!isUnlocked ? <span className="v2-report-lock-icon">🔒</span> : null}
+            </div>
+            <h3 className="v2-report-locked-title">靈魂甜點 · 深問三題 · 讀完之後留下來的東西</h3>
+            <p className="v2-report-section-state">{chapterStatusCopy}</p>
+            {chapterSixLead ? <p className="v2-report-section-lead">{chapterSixLead}</p> : null}
+
+            {isUnlocked ? (
+              <div className="v2-report-reflection-grid">
+              <article className="v2-report-detail-card">
+                <p className="v2-report-card-label">靈魂甜點</p>
+                <h4>{dessertContent.name}</h4>
+                <p>{dessertContent.visualLogic}</p>
+                <div className="v2-report-dessert-pairings">
+                  {dessertContent.pairings.map((item) => (
+                    <div key={`${item.label}-${item.body}`} className="v2-report-pairing-chip">{item.label}：{item.body}</div>
                   ))}
                 </div>
-              </div>
-            </SectionFrame>
+              </article>
 
-            <section className="v2-panel v2-footer-panel">
-              <p className="v2-card-eyebrow">FOOTER CTA</p>
-              <h2 className="mt-3 text-3xl font-semibold text-[color:var(--v2-ink)]">{report.closing}</h2>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <a href="/quiz" className="kiwimu-btn block px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: '#1A1A1A' }}>
-                  回看免費 V1
-                </a>
-                <a href="/" className="kiwimu-btn block px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: '#1A1A1A' }}>
-                  回到 5 題漏斗
-                </a>
-              </div>
-            </section>
-          </main>
-
-          <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
-            <div className="v2-panel p-6 md:p-7">
-              <p className="v2-card-eyebrow">UPGRADE STATUS</p>
-              <h2 className="mt-4 text-3xl font-semibold text-[color:var(--v2-ink)]">
-                {isUnlocked ? 'V2 台灣版已解鎖' : 'V2 深度檔案待解鎖'}
-              </h2>
-              <p className="mt-4 text-sm leading-relaxed text-black/68">
-                {isUnlocked
-                  ? '這份頁面現在直接使用 2026 H2 台灣版草案庫 + 現有 V1 結果資料在本地組裝。'
-                  : 'V1 永久免費保留。V2 只鎖完整深報告，包含 A/T 對照、維度進化、職涯與關係深度段落。'}
-              </p>
-              {IS_DEV ? (
-                <div className="mt-4 rounded-[18px] border border-[color:var(--v2-line)] bg-[color:var(--v2-soft)] p-4 text-sm leading-relaxed text-black/72">
-                  目前固定維持在 `dev/local prototype` 階段，不接正式金流、不影響 `main` 營運，也不作正式上線判定。等你的圖補齊後再進下一步整合。
-                </div>
-              ) : null}
-
-              <div className="mt-6 space-y-3 text-sm leading-relaxed text-black/72">
-                <div className="v2-feature-item">完整台灣版草案文案與家族風格排版</div>
-                <div className="v2-feature-item">A/T 亞型對照與真實分數光譜</div>
-                <div className="v2-feature-item">稀有度、共鳴原型、靈魂甜點與靈魂拷問</div>
-                <div className="v2-feature-item">後續可接本地 entitlement 與真實金流流程</div>
+              <div className="v2-report-question-stack">
+                {abyssalContent.map((question, index) => (
+                  <article key={question.title} className="v2-report-detail-card">
+                    <p className="v2-report-card-label">深問 0{index + 1}</p>
+                    <h4>{question.title}</h4>
+                    <p>{question.body}</p>
+                  </article>
+                ))}
               </div>
 
-              {!isUnlocked ? (
-                <div className="mt-4">
-                  <DevImageSlot slot={imageSlots.paywallLocked} compact />
-                </div>
-              ) : null}
-
-              <div className="mt-6 space-y-3">
-                <button
-                  onClick={isUnlocked ? () => window.print() : handleCheckout}
-                  className="kiwimu-btn kiwimu-btn-primary w-full px-6 py-4 text-sm font-black uppercase tracking-[0.18em]"
-                  style={{ color: '#1A1A1A' }}
-                  disabled={isDevLocked}
-                >
-                  {primaryButtonLabel}
-                </button>
-                {!isUnlocked ? (
-                  <a href="/quiz" className="kiwimu-btn block w-full px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: '#1A1A1A' }}>
-                    回看免費 V1
-                  </a>
+              <article className="v2-report-carry-card">
+                <p className="v2-report-card-label">帶走這個</p>
+                <p className="v2-report-carry-line">{carryFull}</p>
+              </article>
+              </div>
+            ) : (
+              <div className="v2-report-tease-grid">
+                <article className="v2-report-tease-card">
+                  <p className="v2-report-tease-label">靈魂甜點</p>
+                  <p className="v2-report-tease-copy">{dessertContent.name}</p>
+                </article>
+                {abyssalContent[0] ? (
+                  <article className="v2-report-tease-card">
+                    <p className="v2-report-tease-label">深問 01</p>
+                    <p className="v2-report-tease-copy">{abyssalContent[0].title}</p>
+                  </article>
                 ) : null}
+                <article className="v2-report-tease-card">
+                  <p className="v2-report-tease-label">帶走這個</p>
+                  <p className="v2-report-tease-copy">{carryLine}</p>
+                </article>
               </div>
+            )}
+          </div>
+        </section>
+
+        {isUnlocked ? (
+        <footer className="v2-report-footer">
+          <div>
+            <p className="v2-label v2-label-on-dark">KIWIMU SOUL DESSERT</p>
+            <h2>{dessertContent.name || prototypeCopy.footerTitle}</h2>
+            <p>{dessertContent.visualLogic || prototypeCopy.footerSubtitle}</p>
+          </div>
+
+          <KiwimuCharacter className="v2-footer-kiwimu" state="ascend" />
+
+          <div className="v2-footer-actions">
+            <a
+              href={dessertOrderUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="kiwimu-btn kiwimu-btn-cta"
+              onClick={() => trackDessertOrderClick(resultData.id, variant)}
+            >
+              🍰 立即訂購你的靈魂甜點
+            </a>
+            <button type="button" className="kiwimu-btn kiwimu-btn-dark" onClick={handleShareStory}>
+              📱 分享到 IG Story
+            </button>
+          </div>
+        </footer>
+        ) : null}
+
+        {IS_DEV ? (
+          <section className="v2-dev-strip">
+            <div>
+              <p className="v2-label">LOCAL DEBUG</p>
+              <p>source={source} · mbti={fullType} · entitlement={isUnlocked ? 'unlocked' : 'locked'}</p>
             </div>
-
-            <div className="v2-panel p-6 md:p-7">
-              <p className="v2-card-eyebrow">LOCAL DEBUG</p>
-              <div className="mt-4 space-y-4 text-sm leading-relaxed text-black/68">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">來源路徑</p>
-                  <p className="mt-2 break-all">{V2_TW_DRAFT_SOURCE}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">結果來源</p>
-                  <p className="mt-2">source={source} / mbti={fullType}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-black/45">本地 entitlement</p>
-                  <p className="mt-2">{isUnlocked ? `unlocked (${entitlement.unlockType || 'unknown'})` : 'locked'}</p>
-                </div>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                <DevImageSlot slot={imageSlots.pdfCover} compact />
-                <DevImageSlot slot={imageSlots.shareTemplate} compact />
-              </div>
-
+            <div className="v2-dev-actions">
+              {isUnlocked ? (
+                <button type="button" className="kiwimu-btn" onClick={() => window.print()}>
+                  列印目前頁面
+                </button>
+              ) : null}
               {isLocalPreview ? (
-                <div className="mt-6 space-y-3">
-                  <button onClick={handleResetPreview} className="kiwimu-btn w-full px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em]" style={{ color: '#1A1A1A' }}>
-                    重設本地解鎖狀態
-                  </button>
-                  <p className="text-xs leading-relaxed text-black/55">
-                    localhost 目前會把「解鎖」視為本地模擬付款，不會真的建立訂單。
-                  </p>
-                </div>
+                <button type="button" className="kiwimu-btn" onClick={handleResetPreview}>
+                  重置預覽鎖定
+                </button>
               ) : null}
             </div>
-          </aside>
-        </div>
-      </div>
+          </section>
+        ) : null}
+      </main>
     </div>
   );
 }

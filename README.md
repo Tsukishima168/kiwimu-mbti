@@ -4,7 +4,7 @@
 - GA4 埋點：已部署
 - Resend：已串接（noreply@kiwimu.com）
 - SOC 三層：完成
-- LINE Pay：架構待建，等 Channel ID
+- LINE Pay：MVP flow + 訂單紀錄已建，待補正式 env / rotate key
 
 ### 分支狀態
 - main：production
@@ -22,3 +22,10 @@
 - VITE_FIREBASE_MEASUREMENT_ID
 - VITE_LINE_LIFF_ID
 - VITE_GA4_ID
+- LINE_PAY_CHANNEL_ID
+- LINE_PAY_CHANNEL_SECRET
+- LINE_PAY_BASE_URL
+- LINE_PAY_API_VERSION
+- APP_BASE_URL
+- SUPABASE_USER_URL
+- SUPABASE_USER_SERVICE_ROLE_KEY

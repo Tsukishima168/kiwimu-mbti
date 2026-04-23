@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潛影 · Latent Emergence</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 6px;
+        }
+
+        .sidebar .subtitle {
+            color: var(--anthropic-mid-gray);
+            font-size: 12px;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        .control-section { margin-bottom: 28px; }
+
+        .control-section h3 {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--anthropic-dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--anthropic-orange);
+            font-weight: bold;
+        }
+
+        .seed-input {
+            width: 100%;
+            background: var(--anthropic-light);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 10px;
+            border: 1px solid var(--anthropic-light-gray);
+            text-align: center;
+            color: var(--anthropic-dark);
+        }
+
+        .seed-input:focus {
+            outline: none;
+            border-color: var(--anthropic-orange);
+            background: white;
+        }
+
+        .seed-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .control-group { margin-bottom: 18px; }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .control-group label .label-note {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--anthropic-mid-gray);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 3px;
+            background: var(--anthropic-light-gray);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--anthropic-mid-gray);
+            min-width: 52px;
+            text-align: right;
+        }
+
+        .button {
+            background: var(--anthropic-orange);
+            color: white;
+            border: none;
+            padding: 9px 14px;
+            border-radius: 6px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .button:hover { background: #c86641; transform: translateY(-1px); }
+        .button:active { transform: translateY(0); }
+        .button.secondary { background: var(--anthropic-blue); }
+        .button.secondary:hover { background: #5a8bb8; }
+        .button.tertiary { background: var(--anthropic-green); }
+        .button.tertiary:hover { background: #6b7b52; }
+
+        .button-row { display: flex; gap: 8px; }
+        .button-row .button { flex: 1; }
+
+        /* Development status display */
+        .dev-display {
+            background: var(--anthropic-light);
+            border: 1px solid var(--anthropic-light-gray);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .dev-stage {
+            font-size: 12px;
+            color: var(--anthropic-mid-gray);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dev-pct {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: var(--anthropic-orange);
+        }
+
+        .dev-bar-track {
+            height: 3px;
+            background: var(--anthropic-light-gray);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .dev-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #FFD6B4 0%, #CCFF00 100%);
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        /* Color swatch legend */
+        .palette-legend {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .swatch {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 10px;
+            color: var(--anthropic-mid-gray);
+            font-family: 'Courier New', monospace;
+        }
+
+        .swatch-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Canvas Area */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        #canvas-container {
+            width: 100%;
+            max-width: 900px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(20, 13, 30, 0.3);
+            background: #140D1E;
+        }
+
+        #canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .loading-msg {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            font-size: 14px;
+            color: rgba(248, 248, 245, 0.4);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.1em;
+        }
+
+        @media (max-width: 700px) {
+            .container { flex-direction: column; padding: 12px; }
+            .sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- ─── SIDEBAR ─── -->
+    <div class="sidebar">
+        <h1>潛影</h1>
+        <div class="subtitle">Latent Emergence<br>暗室中等待被顯現的結構</div>
+
+        <!-- Seed -->
+        <div class="control-section">
+            <h3>Seed</h3>
+            <input type="number" id="seed-input" class="seed-input" value="4926" onchange="updateSeed()">
+            <div class="seed-controls">
+                <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                <button class="button secondary" onclick="nextSeed()">Next →</button>
+            </div>
+            <button class="button tertiary" onclick="randomSeedAndUpdate()" style="margin-top:0">↻ Random</button>
+        </div>
+
+        <!-- Development Status -->
+        <div class="control-section">
+            <h3>Development</h3>
+            <div class="dev-display">
+                <div class="dev-stage">
+                    <span id="stage-label">初始化中...</span>
+                    <span class="dev-pct" id="dev-pct">0%</span>
+                </div>
+                <div class="dev-bar-track">
+                    <div class="dev-bar-fill" id="dev-fill"></div>
+                </div>
+            </div>
+            <button class="button secondary" id="pause-btn" onclick="togglePause()">⏸ Pause</button>
+        </div>
+
+        <!-- Palette legend -->
+        <div class="control-section">
+            <h3>Color Field</h3>
+            <div class="palette-legend">
+                <div class="swatch"><div class="swatch-dot" style="background:#140D1E;border:1px solid #444"></div>Dusk</div>
+                <div class="swatch"><div class="swatch-dot" style="background:#FFD6B4"></div>Family</div>
+                <div class="swatch"><div class="swatch-dot" style="background:#CCFF00"></div>Acid</div>
+                <div class="swatch"><div class="swatch-dot" style="background:#F8F8F5;border:1px solid #ddd"></div>Paper</div>
+            </div>
+            <div style="font-size:11px;color:var(--anthropic-mid-gray);line-height:1.5">
+                Dusk → Family → Acid → Paper<br>
+                field strength maps to color temperature
+            </div>
+        </div>
+
+        <!-- Parameters -->
+        <div class="control-section">
+            <h3>Parameters</h3>
+
+            <div class="control-group">
+                <label>
+                    Particle Count
+                    <span class="label-note">density</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="particleCount" min="500" max="6000" step="250" value="3000"
+                           oninput="updateParam('particleCount', this.value, true)">
+                    <span class="value-display" id="particleCount-value">3000</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Develop Speed
+                    <span class="label-note">tempo</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="developSpeed" min="0.2" max="2.5" step="0.1" value="0.6"
+                           oninput="updateParam('developSpeed', this.value, false)">
+                    <span class="value-display" id="developSpeed-value">0.6</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Field Tension
+                    <span class="label-note">axis weight</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="fieldTension" min="0.1" max="1.0" step="0.05" value="0.55"
+                           oninput="updateParam('fieldTension', this.value, false)">
+                    <span class="value-display" id="fieldTension-value">0.55</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Resonance Depth
+                    <span class="label-note">active axes</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="resonanceDepth" min="1" max="4" step="1" value="4"
+                           oninput="updateParam('resonanceDepth', this.value, true)">
+                    <span class="value-display" id="resonanceDepth-value">4</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Persistence
+                    <span class="label-note">memory</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="persistence" min="0.990" max="0.9995" step="0.0005" value="0.997"
+                           oninput="updateParam('persistence', this.value, false)">
+                    <span class="value-display" id="persistence-value">0.997</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Acid Threshold
+                    <span class="label-note">resonance gate</span>
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="acidThreshold" min="0.45" max="0.85" step="0.05" value="0.65"
+                           oninput="updateParam('acidThreshold', this.value, false)">
+                    <span class="value-display" id="acidThreshold-value">0.65</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="control-section">
+            <h3>Actions</h3>
+            <div class="button-row">
+                <button class="button" onclick="resetParameters()">Reset</button>
+                <button class="button secondary" onclick="downloadCanvas()">Save PNG</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── CANVAS ─── -->
+    <div class="canvas-area">
+        <div id="canvas-container">
+            <div class="loading-msg" id="loading-msg">正在初始化暗室...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// 潛影 · LATENT EMERGENCE
+//
+// Four-axis interference field — identity emerging from Dusk to Acid
+// Conceptual DNA: INFP prime-ratio axes (I=2, N=3, F=5, P=7)
+// Color system: Kiwimu DESIGN.md — Dusk / Family / Acid / Paper
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── Kiwimu palette (RGBA arrays)
+const C_DUSK   = [20,  13,  30];   // #140D1E — base darkness
+const C_FAMILY = [255, 214, 180];  // #FFD6B4 — warm emergence
+const C_ACID   = [204, 255, 0];    // #CCFF00 — peak resonance
+const C_PAPER  = [248, 248, 245];  // #F8F8F5 — overexposed maximum
+
+// ── Four prime-ratio noise scales (I=2, N=3, F=5, P=7)
+const PRIME_AXES  = [2, 3, 5, 7];
+const BASE_SCALE  = 0.0008;
+
+// ── Global state
+let params = {
+    seed:           4926,
+    particleCount:  3000,
+    developSpeed:   0.6,
+    fieldTension:   0.55,
+    resonanceDepth: 4,
+    persistence:    0.997,
+    acidThreshold:  0.65
+};
+let defaultParams = { ...params };
+
+let particles = [];
+let buf;          // off-screen accumulation buffer
+let tick = 0;
+let paused = false;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// P5.JS CORE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function setup() {
+    let cnv = createCanvas(1200, 1200);
+    cnv.parent('canvas-container');
+    cnv.style('width', '100%');
+    cnv.style('height', 'auto');
+    pixelDensity(1);
+
+    buf = createGraphics(1200, 1200);
+    buf.pixelDensity(1);
+    buf.noSmooth();
+
+    document.getElementById('loading-msg').style.display = 'none';
+    initializeSystem();
+}
+
+function draw() {
+    if (paused) return;
+
+    tick++;
+
+    // ── Fade: semi-transparent Dusk rect creates trail persistence
+    buf.noStroke();
+    buf.fill(C_DUSK[0], C_DUSK[1], C_DUSK[2],
+        map(params.persistence, 0.990, 0.9995, 35, 4));
+    buf.rect(0, 0, width, height);
+
+    // ── Particles: bright strokes onto dark buffer
+    buf.strokeWeight(1.0);
+    buf.noFill();
+
+    for (let p of particles) {
+        p.step();
+    }
+
+    // ── Composite buffer to canvas
+    background(C_DUSK[0], C_DUSK[1], C_DUSK[2]);
+    image(buf, 0, 0);
+
+    // ── UI feedback
+    updateDevDisplay();
+}
+
+function initializeSystem() {
+    randomSeed(params.seed);
+    noiseSeed(params.seed);
+
+    tick = 0;
+    paused = false;
+
+    document.getElementById('pause-btn').textContent = '⏸ Pause';
+
+    // Clear buffer to Dusk
+    buf.background(C_DUSK[0], C_DUSK[1], C_DUSK[2]);
+
+    // Spawn particles
+    particles = [];
+    for (let i = 0; i < params.particleCount; i++) {
+        particles.push(new Particle());
+    }
+
+    frameRate(60);
+    loop();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PARTICLE CLASS
+// ═══════════════════════════════════════════════════════════════════════════
+
+class Particle {
+    constructor() {
+        this.born();
+    }
+
+    born(center = false) {
+        // Most particles scatter uniformly; a subset drift inward from edges
+        if (center || random() < 0.15) {
+            let angle = random(TWO_PI);
+            let r     = random(width * 0.12, width * 0.46);
+            this.x  = width  / 2 + cos(angle) * r;
+            this.y  = height / 2 + sin(angle) * r;
+        } else {
+            this.x = random(width);
+            this.y = random(height);
+        }
+
+        this.px    = this.x;
+        this.py    = this.y;
+        this.life  = floor(random(60, 450));
+        this.age   = 0;
+        this.curl  = random(-0.4, 0.4);  // individual deviation
+        this.phase = random(TWO_PI);
+    }
+
+    // Sample the four-axis interference field at (x, y)
+    sampleField(x, y) {
+        let depth     = params.resonanceDepth;
+        let tension   = params.fieldTension;
+        let angleAcc  = 0;
+        let strengthAcc = 0;
+        let weightSum = 0;
+
+        for (let i = 0; i < depth; i++) {
+            let prime = PRIME_AXES[i];
+            let scale = BASE_SCALE * prime;
+            let w     = pow(tension, i);   // each deeper axis has diminishing weight
+
+            // Noise sample — seeded per-axis via large spatial offset
+            let n = noise(
+                x * scale + (i + 1) * 317.3,
+                y * scale + (i + 1) * 219.7,
+                params.seed * 0.00137 + tick * 0.00004 * (i + 1)
+            );
+
+            // Each axis rotates the direction by a different amount
+            // Prime offsets prevent axes from overlapping
+            let axisAngle = n * TWO_PI * 2 + i * (TWO_PI / depth);
+
+            angleAcc    += axisAngle * w;
+            strengthAcc += n * w;
+            weightSum   += w;
+        }
+
+        return {
+            angle:    angleAcc    / weightSum,
+            strength: strengthAcc / weightSum
+        };
+    }
+
+    step() {
+        this.px = this.x;
+        this.py = this.y;
+
+        let { angle, strength } = this.sampleField(this.x, this.y);
+
+        // Speed modulated by field strength
+        let speed = params.developSpeed * map(strength, 0, 1, 0.25, 2.0);
+
+        // Organic curl — prevents grid-like flow artifacts
+        let curl = this.curl * sin(this.phase + this.age * 0.012);
+
+        this.x += cos(angle + curl) * speed;
+        this.y += sin(angle + curl) * speed;
+        this.age++;
+
+        // Draw the trail segment onto the buffer
+        this.render(strength);
+
+        // Respawn if out of bounds or expired
+        if (
+            this.x < -4 || this.x > width  + 4 ||
+            this.y < -4 || this.y > height + 4 ||
+            this.age >= this.life
+        ) {
+            this.born();
+        }
+    }
+
+    render(strength) {
+        // ── Color mapping: Dusk → Family → Acid → Paper
+        // Remap strength into normalized 0-1 range based on actual field distribution
+        // Field values cluster 0.35–0.60 due to multi-axis averaging.
+        // We stretch this range to drive the full color spectrum.
+        let norm = constrain(map(strength, 0.30, 0.62, 0, 1), 0, 1);
+        let at = constrain(map(params.acidThreshold, 0.45, 0.85, 0.45, 0.85), 0.2, 0.95);
+        // Renormalize acidThreshold into norm space
+        let atNorm = constrain(map(at, 0.45, 0.85, 0.45, 1.0), 0, 1);
+
+        let r, g, b, a;
+
+        if (norm < 0.10) {
+            // Deep zone — ghost, barely above Dusk
+            r = C_DUSK[0] + 18; g = C_DUSK[1] + 10; b = C_DUSK[2] + 24;
+            a = map(norm, 0, 0.10, 2, 10);
+
+        } else if (norm < 0.42) {
+            // Family emergence — warm peach appearing from darkness
+            let t = map(norm, 0.10, 0.42, 0, 1);
+            r = lerp(C_DUSK[0] + 18, C_FAMILY[0], t);
+            g = lerp(C_DUSK[1] + 10, C_FAMILY[1], t);
+            b = lerp(C_DUSK[2] + 24, C_FAMILY[2], t);
+            a = map(norm, 0.10, 0.42, 8, 60);
+
+        } else if (norm < atNorm) {
+            // Family → Acid — the resonance threshold, color goes electric
+            let t = map(norm, 0.42, atNorm, 0, 1);
+            r = lerp(C_FAMILY[0], C_ACID[0], t);
+            g = lerp(C_FAMILY[1], C_ACID[1], t);
+            b = lerp(C_FAMILY[2], C_ACID[2], t);
+            a = map(norm, 0.42, atNorm, 55, 90);
+
+        } else {
+            // Acid → Paper — maximum coherence, overexposed node
+            let t = map(norm, atNorm, 1.0, 0, 1);
+            r = lerp(C_ACID[0], C_PAPER[0], t);
+            g = lerp(C_ACID[1], C_PAPER[1], t);
+            b = lerp(C_ACID[2], C_PAPER[2], t);
+            a = map(norm, atNorm, 1.0, 85, 140);
+        }
+
+        buf.stroke(r, g, b, a);
+        buf.line(this.px, this.py, this.x, this.y);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DEV DISPLAY
+// ═══════════════════════════════════════════════════════════════════════════
+
+function updateDevDisplay() {
+    let FULL_DEV = 1400;
+    let progress = min(tick / FULL_DEV, 1.0);
+    let pct = (progress * 100).toFixed(1);
+
+    let stage;
+    if      (progress < 0.08) stage = '初始化中...';
+    else if (progress < 0.30) stage = '暗室顯影中...';
+    else if (progress < 0.60) stage = '輪廓逐漸清晰...';
+    else if (progress < 0.90) stage = '接近完成...';
+    else                       stage = '顯影完成';
+
+    document.getElementById('stage-label').textContent = stage;
+    document.getElementById('dev-pct').textContent     = pct + '%';
+    document.getElementById('dev-fill').style.width    = pct + '%';
+
+    // Slow down once fully developed — system reaches equilibrium
+    if (tick > FULL_DEV && frameRate() > 18) {
+        frameRate(18);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UI HANDLERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function updateParam(name, val, reinit) {
+    let num = parseFloat(val);
+    params[name] = num;
+
+    let display = document.getElementById(name + '-value');
+    if (display) {
+        display.textContent = name === 'persistence'
+            ? num.toFixed(4)
+            : name === 'fieldTension' || name === 'acidThreshold'
+                ? num.toFixed(2)
+                : num;
+    }
+
+    if (reinit) {
+        initializeSystem();
+    }
+}
+
+function togglePause() {
+    paused = !paused;
+    document.getElementById('pause-btn').textContent = paused ? '▶ Resume' : '⏸ Pause';
+    if (!paused) loop();
+}
+
+// ── Seed controls
+function updateSeedDisplay() {
+    document.getElementById('seed-input').value = params.seed;
+}
+
+function updateSeed() {
+    let v = parseInt(document.getElementById('seed-input').value);
+    if (v && v > 0) {
+        params.seed = v;
+        initializeSystem();
+    } else {
+        updateSeedDisplay();
+    }
+}
+
+function previousSeed() {
+    params.seed = Math.max(1, params.seed - 1);
+    updateSeedDisplay();
+    initializeSystem();
+}
+
+function nextSeed() {
+    params.seed = params.seed + 1;
+    updateSeedDisplay();
+    initializeSystem();
+}
+
+function randomSeedAndUpdate() {
+    params.seed = Math.floor(Math.random() * 999999) + 1;
+    updateSeedDisplay();
+    initializeSystem();
+}
+
+// ── Reset
+function resetParameters() {
+    params = { ...defaultParams };
+
+    const fields = ['particleCount','developSpeed','fieldTension','resonanceDepth','persistence','acidThreshold'];
+    fields.forEach(name => {
+        let el = document.getElementById(name);
+        if (el) el.value = params[name];
+        let disp = document.getElementById(name + '-value');
+        if (disp) {
+            disp.textContent = name === 'persistence'
+                ? params[name].toFixed(4)
+                : name === 'fieldTension' || name === 'acidThreshold'
+                    ? params[name].toFixed(2)
+                    : params[name];
+        }
+    });
+
+    updateSeedDisplay();
+    initializeSystem();
+}
+
+// ── Download
+function downloadCanvas() {
+    let cnvEl = document.querySelector('#canvas-container canvas');
+    let link  = document.createElement('a');
+    link.download = `latent-emergence-${params.seed}.png`;
+    link.href     = cnvEl.toDataURL('image/png');
+    link.click();
+}
+
+// ── Init
+window.addEventListener('load', updateSeedDisplay);
+</script>
+</body>
+</html>

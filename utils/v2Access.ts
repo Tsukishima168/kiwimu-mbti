@@ -76,6 +76,19 @@ export function unlockV2Preview(sourceOrderId = 'local-preview') {
   return entitlement;
 }
 
+export function unlockV2Purchase(sourceOrderId = 'linepay') {
+  const entitlement: V2Entitlement = {
+    status: 'unlocked',
+    unlockType: 'one_time',
+    unlockedAt: new Date().toISOString(),
+    sourceOrderId,
+    expiresAt: null,
+  };
+
+  setV2Entitlement(entitlement);
+  return entitlement;
+}
+
 export function clearV2Entitlement() {
   if (!canUseStorage()) {
     return;

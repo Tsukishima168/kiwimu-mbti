@@ -36,13 +36,13 @@ export default function V2QuizFlow() {
 
   React.useEffect(() => {
     applyRuntimeSeo({
-      title: 'Kiwimu V2 5 題深度人格測驗（未公開）｜Moon Moon 月島甜點',
-      description: '這是 Kiwimu V2 未公開的 5 題深度人格測驗入口，用來定位你的 V2 台灣版深度報告。',
+      title: 'Kiwimu V2 5 題深度人格測驗｜Moon Moon 月島甜點',
+      description: 'Kiwimu V2 5 題深度人格測驗，用來定位你的 V2 台灣版 MBTI 深度報告。',
       canonical: `https://kiwimu.com${quizPath}`,
       ogType: 'website',
       image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png',
       keywords: 'Kiwimu,V2,MBTI,人格測驗,深度報告,台灣版',
-      robots: 'noindex,nofollow,noarchive',
+      robots: 'index,follow',
     });
   }, [quizPath]);
 

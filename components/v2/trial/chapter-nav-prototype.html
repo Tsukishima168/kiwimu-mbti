@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INFP-T · 高敏創作者 — Kiwimu V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400&family=Noto+Sans+TC:wght@400;500&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Tokens ── */
+:root {
+  --acid:    #CCFF00;
+  --ink:     #1A1A1A;
+  --paper:   #F8F8F5;
+  --muted:   #888880;
+  --dusk:    #140D1E;
+  --family:  #FFD6B4;
+  --white:   #FFFFFF;
+
+  --serif:   'Noto Serif TC', serif;
+  --sans:    'Noto Sans TC', sans-serif;
+  --grotesk: 'Space Grotesk', sans-serif;
+  --mono:    'JetBrains Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--dusk);
+  color: rgba(255,255,255,0.82);
+  font-size: 15px;
+  line-height: 1.9;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Layer 0 — context bar ── */
+.layer-0 {
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--grotesk);
+  font-size: 10.5px;
+  letter-spacing: .1em;
+}
+.layer-0 .run-tag  { color: var(--family); font-weight: 600; }
+.layer-0 .type-tag { color: rgba(255,255,255,0.3); font-weight: 500; }
+
+/* ── Chapter Nav ── */
+.chapter-nav {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(20,13,30,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.chapter-nav::-webkit-scrollbar { display: none; }
+
+.ch-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 99px;
+  background: transparent;
+  color: rgba(255,255,255,0.32);
+  font-family: var(--grotesk);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color .2s, background .2s;
+  border: 1px solid transparent;
+}
+.ch-pill:hover:not(.locked) {
+  color: rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.06);
+}
+.ch-pill.active {
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.92);
+  border-color: rgba(255,255,255,0.10);
+}
+.ch-pill.locked {
+  color: rgba(255,255,255,0.18);
+  cursor: default;
+  font-size: 10.5px;
+}
+.ch-divider {
+  width: 1px; height: 14px;
+  background: rgba(255,255,255,0.09);
+  flex-shrink: 0;
+  margin: 0 6px;
+}
+
+/* ── Kiwimu figure ── */
+.kiwimu-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0 0 4px;
+}
+.kiwimu-fig { position: relative; width: 96px; }
+.kiwimu-body {
+  width: 96px; height: 96px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--grotesk);
+  font-size: 9px;
+  letter-spacing: .08em;
+  color: rgba(255,255,255,0.25);
+  position: relative;
+}
+.kiwimu-body .kw-name { font-size: 8px; font-weight: 600; letter-spacing: .14em; }
+.kiwimu-body .kw-state { font-size: 8px; letter-spacing: .06em; color: rgba(255,255,255,0.18); }
+.kiwimu-body::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(204,255,0,0.05) 0%, transparent 65%);
+  pointer-events: none;
+}
+.kiwimu-shadow {
+  width: 60px; height: 7px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 50%;
+  margin: 3px auto 0;
+  filter: blur(4px);
+}
+
+/* ── Cover / Section 01 ── */
+#ch-01 {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 72px 28px 64px;
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 85%, rgba(204,255,0,0.035) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 30% 20%, rgba(255,214,180,0.04) 0%, transparent 60%),
+    var(--dusk);
+  scroll-margin-top: 80px;
+  gap: 36px;
+}
+
+.cover-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 99px;
+  font-family: var(--grotesk);
+  font-size: 10.5px;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,0.28);
+}
+.cover-type-badge .fam-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--family);
+  opacity: 0.7;
+}
+
+.cover-quote {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(22px, 5.5vw, 34px);
+  line-height: 1.55;
+  color: var(--white);
+  letter-spacing: 0.01em;
+  max-width: 500px;
+  text-align: center;
+}
+.cover-quote em {
+  font-style: normal;
+  color: rgba(255,255,255,0.48);
+}
+
+.cover-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.42);
+  max-width: 400px;
+  line-height: 1.8;
+}
+.cover-sub strong { color: rgba(255,255,255,0.72); font-weight: 500; }
+
+/* identity core card */
+.identity-card {
+  max-width: 480px;
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 28px 32px;
+  text-align: left;
+}
+.identity-card .ic-label {
+  font-family: var(--grotesk);
+  font-size: 9.5px;
+  letter-spacing: .14em;
+  color: rgba(255,255,255,0.28);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.identity-card p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.72);
+  line-height: 1.85;
+}
+.identity-card p + p { margin-top: 12px; }
+
+/* section rule — dark variant used in Dusk cover */
+.srule {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+/* section rule for Paper sections */
+#ch-02 .srule,
+.locked-section .srule {
+  border-top-color: rgba(0,0,0,0.06);
+}
+
+/* ── Section 02 — 你的版本 ── */
+#ch-02 {
+  scroll-margin-top: 80px;
+  padding: 72px 0 0;
+  background: var(--paper);
+  /* Soft shadow at top to visually separate from Dusk cover */
+  box-shadow: inset 0 8px 24px rgba(20,13,30,0.06);
+}
+.section-inner {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+.section-eyebrow {
+  font-family: var(--grotesk);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  color: rgba(20,20,20,0.32);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.section-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 28px;
+  line-height: 1.3;
+  color: var(--ink);
+  margin-bottom: 32px;
+}
+
+/* A/T split cards */
+.at-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+@media (max-width: 500px) {
+  .at-grid { grid-template-columns: 1fr; }
+}
+.at-card {
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 12px;
+  padding: 24px 22px;
+  transition: border-color .2s, background .2s;
+}
+.at-card.active {
+  border-color: rgba(20,20,20,0.18);
+  background: rgba(0,0,0,0.055);
+}
+.at-card .at-label {
+  font-family: var(--grotesk);
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: rgba(20,20,20,0.30);
+  margin-bottom: 6px;
+}
+.at-card.active .at-label { color: var(--ink); opacity: .42; }
+.at-card .at-name {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 18px;
+  color: rgba(20,20,20,0.45);
+  margin-bottom: 14px;
+}
+.at-card.active .at-name { color: var(--ink); }
+.at-card p {
+  font-size: 13px;
+  line-height: 1.75;
+  color: rgba(20,20,20,0.42);
+}
+.at-card.active p { color: rgba(20,20,20,0.68); }
+.at-card .at-cost {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  font-size: 12px;
+  color: rgba(20,20,20,0.32);
+  font-style: italic;
+  line-height: 1.65;
+}
+.at-card.active .at-cost { color: rgba(20,20,20,0.48); }
+
+/* Tag wall */
+.tag-wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 0;
+}
+.tag-chip {
+  padding: 6px 14px;
+  background: rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 99px;
+  font-family: var(--grotesk);
+  font-size: 11px;
+  color: rgba(20,20,20,0.52);
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+/* fade out at bottom of section 02 */
+.fade-curtain {
+  position: relative;
+  padding: 24px 28px 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.fade-curtain::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, var(--paper));
+  pointer-events: none;
+}
+
+/* ── PAYWALL ── */
+#paywall {
+  background: var(--ink);
+  text-align: center;
+  padding: 80px 28px 72px;
+  scroll-margin-top: 80px;
+}
+.paywall-inner {
+  max-width: 460px;
+  margin: 0 auto;
+}
+.paywall-eyebrow {
+  font-family: var(--grotesk);
+  font-size: 10px;
+  letter-spacing: .15em;
+  color: rgba(255,255,255,0.22);
+  margin-bottom: 28px;
+  text-transform: uppercase;
+}
+.paywall-headline {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 32px;
+  color: var(--white);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+.paywall-sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 36px;
+  line-height: 1.7;
+}
+
+.paywall-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 40px;
+  text-align: left;
+}
+.pw-chapter {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.pw-chapter:first-child { border-radius: 10px 10px 0 0; }
+.pw-chapter:last-child  { border-radius: 0 0 10px 10px; }
+.pw-chapter + .pw-chapter { border-top: none; }
+.pw-ch-num {
+  font-family: var(--grotesk);
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: rgba(255,255,255,0.22);
+  white-space: nowrap;
+  padding-top: 2px;
+  min-width: 24px;
+}
+.pw-ch-body {}
+.pw-ch-name {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  color: rgba(255,255,255,0.65);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.pw-ch-desc {
+  font-size: 12px;
+  color: rgba(255,255,255,0.32);
+  line-height: 1.6;
+}
+
+.btn-unlock {
+  display: inline-block;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 15px 40px;
+  font-family: var(--grotesk);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: box-shadow .25s;
+  text-decoration: none;
+}
+.btn-unlock:hover {
+  box-shadow: 0 0 0 3px rgba(204,255,0,0.3), 0 6px 24px rgba(204,255,0,0.1);
+}
+.paywall-price {
+  font-family: var(--grotesk);
+  font-size: 11.5px;
+  letter-spacing: .05em;
+  color: rgba(255,255,255,0.22);
+  margin-top: 14px;
+}
+
+/* ── Locked chapter teasers ── */
+.locked-section {
+  padding: 52px 28px;
+  background: var(--paper);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  scroll-margin-top: 80px;
+  position: relative;
+}
+.locked-section .ls-inner {
+  max-width: 600px;
+  margin: 0 auto;
+}
+.ls-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.ls-label {
+  font-family: var(--grotesk);
+  font-size: 10px;
+  letter-spacing: .12em;
+  color: rgba(20,20,20,0.22);
+  text-transform: uppercase;
+}
+.ls-lock {
+  font-size: 11px;
+  color: rgba(20,20,20,0.18);
+}
+.ls-title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 22px;
+  color: rgba(20,20,20,0.30);
+  margin-bottom: 20px;
+}
+
+/* blur tease cards */
+.tease-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  filter: blur(5px);
+  pointer-events: none;
+  user-select: none;
+}
+@media (max-width: 480px) {
+  .tease-grid { grid-template-columns: 1fr; }
+}
+.tease-card {
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 10px;
+  padding: 20px;
+  height: 90px;
+}
+.tease-card .tc-label {
+  font-family: var(--grotesk);
+  font-size: 10px;
+  letter-spacing: .1em;
+  color: rgba(20,20,20,0.28);
+  margin-bottom: 8px;
+}
+.tease-card .tc-val {
+  font-size: 13px;
+  color: rgba(20,20,20,0.42);
+  line-height: 1.55;
+}
+
+.tease-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  filter: blur(5px);
+  pointer-events: none;
+  user-select: none;
+}
+.tease-row {
+  background: rgba(0,0,0,0.03);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-radius: 8px;
+  padding: 16px 20px;
+  height: 56px;
+}
+
+/* ── Section 06: 帶走這個 (locked preview) ── */
+#ch-06 {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(255,214,180,0.10) 0%, transparent 70%),
+    var(--paper);
+  border-top: 1px solid rgba(255,214,180,0.20);
+}
+.carry-tease {
+  text-align: center;
+  filter: blur(6px);
+  pointer-events: none;
+  user-select: none;
+}
+.ct-quote {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 18px;
+  line-height: 1.7;
+  color: rgba(20,20,20,0.28);
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+/* ── Scroll progress line ── */
+.progress-line {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--family);
+  opacity: 0.5;
+  z-index: 999;
+  width: 0%;
+  transition: width .1s;
+}
+
+</style>
+</head>
+<body>
+
+<div class="progress-line" id="progress"></div>
+
+<!-- Layer 0 — context bar -->
+<div class="layer-0">
+  <span class="run-tag">第 1 次顯影</span>
+  <span class="type-tag">INFP-T · 外交家類 DIPLOMATS</span>
+</div>
+
+<!-- Chapter Nav -->
+<nav class="chapter-nav" id="nav">
+  <a class="ch-pill active" href="#ch-01">01 當下的你</a>
+  <a class="ch-pill" href="#ch-02">02 你的版本</a>
+  <div class="ch-divider"></div>
+  <a class="ch-pill locked" href="#paywall">🔒 03 四個維度</a>
+  <a class="ch-pill locked" href="#paywall">🔒 04 你怎麼活</a>
+  <a class="ch-pill locked" href="#paywall">🔒 05 你的原型</a>
+  <a class="ch-pill locked" href="#paywall">🔒 06 帶走這個</a>
+</nav>
+
+<!-- ════════════════════════════════════════
+     Section 01 — 當下的你
+════════════════════════════════════════ -->
+<section id="ch-01">
+
+  <div class="cover-type-badge">
+    <span class="fam-dot"></span>
+    INFP-T · 高敏創作者
+  </div>
+
+  <div class="kiwimu-wrap">
+    <div class="kiwimu-fig">
+      <div class="kiwimu-body">
+        <span class="kw-name">KIWIMU</span>
+        <span class="kw-state">hover</span>
+      </div>
+      <div class="kiwimu-shadow"></div>
+    </div>
+  </div>
+
+  <p class="cover-quote">
+    「我把世界最美的東西都收進來了，<br>
+    <em>但我還是不確定——</em><br>
+    我自己，夠不夠美。」
+  </p>
+
+  <p class="cover-sub">
+    你感受到的比說出口的多。<br>
+    不是不想說——是<strong>說出來之後那個感受就縮小了</strong>。<br>
+    所以你選擇先不說。
+  </p>
+
+  <div class="identity-card">
+    <p class="ic-label">身份核心</p>
+    <p>你外表看起來柔軟，但有一組東西你不讓任何人動——你認定的價值觀與標準。如果有人觸碰到那裡，你會比任何人都固執。</p>
+    <p>T 版的你還多了一層：那個踩得最用力的，通常是你自己。</p>
+  </div>
+
+</section>
+
+<hr class="srule">
+
+<!-- ════════════════════════════════════════
+     Section 02 — 你的版本 (A/T 深讀)
+════════════════════════════════════════ -->
+<section id="ch-02">
+  <div class="section-inner">
+    <p class="section-eyebrow">02 · 你的兩個版本</p>
+    <h2 class="section-title">A 和 T，是兩種運作方式</h2>
+
+    <div class="at-grid">
+      <!-- A card -->
+      <div class="at-card">
+        <p class="at-label">INFP-A · 自信型</p>
+        <p class="at-name">安靜詩人</p>
+        <p>你早就接受自己跟多數人頻率不同了。就算沒人懂你在做什麼，你也能在自己的節奏裡待得很穩。</p>
+        <p class="at-cost">你對孤獨有享受感。代價是：有時候連你自己都分不清，是真的不需要，還是已經習慣了不需要。</p>
+      </div>
+      <!-- T card — active (current user) -->
+      <div class="at-card active">
+        <p class="at-label">INFP-T · 謹慎型 ← 你</p>
+        <p class="at-name">高敏創作者</p>
+        <p>你靠「先嚴格否定自己，讓別人的拒絕就不那麼痛」來保護自己。你比別人更早批評自己的作品、感受、選擇。</p>
+        <p class="at-cost">看起來謹慎自省，其實是讓自己不被意外打倒的方式。代價是：最有力量的那些感受，都先被你自己關回去了。</p>
+      </div>
+    </div>
+
+    <p class="section-eyebrow" style="margin-bottom: 14px;">你的關鍵標籤</p>
+  </div>
+
+  <!-- tag wall with fade -->
+  <div class="fade-curtain" style="padding-bottom: 72px;">
+    <div class="tag-wall">
+      <span class="tag-chip">高敏感知系統</span>
+      <span class="tag-chip">自我審判創作者</span>
+      <span class="tag-chip">理想綁定自尊</span>
+      <span class="tag-chip">情緒內爆後撤退</span>
+      <span class="tag-chip">未完成宇宙收藏家</span>
+      <span class="tag-chip">破碎感即共感力</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════════════════════════════════════════
+     PAYWALL
+════════════════════════════════════════ -->
+<section id="paywall">
+  <div class="paywall-inner">
+
+    <p class="paywall-eyebrow">完整顯影在另一邊</p>
+
+    <div class="kiwimu-wrap" style="margin-bottom: 32px;">
+      <div class="kiwimu-fig">
+        <div class="kiwimu-body" style="opacity:0.45;">
+          <span class="kw-name">KIWIMU</span>
+          <span class="kw-state">watch</span>
+        </div>
+        <div class="kiwimu-shadow" style="opacity:0.3;"></div>
+      </div>
+    </div>
+
+    <h2 class="paywall-headline">你看到的是輪廓</h2>
+    <p class="paywall-sub">打開剩下的四個章節，<br>看見你的完整版本。</p>
+
+    <div class="paywall-chapters">
+      <div class="pw-chapter">
+        <span class="pw-ch-num">03</span>
+        <div class="pw-ch-body">
+          <p class="pw-ch-name">四個維度</p>
+          <p class="pw-ch-desc">I · N · F · P 在你現在這個階段怎麼運作，以及認知光譜完整讀數</p>
+        </div>
+      </div>
+      <div class="pw-chapter">
+        <span class="pw-ch-num">04</span>
+        <div class="pw-ch-body">
+          <p class="pw-ch-name">你怎麼活</p>
+          <p class="pw-ch-desc">職涯模式、感情邏輯、以及那個你一直壓著的另一面</p>
+        </div>
+      </div>
+      <div class="pw-chapter">
+        <span class="pw-ch-num">05</span>
+        <div class="pw-ch-body">
+          <p class="pw-ch-name">你的原型</p>
+          <p class="pw-ch-desc">梵谷、懷恩豪斯、普拉斯——三個真實的人，三個你的切面</p>
+        </div>
+      </div>
+      <div class="pw-chapter">
+        <span class="pw-ch-num">06</span>
+        <div class="pw-ch-body">
+          <p class="pw-ch-name">帶走這個</p>
+          <p class="pw-ch-desc">靈魂甜點 · 深問三題 · 讀完你會帶走的那個認知</p>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-unlock">解鎖我的完整報告</button>
+    <p class="paywall-price">NT$149 · 一次性 · 永久保存</p>
+
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════
+     Section 03 — 四個維度 (locked)
+════════════════════════════════════════ -->
+<div id="ch-03" class="locked-section">
+  <div class="ls-inner">
+    <div class="ls-header">
+      <span class="ls-label">03 · 四個維度</span>
+      <span class="ls-lock">🔒</span>
+    </div>
+    <h3 class="ls-title">I · N · F · P 在你現在這個階段</h3>
+    <div class="tease-grid">
+      <div class="tease-card">
+        <p class="tc-label">I — 內向</p>
+        <p class="tc-val">獨處是你的根，但 T 版的獨處有時候不是休息</p>
+      </div>
+      <div class="tease-card">
+        <p class="tc-label">N — 直覺</p>
+        <p class="tc-val">你在碎片化日常裡感知到很多，也很難關掉</p>
+      </div>
+      <div class="tease-card">
+        <p class="tc-label">F — 情感</p>
+        <p class="tc-val">你的感受是真實的主處理器，不管你怎麼否認它</p>
+      </div>
+      <div class="tease-card">
+        <p class="tc-label">P — 感知</p>
+        <p class="tc-val">你常常在選擇之前先問「我這樣對嗎」</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     Section 04 — 你怎麼活 (locked)
+════════════════════════════════════════ -->
+<div id="ch-04" class="locked-section">
+  <div class="ls-inner">
+    <div class="ls-header">
+      <span class="ls-label">04 · 你怎麼活</span>
+      <span class="ls-lock">🔒</span>
+    </div>
+    <h3 class="ls-title">職涯、感情，以及被壓住的另一面</h3>
+    <div class="tease-list">
+      <div class="tease-row"></div>
+      <div class="tease-row"></div>
+      <div class="tease-row"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     Section 05 — 你的原型 (locked)
+════════════════════════════════════════ -->
+<div id="ch-05" class="locked-section">
+  <div class="ls-inner">
+    <div class="ls-header">
+      <span class="ls-label">05 · 你的原型</span>
+      <span class="ls-lock">🔒</span>
+    </div>
+    <h3 class="ls-title">梵谷 · 懷恩豪斯 · 普拉斯</h3>
+    <div class="tease-grid">
+      <div class="tease-card">
+        <p class="tc-label">Vincent van Gogh</p>
+        <p class="tc-val">800 封信，他感受到的，語言始終裝不完</p>
+      </div>
+      <div class="tease-card">
+        <p class="tc-label">Amy Winehouse</p>
+        <p class="tc-val">情緒強度沒有讓她失控，而是讓輸出達到只有她能到的精準</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     Section 06 — 帶走這個 (locked)
+════════════════════════════════════════ -->
+<div id="ch-06" class="locked-section">
+  <div class="ls-inner">
+    <div class="ls-header">
+      <span class="ls-label">06 · 帶走這個</span>
+      <span class="ls-lock">🔒</span>
+    </div>
+    <h3 class="ls-title">靈魂甜點 · 深問三題 · 你的認知翻轉</h3>
+    <div class="carry-tease" style="padding: 20px 0 0;">
+      <p class="ct-quote">
+        不是你的東西不夠好——<br>
+        是那把尺，從來就沒有「夠了」這個刻度。
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Active pill on scroll ──
+const sections = ['ch-01','ch-02','ch-03','ch-04','ch-05','ch-06'];
+const pillMap  = {
+  'ch-01': 'a[href="#ch-01"]',
+  'ch-02': 'a[href="#ch-02"]',
+};
+const freePills = document.querySelectorAll('.ch-pill:not(.locked)');
+
+const sectionObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    freePills.forEach(p => {
+      p.classList.toggle('active', p.getAttribute('href') === `#${e.target.id}`);
+    });
+  });
+}, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+
+sections.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) sectionObs.observe(el);
+});
+
+// ── Scroll progress bar ──
+const prog = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const total = document.body.scrollHeight - window.innerHeight;
+  const pct   = total > 0 ? (window.scrollY / total) * 100 : 0;
+  prog.style.width = pct + '%';
+}, { passive: true });
+</script>
+</body>
+</html>

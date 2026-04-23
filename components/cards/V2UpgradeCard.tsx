@@ -24,21 +24,21 @@ export const V2UpgradeCard: React.FC<CardProps> = ({
     <div className="w-full h-full flex flex-col bg-[#0F172A] text-white overflow-hidden pb-16">
       <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth px-6 pt-16 pb-10">
         <div className="inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#C6FF00]">
-          MBTI V2 Upgrade
+          KIWIMU V2 深度報告
         </div>
 
         <div className="mt-8 space-y-4">
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">Free V1 complete</p>
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/50">V1 已完成</p>
           <h2 className="text-4xl font-display font-bold leading-none">{fullType}</h2>
           <p className="text-lg font-serif leading-relaxed text-white/80">{resultData.summary}</p>
         </div>
 
         <div className="mt-10 rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#C6FF00]">V2 unlocks</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#C6FF00]">解鎖後可讀</p>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-white/80">
-            <li>職涯策略與盲點拆解</li>
-            <li>關係模式與成長建議</li>
-            <li>完整靈魂提問與後續追蹤入口</li>
+            <li>A / T 變體的完整深讀</li>
+            <li>四個維度、職涯與關係切面</li>
+            <li>人物原型、靈魂甜點與帶走這個</li>
           </ul>
         </div>
 
@@ -66,14 +66,14 @@ export const V2UpgradeCard: React.FC<CardProps> = ({
           onClick={handleUpgrade}
           className="w-full rounded-full bg-[#C6FF00] px-6 py-4 text-sm font-black uppercase tracking-[0.18em] text-black transition-transform hover:scale-[1.01] active:scale-[0.99]"
         >
-          Unlock MBTI V2
+          解鎖 V2 深度報告
         </button>
         {onPrev && (
           <button
             onClick={onPrev}
             className="mt-3 w-full rounded-full border border-white/15 px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/70 transition-colors hover:bg-white/5"
           >
-            Back to free report
+            回到免費報告
           </button>
         )}
       </div>

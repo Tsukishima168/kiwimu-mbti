@@ -14,7 +14,7 @@ import { DessertCard } from './cards/DessertCard';
 import { RegistrationGateCard } from './cards/RegistrationGateCard';
 import { V2UpgradeCard } from './cards/V2UpgradeCard';
 
-const SHOW_V2_UPGRADE_ENTRY = false;
+const SHOW_V2_UPGRADE_ENTRY = true;
 
 interface ResultCardFlowProps {
     resultData: MbtiResultData;
@@ -139,7 +139,7 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
         cards.push({ id: 'gate', component: RegistrationGateCard as any });
     }
 
-    // V2 尚未正式上架前，不對外暴露結果頁升級入口。
+    // V2 第一版已上架：登入後、略過 gate 後、或 archive view 都可看到深度報告入口。
     if (SHOW_V2_UPGRADE_ENTRY && (user || hasSkippedGate || isArchiveMode)) {
         cards.push({ id: 'v2_upgrade', component: V2UpgradeCard as any });
     }
