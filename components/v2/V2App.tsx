@@ -399,7 +399,7 @@ export default function V2App({ user }: V2AppProps) {
       ? `${fullType} 深度報告｜${seoVariantReport?.title || report.title}｜Kiwimu MBTI V2`
       : 'Kiwimu MBTI V2 深度報告';
     const description = fullType && report && resultBundle
-      ? `${seoVariantReport?.abstract.body || report.abstract.body} 讀完免費章節後，可以解鎖完整 V2 深度報告。`
+      ? `${seoVariantReport?.abstract.body || report.abstract.body} V2 完整深度報告即將正式上線。`
       : 'Kiwimu MBTI V2 深度報告：從 MBTI 類型出發，讀到更完整的 A/T 變體、維度、關係、原型與收束提問。';
     const image = resultBundle?.resultData.characterImage || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
 
@@ -1051,17 +1051,7 @@ export default function V2App({ user }: V2AppProps) {
             </div>
 
             {!isUnlocked ? (
-              <>
-                <button
-                  type="button"
-                  className="kiwimu-btn kiwimu-btn-cta v2-report-unlock-btn"
-                  onClick={handleCheckout}
-                  disabled={IS_DEV && !isLocalPreview}
-                >
-                  {unlockPrimaryLabel}
-                </button>
-                <p className="v2-report-paywall-price">NT$149 · 一次性 · 永久保存</p>
-              </>
+              <p className="v2-report-paywall-coming-soon">V2 完整報告正式上線後可解鎖</p>
             ) : null}
           </div>
         </section>
