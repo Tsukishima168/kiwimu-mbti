@@ -152,6 +152,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (adminDb) {
           const unlockedAt = new Date().toISOString();
           const { error } = await adminDb
+            .schema('public')
             .from('profiles')
             .update({
               v2_unlocked_at: unlockedAt,

@@ -7,7 +7,7 @@ import { setLastV2PrototypeResult } from '../../utils/v2Access';
 import { trackAction } from '../../utils/userDataCollector';
 import { trackPageView, trackScreenEngagement } from '../../utils/analytics';
 import { applyRuntimeSeo } from '../../utils/seo';
-import { buildV2QuizPath, buildV2ReportPath, normalizeV2Pathname } from '../../utils/v2Routes';
+import { buildV2QuizPath, normalizeV2Pathname } from '../../utils/v2Routes';
 import type { Option } from '../../types';
 import './v2-tailwind.css';
 import './v2.css';
@@ -66,8 +66,14 @@ export default function V2QuizFlow() {
       const variant = getVariant(scores);
       const resultData = await loadResultData(type, variant) || getResultData(type, variant);
       setLastV2PrototypeResult({ resultData, scores });
-      trackAction('v2_quiz_flow_complete', { mbtiType: type, variant });
-      window.location.assign(`${buildV2ReportPath(`${type}-${variant}`)}?source=v2_quiz`);
+      trackAction('v2_quiz_flow_complete', {
+        mbtiType: type,
+        variant,
+        intendedDestination: 'v2',
+        routedDestination: 'v1_quiz',
+      });
+      // V2 尚未上架，V1.5 完成後先分流回 V1 完整免費版；初判結果留在 query 供 V1 說明。
+      window.location.assign(`/quiz?source=v15_quiz&v15_result=${type}-${variant}`);
     } catch (err) {
       console.error('V2QuizFlow: failed to resolve result', err);
       setAnswers(nextAnswers.slice(0, -1));
@@ -142,7 +148,6 @@ export default function V2QuizFlow() {
               <button
                 type="button"
                 className="kiwimu-btn kiwimu-btn-primary flex-1 px-6 py-4 text-sm font-black uppercase tracking-[0.18em]"
-                style={{ color: '#1A1A1A' }}
                 onClick={handleStart}
               >
                 開始掃描靈魂

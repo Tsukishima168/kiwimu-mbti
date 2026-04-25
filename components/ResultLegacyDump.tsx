@@ -63,6 +63,8 @@ const MENU_DATA = {
 };
 
 const LINE_STICKER_SHOP_URL = 'https://store.line.me/stickershop/product/33314326/zh-Hant';
+const V2_NOTIFY_URL = 'https://lin.ee/r19wTnY';
+const KOFI_URL = 'https://ko-fi.com/kiwimu';
 
 /* IG Story dimension label map — 3 trait pillars per MBTI type */
 const IG_STORY_DIMENSION_MAP: Record<string, { zh: string; en: string }> = {
@@ -164,22 +166,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('已複製連結到剪貼簿');
-  const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'soul' | 'life' | 'archetypes'>('overview');
 
   // V1 Login Gate — shared links always stay partial and should not unlock via login.
   const isLocked = ((user == null || user.isAnonymous) || isSharedView) && !isArchiveMode;
-  const visibleTabs = isLocked
-    ? [
-      { id: 'overview', label: '總覽', en: 'Overview' },
-      { id: 'analysis', label: '深度分析', en: 'Analysis' },
-    ]
-    : [
-      { id: 'overview', label: '總覽', en: 'Overview' },
-      { id: 'analysis', label: '深度分析', en: 'Analysis' },
-      { id: 'soul', label: '靈魂甜點', en: 'Soul Food' },
-      { id: 'life', label: '職涯 & 關係', en: 'Life' },
-      { id: 'archetypes', label: '名人原型', en: 'Archetypes' }
-    ];
 
   const showCustomToast = (msg: string, durationMs = 3000) => {
     setToastMsg(msg);
@@ -202,12 +191,6 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
-
-  useEffect(() => {
-    if (isLocked && activeTab !== 'overview' && activeTab !== 'analysis') {
-      setActiveTab('overview');
-    }
-  }, [activeTab, isLocked]);
 
   useEffect(() => {
     trackResultView(resultData.id, user?.uid, {
@@ -247,7 +230,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [selectedOtherType, activeTab]); // Scroll to top when tab changes
+  }, [selectedOtherType]);
 
   /* DOWNLOAD IG STORY — generate editorial 1080×1920 card */
   const handleDownloadIG = async () => {
@@ -575,7 +558,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               <div className="border border-kiwi-dark px-4 py-1.5 mb-6 md:mb-8 inline-block bg-white shadow-sm">
                 <p className="text-[10px] font-mono tracking-[0.2em] md:tracking-[0.4em] uppercase font-bold text-kiwi-dark">COMPREHENSIVE ANALYSIS 綜合分析</p>
               </div>
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-bold text-kiwi-dark tracking-tighter mb-2 md:mb-4 leading-none md:leading-tight">
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-kiwi-dark tracking-normal mb-2 md:mb-4 leading-none md:leading-tight">
                 {resultData.id}-{identitySuffix}
               </h1>
               <h2 className="text-2xl md:text-3xl lg:text-4xl font-light text-kiwi-dark tracking-[0.15em] md:tracking-[0.2em] mb-6 md:mb-10 font-serif italic">{resultData.title}</h2>
@@ -583,28 +566,6 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
           </div>
 
-          {/* TABS NAVIGATION */}
-          <div className="sticky top-0 z-40 bg-white border-b border-gray-200">
-            <div className="max-w-4xl mx-auto px-6">
-              <div className="flex gap-1 overflow-x-auto scrollbar-hide">
-                {visibleTabs.map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex-shrink-0 px-4 md:px-6 py-4 text-xs md:text-sm font-mono tracking-wider transition-all ${activeTab === tab.id
-                      ? 'text-kiwi-dark font-bold border-b-2 border-kiwi-dark'
-                      : 'text-gray-400 hover:text-gray-600'
-                      }`}
-                  >
-                    <span className="hidden md:inline">{tab.en}</span>
-                    <span className="md:hidden">{tab.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* TAB CONTENT */}
           <div className="max-w-4xl mx-auto px-6 py-12 md:py-20 md:px-12">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-16 border-b border-gray-100 pb-12 md:pb-20">
               <div className="md:col-span-5">
@@ -614,11 +575,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 <div className="mt-6 md:mt-8 pt-6 border-t border-gray-100 flex justify-between items-end">
                   <div className="space-y-1 text-left">
                     <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase font-mono">IDENTITY</p>
-                    <p className="text-xs md:text-sm font-display font-bold text-kiwi-dark tracking-widest italic uppercase">{identityChinese} ({identitySuffix})</p>
+                    <p className="text-xs md:text-sm font-serif font-bold text-kiwi-dark tracking-wide italic uppercase">{identityChinese} ({identitySuffix})</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[9px] md:text-[10px] font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-300 uppercase font-mono">TYPE</p>
-                    <p className="text-xs md:text-sm font-display font-bold text-kiwi-dark tracking-widest italic uppercase">{resultData.id}-{identitySuffix}</p>
+                    <p className="text-xs md:text-sm font-serif font-bold text-kiwi-dark tracking-wide italic uppercase">{resultData.id}-{identitySuffix}</p>
                   </div>
                 </div>
               </div>
@@ -637,7 +598,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
             {/* 3. COGNITIVE SPECTRUM - 優化手機版顯示 */}
             <div className="py-12 md:py-20 border-b border-gray-100">
-              <h3 className="text-center text-lg md:text-xl font-display font-bold mb-12 md:mb-20 tracking-[0.3em] md:tracking-[0.4em] uppercase text-kiwi-dark">COGNITIVE SPECTRUM <br className="md:hidden" /> 認知光譜</h3>
+              <h3 className="text-center text-2xl md:text-3xl font-serif font-bold mb-12 md:mb-20 tracking-[0.08em] uppercase text-kiwi-dark">Cognitive Spectrum <br className="md:hidden" /> 認知光譜</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
                 <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc="在領導與開拓中獲取能量。" rightDesc="在深度反思中沈澱力量。" />
                 <SpectrumBar leftLabel="SENSING (S)" rightLabel="INTUITION (N)" leftScore={percentages.S} rightScore={percentages.N} leftDesc="關注現實Facts與實務。" rightDesc="洞悉Pattern與未來機遇。" />
@@ -653,7 +614,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             <div className="py-16 md:py-24 border-b border-gray-100">
               <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-start text-left">
                 <div className="w-full md:w-1/3 border-l-4 border-kiwi-dark pl-6 md:pl-10 py-2">
-                  <h3 className="text-2xl md:text-3xl font-display font-bold tracking-widest uppercase mb-2">IDENTITY <br /> 維度解析</h3>
+                  <h3 className="text-2xl md:text-3xl font-serif font-bold tracking-wide uppercase mb-2">Identity <br /> 維度解析</h3>
                   <p className="text-[10px] font-mono tracking-[0.3em] uppercase text-gray-400 mb-6 font-bold">THE 32ND VARIANCE</p>
                   <span className="px-4 py-2 md:px-6 bg-kiwi-dark text-white text-[10px] md:text-[11px] font-bold tracking-[0.3em] md:tracking-[0.4em] uppercase shadow-lg" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>{identityChinese}</span>
                 </div>
@@ -668,12 +629,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
             {/* 5. GLOSSARY - 手機版優化 */}
             <div className="py-12 md:py-20 border-b border-gray-100 bg-gray-50/40">
-              <h3 className="text-center text-xs md:text-sm font-display font-bold tracking-[0.2em] md:tracking-[0.3em] text-gray-400 uppercase mb-12 md:mb-20 font-bold">THEORETICAL FRAMEWORK & DEFINITIONS <br className="md:hidden" /> 詞彙表指南</h3>
+              <h3 className="text-center text-base md:text-lg font-serif font-bold tracking-[0.08em] text-gray-400 uppercase mb-12 md:mb-20">Theoretical Framework & Definitions <br className="md:hidden" /> 詞彙表指南</h3>
               <div className="max-w-3xl mx-auto space-y-8 md:space-y-12">
                 {DIMENSION_EXPLANATIONS.map(dim => (
                   <div key={dim.key} className="flex flex-col md:flex-row gap-4 md:gap-10 text-left items-start group border-b border-gray-100/50 pb-8 md:pb-10 last:border-0">
                     <div className="w-full md:w-24 flex items-baseline md:block gap-3 md:gap-0">
-                      <span className="text-3xl md:text-4xl font-display font-bold text-kiwi-dark transition-colors group-hover:text-gray-400">{dim.key}</span>
+                      <span className="text-3xl md:text-4xl font-serif font-bold text-kiwi-dark transition-colors group-hover:text-gray-400">{dim.key}</span>
                       <span className="block text-[9px] font-mono text-gray-400 uppercase tracking-widest mt-0 md:mt-2">{dim.label}</span>
                     </div>
                     <p className="flex-1 text-base md:text-lg text-gray-600 font-serif leading-relaxed text-justify opacity-80 group-hover:opacity-100 transition-opacity">{dim.text}</p>
@@ -1222,6 +1183,67 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </>
           )}
 
+          {/* V2 進化版即將公布 — 引流到 V2 paywall 預告 */}
+          <div className="border-t border-gray-100 bg-[#F8F8F5] px-6 py-16 md:py-20">
+            <div className="max-w-3xl mx-auto">
+              <div
+                className="rounded-3xl p-8 md:p-12 relative overflow-hidden"
+                style={{ background: '#1A1A1A', color: '#F8F8F5' }}
+              >
+                <span
+                  className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    background: '#CCFF00',
+                    color: '#1A1A1A',
+                    border: '1px solid #1A1A1A',
+                    borderRadius: 999,
+                  }}
+                >
+                  <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#1A1A1A' }} />
+                  即將公布 · COMING SOON
+                </span>
+                <h3
+                  className="mt-5 text-3xl md:text-4xl font-bold leading-[1.1]"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  V2 進化版<br className="md:hidden" />
+                  把 16 型再拆成 32 種
+                </h3>
+                <p className="mt-4 text-sm md:text-base leading-relaxed text-white/70">
+                  V2 在 V1 基礎上加入 A / T 變體分流、心理原型層與歷史軌跡，寫成一份只屬於你的深度報告。<br />
+                  上線後 {resultData.id} 的型別資料會直接帶進 V2，不用重做。
+                </p>
+                <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                  <a
+                    href={V2_NOTIFY_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackButtonClick('v2_line_notify_from_result', 'v1_result_upsell', V2_NOTIFY_URL)}
+                    className="rounded-full px-5 py-4 text-center text-xs font-black uppercase tracking-[0.08em] md:text-sm md:tracking-[0.12em]"
+                    style={{ background: '#CCFF00', color: '#1A1A1A', border: '1px solid #CCFF00' }}
+                  >
+                    加入 LINE 接收 V2 上線通知
+                  </a>
+                  <a
+                    href="/read"
+                    onClick={() => trackButtonClick('v2_preview_from_result', 'v1_result_upsell', '/read')}
+                    className="rounded-full px-5 py-4 text-center text-xs font-semibold uppercase tracking-[0.12em] md:text-sm md:tracking-[0.18em]"
+                    style={{ background: 'transparent', color: '#F8F8F5', border: '1px solid rgba(248,248,245,0.32)' }}
+                  >
+                    搶先看 V2 預告
+                  </a>
+                </div>
+                <p
+                  className="mt-5 text-white/40"
+                  style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
+                >
+                  通知方式：加入 Kiwimu LINE 官方帳號，上線公告會從官方帳號發出。
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* DISCLAIMER & FOOTER */}
           <div className="text-center max-w-2xl mx-auto py-16 md:py-24 border-t border-gray-100 px-6">
             <p className="text-[10px] md:text-[11px] font-mono text-gray-300 tracking-[0.4em] md:tracking-[0.5em] uppercase mb-6 font-bold">DISCLAIMER 免責聲明</p>
@@ -1230,6 +1252,15 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
               你永遠可以選擇成為不同的樣子。
             </p>
             <div className="flex flex-col items-center py-12 md:py-20">
+              <a
+                href={KOFI_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackButtonClick('ko_fi_footer', 'result_footer', KOFI_URL)}
+                className="mb-8 inline-flex items-center justify-center border border-gray-200 px-5 py-2.5 text-[11px] font-bold tracking-[0.16em] text-gray-500 transition-colors hover:border-kiwi-dark hover:text-kiwi-dark"
+              >
+                請我喝咖啡
+              </a>
               <p className="text-[9px] md:text-[10px] text-gray-300 tracking-[0.4em] md:tracking-[0.6em] uppercase font-mono font-bold">KIWIMU MBTI LAB © 2026</p>
             </div>
           </div>
@@ -1251,59 +1282,66 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           </div>
         )}
 
-        {/* Floating Menu - Mobile responsive */}
-        <div className="fixed bottom-6 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-1.5 md:p-3 rounded-full shadow-2xl flex items-center gap-1.5 md:gap-3 z-50 w-max max-w-[95vw] border border-white/10 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]">
+        {/* Floating Menu - compact mobile actions */}
+        <div className="fixed bottom-6 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-1.5 md:p-3 rounded-full shadow-2xl flex items-center justify-between md:justify-center gap-1 md:gap-3 z-50 w-[calc(100vw-32px)] max-w-[430px] md:w-max md:max-w-[95vw] border border-white/10 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]">
           {/* LINE share */}
-          <button onClick={handleLineShare} className="shrink-0 w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-all duration-300 border border-white/20 hover:scale-110 active:scale-95 shadow-lg" title="LINE 分享">
+          <button onClick={handleLineShare} className="shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-all duration-300 border border-white/20 hover:scale-110 active:scale-95 shadow-lg" title="LINE 分享" aria-label="LINE 分享">
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
           </button>
-          <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          <div className="hidden md:block shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           {/* Retest */}
-          <button onClick={onRetest} className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95">Retest 重測</button>
+          <button onClick={onRetest} className="shrink-0 w-10 h-10 md:w-auto md:h-auto md:px-8 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] uppercase whitespace-nowrap hover:scale-105 active:scale-95 flex items-center justify-center" title="重測" aria-label="重測">
+            <svg className="w-4 h-4 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 12a9 9 0 0 1 15.5-6.2M21 12a9 9 0 0 1-15.5 6.2M18.5 3.8V8h-4.2M5.5 20.2V16h4.2" /></svg>
+            <span className="hidden md:inline">Retest 重測</span>
+          </button>
           {/* Archive / 入籍宇宙 */}
           {onViewArchive && !isArchiveMode && (
             <>
-              <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+              <div className="hidden md:block shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
               <button
                 onClick={() => { trackButtonClick(!user || user.isAnonymous ? '入籍宇宙' : '我的甜點館', 'result_floating'); onViewArchive(); }}
-                className="shrink-0 px-3 md:px-8 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] whitespace-nowrap hover:scale-105 active:scale-95"
+                className="shrink-0 w-10 h-10 md:w-auto md:h-auto md:px-8 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.2em] whitespace-nowrap hover:scale-105 active:scale-95 flex items-center justify-center"
                 title={!user || user.isAnonymous ? '入籍 Kiwimu 宇宙，永久保存你的靈魂配方' : '查看我的甜點館'}
+                aria-label={!user || user.isAnonymous ? '入籍宇宙' : '我的甜點館'}
               >
-                {!user || user.isAnonymous ? '入籍宇宙 ✦' : '我的甜點館'}
+                <svg className="w-4 h-4 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3l2.2 5.3L20 9l-4.4 3.8 1.3 5.8L12 15.5l-4.9 3.1 1.3-5.8L4 9l5.8-.7L12 3z" /></svg>
+                <span className="hidden md:inline">{!user || user.isAnonymous ? '入籍宇宙 ✦' : '我的甜點館'}</span>
               </button>
             </>
           )}
-          <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          <div className="hidden md:block shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           <a
             href={LINE_STICKER_SHOP_URL}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackButtonClick('LINE 貼圖', 'result_floating', LINE_STICKER_SHOP_URL)}
-            className="shrink-0 px-3 md:px-6 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
+            className="hidden md:inline-flex shrink-0 px-3 md:px-6 py-2 md:py-3 rounded-full hover:bg-gray-800 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
             title="購買 LINE 貼圖"
           >
             LINE 貼圖
           </a>
-          <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          <div className="hidden md:block shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           {/* 複製連結 */}
           <button
             onClick={handleCopyShareLink}
-            className="shrink-0 flex items-center gap-1 md:gap-1.5 px-3 md:px-6 py-2 md:py-3 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
+            className="shrink-0 flex items-center justify-center gap-1 md:gap-1.5 w-10 h-10 md:w-auto md:h-auto md:px-6 md:py-3 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 text-[9px] md:text-[11px] font-bold tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap hover:scale-105 active:scale-95"
             title="複製連結分享給朋友"
+            aria-label="複製連結"
           >
             <svg className="w-3 h-3 md:w-4 md:h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            <span>複製連結</span>
+            <span className="hidden md:inline">複製連結</span>
           </button>
-          <div className="shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
+          <div className="hidden md:block shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           {/* IG Story download — highlighted as primary CTA */}
           <button
             onClick={handleDownloadIG}
-            className="shrink-0 flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-2 md:py-3 rounded-full transition-all duration-300 active:scale-95 hover:scale-105 shadow-lg"
+            className="shrink-0 flex items-center justify-center gap-1.5 md:gap-2 w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-3 rounded-full transition-all duration-300 active:scale-95 hover:scale-105 shadow-lg"
             style={{ background: '#C6FF00', color: '#000' }}
             title="下載 IG Story 限動圖卡"
+            aria-label="下載 IG Story 限動圖卡"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="md:w-5 md:h-5 shrink-0"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
-            <span className="text-[9px] md:text-[11px] font-black tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap">限動</span>
+            <span className="hidden md:inline text-[9px] md:text-[11px] font-black tracking-[0.05em] md:tracking-[0.15em] uppercase whitespace-nowrap">限動</span>
           </button>
         </div>
 
