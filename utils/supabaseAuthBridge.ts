@@ -1,14 +1,13 @@
 /**
  * Shared Supabase auth client for kiwimu.com.
  *
- * Use localStorage as the primary auth session store. Full Supabase sessions can
- * exceed browser cookie limits, which makes OAuth callback recovery flaky
- * (especially in Safari). We keep only lightweight mirror cookies for sibling
- * subdomains that want a simple "logged in" hint.
+ * Use Passport-compatible shared cookie storage as the primary auth session
+ * store so kiwimu.com, shop, map, and gacha read the same Supabase session.
  */
 
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import type { AppUser } from '../types';
+import { createSharedAuthStorage } from './authStorage';
 
 // @ts-ignore - Vite env variables
 const SUPABASE_URL = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
@@ -93,7 +92,7 @@ export function getAuthSupabaseClient(): SupabaseClient | null {
       persistSession: true,
       detectSessionInUrl: false,
       flowType: 'pkce',
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storage: createSharedAuthStorage(),
     },
   });
 

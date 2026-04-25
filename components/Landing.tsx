@@ -13,7 +13,7 @@ const Landing: React.FC<LandingProps> = ({ onStart }) => {
         <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-black -mb-1 -ml-1"></div>
         <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-black -mb-1 -mr-1"></div>
 
-        <h1 className="text-5xl font-display font-bold tracking-tight text-kiwi-dark mb-4">
+        <h1 className="text-5xl font-serif font-bold tracking-[0.04em] text-kiwi-dark mb-4">
           KIWIMU LAB
         </h1>
         <p className="text-sm font-mono tracking-widest text-gray-500 mb-12 uppercase">

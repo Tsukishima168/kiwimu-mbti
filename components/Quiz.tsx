@@ -49,6 +49,10 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
 
     const currentQuestion: Question | undefined = questions[currentIndex];
     const progress = questionsLoaded && currentQuestion ? ((currentIndex + 1) / questions.length) * 100 : 0;
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const rawV15Result = urlParams?.get('v15_result') || '';
+    const v15Result = /^[A-Z]{4}-[AT]$/.test(rawV15Result) ? rawV15Result : null;
+    const shouldShowV15Banner = urlParams?.get('source') === 'v15_quiz' && Boolean(v15Result);
 
     const getQuestionText = (q: Question) => {
         if (language === 'zh') return q.text;
@@ -176,7 +180,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 <div className="fixed top-0 left-0 right-0 z-50 bg-kiwi-bg/95 backdrop-blur-sm">
                     <div className="max-w-3xl mx-auto px-6 h-20 flex items-end justify-between pb-4">
                         <div className="flex items-center gap-4">
-                            <h1 className="text-sm font-display font-bold text-kiwi-dark tracking-[0.2em] uppercase">
+                            <h1 className="text-sm font-serif font-bold text-kiwi-dark tracking-[0.08em] uppercase">
                                 Kiwimu Lab
                             </h1>
                             {currentIndex > 0 && (
@@ -203,6 +207,16 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 {/* Content */}
                 <div className="flex-1 flex flex-col pt-24 pb-12 px-6 justify-center">
                     <div className="max-w-2xl mx-auto w-full">
+                        {shouldShowV15Banner && (
+                            <div className="mb-8 border border-kiwi-dark bg-white px-5 py-4 shadow-sm">
+                                <p className="text-[10px] font-mono font-bold uppercase tracking-[0.22em] text-gray-400">
+                                    V1.5 初判結果
+                                </p>
+                                <p className="mt-2 text-sm text-gray-700 leading-relaxed">
+                                    你剛剛偏向 <span className="font-mono font-bold text-kiwi-dark">{v15Result}</span>。V2 進化版即將公布，先完成 V1 純 MBTI 免費版，之後型別資料可以帶進 V2。
+                                </p>
+                            </div>
+                        )}
                         {!questionsLoaded || !currentQuestion ? (
                             <div className="text-center py-20">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kiwi-dark mx-auto mb-4"></div>

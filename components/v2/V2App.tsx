@@ -637,24 +637,110 @@ export default function V2App({ user }: V2AppProps) {
   };
 
   if (!resultBundle || !fullType) {
+    const marquee = 'KIWIMU V2 · COMING SOON · 32 VARIANTS · 心理原型層 · 即將公布 · ';
+    const v15Bundle = source === 'v15_quiz' ? getLastV2PrototypeResult() : null;
+    const v15FullType = v15Bundle ? `${v15Bundle.resultData.id}-${getVariant(v15Bundle.scores)}` : null;
+    const v15Title = v15Bundle?.resultData.title;
     return (
-      <div className="v2-root">
-        <div className="v2-shell">
-          <section className="v2-panel v2-empty-panel">
-            <p className="v2-label">KIWIMU V2</p>
-            <h1 className="v2-empty-title">你的 MBTI 深度報告頁 prototype</h1>
-            <p className="v2-empty-copy">
-              目前 `/read` 會直接接到 V2 深度報告殼。你可以從 5 題測驗進來，或直接打開像 `/read/INTJ-A` 這種完整型別路徑。
-            </p>
-            <div className="v2-empty-actions">
-              <a href="/read/quiz" className="kiwimu-btn kiwimu-btn-primary">
-                開始 5 題 V2 測驗
+      <div className="v2-root min-h-screen px-5 pt-24 pb-16">
+        <div className="marquee-container">
+          <div className="marquee-track">
+            <span className="marquee-text">{marquee.repeat(3)}</span>
+            <span className="marquee-text">{marquee.repeat(3)}</span>
+          </div>
+        </div>
+        <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl items-center">
+          <div className="v2-panel w-full p-8 md:p-10">
+            <span
+              className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                background: '#CCFF00',
+                color: '#1A1A1A',
+                border: '1px solid #1A1A1A',
+                borderRadius: 999,
+              }}
+            >
+              <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#1A1A1A' }} />
+              即將公布 · COMING SOON
+            </span>
+            <p className="v2-eyebrow mt-4">KIWIMU V2 · MBTI 進化版</p>
+            <h1
+              className="mt-3 text-4xl font-bold leading-[1.05] md:text-5xl"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              看見 16 型<br />看不見的那一層
+            </h1>
+            {v15FullType ? (
+              <div
+                className="mt-5 rounded-2xl px-5 py-4"
+                style={{ background: '#1A1A1A', color: '#F8F8F5' }}
+              >
+                <p
+                  className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/50"
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  V1.5 分流結果
+                </p>
+                <p
+                  className="mt-2 text-2xl font-bold"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  {v15FullType}
+                </p>
+                {v15Title && <p className="mt-1 text-sm text-white/70">{v15Title}</p>}
+                <p className="mt-3 text-xs text-white/60 leading-relaxed">
+                  V2 上線後會直接帶你進 {v15FullType} 的深度報告。<br />
+                  在那之前，先做完整 V1 看完免費版。
+                </p>
+              </div>
+            ) : (
+              <p className="mt-5 text-base leading-relaxed text-black/70">
+                V2 把 16 型再拆成 32 種變體，疊上心理原型層與歷史軌跡，寫成一份只屬於你的深度報告。<br />
+                目前內容仍在最後校對，先用下面的入口認識自己的 MBTI。
+              </p>
+            )}
+            <div className="mt-6 space-y-2">
+              {[
+                '32 variant：A 穩定核心 × T 自審驅動',
+                '心理原型層 × 歷史軌跡，不只是四個字母',
+                '台灣版敘事，不是翻譯過來的框架',
+              ].map((line) => (
+                <div
+                  key={line}
+                  className="flex items-center gap-2 text-black/50"
+                  style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
+                >
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full"
+                    style={{ background: '#CCFF00', border: '1px solid #1A1A1A' }}
+                  />
+                  {line}
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <a
+                href="/quiz"
+                className="kiwimu-btn kiwimu-btn-primary flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]"
+              >
+                先做 V1 純 MBTI
               </a>
-              <a href="/quiz" className="kiwimu-btn">
-                回到 V1 測驗
+              <a
+                href="/read/quiz"
+                className="kiwimu-btn flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]"
+                style={{ color: '#1A1A1A' }}
+              >
+                30 秒 V1.5 分流
               </a>
             </div>
-          </section>
+            <p
+              className="mt-6 text-black/40"
+              style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
+            >
+              V2 上線後會在這裡公布。先做 V1 / V1.5，型別資料未來可以直接帶進來。
+            </p>
+          </div>
         </div>
       </div>
     );

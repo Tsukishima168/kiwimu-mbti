@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAuthSupabaseClient } from '../../utils/supabaseAuthBridge';
+import { buildPassportLoginUrl } from '../../utils/authStorage';
 
 export interface SupabaseAuthState {
   isLoggedIn: boolean;
@@ -39,10 +40,5 @@ export function useSupabaseAuth(): SupabaseAuthState {
 }
 
 export async function loginWithGoogle(): Promise<void> {
-  const supabase = getAuthSupabaseClient();
-  if (!supabase) return;
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: window.location.href },
-  });
+  window.location.href = buildPassportLoginUrl();
 }

@@ -123,7 +123,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
           </div>
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-display font-bold tracking-widest text-kiwi-dark mb-4">
+        <h1 className="text-3xl md:text-4xl font-serif font-bold tracking-[0.08em] text-kiwi-dark mb-4">
           {t('kiwimu_universe')}
         </h1>
 
