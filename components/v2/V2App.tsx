@@ -39,9 +39,9 @@ import {
   type V2VariantCode,
 } from '../../utils/v2Routes';
 import { buildDessertOrderLink, trackDessertOrderClick } from '../../utils/utmTracking';
-import { KiwimuCharacter, type KiwimuState } from './KiwimuCharacter';
 import './v2-tailwind.css';
 import './v2.css';
+import './v2-dark.css';
 
 interface V2AppProps {
   user?: AppUser | null;
@@ -199,6 +199,17 @@ const splitCoverSubcopy = (value?: string | null) => {
     .slice(0, 3);
 };
 
+const humanizeVariantCopy = (value: string, variant: VariantCode) => {
+  const readableState = variant === 'A' ? '穩定輸出狀態下的你' : '高敏調整狀態下的你';
+  return value
+    .replace(/^[ＡA]\s*版的你/u, readableState)
+    .replace(/^[ＴT]\s*版的你/u, readableState)
+    .replace(/[ＡA]\s*版的你/g, readableState)
+    .replace(/[ＴT]\s*版的你/g, readableState)
+    .replace(/[ＡA]\s*版/g, '穩定輸出狀態')
+    .replace(/[ＴT]\s*版/g, '高敏調整狀態');
+};
+
 const getOppositeKey = (selectedKey: PercentageKey): PercentageKey => {
   switch (selectedKey) {
     case 'E':
@@ -338,7 +349,7 @@ const REPORT_CHAPTERS: ReportNavChapter[] = [
   { id: 'ch-01', label: '01 當下的你', locked: false },
   { id: 'ch-02', label: '02 你的版本', locked: false },
   { id: 'ch-03', label: '03 四個維度', locked: true },
-  { id: 'ch-04', label: '04 你怎麼活', locked: true },
+  { id: 'ch-04', label: '04 認知行為模式', locked: true },
   { id: 'ch-05', label: '05 你的原型', locked: true },
   { id: 'ch-06', label: '06 帶走這個', locked: true },
 ];
@@ -355,6 +366,7 @@ export default function V2App({ user }: V2AppProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const source = params.get('source') || 'direct';
   const isUnlocked = entitlement.status === 'unlocked';
+  const canReadReport = isUnlocked || isLocalPreview;
 
   const routeBundle = useMemo(() => {
     if (!routeTarget) return null;
@@ -399,7 +411,7 @@ export default function V2App({ user }: V2AppProps) {
       ? `${fullType} 深度報告｜${seoVariantReport?.title || report.title}｜Kiwimu MBTI V2`
       : 'Kiwimu MBTI V2 深度報告';
     const description = fullType && report && resultBundle
-      ? `${seoVariantReport?.abstract.body || report.abstract.body} 讀完免費章節後，可以解鎖完整 V2 深度報告。`
+      ? `${seoVariantReport?.abstract.body || report.abstract.body} V2 完整深度報告即將正式上線。`
       : 'Kiwimu MBTI V2 深度報告：從 MBTI 類型出發，讀到更完整的 A/T 變體、維度、關係、原型與收束提問。';
     const image = resultBundle?.resultData.characterImage || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
 
@@ -528,7 +540,7 @@ export default function V2App({ user }: V2AppProps) {
     return () => {
       observer.disconnect();
     };
-  }, [fullType, isUnlocked]);
+  }, [fullType, canReadReport]);
 
   useEffect(() => {
     const updateProgress = () => {
@@ -769,13 +781,18 @@ export default function V2App({ user }: V2AppProps) {
   const oppositeVariantReport = getV2VariantReport(`${resultData.id}-${oppositeVariant}`);
   const psychArchetype = getV2PsychArchetype(fullType);
   const dimensionBullets = variantReport?.dimension.bullets.length ? variantReport.dimension.bullets : report.dimension.bullets;
+  const displayDimensionBullets = dimensionBullets.map((item) => ({
+    label: cleanText(item.label)
+      .replace(/^[ＡA]\s*\([^)]*(自信|IDENTITY|Identity)[^)]*\)$/u, '穩定輸出狀態')
+      .replace(/^[ＴT]\s*\([^)]*(謹慎|IDENTITY|Identity)[^)]*\)$/u, '高敏調整狀態'),
+    body: humanizeVariantCopy(cleanText(item.body), currentVariant),
+  }));
   const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, dimensionBullets);
   const rarityData = getRarityData(resultData.id);
   const dessertOrderUrl = buildDessertOrderLink(resultData.id, variant);
   const versionTags = variantReport?.tags.length
     ? variantReport.tags.map((tag) => cleanText(tag.label)).filter(Boolean).slice(0, 6)
     : buildVersionTagWall(report, currentVariant, prototypeCopy.tags);
-  const heroState: KiwimuState = variant === 'A' ? 'still' : 'hover';
   const rootStyle = {
     '--v2-ink': '#1A1A1A',
     '--v2-acid': '#CCFF00',
@@ -823,7 +840,7 @@ export default function V2App({ user }: V2AppProps) {
     : oppositeSubtype.items;
   const coverQuote = cleanText(variantReport?.soulQuote || report.soulQuote || variantReport?.important || report.closing || resultData.quote || abstractContent);
   const coverQuoteParts = splitCoverQuote(coverQuote);
-  const coverSubcopyParts = splitCoverSubcopy(abstractContent);
+  const coverSubcopyParts = splitCoverSubcopy(abstractContent).map((part) => humanizeVariantCopy(part, currentVariant));
   const carryLine = toAnchorSentence(carryFull || psychArchetype?.rarity || abstractContent);
   const dimensionHeadline = `${resultData.id.split('').join(' · ')} 在你現在這個階段`;
   const coverKicker = cleanText(variantReport?.abstract.label || report.abstract.label || currentCompareCard.tone);
@@ -833,13 +850,13 @@ export default function V2App({ user }: V2AppProps) {
     rawCoverVariantTitle && rawCoverVariantTitle !== coverTitle && rawCoverVariantTitle !== coverKicker
       ? rawCoverVariantTitle
       : '';
-  const chapterTwoTitle = professionalTitle
-    ? `${professionalTitle} 的 A / T 雙版本`
-    : 'A 和 T，是兩種運作方式';
+  const chapterTwoTitle = currentCompareCard?.title
+    ? `${currentCompareCard.title}：兩種運作狀態`
+    : '你的兩種運作版本';
   const chapterThreeTitle = dimensionTip || dimensionHeadline;
   const chapterFiveLead = toAnchorSentence(psychArchetype?.stateName || psychArchetype?.rarity || prototypeCopy.frequencyNote);
   const chapterSixLead = toAnchorSentence(dessertContent.visualLogic || abstractContent);
-  const chapterStatusCopy = isUnlocked ? '完整內容已展開' : '以下為預覽切片，解鎖後可讀全文';
+  const chapterStatusCopy = canReadReport ? '完整內容已展開' : '以下為預覽切片，解鎖後可讀全文';
   const paywallPreviewItems = [
     {
       number: '03',
@@ -848,7 +865,7 @@ export default function V2App({ user }: V2AppProps) {
     },
     {
       number: '04',
-      name: '你怎麼活',
+      name: '認知行為模式',
       description: [
         cleanText(careerContent.title),
         cleanText(relationshipContent.title),
@@ -865,9 +882,7 @@ export default function V2App({ user }: V2AppProps) {
     {
       number: '06',
       name: '帶走這個',
-      description: [cleanText(dessertContent.name), cleanText(abyssalContent[0]?.title)]
-        .filter(Boolean)
-        .join('、') + '，以及最後留下來的那句話。',
+      description: `${cleanText(abyssalContent[0]?.title) || '深問三題'}，以及最後留下來的那句話。`,
     },
   ].map((item) => ({
     ...item,
@@ -885,470 +900,341 @@ export default function V2App({ user }: V2AppProps) {
         ? 'DEV 階段暫不開放'
         : '解鎖我的完整報告';
 
+  // ─ Apple Dark helpers ─
+  const DIM_NAMES: Record<string, string> = {
+    I: 'Introverted', E: 'Extroverted', N: 'Intuitive', S: 'Sensing',
+    T: 'Thinking', F: 'Feeling', J: 'Judging', P: 'Perceiving',
+  };
+  const makeTagCode = (enName: string): string =>
+    enName.split(/[\s-]+/).filter(Boolean).slice(0, 2)
+      .map((w) => w.slice(0, 4).toUpperCase()).join('-');
+
+  const suppressedSideText = (variantReport?.suppressedSide ?? '')
+    .replace(/\n---\s*$/mu, '').trim();
+
+  const behaviorLogic = variantReport?.design.behaviorLogic ?? [];
+  const digitalPersonaIntro = variantReport?.design.quote ?? '';
+  const importantQuote = variantReport?.important ?? '';
+
+  const REPORT_MARQUEE = `KIWIMU V2 · 狀態光譜測驗 · DEEP REPORT · ${fullType ?? ''} · `;
+
   return (
-    <div className="v2-root v2-report-root" style={rootStyle}>
+    <div className="v2-root" style={{ background: 'var(--bg-0)', color: 'var(--t1)', minHeight: '100vh' }}>
+      {/* Ambient orbs */}
+      <div className="ad-orb ad-orb-1" />
+      <div className="ad-orb ad-orb-2" />
+
+      {/* Scroll progress bar */}
       <div className="v2-report-progress" style={{ width: `${scrollProgress}%` }} />
 
-      <div className="v2-report-layer-bar">
-        <span className="v2-report-run-tag">第 1 次顯影</span>
-        <span className="v2-report-type-tag">{fullType} · {familyMeta.familyLabel}</span>
+      {/* Fixed marquee */}
+      <div className="marquee-container" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100 }}>
+        <div className="marquee-track">
+          <span className="marquee-text">{REPORT_MARQUEE.repeat(4)}</span>
+          <span className="marquee-text">{REPORT_MARQUEE.repeat(4)}</span>
+        </div>
       </div>
 
-      <nav className="v2-report-nav" aria-label="V2 report chapters">
-        {REPORT_CHAPTERS.map((chapter, index) => {
-          const href = chapter.locked && !isUnlocked ? '#paywall' : `#${chapter.id}`;
-          const isActive = activeChapter === chapter.id && (!chapter.locked || isUnlocked);
+      <div className="ad-page">
 
-          return (
-            <React.Fragment key={chapter.id}>
-              {index === 2 ? <span className="v2-report-nav-divider" aria-hidden="true" /> : null}
-              <a
-                href={href}
-                className={[
-                  'v2-report-nav-pill',
-                  isActive ? 'is-active' : '',
-                  chapter.locked && !isUnlocked ? 'is-locked' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-              >
-                {chapter.locked && !isUnlocked ? '🔒 ' : ''}
-                {chapter.label}
-              </a>
-            </React.Fragment>
-          );
-        })}
-      </nav>
+      {/* ── HERO ─────────────────────────────────────────────── */}
+      <header className="ad-hero">
+        <div className="ad-hero-eyebrow">
+          <span className="ad-hero-eyebrow-dot" />
+          {familyMeta.familyLabel} · Kiwimu V2 深度報告
+        </div>
 
-      <main className="v2-report-shell">
-        <section id="ch-01" className="v2-report-cover">
-          <div className="v2-report-cover-badge">
-            <span className="v2-report-cover-dot" />
-            {fullType} · {familyMeta.familyLabel}
-          </div>
-
-          <div className="v2-report-kiwimu-wrap">
-            <KiwimuCharacter className="v2-report-cover-kiwimu" state={heroState} />
-          </div>
-
-          <div className="v2-report-cover-title-stack">
-            {coverKicker ? <p className="v2-report-cover-kicker">{coverKicker}</p> : null}
-            {coverTitle ? <h1 className="v2-report-cover-title">{coverTitle}</h1> : null}
-            {coverVariantTitle ? <p className="v2-report-cover-variant">{coverVariantTitle}</p> : null}
-          </div>
-
-          <p className="v2-report-cover-quote">
-            「{coverQuoteParts.lead}
-            {coverQuoteParts.tail ? (
-              <>
-                <br />
-                <em>{coverQuoteParts.tail}</em>
-              </>
-            ) : null}
-            」
-          </p>
-
-          <div className="v2-report-cover-subcopy">
-            {coverSubcopyParts[0] ? <p>{coverSubcopyParts[0]}。</p> : null}
-            {coverSubcopyParts[1] ? <p><strong>{coverSubcopyParts[1]}。</strong></p> : null}
-            {coverSubcopyParts[2] ? <p>{coverSubcopyParts[2]}。</p> : null}
-          </div>
-
-          <div className="v2-report-identity-card">
-            <p className="v2-report-card-label">身份核心</p>
-            <h2 className="v2-report-cover-core-title">{professionalTitle}</h2>
-            <p>{professionalBody}</p>
-            <p>{currentCompareCard.energy}</p>
-          </div>
-        </section>
-
-        <hr className="v2-report-rule" />
-
-        <section id="ch-02" className="v2-report-paper-section">
-          <div className="v2-report-inner">
-            <p className="v2-report-eyebrow">02 · 你的兩個版本</p>
-            <h2 className="v2-report-title">{chapterTwoTitle}</h2>
-
-            <div className="v2-report-at-grid">
-              {compareCards.map((card) => (
-                <article
-                  key={card.code}
-                  className={[
-                    'v2-report-at-card',
-                    card.code === currentVariant ? 'is-active' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  <p className="v2-report-at-label">
-                    {resultData.id}-{card.code} · {card.tone}
-                    {card.code === currentVariant ? ' ← 你' : ''}
-                  </p>
-                  <p className="v2-report-at-name">{card.title}</p>
-                  <div className="v2-report-at-copy-block">
-                    <p className="v2-report-at-copy-label">{card.strategyLabel}</p>
-                    <p>{card.strategy}</p>
-                  </div>
-                  <div className="v2-report-at-copy-block">
-                    <p className="v2-report-at-copy-label">{card.energyLabel}</p>
-                    <p>{card.energy}</p>
-                  </div>
-                  {card.cost ? <p className="v2-report-at-cost">{card.cost}</p> : null}
-                </article>
-              ))}
+        <div className="ad-hero-row">
+          <div className="ad-hero-type-block">
+            <div className="ad-hero-type-row">
+              <span className="ad-hero-type">{resultData.id}</span>
+              <div className="ad-hero-variant-block">
+                <span className="ad-hero-variant-chip">{currentVariant}</span>
+                <span className="ad-hero-variant-label">
+                  {currentVariant === 'A' ? 'Assertive · 穩定型' : 'Turbulent · 謹慎型'}
+                </span>
+              </div>
             </div>
-
-            <p className="v2-report-eyebrow v2-report-tag-intro">你的關鍵標籤</p>
+            <p className="ad-hero-subtitle">{coverKicker} · {coverTitle}</p>
           </div>
-
-          <div className="v2-report-fade-curtain">
-            <div className="v2-report-tag-wall">
-              {versionTags.map((tag) => (
-                <span key={tag} className="v2-report-tag-chip">{tag}</span>
-              ))}
+          {resultData.characterImage ? (
+            <div className="ad-char-reveal">
+              <img src={resultData.characterImage} alt={`${resultData.id} 角色`} />
             </div>
+          ) : null}
+        </div>
+
+        <blockquote className="ad-hero-quote">{coverQuote}</blockquote>
+        <p className="ad-hero-abstract">{abstractContent}</p>
+        <p className="ad-hero-snapshot">這份報告是你此刻的心理快照，不是固定的標籤。人在不同階段、不同狀態下，側重點會移動。</p>
+
+        <div className="ad-hero-state">
+          <span className="ad-hero-state-dot" />
+          <span>當前狀態：{coverKicker}</span>
+        </div>
+      </header>
+
+      {/* ── 01: TAG WALL (FREE) ──────────────────────────────── */}
+      <div className="ad-section">
+        <p className="ad-section-kicker">01 · Tag Wall</p>
+        <h2 className="ad-section-title">五個能瞬間辨識你的 V2 標籤</h2>
+        <div className="ad-tag-grid">
+          {versionTags.slice(0, 5).map((tag) => {
+            const zhPart = tag.split('(')[0]?.trim() ?? tag;
+            const enMatch = tag.match(/\(([^)]+)\)/u);
+            const enPart = enMatch?.[1] ?? '';
+            const code = enPart ? makeTagCode(enPart) : zhPart.slice(0, 6).toUpperCase();
+            return (
+              <div key={tag} className="ad-tag">
+                <span className="ad-tag-code">{code}</span>
+                <span className="ad-tag-sep" />
+                <div className="ad-tag-info">
+                  <span className="ad-tag-zh">{zhPart}</span>
+                  {enPart ? <span className="ad-tag-en">{enPart}</span> : null}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── PAYWALL GATE ─────────────────────────────────────── */}
+      {!canReadReport ? (
+        <div style={{ background: 'var(--bg-1)', border: '1px solid var(--b1)', borderRadius: 'var(--r-xl)', padding: '32px 24px', textAlign: 'center', marginBottom: 52 }}>
+          <p className="ad-paywall-eyebrow" style={{ marginBottom: 12 }}>⬡ Premium</p>
+          <h2 className="ad-paywall-title">V2 完整報告正式上線後可解鎖</h2>
+          <p className="ad-paywall-sub">Section 02 – 07 · 職涯 × 關係 · 靈魂甜點 · 帶走的字</p>
+          <button
+            type="button"
+            className="ad-btn-primary"
+            style={{ display: 'inline-flex', margin: '0 auto' }}
+            onClick={handleCheckout}
+          >
+            {unlockPrimaryLabel}
+          </button>
+          {IS_DEV && isLocalPreview ? (
+            <div style={{ marginTop: 12 }}>
+              <button type="button" className="ad-btn-ghost" style={{ display: 'inline-flex', margin: '0 auto', fontSize: 12 }} onClick={handleResetPreview}>
+                重置預覽
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <>
+        {/* ── 02: PROFESSIONAL INSIGHTS ───────────────────────── */}
+        <div className="ad-section">
+          <p className="ad-section-kicker">02 · Professional Insights</p>
+          <h2 className="ad-section-title">{professionalTitle}</h2>
+          <p className="ad-section-lead">壓力與安穩之間，同一個人會用不同的方式運作。A 與 T 並非優劣，而是兩種真實的狀態切換。</p>
+          <div className="ad-card" style={{ marginBottom: 10 }}>
+            <p style={{ fontSize: 15, lineHeight: 1.88, color: 'var(--t2)' }}>{professionalBody}</p>
           </div>
-        </section>
-
-        <section id="paywall" className={isUnlocked ? 'v2-report-paywall is-unlocked' : 'v2-report-paywall'}>
-          <div className="v2-report-paywall-inner">
-            <p className="v2-report-paywall-eyebrow">
-              {isUnlocked ? '完整報告已解鎖' : '完整顯影在另一邊'}
-            </p>
-
-            <div className="v2-report-kiwimu-wrap v2-report-paywall-kiwimu-wrap">
-              <KiwimuCharacter className="v2-report-paywall-kiwimu" state={isUnlocked ? 'glow' : 'watch'} />
-            </div>
-
-            <h2 className="v2-report-paywall-headline">
-              {isUnlocked ? '完整內容已展開' : '你看到的是輪廓'}
-            </h2>
-            <p className="v2-report-paywall-subcopy">
-              {isUnlocked
-                ? '往下就是四個已解鎖章節。現在可以完整讀完這份報告。'
-                : '打開剩下的四個章節，看見你的完整版本。'}
-            </p>
-
-            <div className="v2-report-paywall-list">
-              {paywallPreviewItems.map((item) => (
-                <div
-                  key={item.number}
-                  className={[
-                    'v2-report-paywall-item',
-                    isUnlocked ? 'is-unlocked' : '',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                >
-                  <span className="v2-report-paywall-number">{isUnlocked ? 'OPEN' : item.number}</span>
+          <div className="ad-grid-2">
+            {compareCards.map((card) => (
+              <div key={card.code} className={`ad-subtype-card${card.code === currentVariant ? ' is-active' : ''}`}>
+                <div className="ad-subtype-header">
                   <div>
-                    <p className="v2-report-paywall-name">{item.name}</p>
-                    <p className="v2-report-paywall-desc">{item.description}</p>
+                    <div className="ad-subtype-big-letter">{card.code}</div>
+                    <div className="ad-subtype-tone">{card.tone}</div>
                   </div>
-                  {isUnlocked ? <span className="v2-report-paywall-state">已展開</span> : null}
+                  {card.code === currentVariant ? <span className="ad-badge-acid">你的型</span> : null}
+                </div>
+                <div className="ad-subtype-name">{card.title}</div>
+                <div className="ad-subtype-row">
+                  <div className="ad-subtype-label">{card.strategyLabel}</div>
+                  <div className="ad-subtype-value">{card.strategy}</div>
+                </div>
+                <div className="ad-subtype-row">
+                  <div className="ad-subtype-label">{card.energyLabel}</div>
+                  <div className="ad-subtype-value">{card.energy}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="ad-reflect">你現在比較接近哪一種運作模式？是環境讓你如此，還是你選擇了這樣？</p>
+        </div>
+
+        {/* ── 03: DIMENSION SPECTRUM ───────────────────────────── */}
+        <div className="ad-section">
+          <p className="ad-section-kicker">03 · Dimension Spectrum</p>
+          <h2 className="ad-section-title">你的四維光譜</h2>
+          <p className="ad-section-lead">認知偏好是光譜，不是非此即彼的分類。偏向某一端，代表你習慣用那個方式接收和處理世界。</p>
+          <div className="ad-dim-grid">
+            {spectrumRows.slice(0, 4).map((row) => (
+              <div key={row.label} className="ad-dim-card">
+                <div className="ad-dim-letter">{row.selectedCode}</div>
+                <div className="ad-dim-name">{DIM_NAMES[row.selectedCode] ?? row.selectedCode}</div>
+                <div className="ad-dim-track">
+                  <div className="ad-dim-fill" style={{ width: `${row.selectedPct}%` }} />
+                </div>
+                <div className="ad-dim-score">{row.selectedPct}%</div>
+                <div className="ad-dim-tip">{row.description}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── 04: DIGITAL PERSONA ──────────────────────────────── */}
+        {behaviorLogic.length > 0 ? (
+          <div className="ad-section">
+            <p className="ad-section-kicker">04 · Digital Persona</p>
+            <h2 className="ad-section-title">在 2026 數位環境中，你這組怎麼運作？</h2>
+            <p className="ad-section-lead">數位環境讓行為模式更可見。你在這裡的慣性，通常比你對自己的認知更接近真實的樣子。</p>
+            {digitalPersonaIntro ? (
+              <div className="ad-card" style={{ marginBottom: 12 }}>
+                <p style={{ fontSize: 14, lineHeight: 1.88, color: 'var(--t2)' }}>{digitalPersonaIntro}</p>
+              </div>
+            ) : null}
+            <div className="ad-card">
+              <div className="ad-list-label">行為邏輯</div>
+              <ul className="ad-arrow-list">
+                {behaviorLogic.map((item) => (
+                  <li key={item.label}><strong style={{ color: 'var(--t1)', marginRight: 4 }}>{item.label}：</strong>{item.body}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ) : null}
+
+        {/* ── 05: HISTORICAL ARCHETYPES ────────────────────────── */}
+        <div className="ad-section">
+          <p className="ad-section-kicker">05 · Historical Archetypes</p>
+          <h2 className="ad-section-title">同類過渡期的歷史原型</h2>
+          <p className="ad-section-lead">找到跨時代有同樣模式的人，不是要你複製他們。是讓你知道這種思維方式有完整的脈絡，走過去的人不只你一個。</p>
+          <div className="ad-grid-3" style={{ marginBottom: 12 }}>
+            {(psychArchetype?.figures ?? []).slice(0, 3).map((figure) => (
+              <div key={figure.name} className="ad-person-card">
+                <div className="ad-person-name">{figure.name}</div>
+                <div className="ad-person-body">{figure.body}</div>
+              </div>
+            ))}
+          </div>
+          <div className="ad-rarity-card">
+            <div className="ad-rarity-label">⬡ Rarity Profile · 稀缺組合</div>
+            <div className="ad-rarity-body">{psychArchetype?.rarity ?? prototypeCopy.frequencyNote}</div>
+          </div>
+        </div>
+
+        {/* ── 06: CAREER × RELATIONSHIP ────────────────────────── */}
+        <div className="ad-section">
+          <p className="ad-section-kicker">06 · Career × Relationship</p>
+          <h2 className="ad-section-title">{careerContent.title} × {relationshipContent.title}</h2>
+          <p className="ad-section-lead">你在工作裡的反應方式，通常也是你在親密關係中的語言。兩者往往有同樣的心理根源。</p>
+          <div className="ad-grid-2">
+            <div className="ad-card">
+              <div className="ad-list-label" style={{ marginBottom: 12 }}>職涯生存模式</div>
+              <ul className="ad-arrow-list">
+                {careerContent.bullets.map((item) => (
+                  <li key={item.label}>{item.body}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="ad-card">
+              <div className="ad-list-label" style={{ marginBottom: 12 }}>關係運作模式</div>
+              <ul className="ad-arrow-list">
+                {relationshipContent.bullets.map((item) => (
+                  <li key={item.label}>{item.body}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          {suppressedSideText ? (
+            <div className="ad-suppressed-card">
+              <div className="ad-suppressed-label">⬡ Suppressed Side · 壓制面</div>
+              <p className="ad-suppressed-body">{suppressedSideText}</p>
+            </div>
+          ) : null}
+          <p className="ad-reflect">你壓制的那一面，是因為某段經歷，還是從來沒有機會展現？</p>
+        </div>
+
+        {/* ── 07: SOUL REFLECTION ──────────────────────────────── */}
+        <div className="ad-section">
+          <p className="ad-section-kicker">07 · Soul Reflection</p>
+          <h2 className="ad-section-title">{dessertContent.name}</h2>
+          <p className="ad-section-lead">靈魂甜點是一個隱喻，試圖描述讓你感到真實的那種狀態。深問不需要答案，讓問題待在那裡也是一種方式。</p>
+          <div className="ad-grid-2">
+            <div>
+              <div className="ad-card" style={{ marginBottom: 10 }}>
+                <p style={{ fontSize: 14, lineHeight: 1.82, color: 'var(--t2)', marginBottom: 12 }}>
+                  {dessertContent.visualLogic}
+                </p>
+                {dessertContent.pairings.map((pairing) => (
+                  <div key={pairing.label} className="ad-pairing-card">
+                    <div className="ad-pairing-label">{pairing.label}</div>
+                    <div className="ad-pairing-body">{pairing.body}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              {abyssalContent.map((q, idx) => (
+                <div key={q.title} className="ad-abyssal-card">
+                  <div className="ad-abyssal-index">Abyssal 0{idx + 1} · {q.title}</div>
+                  <div className="ad-abyssal-body">{q.body}</div>
                 </div>
               ))}
             </div>
-
-            {!isUnlocked ? (
-              <>
-                <button
-                  type="button"
-                  className="kiwimu-btn kiwimu-btn-cta v2-report-unlock-btn"
-                  onClick={handleCheckout}
-                  disabled={IS_DEV && !isLocalPreview}
-                >
-                  {unlockPrimaryLabel}
-                </button>
-                <p className="v2-report-paywall-price">NT$149 · 一次性 · 永久保存</p>
-              </>
-            ) : null}
           </div>
-        </section>
+        </div>
 
-        <section id="ch-03" className={`v2-report-locked-section ${isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
-          <div className="v2-report-inner">
-            <div className="v2-report-locked-header">
-              <span className="v2-report-locked-label">03 · 四個維度</span>
-              {!isUnlocked ? <span className="v2-report-lock-icon">🔒</span> : null}
+        {/* ── CARRY / IMPORTANT ────────────────────────────────── */}
+        <div className="ad-carry-section">
+          <div className="ad-carry-eyebrow">帶走的字</div>
+          <p className="ad-carry-frame">這份報告讀到這裡，你帶走的不是一個分類，而是一種認識自己的角度。</p>
+          <p className="ad-carry-body">{carryFull}</p>
+          {importantQuote ? (
+            <div className="ad-carry-quote">
+              <p className="ad-carry-quote-text">{importantQuote}</p>
             </div>
-            <h3 className="v2-report-locked-title">{chapterThreeTitle}</h3>
-            <p className="v2-report-section-state">{chapterStatusCopy}</p>
+          ) : null}
+        </div>
 
-            {isUnlocked ? (
-              <div className="v2-report-detail-stack">
-                <div className="v2-report-dimension-grid">
-                  {dimensionBullets.map((item) => (
-                    <article key={item.label} className="v2-report-detail-card">
-                      <p className="v2-report-card-label">{item.label}</p>
-                      <p>{item.body}</p>
-                    </article>
-                  ))}
-                </div>
-
-                <div className="v2-report-spectrum-panel">
-                  <p className="v2-report-card-label">認知光譜</p>
-                  <p className="v2-report-spectrum-tip">{dimensionTip}</p>
-                  <div className="v2-report-spectrum-list">
-                    {spectrumRows.map((row) => (
-                      <article key={row.label} className="v2-report-spectrum-row">
-                        <div className="v2-report-spectrum-head">
-                          <div>
-                            <h4>{row.label}</h4>
-                            <p>{row.description}</p>
-                          </div>
-                          <span>{row.selectedCode} / {row.oppositeCode}</span>
-                        </div>
-                        <div className="v2-report-spectrum-track">
-                          <div className="v2-report-spectrum-dot" style={{ left: `calc(${row.selectedPct}% - 8px)` }} />
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="v2-report-tease-grid">
-                {dimensionBullets.slice(0, 4).map((item) => (
-                  <article key={item.label} className="v2-report-tease-card">
-                    <p className="v2-report-tease-label">{item.label}</p>
-                    <p className="v2-report-tease-copy">{item.body}</p>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section id="ch-04" className={`v2-report-locked-section ${isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
-          <div className="v2-report-inner">
-            <div className="v2-report-locked-header">
-              <span className="v2-report-locked-label">04 · 你怎麼活</span>
-              {!isUnlocked ? <span className="v2-report-lock-icon">🔒</span> : null}
-            </div>
-            <h3 className="v2-report-locked-title">職涯、感情，以及被壓住的另一面</h3>
-            <p className="v2-report-section-state">{chapterStatusCopy}</p>
-
-            {isUnlocked ? (
-              <div className="v2-report-life-grid">
-              <article className="v2-report-detail-card">
-                <p className="v2-report-card-label">職涯</p>
-                <h4>{careerContent.title}</h4>
-                {careerContent.bullets.map((item) => (
-                  <div key={item.label} className="v2-report-card-copy">
-                    <p className="v2-report-card-label">{item.label}</p>
-                    <p>{item.body}</p>
-                  </div>
-                ))}
-              </article>
-
-              <article className="v2-report-detail-card">
-                <p className="v2-report-card-label">關係</p>
-                <h4>{relationshipContent.title}</h4>
-                {relationshipContent.bullets.map((item) => (
-                  <div key={item.label} className="v2-report-card-copy">
-                    <p className="v2-report-card-label">{item.label}</p>
-                    <p>{item.body}</p>
-                  </div>
-                ))}
-              </article>
-
-              <article className="v2-report-detail-card">
-                <p className="v2-report-card-label">另一面</p>
-                <h4>{oppositeSideTitle}</h4>
-                <div className="v2-report-card-copy">
-                  <p>{oppositeSideItems[0]?.body || oppositeCompareCard.strategy}</p>
-                </div>
-                <div className="v2-report-card-copy">
-                  <p>{oppositeSideItems[1]?.body || oppositeCompareCard.energy}</p>
-                </div>
-              </article>
-              </div>
-            ) : (
-              <div className="v2-report-tease-list">
-                <article className="v2-report-tease-row">
-                  <p className="v2-report-tease-label">職涯</p>
-                  <p className="v2-report-tease-copy">{careerContent.bullets[0]?.body || careerContent.title}</p>
-                </article>
-                <article className="v2-report-tease-row">
-                  <p className="v2-report-tease-label">關係</p>
-                  <p className="v2-report-tease-copy">{relationshipContent.bullets[0]?.body || relationshipContent.title}</p>
-                </article>
-                <article className="v2-report-tease-row">
-                  <p className="v2-report-tease-label">另一面</p>
-                  <p className="v2-report-tease-copy">{oppositeSideItems[0]?.body || oppositeSideTitle}</p>
-                </article>
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section id="ch-05" className={`v2-report-locked-section ${isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
-          <div className="v2-report-inner">
-            <div className="v2-report-locked-header">
-              <span className="v2-report-locked-label">05 · 你的原型</span>
-              {!isUnlocked ? <span className="v2-report-lock-icon">🔒</span> : null}
-            </div>
-            <h3 className="v2-report-locked-title">{isUnlocked ? '世界上的位置，不只是一個人口比例' : archetypeTeaserTitle || '世界上的位置，不只是一個人口比例'}</h3>
-            <p className="v2-report-section-state">{chapterStatusCopy}</p>
-            {chapterFiveLead ? <p className="v2-report-section-lead">{chapterFiveLead}</p> : null}
-
-            {isUnlocked ? (
-              <div className="v2-report-archetype-grid">
-                <article className="v2-report-rarity-card">
-                  <p className="v2-report-card-label">{prototypeCopy.frequencyPrimaryLabel}</p>
-                  <p className="v2-report-rarity-value">{prototypeCopy.frequencyPrimary}</p>
-                  <p>{psychArchetype?.rarity || prototypeCopy.frequencyNote}</p>
-                  <p className="v2-muted-copy">{prototypeCopy.frequencySecondaryLabel} · {prototypeCopy.frequencySecondary}</p>
-                  {rarityData ? (
-                    <p className="v2-muted-copy">資料底：{resultData.id} 基礎人口占比約 {rarityData.totalPopulation}%</p>
-                  ) : null}
-                </article>
-
-                {psychArchetype ? (
-                  <article className="v2-report-detail-card v2-report-archetype-state-card">
-                    <p className="v2-report-card-label">切面說明</p>
-                    <p>{psychArchetype.stateName}</p>
-                    <div className="v2-report-card-copy">
-                      <p>{psychArchetype.rarity}</p>
-                    </div>
-                  </article>
-                ) : null}
-
-                {(psychArchetype?.figures || []).slice(0, 3).map((figure) => (
-                  <article key={figure.name} className="v2-report-detail-card">
-                    <p className="v2-report-card-label">人物切面</p>
-                    <h4>{figure.name}</h4>
-                    <p>{figure.body}</p>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <div className="v2-report-tease-grid">
-                {chapterFiveLead ? (
-                  <article className="v2-report-tease-card">
-                    <p className="v2-report-tease-label">心理切面</p>
-                    <p className="v2-report-tease-copy">{chapterFiveLead}</p>
-                  </article>
-                ) : null}
-                {(psychArchetype?.figures || []).slice(0, 2).map((figure) => (
-                  <article key={figure.name} className="v2-report-tease-card">
-                    <p className="v2-report-tease-label">{figure.name}</p>
-                    <p className="v2-report-tease-copy">{figure.body}</p>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        <section id="ch-06" className={`v2-report-locked-section v2-report-carry-section ${isUnlocked ? 'is-unlocked' : 'is-locked'}`}>
-          <div className="v2-report-inner">
-            <div className="v2-report-locked-header">
-              <span className="v2-report-locked-label">06 · 帶走這個</span>
-              {!isUnlocked ? <span className="v2-report-lock-icon">🔒</span> : null}
-            </div>
-            <h3 className="v2-report-locked-title">靈魂甜點 · 深問三題 · 讀完之後留下來的東西</h3>
-            <p className="v2-report-section-state">{chapterStatusCopy}</p>
-            {chapterSixLead ? <p className="v2-report-section-lead">{chapterSixLead}</p> : null}
-
-            {isUnlocked ? (
-              <div className="v2-report-reflection-grid">
-              <article className="v2-report-detail-card">
-                <p className="v2-report-card-label">靈魂甜點</p>
-                <h4>{dessertContent.name}</h4>
-                <p>{dessertContent.visualLogic}</p>
-                <div className="v2-report-dessert-pairings">
-                  {dessertContent.pairings.map((item) => (
-                    <div key={`${item.label}-${item.body}`} className="v2-report-pairing-chip">{item.label}：{item.body}</div>
-                  ))}
-                </div>
-              </article>
-
-              <div className="v2-report-question-stack">
-                {abyssalContent.map((question, index) => (
-                  <article key={question.title} className="v2-report-detail-card">
-                    <p className="v2-report-card-label">深問 0{index + 1}</p>
-                    <h4>{question.title}</h4>
-                    <p>{question.body}</p>
-                  </article>
-                ))}
-              </div>
-
-              <article className="v2-report-carry-card">
-                <p className="v2-report-card-label">帶走這個</p>
-                <p className="v2-report-carry-line">{carryFull}</p>
-              </article>
-              </div>
-            ) : (
-              <div className="v2-report-tease-grid">
-                <article className="v2-report-tease-card">
-                  <p className="v2-report-tease-label">靈魂甜點</p>
-                  <p className="v2-report-tease-copy">{dessertContent.name}</p>
-                </article>
-                {abyssalContent[0] ? (
-                  <article className="v2-report-tease-card">
-                    <p className="v2-report-tease-label">深問 01</p>
-                    <p className="v2-report-tease-copy">{abyssalContent[0].title}</p>
-                  </article>
-                ) : null}
-                <article className="v2-report-tease-card">
-                  <p className="v2-report-tease-label">帶走這個</p>
-                  <p className="v2-report-tease-copy">{carryLine}</p>
-                </article>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {isUnlocked ? (
-        <footer className="v2-report-footer">
-          <div>
-            <p className="v2-label v2-label-on-dark">KIWIMU SOUL DESSERT</p>
-            <h2>{dessertContent.name || prototypeCopy.footerTitle}</h2>
-            <p>{dessertContent.visualLogic || prototypeCopy.footerSubtitle}</p>
-          </div>
-
-          <KiwimuCharacter className="v2-footer-kiwimu" state="ascend" />
-
-          <div className="v2-footer-actions">
+        {/* ── FOOTER ───────────────────────────────────────────── */}
+        <div className="ad-footer">
+          <p className="ad-footer-title">你的靈魂甜點已選定</p>
+          <p className="ad-footer-sub">{dessertContent.name} — 在月島的某個角落等你</p>
+          <div className="ad-btn-row">
             <a
               href={dessertOrderUrl}
               target="_blank"
               rel="noreferrer"
-              className="kiwimu-btn kiwimu-btn-cta"
+              className="ad-btn-primary"
               onClick={() => trackDessertOrderClick(resultData.id, variant)}
             >
               🍰 立即訂購你的靈魂甜點
             </a>
-            <button type="button" className="kiwimu-btn kiwimu-btn-dark" onClick={handleShareStory}>
+            <button type="button" className="ad-btn-ghost" onClick={handleShareStory}>
               📱 分享到 IG Story
             </button>
           </div>
-        </footer>
-        ) : null}
+        </div>
+        </>
+      )}
 
-        {IS_DEV ? (
-          <section className="v2-dev-strip">
-            <div>
-              <p className="v2-label">LOCAL DEBUG</p>
-              <p>source={source} · mbti={fullType} · entitlement={isUnlocked ? 'unlocked' : 'locked'}</p>
-            </div>
-            <div className="v2-dev-actions">
-              {isUnlocked ? (
-                <button type="button" className="kiwimu-btn" onClick={() => window.print()}>
-                  列印目前頁面
-                </button>
-              ) : null}
-              {isLocalPreview ? (
-                <button type="button" className="kiwimu-btn" onClick={handleResetPreview}>
-                  重置預覽鎖定
-                </button>
-              ) : null}
-            </div>
-          </section>
-        ) : null}
-      </main>
+      {/* ── DEV STRIP ────────────────────────────────────────── */}
+      {IS_DEV ? (
+        <section className="v2-dev-strip" style={{ marginTop: 32 }}>
+          <div>
+            <p className="v2-label">LOCAL DEBUG</p>
+            <p>source={source} · mbti={fullType} · entitlement={isUnlocked ? 'unlocked' : 'locked'}</p>
+          </div>
+          <div className="v2-dev-actions">
+            {isUnlocked ? (
+              <button type="button" className="kiwimu-btn" onClick={() => window.print()}>
+                列印目前頁面
+              </button>
+            ) : null}
+            {isLocalPreview ? (
+              <button type="button" className="kiwimu-btn" onClick={handleResetPreview}>
+                重置預覽鎖定
+              </button>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      </div>{/* /ad-page */}
     </div>
   );
 }

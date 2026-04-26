@@ -147,12 +147,12 @@ export const V2_TAIWAN_QUESTIONS: V2GeneratedQuestion[] = [
     questionId: "Q10",
     country: "Taiwan",
     dimension: "SN",
-    text: "站在窗邊看著一張安靜樹林的照片，你腦中第一個浮現的念頭比較接近：",
+    text: "走進一間第一次去的咖啡廳，你第一眼掃視整個空間，腦中最先跑出來的念頭是：",
     options: [
-      { id: 'a', label: "著眼於具體細節：「實際溫度大概多少？葉子顏色適合什麼濾鏡？空氣聞起來像雨後嗎？」", value: "S" },
-      { id: 'b', label: "充滿故事性的聯想：「這根本自帶主角感…如果我走進去，人生會不會直接翻盤？」", value: "N" },
+      { id: 'a', label: "「哪個位置最好坐？插座夠不夠用？人多嗎？光線這樣適合拍照嗎？」──直覺盤點現場每個實際條件。", value: "S" },
+      { id: 'b', label: "「這個氛圍是什麼感覺……好像某部電影的場景？如果我常坐這個角落，感覺會很不一樣。」──腦中已經開始編故事了。", value: "N" },
     ],
-    culturalNote: "五感與現實細節 vs 充滿想像力的主角感。",
+    culturalNote: "五感細節現場評估 vs 氛圍聯想與故事投射。",
     weight: 1,
   },
   {
@@ -277,12 +277,12 @@ export const V2_TAIWAN_QUESTIONS: V2GeneratedQuestion[] = [
     questionId: "Q20",
     country: "Taiwan",
     dimension: "TF",
-    text: "你比較希望別人私底下怎麼形容你這個人？",
+    text: "要做一個重要但有點兩難的決定時，你腦袋裡最先轉的問題是：",
     options: [
-      { id: 'a', label: "「這個人判斷力超強，做事非常專業、極度有能力，交給他絕對放心。」", value: "T" },
-      { id: 'b', label: "「這個人超好相處，情商很高，跟他在一起總是覺得很安心、很溫暖。」", value: "F" },
+      { id: 'a', label: "「這樣做合不合邏輯？哪個選項比較有根據、比較站得住腳？」──優先確認合理性再說。", value: "T" },
+      { id: 'b', label: "「這樣做，身邊的人感受如何？有沒有誰會因此難受或受到影響？」──優先考慮對人的衝擊。", value: "F" },
     ],
-    culturalNote: "被肯定能力與專業 vs 被肯定溫暖與好相處。",
+    culturalNote: "決策導向：邏輯合理性 vs 人際影響評估。",
     weight: 1,
   },
   {
@@ -448,10 +448,10 @@ export const V2_TAIWAN_QUESTIONS: V2GeneratedQuestion[] = [
     dimension: "AT",
     text: "事情突然大反轉、不照你的計畫走時，你內心的第一反應是：",
     options: [
-      { id: 'a', label: "啟動 Lucky Vicky 的正向轉念！深呼吸一下想：「好，那接下來我可以怎麼辦？說不定這樣更好！」", value: "A" },
-      { id: 'b', label: "先經歷一陣焦慮。腦中開始瘋狂重播，檢討是不是自己哪裡沒做好才導致這個結果。", value: "Turbulent" },
+      { id: 'a', label: "深呼吸一下，很快就轉念：「好，那接下來我可以怎麼辦？說不定這樣反而更好。」然後開始重新規劃行動。", value: "A" },
+      { id: 'b', label: "先經歷一陣焦慮。腦中開始瘋狂重播，反覆檢討是不是自己哪裡沒做好才導致這個結果。", value: "Turbulent" },
     ],
-    culturalNote: "加入了使用者提議的「Lucky Vicky (張員瑛轉念法)」正向思考。",
+    culturalNote: "穩定轉念能力 vs 焦慮反芻與自我檢討。",
     weight: 2,
   },
   {

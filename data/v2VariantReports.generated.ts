@@ -1,7 +1,7 @@
 /* eslint-disable */
 // AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY.
 // Source: /Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_報告_32變體草案庫
-// Generated at: 2026-04-23T13:43:36.701Z
+// Generated at: 2026-04-25T08:03:13.127Z
 // Run: node scripts/generate-v2-variant-reports.mjs
 
 export type V2VariantReport = {
@@ -4360,11 +4360,28 @@ export const V2_VARIANT_REPORTS: Record<string, V2VariantReport> = {
       "behaviorLogic": []
     },
     "professional": {
-      "coreTitle": "",
-      "coreBody": "",
-      "subtypeTitle": "",
-      "subtypeLabel": "",
-      "subtypeItems": []
+      "coreTitle": "感受是真實，標籤是暫時的",
+      "coreBody": "你相信當下的感受比任何框架都更真實。你對自己的美感選擇有自然的自信，對他人的評價有自然的過濾能力。你不是拒絕成長，你是拒絕「被別人定義的成長方向」。",
+      "subtypeTitle": "流動詩人",
+      "subtypeLabel": "A 變體深描",
+      "subtypeItems": [
+        {
+          "label": "保護策略",
+          "body": "你把生活維持在「不把自己綁進任何固定角色」的空氣感。不簽長期合約、不讓任何一個身份把你吃掉、不提前決定「我就是這樣的人」。這讓你保持輕盈，保留轉向的自由。"
+        },
+        {
+          "label": "情緒能量",
+          "body": "你完全活在自己的節奏裡。外界的評價進不來不是因為你不在乎，是因為你有一套內在的篩選機制，讓「這個人的話值得聽」和「這個人的話可以飄過去」非常清楚。"
+        },
+        {
+          "label": "美感自信",
+          "body": "你對自己的選擇有天然的底氣，不需要別人的確認。你穿的、用的、做的，都是你當下最真實的表達，不需要解釋。"
+        },
+        {
+          "label": "代價",
+          "body": "你的流動性讓你很少在一件事或一段關係裡真的「深下去」。有時候你不確定自己是真的輕盈，還是其實有點怕被某件事綁住之後發現自己喜歡它。"
+        }
+      ]
     },
     "tags": [
       {
@@ -4393,7 +4410,7 @@ export const V2_VARIANT_REPORTS: Record<string, V2VariantReport> = {
       }
     ],
     "dimension": {
-      "tip": "",
+      "tip": "在 2026 數位荒原中，你的維度如何運作？",
       "bullets": [
         {
           "label": "I（內向）",
@@ -4493,11 +4510,28 @@ export const V2_VARIANT_REPORTS: Record<string, V2VariantReport> = {
       "behaviorLogic": []
     },
     "professional": {
-      "coreTitle": "",
-      "coreBody": "",
-      "subtypeTitle": "",
-      "subtypeLabel": "",
-      "subtypeItems": []
+      "coreTitle": "感受是真實，但說出來很難",
+      "coreBody": "你的感受比大多數人都更細膩，但你非常少讓人真的看見它們。不是因為你不在乎，是因為你太清楚「說出來之後被誤解」是什麼感覺，所以你寧願把它藏在一個只有你自己看得懂的地方。",
+      "subtypeTitle": "情緒暗流畫家",
+      "subtypeLabel": "T 變體深描",
+      "subtypeItems": [
+        {
+          "label": "保護策略",
+          "body": "用下一個刺激壓住焦慮。找新的東西迷上、沉浸在某個感官體驗、讓自己永遠有一個正在探索的事，這樣就不用直接面對「我到底感覺怎麼樣」這個問題。"
+        },
+        {
+          "label": "情緒能量",
+          "body": "你對批評非常敏感，但你的反應不是爆發，而是縮回去。你會在心裡把那句話翻過來看很多遍，然後把它壓進作品，或者壓進沉默。"
+        },
+        {
+          "label": "創作的重量",
+          "body": "你的作品（不管是什麼形式）裡面藏著大量沒說出口的感受。這讓你的表達有一種別人說不清楚的「有什麼在裡面」的質感，但代價是你越來越擅長用作品代替說話。"
+        },
+        {
+          "label": "代價",
+          "body": "你把感受藏進去的地方越來越多，但你真正說出口的越來越少。你不孤單，但你越來越習慣一個人消化所有的東西。"
+        }
+      ]
     },
     "tags": [
       {
@@ -4526,7 +4560,7 @@ export const V2_VARIANT_REPORTS: Record<string, V2VariantReport> = {
       }
     ],
     "dimension": {
-      "tip": "",
+      "tip": "在 2026 數位荒原中，你的維度如何運作？",
       "bullets": [
         {
           "label": "I（內向）",
@@ -4952,11 +4986,28 @@ export const V2_VARIANT_REPORTS: Record<string, V2VariantReport> = {
       "behaviorLogic": []
     },
     "professional": {
-      "coreTitle": "",
-      "coreBody": "",
-      "subtypeTitle": "",
-      "subtypeLabel": "",
-      "subtypeItems": []
+      "coreTitle": "手和腦都要動才算活著",
+      "coreBody": "你不是靠想像力生存的人，你靠的是真實的反應和準確的操作。拆解一台壞掉的機器、找出系統的漏洞、在別人還在開會時你已經修完了——這才叫有效率。你對空話、對儀式性的社交、對沒有實際產出的討論，有著本能的不耐煩。",
+      "subtypeTitle": "自由機師",
+      "subtypeLabel": "A 變體深描",
+      "subtypeItems": [
+        {
+          "label": "保護策略",
+          "body": "你把生活維持在「我可以隨時起身離開」的空氣感。不深入承諾、不把自己鎖在固定角色、不讓別人的期待框住你的行動半徑。這給你一種掌控感：只要我不被綁住，就不會被傷到。"
+        },
+        {
+          "label": "情緒能量",
+          "body": "你幾乎不在事後反芻。事情發生，你處理，你繼續前進。這不是你沒感覺，是你早就學會了把情緒放在當下解完之後再說——然後通常就忘了說。"
+        },
+        {
+          "label": "穩定核心",
+          "body": "外界搖晃的時候你不會跟著搖。危機讓你清醒，混亂給你空間，在別人失去判斷力的時候你的手反而更穩。"
+        },
+        {
+          "label": "代價",
+          "body": "你越來越難讓別人真的靠近你。不是因為你不想，是因為你已經習慣了「不需要任何人確認我還在」的狀態。你不孤單，但你越來越少被看見。"
+        }
+      ]
     },
     "tags": [
       {
@@ -4985,7 +5036,7 @@ export const V2_VARIANT_REPORTS: Record<string, V2VariantReport> = {
       }
     ],
     "dimension": {
-      "tip": "",
+      "tip": "在 2026 數位荒原中，你的維度如何運作？",
       "bullets": [
         {
           "label": "I（內向）",
@@ -5085,11 +5136,28 @@ export const V2_VARIANT_REPORTS: Record<string, V2VariantReport> = {
       "behaviorLogic": []
     },
     "professional": {
-      "coreTitle": "",
-      "coreBody": "",
-      "subtypeTitle": "",
-      "subtypeLabel": "",
-      "subtypeItems": []
+      "coreTitle": "手和腦都要動才算活著",
+      "coreBody": "你靠具體的操作和準確的判斷來感受自己存在。但 T 版的你還多了一層：你用這件事來對抗另一件你不想直視的事——「手停下來之後，我是誰？」這個問題不是沒答案，只是你還沒準備好讓它真的被你聽見。",
+      "subtypeTitle": "深夜修車工",
+      "subtypeLabel": "T 變體深描",
+      "subtypeItems": [
+        {
+          "label": "保護策略",
+          "body": "用下一個刺激壓住焦慮。手不停、腦不空，就不用去想「我是不是根本沒有在好好活」。你不是不想休息，你是不確定休息之後能不能撐住。"
+        },
+        {
+          "label": "情緒能量",
+          "body": "你內心會冒出「我這樣到底夠不夠」的質疑，然後你把它轉成更精進的動力。這讓你越來越好，但也讓你越來越難告訴自己「現在這樣就夠了」。"
+        },
+        {
+          "label": "焦慮的形狀",
+          "body": "你的焦慮不是大喊大叫的那種。它更像深夜的低頻嗡嗡聲——不是讓你崩潰，是讓你靜不下來。"
+        },
+        {
+          "label": "代價",
+          "body": "你把大量的精力投在技術和問題解決上，然後發現自己對「不需要解決什麼的時刻」感到陌生，甚至有點不安。"
+        }
+      ]
     },
     "tags": [
       {
@@ -5118,7 +5186,7 @@ export const V2_VARIANT_REPORTS: Record<string, V2VariantReport> = {
       }
     ],
     "dimension": {
-      "tip": "",
+      "tip": "在 2026 數位荒原中，你的維度如何運作？",
       "bullets": [
         {
           "label": "I（內向）",
