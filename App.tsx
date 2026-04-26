@@ -62,6 +62,7 @@ import ResultLegacyDump from './components/ResultLegacyDump';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
 import V2App from './components/v2/V2App';
 import V2QuizFlow from './components/v2/V2QuizFlow';
+import V2QaNotes from './components/v2/V2QaNotes';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 import AnswersHub from './pages/AnswersHub';
 import { applyRuntimeSeo } from './utils/seo';
@@ -860,7 +861,12 @@ const App: React.FC = () => {
   // V2 /read 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
   if (isV2Pathname(_path)) {
     const normalizedV2Path = normalizeV2Pathname(_path);
-    return normalizedV2Path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>;
+    return (
+      <>
+        {normalizedV2Path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>}
+        <V2QaNotes />
+      </>
+    );
   }
 
   if (loadingAuth && stage !== 'callback') {
