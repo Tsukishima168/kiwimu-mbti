@@ -966,6 +966,7 @@ export default function V2App({ user }: V2AppProps) {
 
         <blockquote className="ad-hero-quote">{coverQuote}</blockquote>
         <p className="ad-hero-abstract">{abstractContent}</p>
+        <p className="ad-hero-snapshot">這份報告是你此刻的心理快照，不是固定的標籤。人在不同階段、不同狀態下，側重點會移動。</p>
 
         <div className="ad-hero-state">
           <span className="ad-hero-state-dot" />
@@ -1025,6 +1026,7 @@ export default function V2App({ user }: V2AppProps) {
         <div className="ad-section">
           <p className="ad-section-kicker">02 · Professional Insights</p>
           <h2 className="ad-section-title">{professionalTitle}</h2>
+          <p className="ad-section-lead">壓力與安穩之間，同一個人會用不同的方式運作。A 與 T 並非優劣，而是兩種真實的狀態切換。</p>
           <div className="ad-card" style={{ marginBottom: 10 }}>
             <p style={{ fontSize: 15, lineHeight: 1.88, color: 'var(--t2)' }}>{professionalBody}</p>
           </div>
@@ -1050,12 +1052,14 @@ export default function V2App({ user }: V2AppProps) {
               </div>
             ))}
           </div>
+          <p className="ad-reflect">你現在比較接近哪一種運作模式？是環境讓你如此，還是你選擇了這樣？</p>
         </div>
 
         {/* ── 03: DIMENSION SPECTRUM ───────────────────────────── */}
         <div className="ad-section">
           <p className="ad-section-kicker">03 · Dimension Spectrum</p>
           <h2 className="ad-section-title">你的四維光譜</h2>
+          <p className="ad-section-lead">認知偏好是光譜，不是非此即彼的分類。偏向某一端，代表你習慣用那個方式接收和處理世界。</p>
           <div className="ad-dim-grid">
             {spectrumRows.slice(0, 4).map((row) => (
               <div key={row.label} className="ad-dim-card">
@@ -1076,6 +1080,7 @@ export default function V2App({ user }: V2AppProps) {
           <div className="ad-section">
             <p className="ad-section-kicker">04 · Digital Persona</p>
             <h2 className="ad-section-title">在 2026 數位環境中，你這組怎麼運作？</h2>
+            <p className="ad-section-lead">數位環境讓行為模式更可見。你在這裡的慣性，通常比你對自己的認知更接近真實的樣子。</p>
             {digitalPersonaIntro ? (
               <div className="ad-card" style={{ marginBottom: 12 }}>
                 <p style={{ fontSize: 14, lineHeight: 1.88, color: 'var(--t2)' }}>{digitalPersonaIntro}</p>
@@ -1096,6 +1101,7 @@ export default function V2App({ user }: V2AppProps) {
         <div className="ad-section">
           <p className="ad-section-kicker">05 · Historical Archetypes</p>
           <h2 className="ad-section-title">同類過渡期的歷史原型</h2>
+          <p className="ad-section-lead">找到跨時代有同樣模式的人，不是要你複製他們。是讓你知道這種思維方式有完整的脈絡，走過去的人不只你一個。</p>
           <div className="ad-grid-3" style={{ marginBottom: 12 }}>
             {(psychArchetype?.figures ?? []).slice(0, 3).map((figure) => (
               <div key={figure.name} className="ad-person-card">
@@ -1114,6 +1120,7 @@ export default function V2App({ user }: V2AppProps) {
         <div className="ad-section">
           <p className="ad-section-kicker">06 · Career × Relationship</p>
           <h2 className="ad-section-title">{careerContent.title} × {relationshipContent.title}</h2>
+          <p className="ad-section-lead">你在工作裡的反應方式，通常也是你在親密關係中的語言。兩者往往有同樣的心理根源。</p>
           <div className="ad-grid-2">
             <div className="ad-card">
               <div className="ad-list-label" style={{ marginBottom: 12 }}>職涯生存模式</div>
@@ -1138,12 +1145,14 @@ export default function V2App({ user }: V2AppProps) {
               <p className="ad-suppressed-body">{suppressedSideText}</p>
             </div>
           ) : null}
+          <p className="ad-reflect">你壓制的那一面，是因為某段經歷，還是從來沒有機會展現？</p>
         </div>
 
         {/* ── 07: SOUL REFLECTION ──────────────────────────────── */}
         <div className="ad-section">
           <p className="ad-section-kicker">07 · Soul Reflection</p>
           <h2 className="ad-section-title">{dessertContent.name}</h2>
+          <p className="ad-section-lead">靈魂甜點是一個隱喻，試圖描述讓你感到真實的那種狀態。深問不需要答案，讓問題待在那裡也是一種方式。</p>
           <div className="ad-grid-2">
             <div>
               <div className="ad-card" style={{ marginBottom: 10 }}>
@@ -1172,6 +1181,7 @@ export default function V2App({ user }: V2AppProps) {
         {/* ── CARRY / IMPORTANT ────────────────────────────────── */}
         <div className="ad-carry-section">
           <div className="ad-carry-eyebrow">帶走的字</div>
+          <p className="ad-carry-frame">這份報告讀到這裡，你帶走的不是一個分類，而是一種認識自己的角度。</p>
           <p className="ad-carry-body">{carryFull}</p>
           {importantQuote ? (
             <div className="ad-carry-quote">
