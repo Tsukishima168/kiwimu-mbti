@@ -513,7 +513,7 @@ export const V2_TAIWAN_QUESTIONS: V2GeneratedQuestion[] = [
     dimension: "AT",
     text: "面對未來可能發生的各種風險與不確定性，你通常的心態是：",
     options: [
-      { id: 'a', label: "「船到橋頭自然直，真的發生了再說，到時候總會有辦法處理的。」主打一個兵來將擋的樂觀。", value: "A" },
+      { id: 'a', label: "「真的發生了再說，到時候總會有辦法處理的。」對那些還沒成真的風險，大腦不太會提前拉警報。", value: "A" },
       { id: 'b', label: "超級危機管理師。會先在腦袋裡把最糟的劇本都演過一遍，預想好各種備案跟退路才會安心。", value: "Turbulent" },
     ],
     culturalNote: "樂觀面對未知 vs 災難化思考與嚴謹備案。",
