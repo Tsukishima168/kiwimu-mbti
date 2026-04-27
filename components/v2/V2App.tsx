@@ -160,56 +160,6 @@ const SPECTRUM_CONFIG: Array<{
 
 const cleanText = (value?: string | null) => (value || '').replace(/\s*---\s*$/, '').replace(/[「」]/g, '').trim();
 
-const toAnchorSentence = (value?: string | null) => {
-  const sentence = cleanText(value).split(/[。！？]/u)[0]?.trim();
-  if (!sentence) {
-    return '';
-  }
-
-  return `${sentence.replace(/[，、；：,:;]$/u, '')}。`;
-};
-
-const splitCoverQuote = (value?: string | null) => {
-  const normalized = cleanText(value);
-  if (!normalized) {
-    return { lead: '', tail: '' };
-  }
-
-  const parts = normalized.split(/[，,]/u).map((part) => part.trim()).filter(Boolean);
-  if (parts.length <= 1) {
-    return { lead: normalized, tail: '' };
-  }
-
-  return {
-    lead: `${parts[0]}，`,
-    tail: parts.slice(1).join('，'),
-  };
-};
-
-const splitCoverSubcopy = (value?: string | null) => {
-  const normalized = cleanText(value);
-  if (!normalized) {
-    return [];
-  }
-
-  return normalized
-    .split(/[。！？]/u)
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .slice(0, 3);
-};
-
-const humanizeVariantCopy = (value: string, variant: VariantCode) => {
-  const readableState = variant === 'A' ? '穩定輸出狀態下的你' : '高敏調整狀態下的你';
-  return value
-    .replace(/^[ＡA]\s*版的你/u, readableState)
-    .replace(/^[ＴT]\s*版的你/u, readableState)
-    .replace(/[ＡA]\s*版的你/g, readableState)
-    .replace(/[ＴT]\s*版的你/g, readableState)
-    .replace(/[ＡA]\s*版/g, '穩定輸出狀態')
-    .replace(/[ＴT]\s*版/g, '高敏調整狀態');
-};
-
 const getOppositeKey = (selectedKey: PercentageKey): PercentageKey => {
   switch (selectedKey) {
     case 'E':
@@ -707,7 +657,7 @@ export default function V2App({ user }: V2AppProps) {
                 </p>
               </div>
             ) : (
-              <p className="mt-5 text-base leading-relaxed text-black/70">
+              <p className="mt-5 text-base leading-relaxed text-white/70">
                 V2 把 16 型再拆成 32 種變體，疊上心理原型層與歷史軌跡，寫成一份只屬於你的深度報告。<br />
                 目前內容仍在最後校對，先用下面的入口認識自己的 MBTI。
               </p>
@@ -720,12 +670,12 @@ export default function V2App({ user }: V2AppProps) {
               ].map((line) => (
                 <div
                   key={line}
-                  className="flex items-center gap-2 text-black/50"
+                  className="flex items-center gap-2 text-white/40"
                   style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
                 >
                   <span
                     className="inline-block w-1.5 h-1.5 rounded-full"
-                    style={{ background: '#CCFF00', border: '1px solid #1A1A1A' }}
+                    style={{ background: '#CCFF00' }}
                   />
                   {line}
                 </div>
@@ -741,13 +691,12 @@ export default function V2App({ user }: V2AppProps) {
               <a
                 href="/read/quiz"
                 className="kiwimu-btn flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]"
-                style={{ color: '#1A1A1A' }}
               >
                 30 秒 V1.5 分流
               </a>
             </div>
             <p
-              className="mt-6 text-black/40"
+              className="mt-6 text-white/30"
               style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
             >
               V2 上線後會在這裡公布。先做 V1 / V1.5，型別資料未來可以直接帶進來。
@@ -781,23 +730,16 @@ export default function V2App({ user }: V2AppProps) {
   const oppositeVariantReport = getV2VariantReport(`${resultData.id}-${oppositeVariant}`);
   const psychArchetype = getV2PsychArchetype(fullType);
   const dimensionBullets = variantReport?.dimension.bullets.length ? variantReport.dimension.bullets : report.dimension.bullets;
-  const displayDimensionBullets = dimensionBullets.map((item) => ({
-    label: cleanText(item.label)
-      .replace(/^[ＡA]\s*\([^)]*(自信|IDENTITY|Identity)[^)]*\)$/u, '穩定輸出狀態')
-      .replace(/^[ＴT]\s*\([^)]*(謹慎|IDENTITY|Identity)[^)]*\)$/u, '高敏調整狀態'),
-    body: humanizeVariantCopy(cleanText(item.body), currentVariant),
-  }));
   const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, dimensionBullets);
-  const rarityData = getRarityData(resultData.id);
   const dessertOrderUrl = buildDessertOrderLink(resultData.id, variant);
   const versionTags = variantReport?.tags.length
     ? variantReport.tags.map((tag) => cleanText(tag.label)).filter(Boolean).slice(0, 6)
     : buildVersionTagWall(report, currentVariant, prototypeCopy.tags);
   const rootStyle = {
-    '--v2-ink': '#1A1A1A',
+    '--v2-ink': 'var(--t1)',
     '--v2-acid': '#CCFF00',
-    '--v2-paper': '#F8F8F5',
-    '--v2-muted': '#888880',
+    '--v2-paper': 'var(--bg-2)',
+    '--v2-muted': 'var(--t3)',
     '--v2-family': familyMeta.familyAccent,
     '--v2-stage': familyMeta.familyStage,
   } as React.CSSProperties;
@@ -822,9 +764,6 @@ export default function V2App({ user }: V2AppProps) {
 
   const currentCompareCard =
     compareCards.find((card) => card.code === currentVariant) || compareCards[0];
-  const oppositeCompareCard =
-    compareCards.find((card) => card.code !== currentVariant) || compareCards[1];
-  const oppositeSubtype = report.professional.subtypes[oppositeVariant];
   const abstractContent = variantReport?.abstract.body || report.abstract.body;
   const professionalTitle = cleanText(variantReport?.professional.coreTitle || report.professional.coreTitle);
   const professionalBody = cleanText(variantReport?.professional.coreBody || report.professional.coreBody);
@@ -834,64 +773,9 @@ export default function V2App({ user }: V2AppProps) {
   const dessertContent = variantReport?.dessert.name ? variantReport.dessert : report.dessert;
   const abyssalContent = variantReport?.abyssal.length ? variantReport.abyssal : report.abyssal;
   const carryFull = cleanText(variantReport?.carry || variantReport?.important || report.closing);
-  const oppositeSideTitle = cleanText(oppositeVariantReport?.professional.subtypeTitle || oppositeSubtype.title);
-  const oppositeSideItems = oppositeVariantReport?.professional.subtypeItems.length
-    ? oppositeVariantReport.professional.subtypeItems
-    : oppositeSubtype.items;
   const coverQuote = cleanText(variantReport?.soulQuote || report.soulQuote || variantReport?.important || report.closing || resultData.quote || abstractContent);
-  const coverQuoteParts = splitCoverQuote(coverQuote);
-  const coverSubcopyParts = splitCoverSubcopy(abstractContent).map((part) => humanizeVariantCopy(part, currentVariant));
-  const carryLine = toAnchorSentence(carryFull || psychArchetype?.rarity || abstractContent);
-  const dimensionHeadline = `${resultData.id.split('').join(' · ')} 在你現在這個階段`;
   const coverKicker = cleanText(variantReport?.abstract.label || report.abstract.label || currentCompareCard.tone);
   const coverTitle = cleanText(variantReport?.title || report.title || professionalTitle);
-  const rawCoverVariantTitle = cleanText(currentCompareCard.title);
-  const coverVariantTitle =
-    rawCoverVariantTitle && rawCoverVariantTitle !== coverTitle && rawCoverVariantTitle !== coverKicker
-      ? rawCoverVariantTitle
-      : '';
-  const chapterTwoTitle = currentCompareCard?.title
-    ? `${currentCompareCard.title}：兩種運作狀態`
-    : '你的兩種運作版本';
-  const chapterThreeTitle = dimensionTip || dimensionHeadline;
-  const chapterFiveLead = toAnchorSentence(psychArchetype?.stateName || psychArchetype?.rarity || prototypeCopy.frequencyNote);
-  const chapterSixLead = toAnchorSentence(dessertContent.visualLogic || abstractContent);
-  const chapterStatusCopy = canReadReport ? '完整內容已展開' : '以下為預覽切片，解鎖後可讀全文';
-  const paywallPreviewItems = [
-    {
-      number: '03',
-      name: '四個維度',
-      description: toAnchorSentence(dimensionTip) || `${dimensionHeadline} 的完整光譜讀數。`,
-    },
-    {
-      number: '04',
-      name: '認知行為模式',
-      description: [
-        cleanText(careerContent.title),
-        cleanText(relationshipContent.title),
-        oppositeSideTitle,
-      ]
-        .filter(Boolean)
-        .join('、') + '。',
-    },
-    {
-      number: '05',
-      name: '你的原型',
-      description: toAnchorSentence(psychArchetype?.rarity || psychArchetype?.stateName || prototypeCopy.frequencyNote),
-    },
-    {
-      number: '06',
-      name: '帶走這個',
-      description: `${cleanText(abyssalContent[0]?.title) || '深問三題'}，以及最後留下來的那句話。`,
-    },
-  ].map((item) => ({
-    ...item,
-    description: item.description.replace(/^、/u, '').trim(),
-  }));
-  const archetypeTeaserTitle = (psychArchetype?.figures || [])
-    .slice(0, 3)
-    .map((figure) => cleanText(figure.name).split(/\s+[A-Z][a-z]+/u)[0]?.trim() || cleanText(figure.name))
-    .join(' · ');
   const unlockPrimaryLabel = isUnlocked
     ? '列印 / 收藏完整報告'
     : isLocalPreview
@@ -919,7 +803,7 @@ export default function V2App({ user }: V2AppProps) {
   const REPORT_MARQUEE = `KIWIMU V2 · 狀態光譜測驗 · DEEP REPORT · ${fullType ?? ''} · `;
 
   return (
-    <div className="v2-root" style={{ background: 'var(--bg-0)', color: 'var(--t1)', minHeight: '100vh' }}>
+    <div className="v2-root" style={{ ...rootStyle, background: 'var(--bg-0)', color: 'var(--t1)', minHeight: '100vh' }}>
       {/* Ambient orbs */}
       <div className="ad-orb ad-orb-1" />
       <div className="ad-orb ad-orb-2" />
@@ -970,7 +854,7 @@ export default function V2App({ user }: V2AppProps) {
 
         <div className="ad-hero-state">
           <span className="ad-hero-state-dot" />
-          <span>當前狀態：{coverKicker}</span>
+          <span>{currentVariant === 'A' ? '當前狀態：穩定輸出期 / 低噪推進中' : '當前狀態：高頻調整期 / 自我監測中'}</span>
         </div>
       </header>
 
@@ -979,11 +863,11 @@ export default function V2App({ user }: V2AppProps) {
         <p className="ad-section-kicker">01 · Tag Wall</p>
         <h2 className="ad-section-title">五個能瞬間辨識你的 V2 標籤</h2>
         <div className="ad-tag-grid">
-          {versionTags.slice(0, 5).map((tag) => {
+          {versionTags.slice(0, 5).map((tag, idx) => {
             const zhPart = tag.split('(')[0]?.trim() ?? tag;
             const enMatch = tag.match(/\(([^)]+)\)/u);
             const enPart = enMatch?.[1] ?? '';
-            const code = enPart ? makeTagCode(enPart) : zhPart.slice(0, 6).toUpperCase();
+            const code = enPart ? makeTagCode(enPart) : `TAG-${String(idx + 1).padStart(2, '0')}`;
             return (
               <div key={tag} className="ad-tag">
                 <span className="ad-tag-code">{code}</span>
@@ -1102,14 +986,20 @@ export default function V2App({ user }: V2AppProps) {
           <p className="ad-section-kicker">05 · Historical Archetypes</p>
           <h2 className="ad-section-title">同類過渡期的歷史原型</h2>
           <p className="ad-section-lead">找到跨時代有同樣模式的人，不是要你複製他們。是讓你知道這種思維方式有完整的脈絡，走過去的人不只你一個。</p>
-          <div className="ad-grid-3" style={{ marginBottom: 12 }}>
-            {(psychArchetype?.figures ?? []).slice(0, 3).map((figure) => (
-              <div key={figure.name} className="ad-person-card">
-                <div className="ad-person-name">{figure.name}</div>
-                <div className="ad-person-body">{figure.body}</div>
-              </div>
-            ))}
-          </div>
+          {(psychArchetype?.figures ?? []).length > 0 ? (
+            <div className="ad-grid-3" style={{ marginBottom: 12 }}>
+              {(psychArchetype?.figures ?? []).slice(0, 3).map((figure) => (
+                <div key={figure.name} className="ad-person-card">
+                  <div className="ad-person-name">{figure.name}</div>
+                  <div className="ad-person-body">{figure.body}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.7, marginBottom: 12 }}>
+              歷史原型資料整理中。
+            </p>
+          )}
           <div className="ad-rarity-card">
             <div className="ad-rarity-label">⬡ Rarity Profile · 稀缺組合</div>
             <div className="ad-rarity-body">{psychArchetype?.rarity ?? prototypeCopy.frequencyNote}</div>
@@ -1202,10 +1092,10 @@ export default function V2App({ user }: V2AppProps) {
               className="ad-btn-primary"
               onClick={() => trackDessertOrderClick(resultData.id, variant)}
             >
-              🍰 立即訂購你的靈魂甜點
+              立即訂購你的靈魂甜點 →
             </a>
             <button type="button" className="ad-btn-ghost" onClick={handleShareStory}>
-              📱 分享到 IG Story
+              分享到 IG Story
             </button>
           </div>
         </div>
