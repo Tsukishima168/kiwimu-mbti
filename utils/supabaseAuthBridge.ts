@@ -11,10 +11,12 @@ import { createSharedAuthStorage } from './authStorage';
 
 // @ts-ignore - Vite env variables
 const SUPABASE_URL = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
-  import.meta.env.VITE_SUPABASE_USER_URL) as string;
+  import.meta.env.VITE_SUPABASE_USER_URL ||
+  import.meta.env.VITE_SUPABASE_URL) as string;
 // @ts-ignore - Vite env variables
 const SUPABASE_ANON_KEY = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_ANON_KEY ||
-  import.meta.env.VITE_SUPABASE_USER_ANON_KEY) as string;
+  import.meta.env.VITE_SUPABASE_USER_ANON_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY) as string;
 
 const COOKIE_DOMAIN = '.kiwimu.com';
 const AUTH_HINT_COOKIE = 'kiwimu_auth';
@@ -205,6 +207,16 @@ export function trackSsoEvent(
   if (!client) return;
   Promise.all([
     client.rpc('update_last_seen', { p_site: KIWIMU_SITE }),
+    client.rpc('insert_user_event', {
+      p_event_type: 'site_visited',
+      p_site: KIWIMU_SITE,
+      p_metadata: {
+        site_id: 'kiwimu_mbti',
+        source: eventType,
+        path: typeof window !== 'undefined' ? window.location.pathname : null,
+        ...metadata,
+      },
+    }),
     client.rpc('insert_user_event', {
       p_event_type: eventType,
       p_site: KIWIMU_SITE,
