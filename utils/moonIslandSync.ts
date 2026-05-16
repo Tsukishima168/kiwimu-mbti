@@ -3,16 +3,7 @@
  * 用於將 MBTI 測驗結果同步至月島品牌的統一客戶資料庫
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-
-// 月島品牌 Supabase 連線資訊（保持與 Vite 慣例相容）
-// 優先使用 VITE_MOON_ISLAND_*，其次嘗試 NEXT_PUBLIC_*（若被注入）
-// @ts-ignore - Vite env variables
-const MOON_ISLAND_SUPABASE_URL = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
-  import.meta.env.NEXT_PUBLIC_SUPABASE_URL) as string | undefined;
-// @ts-ignore - Vite env variables
-const MOON_ISLAND_SUPABASE_ANON_KEY = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_ANON_KEY ||
-  import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) as string | undefined;
+import { getAuthSupabaseClient } from './supabaseAuthBridge';
 
 // 有效的 MBTI 類型列表
 const VALID_MBTI_TYPES = [
@@ -21,19 +12,6 @@ const VALID_MBTI_TYPES = [
     'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
     'ISTP', 'ISFP', 'ESTP', 'ESFP'
 ] as const;
-
-// 建立月島專用 Supabase Client
-let moonIslandSupabase: SupabaseClient | null = null;
-
-if (MOON_ISLAND_SUPABASE_URL && MOON_ISLAND_SUPABASE_ANON_KEY) {
-    moonIslandSupabase = createClient(
-        MOON_ISLAND_SUPABASE_URL,
-        MOON_ISLAND_SUPABASE_ANON_KEY
-    );
-    console.log('🌙 Moon Island Supabase client initialized');
-} else {
-    console.warn('⚠️ Moon Island Supabase credentials not found. Sync will be skipped.');
-}
 
 /**
  * 驗證 Email 格式
@@ -65,6 +43,7 @@ export async function saveMBTIToMoonIsland(
     nickname?: string,
     avatarUrl?: string
 ): Promise<boolean> {
+    const moonIslandSupabase = getAuthSupabaseClient();
     // 檢查 Supabase 是否可用
     if (!moonIslandSupabase) {
         console.warn('⚠️ Moon Island Supabase not available. Skipping sync.');
@@ -117,5 +96,5 @@ export async function saveMBTIToMoonIsland(
  * 檢查月島 Supabase 是否可用
  */
 export function isMoonIslandAvailable(): boolean {
-    return moonIslandSupabase !== null;
+    return getAuthSupabaseClient() !== null;
 }

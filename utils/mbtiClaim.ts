@@ -1,20 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+import { getAuthSupabaseClient } from './supabaseAuthBridge';
 import { buildPassportClaimLink } from './utmTracking';
 import { trackStampClaim } from './analytics';
 
-const SUPABASE_URL =
-  (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
-    import.meta.env.NEXT_PUBLIC_SUPABASE_URL) as string | undefined;
-const SUPABASE_ANON_KEY =
-  (import.meta.env.VITE_MOON_ISLAND_SUPABASE_ANON_KEY ||
-    import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) as string | undefined;
-
 const STORAGE_PREFIX = 'mbti_claim_code_v1';
-
-const supabase =
-  SUPABASE_URL && SUPABASE_ANON_KEY
-    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
 
 function storageKey(mbtiType: string, variant: string) {
   return `${STORAGE_PREFIX}_${mbtiType}_${variant}`;
@@ -35,6 +23,7 @@ function generateClaimCode() {
 }
 
 async function createMbtiClaim(mbtiType: string, variant: string) {
+  const supabase = getAuthSupabaseClient();
   if (!supabase) {
     trackStampClaim('failed', { reason: 'unconfigured', mbti_type: mbtiType, variant });
     return null;
