@@ -48,6 +48,11 @@ live_index.html
 *.bak
 *.backup
 *.backup.*
+*.png
+*-preview.html
+v2-quiz-*.html
+supabase/.temp/
+scripts/test-*.ts
 
 # V1.5 AI Studio scaffold（題庫已移植至 data/，此資料夾為參考用）
 MBTI-Lab-V1.5-TEST/
