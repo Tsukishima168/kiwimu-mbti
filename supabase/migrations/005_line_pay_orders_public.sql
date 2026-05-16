@@ -72,6 +72,7 @@ ALTER TABLE public.line_pay_orders FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.line_pay_orders FROM PUBLIC;
 REVOKE ALL ON TABLE public.line_pay_orders FROM anon;
 REVOKE ALL ON TABLE public.line_pay_orders FROM authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.line_pay_orders TO service_role;
 REVOKE ALL ON FUNCTION public.update_line_pay_orders_updated_at() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.update_line_pay_orders_updated_at() FROM anon;
 REVOKE ALL ON FUNCTION public.update_line_pay_orders_updated_at() FROM authenticated;
