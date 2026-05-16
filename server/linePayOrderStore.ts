@@ -2,6 +2,8 @@ import { getUserAdminDb } from './supabase/user-admin';
 
 const LINE_PAY_ORDERS_TABLE = 'line_pay_orders';
 
+const linePayOrders = (db: any) => db.schema('public').from(LINE_PAY_ORDERS_TABLE);
+
 export type LinePayOrderStatus =
   | 'created'
   | 'requested'
@@ -80,7 +82,7 @@ export async function createLinePayOrder(input: CreateLinePayOrderInput): Promis
   if (!db) return false;
 
   const now = new Date().toISOString();
-  const { error } = await db.from(LINE_PAY_ORDERS_TABLE).upsert(
+  const { error } = await linePayOrders(db).upsert(
     {
       order_id: input.orderId,
       mbti_type: input.mbtiType,
@@ -107,7 +109,7 @@ export async function upsertLinePayOrder(input: LinePayOrderRecordInput): Promis
   const db = getUserAdminDb();
   if (!db) return false;
 
-  const { error } = await db.from(LINE_PAY_ORDERS_TABLE).upsert(
+  const { error } = await linePayOrders(db).upsert(
     {
       ...input,
       updated_at: new Date().toISOString(),
@@ -130,6 +132,7 @@ export async function getLinePayOrder(
   if (!db) return undefined;
 
   const { data, error } = await db
+    .schema('public')
     .from(LINE_PAY_ORDERS_TABLE)
     .select('*')
     .eq('order_id', orderId)
@@ -151,6 +154,7 @@ export async function updateLinePayOrder(
   if (!db) return false;
 
   const { error } = await db
+    .schema('public')
     .from(LINE_PAY_ORDERS_TABLE)
     .update({
       ...input,
