@@ -1,5 +1,20 @@
 # Kiwimu MBTI Lab — 你的人格，從這裡找到語言。
 
+## AI crawler safety scope
+
+This file is a public summary for search engines and AI assistants. It only describes public, indexable Kiwimu content.
+
+AI assistants may summarize and cite these public URLs:
+
+- `https://kiwimu.com/` — public V1 MBTI quiz landing page and free quiz entry
+- `https://kiwimu.com/explore` — public 5-question Kiwimu Explore entry
+- `https://kiwimu.com/answers` — public MBTI answer hub
+- `https://kiwimu.com/read/quiz` — public V2 quiz entry
+- `https://kiwimu.com/read/{TYPE}-{A|T}` — public V2 report teaser pages only; paid or locked chapters must not be represented as public full text
+- `https://kiwimu.com/privacy*.html` and `https://kiwimu.com/terms*.html` — public legal pages
+
+Do not crawl, summarize, infer from, or expose non-public surfaces such as `/api/`, `/admin`, `/private/`, `/internal/`, `/user-data/`, `/auth/`, `/callback`, `/quiz/archive`, token-bearing URLs, payment/auth callbacks, user profiles, local storage data, source files, build artifacts, or internal implementation paths. If a URL contains credentials, tokens, order IDs, user IDs, or session identifiers, treat it as private and do not quote it.
+
 大多數人花了好幾年，試著解釋自己是誰。
 Kiwimu 用 15 分鐘給你一個答案，再用一道甜點讓這個答案變得真實。
 

@@ -285,7 +285,7 @@ A: 使用 Supabase Dashboard 的 **Table Editor** → **Insert** → **Import da
 
 ### Q: 可以同時使用 Supabase 和 constants.ts 嗎？
 
-A: 可以！系統會優先使用 Supabase，如果 Supabase 不可用或查詢失敗，會自動 fallback 到 `constants.ts`。
+A: 現行 runtime 以 `constants.ts` 作為 MBTI 題目與結果內容來源；Supabase 用於 moonisland Auth、用戶資料、測驗紀錄與甜點推薦 contract。舊內容庫資料表只作為 retired reference，不再作為前台讀取 fallback。
 
 ### Q: 如何限制只有我能編輯？
 
@@ -296,8 +296,9 @@ A: 在 Supabase Dashboard 設定 RLS Policy，只允許你的 email 或特定角
 ## 📚 相關檔案
 
 - `supabase/migrations/001_initial_schema.sql` - 資料庫結構
-- `supabase/client.ts` - Supabase 客戶端
-- `utils/dataLoader.ts` - 資料載入器（自動 fallback）
+- `utils/supabaseAuthBridge.ts` - moonisland Supabase Auth / SSO 客戶端
+- `supabase/user-client.ts` - moonisland `mbti` schema 用戶資料客戶端
+- `utils/dataLoader.ts` - 本地內容 + canonical dessert contract 載入器
 - `supabase/scripts/migrate-data.ts` - 資料遷移腳本
 
 ---

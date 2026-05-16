@@ -9,14 +9,14 @@ import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/su
 import type { AppUser } from '../types';
 import { createSharedAuthStorage } from './authStorage';
 
+// Auth must always point at moonisland. Do not fall back to generic
+// VITE_SUPABASE_* because that historically pointed at kiwimu-legacy.
 // @ts-ignore - Vite env variables
 const SUPABASE_URL = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_URL ||
-  import.meta.env.VITE_SUPABASE_USER_URL ||
-  import.meta.env.VITE_SUPABASE_URL) as string;
+  import.meta.env.VITE_SUPABASE_USER_URL) as string;
 // @ts-ignore - Vite env variables
 const SUPABASE_ANON_KEY = (import.meta.env.VITE_MOON_ISLAND_SUPABASE_ANON_KEY ||
-  import.meta.env.VITE_SUPABASE_USER_ANON_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY) as string;
+  import.meta.env.VITE_SUPABASE_USER_ANON_KEY) as string;
 
 const COOKIE_DOMAIN = '.kiwimu.com';
 const AUTH_HINT_COOKIE = 'kiwimu_auth';

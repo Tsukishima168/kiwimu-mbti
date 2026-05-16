@@ -14,6 +14,7 @@
  */
 
 import { PointAction, PointSource, WEEKLY_QUESTS } from '../types/gamification-types';
+import { getAuthSupabaseClient } from './supabaseAuthBridge';
 
 const DEVICE_ID_KEY = 'moonmoon_device_id';
 const WEEKLY_LIMIT_PREFIX = 'kiwimu_weekly_limit_';
@@ -51,7 +52,7 @@ function markWeeklyLimitUsed(questId: string): void {
 }
 
 /**
- * 寫入 Supabase point_transactions
+ * 透過 Supabase RPC 寫入 point_transactions
  * 非同步，不影響主流程
  */
 async function recordToSupabase(
@@ -61,27 +62,18 @@ async function recordToSupabase(
     description: string,
     source: PointSource = 'mbti'
 ): Promise<void> {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) return;
+    const supabase = getAuthSupabaseClient();
+    if (!supabase) return;
 
     try {
-        await fetch(`${supabaseUrl}/rest/v1/point_transactions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': supabaseKey,
-                'Authorization': `Bearer ${supabaseKey}`,
-                'Prefer': 'return=minimal',
-            },
-            body: JSON.stringify({
-                device_id: deviceId,
-                points,
-                action,
-                description,
-                source,
-            }),
+        const { error } = await supabase.rpc('upsert_point_transaction', {
+            p_device_id: deviceId,
+            p_points: points,
+            p_action: action,
+            p_description: description,
+            p_source: source,
         });
+        if (error) console.warn('[questPointsTrigger] Supabase point RPC failed:', error.message);
     } catch (e) {
         console.warn('[questPointsTrigger] Supabase write failed (non-fatal):', e);
     }

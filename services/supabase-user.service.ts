@@ -1,8 +1,8 @@
 // Supabase 用戶資料服務
-// 鏡像 firestore.service.ts 的寫入操作，寫入 Moon Island Supabase
+// 寫入 Moon Island Supabase 的 mbti schema。
 //
-// 策略：Firebase 為主，Supabase 為副（過渡期雙寫）
-// 所有函數永不 throw — Supabase 失敗只 log，不影響主流程
+// 策略：Supabase-only。Firebase / Firestore 已不再是 runtime fallback。
+// 所有函數永不 throw — repository 邊界由 user-data.service.ts 決定是否升級錯誤。
 
 import { userDb } from '../supabase/user-client';
 import type {

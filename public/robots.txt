@@ -1,11 +1,40 @@
 # Kiwimu MBTI Lab - robots.txt
-# 允許搜尋引擎與 AI 爬蟲抓取公開內容
+# 允許搜尋引擎與 AI 爬蟲抓取公開可索引內容
 
 User-agent: *
+
+# Public SEO/GEO surfaces
 Allow: /
+Allow: /explore
+Allow: /answers
+Allow: /read/quiz
+Allow: /read/
+Allow: /privacy.html
+Allow: /privacy-en.html
+Allow: /privacy-ja.html
+Allow: /privacy-ko.html
+Allow: /terms.html
+Allow: /terms-en.html
+Allow: /terms-ja.html
+Allow: /terms-ko.html
+Allow: /llms.txt
 
-# 若有需保護的路徑（例如後台）可在此加入 Disallow
-# Disallow: /admin
+# Non-public, user-specific, or machine endpoints
+Disallow: /api/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /private/
+Disallow: /internal/
+Disallow: /user-data/
+Disallow: /auth/
+Disallow: /callback
+Disallow: /quiz/archive
+Disallow: /qr-codes/
+Disallow: /dev-previews/
+Disallow: /*?*token=
+Disallow: /*?*access_token=
+Disallow: /*?*refresh_token=
+Disallow: /*?*id_token=
+Disallow: /*?*code=
 
-# Sitemap 位置（請依實際網域替換）
 Sitemap: https://kiwimu.com/sitemap.xml
