@@ -1,4 +1,4 @@
-import { getUserAdminDb } from '../supabase/user-admin';
+import { getUserAdminDb } from '../supabase/user-admin.js';
 
 type DiscordLinkState = {
   state: string;

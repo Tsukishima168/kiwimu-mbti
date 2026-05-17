@@ -7,8 +7,8 @@ import {
   isLinePaySuccessCode,
   requestLinePay,
   type LinePayPaymentRequestInfo,
-} from '../../server/linePay';
-import { createLinePayOrder, updateLinePayOrder } from '../../server/linePayOrderStore';
+} from '../../server/linePay.js';
+import { createLinePayOrder, updateLinePayOrder } from '../../server/linePayOrderStore.js';
 
 const V2_PRICE_TWD = 149;
 const V2_CURRENCY = 'TWD';

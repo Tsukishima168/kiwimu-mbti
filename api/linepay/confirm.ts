@@ -5,13 +5,13 @@ import {
   isLinePaySuccessCode,
   parseMbtiTypeFromOrderId,
   requestLinePay,
-} from '../../server/linePay';
+} from '../../server/linePay.js';
 import {
   getLinePayOrder,
   isLinePayOrderStoreAvailable,
   updateLinePayOrder,
-} from '../../server/linePayOrderStore';
-import { getUserAdminDb } from '../../server/supabase/user-admin';
+} from '../../server/linePayOrderStore.js';
+import { getUserAdminDb } from '../../server/supabase/user-admin.js';
 
 const V2_PRICE_TWD = 149;
 const V2_CURRENCY = 'TWD';

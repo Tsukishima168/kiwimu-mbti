@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { buildAppBaseUrl, parseMbtiTypeFromOrderId } from '../../server/linePay';
-import { updateLinePayOrder } from '../../server/linePayOrderStore';
+import { buildAppBaseUrl, parseMbtiTypeFromOrderId } from '../../server/linePay.js';
+import { updateLinePayOrder } from '../../server/linePayOrderStore.js';
 
 function getOrigin(req: VercelRequest) {
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';

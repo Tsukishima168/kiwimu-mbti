@@ -1,8 +1,11 @@
-import { getUserAdminDb } from './supabase/user-admin';
+import { getUserAdminDb } from './supabase/user-admin.js';
 
 const LINE_PAY_ORDERS_TABLE = 'line_pay_orders';
+const LINE_PAY_ORDER_SCHEMAS = ['public', 'mbti'] as const;
+type LinePayOrderSchema = (typeof LINE_PAY_ORDER_SCHEMAS)[number];
 
-const linePayOrders = (db: any) => db.schema('public').from(LINE_PAY_ORDERS_TABLE);
+const linePayOrders = (db: any, schema: LinePayOrderSchema = 'public') =>
+  db.schema(schema).from(LINE_PAY_ORDERS_TABLE);
 
 export type LinePayOrderStatus =
   | 'created'
@@ -131,19 +134,34 @@ export async function getLinePayOrder(
   const db = getUserAdminDb();
   if (!db) return undefined;
 
-  const { data, error } = await db
-    .schema('public')
-    .from(LINE_PAY_ORDERS_TABLE)
-    .select('*')
-    .eq('order_id', orderId)
-    .maybeSingle();
+  let publicError: unknown = null;
 
-  if (error) {
-    console.error('[LINE PAY] getLinePayOrder error', error);
+  for (const schema of LINE_PAY_ORDER_SCHEMAS) {
+    const { data, error } = await linePayOrders(db, schema)
+      .select('*')
+      .eq('order_id', orderId)
+      .maybeSingle();
+
+    if (error) {
+      if (schema === 'public') {
+        publicError = error;
+      } else {
+        console.warn('[LINE PAY] legacy getLinePayOrder lookup failed', error);
+      }
+      continue;
+    }
+
+    if (data) {
+      return data as LinePayOrderRecord;
+    }
+  }
+
+  if (publicError) {
+    console.error('[LINE PAY] getLinePayOrder error', publicError);
     return undefined;
   }
 
-  return (data as LinePayOrderRecord | null) ?? null;
+  return null;
 }
 
 export async function updateLinePayOrder(
@@ -153,19 +171,38 @@ export async function updateLinePayOrder(
   const db = getUserAdminDb();
   if (!db) return false;
 
-  const { error } = await db
-    .schema('public')
-    .from(LINE_PAY_ORDERS_TABLE)
-    .update({
-      ...input,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('order_id', orderId);
+  const updatePayload = {
+    ...input,
+    updated_at: new Date().toISOString(),
+  };
+  let publicError: unknown = null;
 
-  if (error) {
-    console.error('[LINE PAY] updateLinePayOrder error', error);
+  for (const schema of LINE_PAY_ORDER_SCHEMAS) {
+    const { data, error } = await linePayOrders(db, schema)
+      .update(updatePayload)
+      .eq('order_id', orderId)
+      .select('order_id')
+      .maybeSingle();
+
+    if (error) {
+      if (schema === 'public') {
+        publicError = error;
+      } else {
+        console.warn('[LINE PAY] legacy updateLinePayOrder failed', error);
+      }
+      continue;
+    }
+
+    if (data) {
+      return true;
+    }
+  }
+
+  if (publicError) {
+    console.error('[LINE PAY] updateLinePayOrder error', publicError);
     return false;
   }
 
-  return true;
+  console.error('[LINE PAY] updateLinePayOrder order not found', { orderId });
+  return false;
 }

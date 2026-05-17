@@ -1,13 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { verifyDiscordSignature } from '../../server/discord/verifyDiscordSignature';
+import { verifyDiscordSignature } from '../../server/discord/verifyDiscordSignature.js';
 import {
   createDiscordLinkState,
   deleteDiscordLink,
   getDiscordLink,
   getLatestDiscordResult,
   logDiscordAction,
-} from '../../server/discord/discord-data.service';
-import type { DiscordInteraction, DiscordInteractionResponse } from '../../server/discord/types';
+} from '../../server/discord/discord-data.service.js';
+import type { DiscordInteraction, DiscordInteractionResponse } from '../../server/discord/types.js';
 
 // Discord interaction types
 const INTERACTION_PING = 1;

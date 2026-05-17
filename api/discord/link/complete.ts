@@ -4,7 +4,7 @@ import {
   logDiscordAction,
   markDiscordLinkStateUsed,
   upsertDiscordLink,
-} from '../../../server/discord/discord-data.service';
+} from '../../../server/discord/discord-data.service.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
