@@ -21,6 +21,7 @@ const TARGET_SITE_BY_LINK_KEY: Record<string, string> = {
   DESSERT_BOOKING: 'dessert_booking',
   MOON_MAP: 'moon_map',
   PASSPORT: 'passport',
+  GACHA: 'gacha',
   LINE_OA: 'external',
   DISCORD: 'external',
   INSTAGRAM: 'external',
@@ -48,6 +49,13 @@ export const EXTERNAL_LINKS: Record<string, ExternalLink> = {
   PASSPORT: {
     name: '甜點護照測驗',
     baseUrl: 'https://passport.kiwimu.com',
+    defaultSource: 'mbti-lab'
+  },
+
+  // Gacha - 月島遊戲中心
+  GACHA: {
+    name: '月島遊戲中心',
+    baseUrl: 'https://gacha.kiwimu.com',
     defaultSource: 'mbti-lab'
   },
 
