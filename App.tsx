@@ -65,6 +65,7 @@ import V2QuizFlow from './components/v2/V2QuizFlow';
 import V2QaNotes from './components/v2/V2QaNotes';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 import AnswersHub from './pages/AnswersHub';
+import AnswerArticle from './pages/AnswerArticle';
 import { applyRuntimeSeo } from './utils/seo';
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
@@ -854,8 +855,9 @@ const App: React.FC = () => {
     );
   }
 
-  if (_path.startsWith('/answers')) {
-    return <AnswersHub />;
+  if (_path === '/answers' || _path.startsWith('/answers/')) {
+    const answerSlug = decodeURIComponent(_path.replace(/^\/answers\/?/, '').replace(/\/$/, ''));
+    return answerSlug ? <AnswerArticle slug={answerSlug} /> : <AnswersHub />;
   }
 
   // V2 /read 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
