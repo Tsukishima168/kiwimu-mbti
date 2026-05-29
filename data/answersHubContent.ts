@@ -159,6 +159,21 @@ export const answersHubContent = {
   ] satisfies AnswersHubFaq[],
   relatedGuides: [
     {
+      title: 'MBTI 是什麼',
+      href: '/answers/mbti',
+      summary: '先理解 16 型人格偏好與 Kiwimu 的使用邊界。',
+    },
+    {
+      title: 'A/T 是什麼',
+      href: '/answers/at-variants',
+      summary: '理解 Kiwimu 為什麼會有 16 × A/T 的 32 變體。',
+    },
+    {
+      title: '靈魂甜點是什麼',
+      href: '/answers/soul-dessert',
+      summary: '把人格偏好翻譯成甜點、角色與生活體驗。',
+    },
+    {
       title: '提拉米蘇怎麼選',
       href: '/answers/tiramisu-guide',
       summary: '從口感、酒香、保存與送禮需求切入的永久型答案頁。',
@@ -166,18 +181,7 @@ export const answersHubContent = {
     {
       title: '送禮甜點怎麼選',
       href: '/answers/gift-guide',
-      summary: '把體面、好切、保存與預訂說清楚，適合做第二篇 evergreen。',
-    },
-    {
-      title: '月島導覽地圖',
-      href: 'https://map.kiwimu.com',
-      summary: '把答案導到實體體驗與門市資訊。',
-    },
-    {
-      title: 'Kiwimu MBTI Lab',
-      href: 'https://kiwimu.com/read',
-      summary: '把人格答案導向深度報告與測驗流程。',
+      summary: '把體面、好切、保存與預訂說清楚，適合做 evergreen。',
     },
   ] satisfies AnswersHubGuideLink[],
 } as const;
-
