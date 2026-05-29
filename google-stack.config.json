@@ -1,0 +1,42 @@
+{
+  "cloudProjectId": "kiwimu-site",
+  "ga4PropertyName": "Kiwimu-Core-2026-PROD",
+  "ga4PropertyId": "526838967",
+  "ga4MeasurementId": "G-DM6F27KL8B",
+  "searchConsoleSiteUrl": "sc-domain:kiwimu.com",
+  "sitemapUrl": "https://kiwimu.com/sitemap.xml",
+  "answerUrlPrefix": "https://kiwimu.com/answers/",
+  "sites": [
+    {
+      "id": "kiwimu",
+      "name": "Kiwimu MBTI Lab",
+      "baseUrl": "https://kiwimu.com",
+      "sitemapUrl": "https://kiwimu.com/sitemap.xml",
+      "contentUrlPrefix": "https://kiwimu.com/answers/"
+    },
+    {
+      "id": "passport",
+      "name": "Kiwimu Passport",
+      "baseUrl": "https://passport.kiwimu.com",
+      "sitemapUrl": "https://passport.kiwimu.com/sitemap.xml"
+    },
+    {
+      "id": "shop",
+      "name": "Kiwimu Shop",
+      "baseUrl": "https://shop.kiwimu.com",
+      "sitemapUrl": "https://shop.kiwimu.com/sitemap.xml"
+    },
+    {
+      "id": "gacha",
+      "name": "Kiwimu Gacha",
+      "baseUrl": "https://gacha.kiwimu.com",
+      "sitemapUrl": "https://gacha.kiwimu.com/sitemap.xml"
+    },
+    {
+      "id": "map",
+      "name": "Kiwimu Map",
+      "baseUrl": "https://map.kiwimu.com",
+      "sitemapUrl": "https://map.kiwimu.com/sitemap.xml"
+    }
+  ]
+}
