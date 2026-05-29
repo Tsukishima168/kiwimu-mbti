@@ -14,6 +14,7 @@ import { calculatePercentages, getVariant } from '../../utils/logic';
 import { trackAction } from '../../utils/userDataCollector';
 import {
   trackPageView,
+  trackButtonClick,
   trackScreenEngagement,
   trackV2CheckoutStart,
   trackV2PaywallView,
@@ -308,6 +309,7 @@ export default function V2App({ user }: V2AppProps) {
   const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(window.location.hostname);
   const pathname = window.location.pathname;
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const hasQuery = window.location.search.length > 1;
   const routeTarget = useMemo(() => parseV2RouteTarget(pathname, params), [params, pathname]);
   const [entitlement, setEntitlementState] = useState<V2Entitlement>(() =>
     isLocalPreview ? readCachedV2Entitlement() : { status: 'locked' },
@@ -372,9 +374,9 @@ export default function V2App({ user }: V2AppProps) {
       ogType: 'article',
       image,
       keywords: ['Kiwimu', 'MBTI', 'V2', '深度報告', fullType || '人格報告'].join(','),
-      robots: fullType ? 'index,follow' : 'noindex,follow',
+      robots: fullType && !hasQuery ? 'index,follow' : 'noindex,follow',
     });
-  }, [canonicalUrl, fullType, report, resultBundle, seoVariantReport]);
+  }, [canonicalUrl, fullType, hasQuery, report, resultBundle, seoVariantReport]);
 
   useEffect(() => {
     const enteredAt = Date.now();
@@ -732,6 +734,7 @@ export default function V2App({ user }: V2AppProps) {
   const dimensionBullets = variantReport?.dimension.bullets.length ? variantReport.dimension.bullets : report.dimension.bullets;
   const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, dimensionBullets);
   const dessertOrderUrl = buildDessertOrderLink(resultData.id, variant);
+  const passportUrl = `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v2-footer-passport&mbti_type=${resultData.id}&variant=${variant}`;
   const versionTags = variantReport?.tags.length
     ? variantReport.tags.map((tag) => cleanText(tag.label)).filter(Boolean).slice(0, 6)
     : buildVersionTagWall(report, currentVariant, prototypeCopy.tags);
@@ -1097,6 +1100,15 @@ export default function V2App({ user }: V2AppProps) {
             <button type="button" className="ad-btn-ghost" onClick={handleShareStory}>
               分享到 IG Story
             </button>
+            <a
+              href={passportUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="ad-btn-ghost"
+              onClick={() => trackButtonClick('v2_footer_to_passport', 'v2_footer', passportUrl)}
+            >
+              保存到 Passport
+            </a>
           </div>
         </div>
         </>

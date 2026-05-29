@@ -179,6 +179,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
   const identitySuffix = resultAT;
   const identityChinese = resultAT === 'A' ? '堅定型' : '動盪型';
+  const fullResultType = `${resultData.id}-${identitySuffix}`;
+  const exploreUrl = `/explore?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-explore&source=v1_result&mbti_type=${resultData.id}&variant=${identitySuffix}`;
+  const v2ReportUrl = `/read/${fullResultType}?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-v2&utm_content=v1-result-v2&source=v1_result`;
   const anchor = SOUL_ANCHOR_MAP[resultData.id] || SOUL_ANCHOR_MAP["ISFP"];
   const isOgRenderPreview = typeof window !== 'undefined' && window.location.pathname.includes('/og-render');
   const storyExcerpt = extractStoryExcerpt(resultData.coreAnalysis, 132);
@@ -1125,34 +1128,54 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             <div className="space-y-0">
               {[
                 {
-                  id: 'dessert-booking',
+                  id: 'state-explore',
                   number: '01',
-                  title: '訂購靈魂甜點',
-                  subtitle: 'ORDER DESSERT',
-                  description: '線上預訂你的專屬甜點，到店取貨享受美味',
-                  url: 'https://map.kiwimu.com/menu?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
-                  external: true,
-                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { destination_type: 'order_menu', entry_surface: 'result_dessert_card', section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com/menu?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                  title: '探索今日狀態',
+                  subtitle: 'V1.5 STATE CARD',
+                  description: '用 5 題快速捕捉你現在的節奏，生成一張可分享的 Kiwimu 狀態卡',
+                  url: exploreUrl,
+                  external: false,
+                  onClick: () => trackButtonClick('v1_result_to_explore', 'v1_result_next_journey', exploreUrl),
+                },
+                {
+                  id: 'v2-report',
+                  number: '02',
+                  title: '閱讀 V2 深度報告',
+                  subtitle: 'V2 DEEP REPORT',
+                  description: `把 ${fullResultType} 展開成 A/T 變體、關係、職場、原型與靈魂甜點的深度報告`,
+                  url: v2ReportUrl,
+                  external: false,
+                  onClick: () => trackButtonClick('v1_result_to_v2_report', 'v1_result_next_journey', v2ReportUrl),
                 },
                 {
                   id: 'passport',
-                  number: '02',
+                  number: '03',
                   title: '領取護照印章',
                   subtitle: 'PASSPORT STAMP',
-                  description: '完成 MBTI 後可直接領取護照印章',
-                  url: 'https://passport.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
+                  description: '完成 MBTI 後可直接領取護照印章，保存你的身份與回訪紀錄',
+                  url: `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-passport&mbti_type=${resultData.id}&variant=${identitySuffix}`,
                   external: true,
-                  onClick: () => trackOutboundClick('PASSPORT', 'navigation', { destination_type: 'passport', entry_surface: 'result_explore_more', section: 'zh-result-cta', url: 'https://passport.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                  onClick: () => trackOutboundClick('PASSPORT', 'navigation', { destination_type: 'passport', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-passport&mbti_type=${resultData.id}&variant=${identitySuffix}` }),
+                },
+                {
+                  id: 'dessert-booking',
+                  number: '04',
+                  title: '訂購靈魂甜點',
+                  subtitle: 'ORDER DESSERT',
+                  description: '線上預訂你的專屬甜點，到店取貨享受美味',
+                  url: `https://map.kiwimu.com/menu?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-dessert&mbti=${fullResultType}`,
+                  external: true,
+                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { destination_type: 'order_menu', entry_surface: 'result_dessert_card', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com/menu?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-dessert&mbti=${fullResultType}` }),
                 },
                 {
                   id: 'moon-map',
-                  number: '03',
+                  number: '05',
                   title: '月島導覽地圖',
                   subtitle: 'ISLAND MAP',
                   description: '探索 Moon Moon 品牌生態，發現完整的島嶼世界',
-                  url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh',
+                  url: `https://map.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-map&mbti=${fullResultType}`,
                   external: true,
-                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { destination_type: 'map_explore', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: 'https://map.kiwimu.com?utm_source=mbti&utm_medium=result&utm_campaign=v15_zh' }),
+                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { destination_type: 'map_explore', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-map&mbti=${fullResultType}` }),
                 },
               ].map((item) => (
                 <a
@@ -1183,7 +1206,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </>
           )}
 
-          {/* V2 進化版即將公布 — 引流到 V2 paywall 預告 */}
+          {/* V2 深度報告 — 引流到 V2 public teaser / paywall */}
           <div className="border-t border-gray-100 bg-[#F8F8F5] px-6 py-16 md:py-20">
             <div className="max-w-3xl mx-auto">
               <div
@@ -1201,44 +1224,44 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   }}
                 >
                   <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#1A1A1A' }} />
-                  即將公布 · COMING SOON
+                  V2 TEASER · NOW OPEN
                 </span>
                 <h3
                   className="mt-5 text-3xl md:text-4xl font-bold leading-[1.1]"
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 >
-                  V2 進化版<br className="md:hidden" />
-                  把 16 型再拆成 32 種
+                  你的 {fullResultType}<br className="md:hidden" />
+                  可以往更深處讀
                 </h3>
                 <p className="mt-4 text-sm md:text-base leading-relaxed text-white/70">
-                  V2 在 V1 基礎上加入 A / T 變體分流、心理原型層與歷史軌跡，寫成一份只屬於你的深度報告。<br />
-                  上線後 {resultData.id} 的型別資料會直接帶進 V2，不用重做。
+                  V2 在 V1 基礎上加入 A / T 變體分流、心理原型層、關係與職場語境，寫成一份更完整的深度報告。<br />
+                  你現在可以先看公開 teaser，付費章節會保留在 V2 報告裡。
                 </p>
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                  <a
+                    href={v2ReportUrl}
+                    onClick={() => trackButtonClick('v1_result_to_v2_report', 'v1_result_upsell', v2ReportUrl)}
+                    className="rounded-full px-5 py-4 text-center text-xs font-black uppercase tracking-[0.08em] md:text-sm md:tracking-[0.12em]"
+                    style={{ background: '#CCFF00', color: '#1A1A1A', border: '1px solid #CCFF00' }}
+                  >
+                    查看我的 V2 深度報告
+                  </a>
                   <a
                     href={V2_NOTIFY_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => trackButtonClick('v2_line_notify_from_result', 'v1_result_upsell', V2_NOTIFY_URL)}
-                    className="rounded-full px-5 py-4 text-center text-xs font-black uppercase tracking-[0.08em] md:text-sm md:tracking-[0.12em]"
-                    style={{ background: '#CCFF00', color: '#1A1A1A', border: '1px solid #CCFF00' }}
-                  >
-                    加入 LINE 接收 V2 上線通知
-                  </a>
-                  <a
-                    href="/read"
-                    onClick={() => trackButtonClick('v2_preview_from_result', 'v1_result_upsell', '/read')}
+                    onClick={() => trackButtonClick('v1_result_line_follow', 'v1_result_upsell', V2_NOTIFY_URL)}
                     className="rounded-full px-5 py-4 text-center text-xs font-semibold uppercase tracking-[0.12em] md:text-sm md:tracking-[0.18em]"
                     style={{ background: 'transparent', color: '#F8F8F5', border: '1px solid rgba(248,248,245,0.32)' }}
                   >
-                    搶先看 V2 預告
+                    加入 LINE 接收更新
                   </a>
                 </div>
                 <p
                   className="mt-5 text-white/40"
                   style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
                 >
-                  通知方式：加入 Kiwimu LINE 官方帳號，上線公告會從官方帳號發出。
+                  V2 會保留公開 teaser 與付費章節邊界；個人化內容不會放進公開搜尋。
                 </p>
               </div>
             </div>

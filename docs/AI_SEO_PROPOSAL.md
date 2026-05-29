@@ -74,6 +74,7 @@
 
 - **sitemap.xml**：列出希望被收錄的頁（含 `/answers/*`、導覽、說明頁）。  
 - **robots.txt**：不擋重要路徑；若有需保護的目錄再另外規範。  
+- **OpenAI crawler policy**：允許 `OAI-SearchBot` 讀取公開頁，讓 ChatGPT Search 有機會引用；先阻擋 `GPTBot`，避免公開內容被用於訓練爬取；`ChatGPT-User` 視為使用者觸發讀取，仍禁止私密、token、auth、checkout 與 user-specific URL。
 - **重要內容頁 SSR/SSG**：打開就有完整文字，不只靠前端 JS 渲染（對 SPA 可做 pre-render 或挑關鍵頁做 SSG）。
 
 ### 4.2 可理解（Understand）
@@ -151,7 +152,8 @@
 ### Phase 3：進階
 
 - 煙花性內容（聯名、快閃、展覽）規劃，且**每篇鏈回對應答案頁**。  
-- 視需求考慮 **OAI-SearchBot**（若希望被 ChatGPT 搜尋引用）；若不想被訓練，可僅擋 GPTBot。
+- **OAI-SearchBot 已列為公開搜尋入口**：公開答案、V1、V1.5 與 V2 teaser 可被搜尋引用；付費全文與個人資料不公開。
+- **GPTBot 先全站阻擋**：搜尋引用與模型訓練分開處理，保留內容資產控制權。
 
 ---
 

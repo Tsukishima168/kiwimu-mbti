@@ -122,7 +122,7 @@ const getPostLoginPath = (destination: PostLoginDestination) => {
   return '/';
 };
 
-const buildV1SeoConfig = (stage: Stage, pathname: string, resultData: MbtiResultData | null) => {
+const buildV1SeoConfig = (stage: Stage, pathname: string, resultData: MbtiResultData | null, hasQuery = false) => {
   const normalizedPath = normalizeCanonicalPath(pathname);
   const onRootPath = ROOT_PATHS.has(pathname);
   const canonicalPath =
@@ -143,7 +143,7 @@ const buildV1SeoConfig = (stage: Stage, pathname: string, resultData: MbtiResult
       image: DEFAULT_SOCIAL_IMAGE,
       keywords: defaultKeywords,
       ogType: 'website',
-      robots: 'index,follow',
+      robots: hasQuery ? defaultRobots : 'index,follow',
       jsonLd: {
         '@context': 'https://schema.org',
         '@graph': [
@@ -567,7 +567,7 @@ const App: React.FC = () => {
       return;
     }
 
-    applyRuntimeSeo(buildV1SeoConfig(stage, pathname, resultData));
+    applyRuntimeSeo(buildV1SeoConfig(stage, pathname, resultData, window.location.search.length > 1));
   }, [resultData, stage]);
 
   useEffect(() => {

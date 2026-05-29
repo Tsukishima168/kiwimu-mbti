@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ExplorePersonality } from '../../data/questions-explore';
 import { Language } from '../../contexts/LanguageContext';
+import { trackButtonClick } from '../../utils/analytics';
 
 const tk = {
   ink:   '#1A1A1A',
@@ -52,6 +53,8 @@ const VARIANT_LABELS: Record<Language, Record<'A' | 'T', string>> = {
 
 export default function ExploreResult({ language, mbtiType, suffix, personality, quizVersion, resultCopy, onRetest }: Props) {
   const fullType = `${mbtiType}-${suffix}`;
+  const v2ReportUrl = `/read/${fullType}?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-v2&utm_content=explore-result-v2&source=v15_result`;
+  const passportUrl = `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=explore-result-passport&mbti_type=${mbtiType}&variant=${suffix}`;
   const [copied, setCopied] = useState(false);
   const shareUrl = new URL('/explore', window.location.origin);
   shareUrl.searchParams.set('v', quizVersion.toLowerCase());
@@ -167,8 +170,14 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
           <button onClick={handleShare} style={{ display: 'block', width: '100%', padding: '16px 24px', background: tk.acid, border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 700, fontSize: 14, textAlign: 'center' as const, boxShadow: `4px 4px 0 ${tk.ink}`, cursor: 'pointer', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
             {copied ? resultCopy.shareCopied : resultCopy.shareButton}
           </button>
-          <a href="/" style={{ display: 'block', padding: '16px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
+          <a href="/" onClick={() => trackButtonClick('explore_result_to_v1', 'explore_result', '/')} style={{ display: 'block', padding: '16px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
             {resultCopy.fullQuizButton}
+          </a>
+          <a href={v2ReportUrl} onClick={() => trackButtonClick('explore_result_to_v2_report', 'explore_result', v2ReportUrl)} style={{ display: 'block', padding: '16px 24px', background: tk.ink, border: `1.5px solid ${tk.ink}`, color: tk.paper, fontWeight: 700, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
+            讀取 {fullType} V2 深度報告
+          </a>
+          <a href={passportUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackButtonClick('explore_result_to_passport', 'explore_result', passportUrl)} style={{ display: 'block', padding: '14px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
+            保存到 Kiwimu Passport
           </a>
           <a href="https://store.line.me/stickershop/product/33314326/zh-Hant" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '14px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const, opacity: 0.6 }}>
             {resultCopy.stickerButton}

@@ -21,11 +21,11 @@
 |------|------|------------|
 | **sitemap.xml** | 列出希望被收錄的 URL | `public/sitemap.xml` |
 | **robots.txt** | 不擋重要路徑、指向 sitemap | `public/robots.txt` |
-| **V2 未公開入口** | `read` 入口與 `/read/<TYPE>-<VARIANT>` 仍可直接開啟，但維持 `noindex`、不進 sitemap、也不列入 AI 可引用清單 | `App.tsx`、`components/v2/V2App.tsx`、`components/v2/V2QuizFlow.tsx`、`public/sitemap.xml`、`public/llms.txt` |
+| **V2 公開 teaser 入口** | `/read/quiz` 與 `/read/<TYPE>-<VARIANT>` 可公開索引，但只代表可見 teaser 與公開 metadata；付費鎖定章節、個人化資料與解鎖狀態不可被引用 | `App.tsx`、`components/v2/V2App.tsx`、`components/v2/V2QuizFlow.tsx`、`public/sitemap.xml`、`public/llms.txt` |
 | **公開答案中心** | `answers` hub，集中回答 `16 型`、`A/T`、`32 變體` 與引用邊界 | `pages/AnswersHub.tsx`、`data/answersHubContent.ts` |
-| **主站 URL** | SPA 以首頁為主；目前公開且可索引的核心內容為 `/`、`/explore`、`/answers` | `https://kiwimu.com/` |
+| **主站 URL** | SPA 以首頁為主；目前公開且可索引的核心內容為 `/`、`/explore`、`/answers`、`/read/quiz` 與 V2 teaser | `https://kiwimu.com/` |
 
-**注意**：本專案仍是 SPA。公開可索引內容目前集中在 `V1 首頁 /`、`V1.5 /explore`、`/answers`；V2 路徑仍可直接開啟，但只保留 runtime meta 與 GA4，不對外公開索引。V1 / V1.5 的 quiz / result 階段則以虛擬頁 `page_view` 追蹤。
+**注意**：本專案仍是 SPA。公開可索引內容目前集中在 `V1 首頁 /`、`V1.5 /explore`、`/answers`、`/read/quiz` 與 `/read/<TYPE>-<VARIANT>` 的公開 teaser。V2 付費鎖定章節、個人化內容、解鎖狀態與 user-specific URL 不對外公開索引。V1 / V1.5 的 quiz / result 階段則以虛擬頁 `page_view` 追蹤。
 
 ### 2.2 可理解（Understand）
 
@@ -50,16 +50,16 @@
 
 | 檔案 | 用途 |
 |------|------|
-| `public/robots.txt` | 允許爬蟲、指向 sitemap |
-| `public/sitemap.xml` | 首頁 + `/explore` + `/answers` + 靜態頁 |
+| `public/robots.txt` | 允許搜尋爬蟲與 `OAI-SearchBot`；阻擋私密路徑、token URL 與 `GPTBot` |
+| `public/sitemap.xml` | 首頁 + `/explore` + `/answers` + `/read/quiz` + V2 公開 teaser + 靜態頁 |
 | `index.html` | 首頁 meta、JSON-LD、GA4 gtag |
 | `utils/seo.ts` | runtime meta / canonical / JSON-LD 更新 |
 | `App.tsx` | V1 主漏斗 runtime SEO 與 GA4 |
 | `components/explore/ExploreApp.tsx` | V1.5 `/explore` runtime SEO 與 GA4 |
-| `components/v2/V2App.tsx` | `/read` 報告頁 noindex SEO 與 GA4 |
-| `components/v2/V2QuizFlow.tsx` | `/read/quiz` noindex SEO 與 GA4 |
+| `components/v2/V2App.tsx` | `/read` fallback noindex；`/read/<TYPE>-<VARIANT>` 公開 teaser SEO 與 GA4 |
+| `components/v2/V2QuizFlow.tsx` | `/read/quiz` 公開 V2 quiz entry SEO 與 GA4 |
 | `pages/AnswersHub.tsx` | `/answers` 公開答案中心 |
-| `public/llms.txt` | 提供 AI 可讀的產品摘要，僅列公開可引用內容並標記 V2 未公開 |
+| `public/llms.txt` | 提供 AI 可讀的公開 URL 地圖，僅列公開可引用內容並標記 V2 paid/private 邊界 |
 
 ---
 
@@ -122,11 +122,11 @@
 
 ### AI SEO
 
-- [x] `public/robots.txt` 已建立並指向 sitemap
-- [x] `public/sitemap.xml` 已建立，僅列公開可索引頁（首頁、`/explore`、`/answers`、靜態頁）
+- [x] `public/robots.txt` 已建立並指向 sitemap；已明確允許 `OAI-SearchBot` 並阻擋 `GPTBot`
+- [x] `public/sitemap.xml` 已建立，僅列公開可索引頁（首頁、`/explore`、`/answers`、`/read/quiz`、V2 公開 teaser、靜態頁）
 - [x] `index.html` 已加入 JSON-LD（WebSite + Organization）
 - [x] `V1 / V1.5` 公開入口已補 runtime meta / canonical / JSON-LD
-- [x] `/read` 與 `/read/quiz` 已改為 runtime `noindex` meta，且不進 sitemap / llms 公開清單
+- [x] `/read` fallback 維持 runtime `noindex`；`/read/quiz` 與 `/read/<TYPE>-<VARIANT>` 作為公開 teaser/entry 進 sitemap 與 llms，但付費鎖定章節不可引用
 - [x] `/answers` 已有 runtime meta / canonical / JSON-LD + FAQ schema
 - [ ] 若有新增公開頁（如 /about、/faq），需更新 sitemap 與 meta
 
