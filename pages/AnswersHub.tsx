@@ -71,8 +71,8 @@ const AnswersHub: React.FC = () => {
     };
   }, []);
 
-  const handleGuideClick = (title: string, href: string) => {
-    trackButtonClick(title, 'answers_hub', href);
+  const handleGuideClick = (buttonName: string, href: string, location = 'answers_hub_related') => {
+    trackButtonClick(buttonName, location, href);
   };
 
   const { hero, quickAnswers, fixedSections, authorityReferences, editorialViews, faqs, relatedGuides } = answersHubContent;
@@ -102,11 +102,27 @@ const AnswersHub: React.FC = () => {
               {hero.summary}
             </blockquote>
             <div className="mt-8 flex flex-wrap gap-3">
+              <a
+                href="/quiz"
+                onClick={() => handleGuideClick('answers_hub_start_v1', '/quiz', 'answers_hub_hero')}
+                className="inline-flex items-center gap-2 border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#CCFF00] hover:text-black"
+              >
+                <span>開始 V1 完整測驗</span>
+                <span aria-hidden="true">→</span>
+              </a>
+              <a
+                href="/explore"
+                onClick={() => handleGuideClick('answers_hub_start_v15', '/explore', 'answers_hub_hero')}
+                className="inline-flex items-center gap-2 border border-black/20 bg-white/80 px-5 py-3 text-sm font-semibold text-black transition-colors hover:border-black hover:bg-white"
+              >
+                <span>進入 V1.5 狀態快測</span>
+                <span aria-hidden="true">→</span>
+              </a>
               {relatedGuides.map((guide) => (
                 <a
                   key={guide.title}
                   href={guide.href}
-                  onClick={() => handleGuideClick(guide.title, guide.href)}
+                  onClick={() => handleGuideClick('answers_hub_related_article', guide.href)}
                   className="inline-flex items-center gap-2 border border-black/12 bg-white/70 px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-black hover:text-white"
                 >
                   <span>{guide.title}</span>
@@ -259,6 +275,22 @@ const AnswersHub: React.FC = () => {
             <p className="mt-4 max-w-xl text-[15px] leading-8 text-black/72">
               目前這一頁先把通用答案固定下來。接下來要上線的內容，應該優先沿著「品項型 / 情境型 / 品牌型」三條線補齊，讓公開頁面有穩定的 evergreen 結構。
             </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a
+                href="/quiz"
+                onClick={() => handleGuideClick('answers_hub_start_v1', '/quiz', 'answers_hub_bottom')}
+                className="inline-flex items-center justify-center border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#CCFF00] hover:text-black"
+              >
+                看完答案，開始完整測驗
+              </a>
+              <a
+                href="/read/quiz"
+                onClick={() => handleGuideClick('answers_hub_start_v2', '/read/quiz', 'answers_hub_bottom')}
+                className="inline-flex items-center justify-center border border-black/14 bg-white/70 px-5 py-3 text-sm font-semibold text-black transition-colors hover:border-black hover:bg-white"
+              >
+                直接進入 V2 深度路徑
+              </a>
+            </div>
           </article>
 
           <div className="grid gap-4">
@@ -266,7 +298,7 @@ const AnswersHub: React.FC = () => {
               <a
                 key={guide.title}
                 href={guide.href}
-                onClick={() => handleGuideClick(guide.title, guide.href)}
+                onClick={() => handleGuideClick('answers_hub_related_article', guide.href)}
                 className="group border border-black/12 bg-[#FBFAF6] p-5 transition-colors hover:border-black/30 hover:bg-white"
               >
                 <div className="flex items-start justify-between gap-4">

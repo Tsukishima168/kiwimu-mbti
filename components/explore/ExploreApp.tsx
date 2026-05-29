@@ -73,6 +73,7 @@ export default function ExploreApp() {
   const source      = getSource();  // utm_source or 'direct'
   const pathname = window.location.pathname;
   const isStateTest = pathname.startsWith('/state-test');
+  const hasQuery = window.location.search.length > 1;
   const canonicalPath = isStateTest ? '/state-test' : '/explore';
   const virtualPath = isStateTest
     ? stage === 'intro'
@@ -93,7 +94,7 @@ export default function ExploreApp() {
   }, [language, requestedLanguage, setLanguage]);
 
   useEffect(() => {
-    const isIndexableIntro = !isStateTest && stage === 'intro';
+    const isIndexableIntro = !isStateTest && stage === 'intro' && !hasQuery;
     const canonical = `${SITE_URL}${canonicalPath}`;
     const title =
       stage === 'result' && result
@@ -144,7 +145,7 @@ export default function ExploreApp() {
           }
         : undefined,
     });
-  }, [canonicalPath, isStateTest, result, stage]);
+  }, [canonicalPath, hasQuery, isStateTest, result, stage]);
 
   useEffect(() => {
     const enteredAt = Date.now();

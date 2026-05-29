@@ -75,6 +75,8 @@
 
 **目前追蹤的按鈕範例**：開始測驗、我準備好了、登入／登出、我的檔案館、設定、重測、同象限替換、完整菜單、自動取得 Discord 身份組、分享／下載、時間線／對比分析／統計／設定（檔案館）、返回／開始探索、前往月島甜點店等。重要按鈕同時寫入 Firestore `analytics_events` 供細部分析。
 
+**CTA 命名契約**：搜尋與成長漏斗的固定 CTA 名稱維護在 `docs/marketing/CTA_EVENT_CONTRACT.md`。新增 `/answers`、V1、V1.5、V2 或五站導流 CTA 時，先使用該文件中的 `button_name` / `button_location`，不要直接把畫面文案當事件名稱。
+
 ### 2.8 行銷與活動（gtag / 像素）
 
 | 事件名稱 | 觸發位置 | 說明 |
