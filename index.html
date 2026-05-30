@@ -11,9 +11,10 @@
   <meta name="google-site-verification" content="2RFBMYJ30DsIGKJ9nRS1286s4lbJNFMOsK7s_QDQhSs">
 
   <!-- 地理標記 -->
-  <meta name="geo.placename" content="台南市安南區">
+  <meta name="geo.placename" content="台南市安南區本原街一段97巷168號">
   <meta name="geo.region" content="TW-TN">
-  <meta name="ICBM" content="120.2699, 23.0696">
+  <meta name="geo.position" content="23.0473181;120.1987003">
+  <meta name="ICBM" content="23.0473181, 120.1987003">
 
   <!-- 品牌相關 -->
   <meta name="application-name" content="Kiwimu MBTI 人格測驗">
@@ -27,6 +28,63 @@
 
   <link rel="canonical" href="https://kiwimu.com/">
   <link rel="alternate" type="text/plain" href="/llms.txt" title="Kiwimu AI summary context">
+
+  <!-- JSON-LD 結構化資料（知識圖譜：品牌 entity @id 與 map 對齊以利合併） -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebApplication",
+        "@id": "https://kiwimu.com/#mbti-lab",
+        "name": "Kiwimu MBTI 甜點人格測驗",
+        "alternateName": ["Kiwimu MBTI", "Kiwimu 人格測驗"],
+        "applicationCategory": "LifestyleApplication",
+        "description": "Moon Moon 月島甜點推出的 MBTI 甜點人格測驗。用 40 題找到你的 16 型人格、靈魂甜點與情緒敘事，支援繁中、英文、日文、韓文。",
+        "url": "https://kiwimu.com/",
+        "inLanguage": ["zh-TW", "en", "ja", "ko"],
+        "isPartOf": { "@id": "https://map.kiwimu.com/#moonmoon" },
+        "about": { "@id": "https://kiwimu.com/#kiwimu" }
+      },
+      {
+        "@type": ["Bakery", "CafeOrCoffeeShop"],
+        "@id": "https://map.kiwimu.com/#moonmoon",
+        "name": "Moon Moon 月島甜點",
+        "alternateName": ["月島甜點店", "MOON MOON"],
+        "description": "位於台南市安南區本原街一段97巷168號的療癒系甜點品牌，以甜點、Kiwimu 角色與心理學敘事陪伴情緒。",
+        "url": "https://map.kiwimu.com/",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "本原街一段97巷168號",
+          "addressLocality": "台南市",
+          "addressRegion": "安南區",
+          "addressCountry": "TW"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 23.0473181,
+          "longitude": 120.1987003
+        },
+        "hasMenu": "https://map.kiwimu.com/menu",
+        "servesCuisine": "Dessert",
+        "priceRange": "$$",
+        "sameAs": [
+          "https://www.instagram.com/moon_moon_dessert/",
+          "https://lin.ee/MndRHE2",
+          "https://map.kiwimu.com"
+        ]
+      },
+      {
+        "@type": "Thing",
+        "@id": "https://kiwimu.com/#kiwimu",
+        "name": "Kiwimu",
+        "description": "Moon Moon 月島甜點的敘事角色。圓潤白色鳥型生物，由鮮奶油誕生，以 16 型 MBTI 人格化身，承載品牌的情緒敘事。",
+        "isPartOf": { "@id": "https://map.kiwimu.com/#moonmoon" },
+        "url": "https://kiwimu.com"
+      }
+    ]
+  }
+  </script>
   <!-- DEPLOY_ID: 20260108-2315 -->
 
   <!-- Favicon -->
