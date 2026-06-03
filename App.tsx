@@ -1,5 +1,5 @@
 // Deployment trigger: 2026-01-27-moon-island
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { AppUser, Option, MbtiResultData, Score } from './types';
 import { getAuthSupabaseClient, restoreAuthSessionFromUrl, toAppUser, signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
 import { useCloudSync } from './hooks/useCloudSync';
@@ -9,16 +9,13 @@ import { loadResultData } from './utils/dataLoader';
 import Intro from './components/Intro';
 import Quiz from './components/Quiz';
 import Loading from './components/Loading';
-import Result from './components/Result';
 import Manifesto from './components/Manifesto';
 import Login from './components/Login';
 import LoginCallback from './components/LoginCallback';
-import MyArchive from './components/MyArchive';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
 import { trackLoginCallback, trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin, trackLoginGateOpened, trackLoginSuccess, trackArchiveGateOpened, trackArchiveView, getSessionId } from './utils/analytics';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
-import ExploreApp from './components/explore/ExploreApp';
 
 const FooterLinks = () => {
   const { language } = useLanguage();
@@ -54,19 +51,29 @@ import { saveMBTIToMoonIsland } from './utils/moonIslandSync';
 import { sendResultEmail } from './utils/sendResultEmail';
 
 import NotFound from './components/NotFound';
-import StateTest from './pages/StateTest';
-import Today from './pages/Today';
 import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
-import ResultLegacyDump from './components/ResultLegacyDump';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
-import V2App from './components/v2/V2App';
-import V2QuizFlow from './components/v2/V2QuizFlow';
-import V2QaNotes from './components/v2/V2QaNotes';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
-import AnswersHub from './pages/AnswersHub';
-import AnswerArticle from './pages/AnswerArticle';
 import { applyRuntimeSeo } from './utils/seo';
+
+const Result = lazy(() => import('./components/Result'));
+const MyArchive = lazy(() => import('./components/MyArchive'));
+const ExploreApp = lazy(() => import('./components/explore/ExploreApp'));
+const StateTest = lazy(() => import('./pages/StateTest'));
+const Today = lazy(() => import('./pages/Today'));
+const ResultLegacyDump = lazy(() => import('./components/ResultLegacyDump'));
+const V2App = lazy(() => import('./components/v2/V2App'));
+const V2QuizFlow = lazy(() => import('./components/v2/V2QuizFlow'));
+const V2QaNotes = lazy(() => import('./components/v2/V2QaNotes'));
+const AnswersHub = lazy(() => import('./pages/AnswersHub'));
+const AnswerArticle = lazy(() => import('./pages/AnswerArticle'));
+
+const RouteFallback = () => (
+  <div className="min-h-screen bg-kiwi-bg flex items-center justify-center text-sm text-[#4d5f2f]">
+    Loading...
+  </div>
+);
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
 type PostLoginDestination = 'intro' | 'result' | 'archive';
@@ -850,24 +857,30 @@ const App: React.FC = () => {
   if (_path.startsWith('/explore') || _path.startsWith('/state-test')) {
     return (
       <LanguageProvider>
-        <ExploreApp />
+        <Suspense fallback={<RouteFallback />}>
+          <ExploreApp />
+        </Suspense>
       </LanguageProvider>
     );
   }
 
   if (_path === '/answers' || _path.startsWith('/answers/')) {
     const answerSlug = decodeURIComponent(_path.replace(/^\/answers\/?/, '').replace(/\/$/, ''));
-    return answerSlug ? <AnswerArticle slug={answerSlug} /> : <AnswersHub />;
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        {answerSlug ? <AnswerArticle slug={answerSlug} /> : <AnswersHub />}
+      </Suspense>
+    );
   }
 
   // V2 /read 路由 — 完全獨立，不觸發 V1 Firebase 邏輯
   if (isV2Pathname(_path)) {
     const normalizedV2Path = normalizeV2Pathname(_path);
     return (
-      <>
+      <Suspense fallback={<RouteFallback />}>
         {normalizedV2Path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>}
         <V2QaNotes />
-      </>
+      </Suspense>
     );
   }
 
@@ -895,48 +908,50 @@ const App: React.FC = () => {
             />
           )}
 
-          {stage === 'callback' && <LoginCallback />}
-          {stage === 'login' && <Login isUnlockMode={Boolean(resultData && scores)} />}
-          {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} onViewArchive={handleViewArchive} onLogout={handleLogout} />}
-          {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
-          {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
-          {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
-          {stage === 'result' && resultData && scores && (
-            <Result
-              resultData={resultData}
-              rawScores={scores}
-              onRetest={handleRetest}
-              onOpenConsultant={() => console.log('Open consultant modal')}
-              onViewArchive={handleViewArchive}
-              user={user}
-              onLogin={handleLogin}
-              onLogout={handleLogout}
-              isSharedView={isSharedView}
-            />
-          )}
-          {stage === 'og-render' && resultData && scores && (
-            <ResultLegacyDump
-              resultData={resultData}
-              rawScores={scores}
-              onRetest={handleRetest}
-              onOpenConsultant={() => console.log('Open consultant modal')}
-              onViewArchive={handleViewArchive}
-              user={user}
-              onLogin={handleLogin}
-              onLogout={handleLogout}
-            />
-          )}
-          {stage === 'archive' && user && (
-            <MyArchive key={Date.now()} user={user} onBack={handleBackFromArchive} />
-          )}
-          {stage === 'state-test' && <StateTest />}
-          {stage === 'today' && <Today />}
-          {stage === '404' && (
-            <NotFound onHome={() => {
-              window.history.pushState({}, '', '/'); // Reset URL
-              setStage('intro');
-            }} />
-          )}
+          <Suspense fallback={<RouteFallback />}>
+            {stage === 'callback' && <LoginCallback />}
+            {stage === 'login' && <Login isUnlockMode={Boolean(resultData && scores)} />}
+            {stage === 'intro' && <Intro onStart={goToManifesto} user={user} onLogin={handleLogin} onViewArchive={handleViewArchive} onLogout={handleLogout} />}
+            {stage === 'manifesto' && <Manifesto onProceed={startQuiz} />}
+            {stage === 'quiz' && <Quiz user={user} onComplete={handleQuizComplete} onSaveToCloud={saveToCloud} />}
+            {stage === 'loading' && <Loading onFinished={handleLoadingFinished} />}
+            {stage === 'result' && resultData && scores && (
+              <Result
+                resultData={resultData}
+                rawScores={scores}
+                onRetest={handleRetest}
+                onOpenConsultant={() => console.log('Open consultant modal')}
+                onViewArchive={handleViewArchive}
+                user={user}
+                onLogin={handleLogin}
+                onLogout={handleLogout}
+                isSharedView={isSharedView}
+              />
+            )}
+            {stage === 'og-render' && resultData && scores && (
+              <ResultLegacyDump
+                resultData={resultData}
+                rawScores={scores}
+                onRetest={handleRetest}
+                onOpenConsultant={() => console.log('Open consultant modal')}
+                onViewArchive={handleViewArchive}
+                user={user}
+                onLogin={handleLogin}
+                onLogout={handleLogout}
+              />
+            )}
+            {stage === 'archive' && user && (
+              <MyArchive key={Date.now()} user={user} onBack={handleBackFromArchive} />
+            )}
+            {stage === 'state-test' && <StateTest />}
+            {stage === 'today' && <Today />}
+            {stage === '404' && (
+              <NotFound onHome={() => {
+                window.history.pushState({}, '', '/'); // Reset URL
+                setStage('intro');
+              }} />
+            )}
+          </Suspense>
 
           {/* 底部法律連結（低調放置） */}
           {stage !== 'login' && stage !== 'callback' && (
