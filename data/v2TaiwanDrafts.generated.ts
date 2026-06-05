@@ -1,7 +1,7 @@
 /* eslint-disable */
 // AUTO-GENERATED FILE. DO NOT EDIT DIRECTLY.
 // Source: /Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_報告_草案庫
-// Generated at: 2026-04-23T03:36:35.976Z
+// Generated at: 2026-06-05T11:15:39.832Z
 
 export const V2_TW_DRAFT_SOURCE = "/Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_報告_草案庫";
 
@@ -10,11 +10,11 @@ export const V2_TW_REPORTS = {
     "type": "ENTJ",
     "familyKey": "analysts",
     "familyLabel": "分析家類 Analysts",
-    "emoji": "👑",
-    "title": "天生霸總 / 執行狂魔",
+    "emoji": "",
+    "title": "降維打擊本人",
     "sourcePath": "01_分析家類_Analysts/ENTJ_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ENTJ 天生霸總 / 執行狂魔",
+      "title": "V2 深度報告草案 - ENTJ 降維打擊本人",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -158,11 +158,11 @@ export const V2_TW_REPORTS = {
     "type": "ENTP",
     "familyKey": "analysts",
     "familyLabel": "分析家類 Analysts",
-    "emoji": "🎢",
-    "title": "邏輯破壞王 / 腦洞發電機",
+    "emoji": "",
+    "title": "嘴替戰神",
     "sourcePath": "01_分析家類_Analysts/ENTP_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ENTP 邏輯破壞王 / 腦洞發電機",
+      "title": "V2 深度報告草案 - ENTP 嘴替戰神",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -306,11 +306,11 @@ export const V2_TW_REPORTS = {
     "type": "INTJ",
     "familyKey": "analysts",
     "familyLabel": "分析家類 Analysts",
-    "emoji": "🌌",
-    "title": "戰略策劃家",
+    "emoji": "",
+    "title": "冷血腦內小劇場導演",
     "sourcePath": "01_分析家類_Analysts/INTJ_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - INTJ 戰略策劃家",
+      "title": "V2 深度報告草案 - INTJ 冷血腦內小劇場導演",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -458,11 +458,11 @@ export const V2_TW_REPORTS = {
     "type": "INTP",
     "familyKey": "analysts",
     "familyLabel": "分析家類 Analysts",
-    "emoji": "🛸",
-    "title": "宇宙真理駭客",
+    "emoji": "",
+    "title": "宇宙抽象怪",
     "sourcePath": "01_分析家類_Analysts/INTP_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - INTP 宇宙真理駭客",
+      "title": "V2 深度報告草案 - INTP 宇宙抽象怪",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -606,11 +606,11 @@ export const V2_TW_REPORTS = {
     "type": "ENFJ",
     "familyKey": "diplomats",
     "familyLabel": "外交家類 Diplomats",
-    "emoji": "☀️",
-    "title": "閃閃發光的心靈導師",
+    "emoji": "",
+    "title": "人間發電廠暖姊／暖哥",
     "sourcePath": "02_外交家類_Diplomats/ENFJ_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ENFJ 閃閃發光的心靈導師",
+      "title": "V2 深度報告草案 - ENFJ 人間發電廠暖姊／暖哥",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -754,11 +754,11 @@ export const V2_TW_REPORTS = {
     "type": "ENFP",
     "familyKey": "diplomats",
     "familyLabel": "外交家類 Diplomats",
-    "emoji": "🌈",
-    "title": "快樂多巴胺製造機",
+    "emoji": "",
+    "title": "多巴胺發射器",
     "sourcePath": "02_外交家類_Diplomats/ENFP_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ENFP 快樂多巴胺製造機",
+      "title": "V2 深度報告草案 - ENFP 多巴胺發射器",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -902,11 +902,11 @@ export const V2_TW_REPORTS = {
     "type": "INFJ",
     "familyKey": "diplomats",
     "familyLabel": "外交家類 Diplomats",
-    "emoji": "👁️",
-    "title": "靈魂透視者",
+    "emoji": "",
+    "title": "沈默版心理側寫師",
     "sourcePath": "02_外交家類_Diplomats/INFJ_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - INFJ 靈魂透視者",
+      "title": "V2 深度報告草案 - INFJ 沈默版心理側寫師",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -1066,11 +1066,11 @@ export const V2_TW_REPORTS = {
     "type": "INFP",
     "familyKey": "diplomats",
     "familyLabel": "外交家類 Diplomats",
-    "emoji": "🦋",
-    "title": "內向的浪漫詩人",
+    "emoji": "",
+    "title": "emo 純愛戰士",
     "sourcePath": "02_外交家類_Diplomats/INFP_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - INFP 內向的浪漫詩人",
+      "title": "V2 深度報告草案 - INFP emo 純愛戰士",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -1214,11 +1214,11 @@ export const V2_TW_REPORTS = {
     "type": "ESFJ",
     "familyKey": "sentinels",
     "familyLabel": "守護者類 Sentinels",
-    "emoji": "🌸",
-    "title": "社交總機 / 貼心中央空調",
+    "emoji": "",
+    "title": "LINE 群組首席管理員",
     "sourcePath": "03_守護者類_Sentinels/ESFJ_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ESFJ 貼心中央空調 / 社交總機",
+      "title": "V2 深度報告草案 - ESFJ LINE 群組首席管理員",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -1362,11 +1362,11 @@ export const V2_TW_REPORTS = {
     "type": "ESTJ",
     "familyKey": "sentinels",
     "familyLabel": "守護者類 Sentinels",
-    "emoji": "⚔️",
-    "title": "鐵血無情的效率機器",
+    "emoji": "",
+    "title": "整頓職場本人",
     "sourcePath": "03_守護者類_Sentinels/ESTJ_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ESTJ 鐵血無情的效率機器",
+      "title": "V2 深度報告草案 - ESTJ 整頓職場本人",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -1510,11 +1510,11 @@ export const V2_TW_REPORTS = {
     "type": "ISFJ",
     "familyKey": "sentinels",
     "familyLabel": "守護者類 Sentinels",
-    "emoji": "🏠",
-    "title": "溫柔的避風港",
+    "emoji": "",
+    "title": "全家人的後勤本部",
     "sourcePath": "03_守護者類_Sentinels/ISFJ_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ISFJ 溫柔的避風港",
+      "title": "V2 深度報告草案 - ISFJ 全家人的後勤本部",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -1658,11 +1658,11 @@ export const V2_TW_REPORTS = {
     "type": "ISTJ",
     "familyKey": "sentinels",
     "familyLabel": "守護者類 Sentinels",
-    "emoji": "🏛️",
-    "title": "秩序守護神",
+    "emoji": "",
+    "title": "人間清醒勞模",
     "sourcePath": "03_守護者類_Sentinels/ISTJ_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ISTJ 秩序守護神",
+      "title": "V2 深度報告草案 - ISTJ 人間清醒勞模",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -1806,11 +1806,11 @@ export const V2_TW_REPORTS = {
     "type": "ESFP",
     "familyKey": "explorers",
     "familyLabel": "探險家類 Explorers",
-    "emoji": "📸",
-    "title": "鎂光燈下的天生大明星",
+    "emoji": "",
+    "title": "人間限定款主角",
     "sourcePath": "04_探險家類_Explorers/ESFP_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ESFP 鎂光燈下的天生大明星",
+      "title": "V2 深度報告草案 - ESFP 人間限定款主角",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -1954,11 +1954,11 @@ export const V2_TW_REPORTS = {
     "type": "ESTP",
     "familyKey": "explorers",
     "familyLabel": "探險家類 Explorers",
-    "emoji": "🏎️",
-    "title": "踩在極限邊緣的挑戰者",
+    "emoji": "",
+    "title": "腎上腺素販賣機",
     "sourcePath": "04_探險家類_Explorers/ESTP_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ESTP 踩在極限邊緣的挑戰者",
+      "title": "V2 深度報告草案 - ESTP 腎上腺素販賣機",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -2102,11 +2102,11 @@ export const V2_TW_REPORTS = {
     "type": "ISFP",
     "familyKey": "explorers",
     "familyLabel": "探險家類 Explorers",
-    "emoji": "🎨",
-    "title": "活在當下的隨性藝術家",
+    "emoji": "",
+    "title": "擺爛系藝術家",
     "sourcePath": "04_探險家類_Explorers/ISFP_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ISFP 活在當下的隨性藝術家",
+      "title": "V2 深度報告草案 - ISFP 擺爛系藝術家",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"
@@ -2246,11 +2246,11 @@ export const V2_TW_REPORTS = {
     "type": "ISTP",
     "familyKey": "explorers",
     "familyLabel": "探險家類 Explorers",
-    "emoji": "🔧",
-    "title": "冷靜的超級神偷 / 實戰派工匠",
+    "emoji": "",
+    "title": "裝沒事的動手怪",
     "sourcePath": "04_探險家類_Explorers/ISTP_深度報告草案.md",
     "meta": {
-      "title": "V2 深度報告草案 - ISTP 冷靜的超級神偷",
+      "title": "V2 深度報告草案 - ISTP 裝沒事的動手怪",
       "created": "2026-02-24",
       "category": "report_draft",
       "version": "2026_H2_V2"

@@ -230,7 +230,7 @@ function parseDraft(filePath) {
   const { frontmatter, body } = extractFrontmatter(markdown);
   const meta = parseFrontmatter(frontmatter);
 
-  const headerMatch = body.match(/^#\s+(\S+)\s+MBTI V2 深度報告：([A-Z]{4})\s+\((.+)\)$/mu);
+  const headerMatch = body.match(/^#\s+(?:(\S+)\s+)?MBTI V2 深度報告：([A-Z]{4})\s+\((.+)\)$/mu);
   assert(headerMatch, `Missing title header in ${filePath}`);
 
   const type = headerMatch[2];
@@ -255,7 +255,7 @@ function parseDraft(filePath) {
   const professionalCoreMatch = professionalSection.match(/###\s+\*\*身份核心[：:]\s*(.+?)\*\*\n([\s\S]*?)\n\n###\s+\*\*A\s*\/\s*T\s+亞型深度對照/um);
   assert(professionalCoreMatch, `Missing professional core in ${filePath}`);
 
-  const careerSplitIndex = findIndex(cultureSection, /###\s+💖\s+感情觀[：:]/u);
+  const careerSplitIndex = findIndex(cultureSection, /###\s+(?:💖\s+)?感情觀[：:]/u);
   assert(careerSplitIndex >= 0, `Missing relationship section in ${filePath}`);
   const careerSection = cultureSection.slice(0, careerSplitIndex).trim();
   const relationshipSection = cultureSection.slice(careerSplitIndex).trim();
@@ -268,7 +268,7 @@ function parseDraft(filePath) {
     type,
     familyKey: family.key,
     familyLabel: family.label,
-    emoji: headerMatch[1],
+    emoji: headerMatch[1] || '',
     title: collapseInline(headerMatch[3]),
     sourcePath: path.relative(SOURCE_DIR, filePath),
     meta: {
@@ -295,11 +295,11 @@ function parseDraft(filePath) {
       bullets: parseBoldBullets(dimensionCalloutLines.join('\n')),
     },
     career: {
-      title: collapseInline(assert(careerSection.match(/###\s+💼\s+職涯策略[：:]\s*(.+)$/mu), `Missing career title in ${filePath}`)[1]),
+      title: collapseInline(assert(careerSection.match(/###\s+(?:💼\s+)?職涯策略[：:]\s*(.+)$/mu), `Missing career title in ${filePath}`)[1]),
       bullets: parseBoldBullets(careerSection),
     },
     relationship: {
-      title: collapseInline(assert(relationshipSection.match(/###\s+💖\s+感情觀[：:]\s*(.+)$/mu), `Missing relationship title in ${filePath}`)[1]),
+      title: collapseInline(assert(relationshipSection.match(/###\s+(?:💖\s+)?感情觀[：:]\s*(.+)$/mu), `Missing relationship title in ${filePath}`)[1]),
       bullets: parseBoldBullets(relationshipSection),
     },
     dessert: {
