@@ -139,13 +139,13 @@ const buildV1SeoConfig = (stage: Stage, pathname: string, resultData: MbtiResult
         ? '/'
         : normalizedPath;
   const canonical = buildAbsoluteUrl(canonicalPath);
-  const defaultKeywords = 'Kiwimu,MBTI,人格測驗,16型,靈魂甜點,月島甜點,台灣';
+  const defaultKeywords = '免費 MBTI 測驗,MBTI 免費,免費 16 型人格測驗,MBTI 測驗 中文,MBTI 線上測驗,Kiwimu,MBTI,16 型人格,MoonType MBTI,月島 MBTI,月島甜點,靈魂甜點,A 型 T 型,Z 世代 MBTI,台灣';
   const defaultRobots = 'noindex,nofollow';
 
   if (stage === 'intro' && onRootPath) {
     return {
-      title: 'Kiwimu MBTI 人格測驗｜找到你的靈魂甜點｜Moon Moon 月島甜點',
-      description: '用 Kiwimu 16 型 MBTI 人格測驗找到你的靈魂甜點與人格語言，支援繁體中文、English、日本語、한국어。',
+      title: '免費 MBTI 測驗｜16 型人格 × 靈魂甜點｜Kiwimu × 月島甜點',
+      description: '免費 MBTI 16 型人格測驗：40 題找到你的人格類型、A/T 變體、靈魂甜點與情緒敘事。MoonType × Kiwimu 月島甜點獨家，繁體中文／English／日本語／한국어。',
       canonical,
       image: DEFAULT_SOCIAL_IMAGE,
       keywords: defaultKeywords,
@@ -189,12 +189,12 @@ const buildV1SeoConfig = (stage: Stage, pathname: string, resultData: MbtiResult
 
   const fallbackMap: Record<Exclude<Stage, 'result' | 'intro'>, { title: string; description: string }> = {
     manifesto: {
-      title: 'Kiwimu 測驗前言｜開始你的靈魂甜點測驗',
-      description: '在進入 MBTI 測驗前，先讀懂 Kiwimu 想用人格與甜點說的那句話。',
+      title: '開始你的免費 MBTI 測驗｜Kiwimu 靈魂甜點前言',
+      description: '在開始免費 MBTI 16 型人格測驗前，先讀懂 Kiwimu 想用人格與甜點說的那句話。',
     },
     quiz: {
-      title: 'Kiwimu MBTI 測驗進行中｜16 型人格測驗',
-      description: '40 題完整測驗進行中，正在定位你的 MBTI 類型與靈魂甜點。',
+      title: '免費 MBTI 測驗進行中｜Kiwimu 16 型人格 40 題',
+      description: '40 題免費 MBTI 16 型人格測驗進行中，正在定位你的類型、A/T 變體與靈魂甜點。',
     },
     loading: {
       title: 'Kiwimu 正在整理你的結果',

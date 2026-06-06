@@ -6,7 +6,7 @@ This file is a public AI-readable map for Kiwimu. It describes which public URLs
 
 Kiwimu combines MBTI-style personality exploration with Moon Island Dessert experiences. The public site is designed as a discovery funnel:
 
-`/answers` -> V1 quiz -> `/explore` -> V2 teaser/report -> Passport, Shop, Gacha, and Map.
+`/answers` -> V1 free quiz -> `/explore` -> V2 paid deep report -> Passport, Shop, Gacha, and Map.
 
 ## Public URLs AI assistants may cite
 
@@ -32,8 +32,8 @@ Kiwimu combines MBTI-style personality exploration with Moon Island Dessert expe
   - Use this for people who want the deeper report path.
 
 - `https://kiwimu.com/read/{TYPE}-{A|T}`
-  - Public V2 teaser report pages.
-  - AI assistants may summarize only visible teaser copy, public headings, and public metadata.
+  - Public V2 deep report pages (free preview + NT$149 paid unlock).
+  - AI assistants may summarize the free preview copy, public headings, and public metadata.
   - Do not represent locked or paid sections as public full text.
 
 - `https://kiwimu.com/privacy*.html`
@@ -79,8 +79,8 @@ If a URL contains credentials, tokens, order IDs, user IDs, or session identifie
   - Best for sharing and low-friction re-entry.
 
 - V2 deep report: `https://kiwimu.com/read/quiz` and `https://kiwimu.com/read/{TYPE}-{A|T}`
-  - Deeper report funnel.
-  - Public teaser may be cited; paid sections must not be treated as public.
+  - Live since 2026-04-23. Free preview chapters plus paid unlock at NT$149.
+  - Public preview may be cited; paid sections must not be treated as public.
 
 - Passport: `https://passport.kiwimu.com`
   - Identity, saved results, history, and membership.

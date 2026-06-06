@@ -3,7 +3,7 @@
   <!-- 首頁 / Homepage -->
   <url>
     <loc>https://kiwimu.com/</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,44 +11,44 @@
   <!-- V1.5 快速漏斗 / Explore -->
   <url>
     <loc>https://kiwimu.com/explore</loc>
-    <lastmod>2026-03-30</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://kiwimu.com/answers</loc>
-    <lastmod>2026-04-12</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/answers/mbti</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/answers/at-variants</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/answers/soul-dessert</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/answers/tiramisu-guide</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.65</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/answers/gift-guide</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.65</priority>
   </url>
@@ -56,65 +56,65 @@
   <!-- V2 公開 teaser / Public V2 teaser report surfaces -->
   <url>
     <loc>https://kiwimu.com/read/quiz</loc>
-    <lastmod>2026-04-23</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  <url><loc>https://kiwimu.com/read/ENFJ-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ENFJ-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ENFP-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ENFP-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ENTJ-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ENTJ-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ENTP-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ENTP-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ESFJ-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ESFJ-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ESFP-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ESFP-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ESTJ-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ESTJ-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ESTP-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ESTP-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/INFJ-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/INFJ-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/INFP-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/INFP-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/INTJ-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/INTJ-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/INTP-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/INTP-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ISFJ-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ISFJ-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ISFP-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ISFP-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ISTJ-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ISTJ-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ISTP-A</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://kiwimu.com/read/ISTP-T</loc><lastmod>2026-04-23</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ENFJ-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ENFJ-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ENFP-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ENFP-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ENTJ-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ENTJ-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ENTP-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ENTP-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ESFJ-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ESFJ-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ESFP-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ESFP-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ESTJ-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ESTJ-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ESTP-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ESTP-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/INFJ-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/INFJ-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/INFP-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/INFP-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/INTJ-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/INTJ-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/INTP-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/INTP-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ISFJ-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ISFJ-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ISFP-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ISFP-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ISTJ-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ISTJ-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ISTP-A</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kiwimu.com/read/ISTP-T</loc><lastmod>2026-06-05</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
   <!-- 隱私政策 -->
   <url>
     <loc>https://kiwimu.com/privacy.html</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/privacy-en.html</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/privacy-ja.html</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/privacy-ko.html</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
@@ -122,25 +122,25 @@
   <!-- 使用條款 -->
   <url>
     <loc>https://kiwimu.com/terms.html</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/terms-en.html</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/terms-ja.html</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://kiwimu.com/terms-ko.html</loc>
-    <lastmod>2026-02-24</lastmod>
+    <lastmod>2026-06-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>

@@ -339,7 +339,6 @@ export default function V2App({ user }: V2AppProps) {
   const variant = routeTarget?.variant || (resultBundle ? getVariant(resultBundle.scores) : 'A');
   const fullType = routeTarget?.fullType || (resultBundle ? `${resultBundle.resultData.id}-${variant}` : null);
   const report = useMemo(() => (resultBundle ? getV2TaiwanDraft(resultBundle.resultData.id) : null), [resultBundle]);
-  const seoVariantReport = useMemo(() => (fullType ? getV2VariantReport(fullType) : null), [fullType]);
   const canonicalPath = fullType ? buildV2ReportPath(fullType) : '/read';
   const canonicalUrl = `https://kiwimu.com${canonicalPath}`;
 
@@ -359,12 +358,14 @@ export default function V2App({ user }: V2AppProps) {
   }, [routeTarget]);
 
   useEffect(() => {
+    // 砍掉 32 變體 pack 的 SEO title 優先級，統一用 16 型 Z 世代稱號（report.title）
+    const baseType = resultBundle?.resultData.id;
     const title = fullType && report
-      ? `${fullType} 深度報告｜${seoVariantReport?.title || report.title}｜Kiwimu MBTI V2`
-      : 'Kiwimu MBTI V2 深度報告';
+      ? `${fullType} MBTI 深度報告｜${report.title}｜Kiwimu × 月島甜點`
+      : '免費 MBTI 深度報告｜Kiwimu MBTI V2';
     const description = fullType && report && resultBundle
-      ? `${seoVariantReport?.abstract.body || report.abstract.body} V2 完整深度報告即將正式上線。`
-      : 'Kiwimu MBTI V2 深度報告：從 MBTI 類型出發，讀到更完整的 A/T 變體、維度、關係、原型與收束提問。';
+      ? `${fullType} 深度 MBTI 報告：${report.title}。從 16 型 × A/T 變體解讀你的靈魂甜點、職涯傾向與情緒敘事。試讀免費，NT$149 解鎖完整 Kiwimu V2 報告。`
+      : '免費 MBTI 16 型試讀，NT$149 解鎖 Kiwimu V2 深度報告：A/T 變體、維度、關係、原型與收束提問一次讀完。';
     const image = resultBundle?.resultData.characterImage || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
 
     applyRuntimeSeo({
@@ -373,10 +374,23 @@ export default function V2App({ user }: V2AppProps) {
       canonical: canonicalUrl,
       ogType: 'article',
       image,
-      keywords: ['Kiwimu', 'MBTI', 'V2', '深度報告', fullType || '人格報告'].join(','),
+      keywords: [
+        // 通用 MBTI 字根
+        'MBTI', 'MBTI 深度報告', '16 型人格', 'A 型 T 型',
+        // 「免費」入口（含 paywall 結構）
+        '免費 MBTI 試讀', '免費 MBTI 測驗',
+        // Z 世代 + 月島品牌混搭（GSC 已驗證有真實 query）
+        'Z 世代 MBTI', 'MoonType MBTI', '月島 MBTI',
+        // 此頁專屬
+        fullType,                     // 例 INTJ-A
+        baseType,                     // 例 INTJ
+        report?.title,                // 例 冷血腦內小劇場導演
+        // 商品鉤子
+        'Kiwimu', '月島甜點', '靈魂甜點', 'NT$149 MBTI 深度報告',
+      ].filter(Boolean).join(','),
       robots: fullType && !hasQuery ? 'index,follow' : 'noindex,follow',
     });
-  }, [canonicalUrl, fullType, hasQuery, report, resultBundle, seoVariantReport]);
+  }, [canonicalUrl, fullType, hasQuery, report, resultBundle]);
 
   useEffect(() => {
     const enteredAt = Date.now();

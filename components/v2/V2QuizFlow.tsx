@@ -40,12 +40,12 @@ export default function V2QuizFlow() {
 
   React.useEffect(() => {
     applyRuntimeSeo({
-      title: 'Kiwimu V2 40 題狀態光譜測驗｜Kiwimu',
-      description: 'Kiwimu V2 以貼近台灣生活的情境題，整理你的深度狀態光譜與專屬報告。',
+      title: '免費 MBTI 測驗｜Kiwimu V2 40 題狀態光譜｜MoonType × 月島甜點',
+      description: '免費 MBTI 40 題深度測驗：Kiwimu V2 用貼近台灣生活的 Z 世代情境題，整理你的 16 型人格、A/T 變體、靈魂甜點與深度狀態光譜，付費可解鎖完整深度報告。',
       canonical: `https://kiwimu.com${quizPath}`,
       ogType: 'website',
       image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png',
-      keywords: 'Kiwimu,V2,MBTI,人格測驗,深度報告,台灣版',
+      keywords: '免費 MBTI 測驗,MBTI 免費,免費 16 型人格測驗,MBTI 深度報告,Kiwimu,MoonType MBTI,月島 MBTI,A 型 T 型,Z 世代 MBTI,月島甜點,靈魂甜點',
       robots: 'index,follow',
     });
   }, [quizPath]);
