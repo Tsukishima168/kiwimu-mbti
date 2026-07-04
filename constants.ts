@@ -612,7 +612,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       },
       socialStyle: "在感興趣的話題上滔滔不絕，其他時間隱形。", growthAdvice: "試著與現實世界建立一點連結，哪怕只是從整理房間開始。",
       soulQuestions: ["你是否用「邏輯」作為擋箭牌，來逃避處理混亂的情感？", "如果真理會傷害到你愛的人，你還會堅持說出來嗎？", "你活在腦中很久了，要不要出來曬曬太陽？"],
-      characterImage: characterImageUrl, dessert: { name: "檸檬柚子千層", description: "結構細膩且層次分明，在深度思考中尋求一絲清亮。", imageUrl: DESSERT_IMAGES.MILLE_CREPE_LEMON, ctaLink: "https://linktr.ee/moon_moon_dessert" }
+      characterImage: characterImageUrl, dessert: { name: "檸檬柚子千層蛋糕", description: "結構細膩且層次分明，在深度思考中尋求一絲清亮。", imageUrl: DESSERT_IMAGES.MILLE_CREPE_LEMON, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "ENTJ": {
       id: "ENTJ", title: "天生指揮官", summary: "你是天生的統帥。擁有宏大的願景與鐵一般的意志。", quote: "「不可能這個詞，只存在於愚人的字典裡。」", keywords: ["野心", "戰略", "果斷", "權力"], bgColor: getBgColor("ENTJ"),
@@ -733,7 +733,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       },
       socialStyle: "派對的靈魂人物，人來瘋。", growthAdvice: "學會拒絕，你的能量是有限的；學會停留，深度需要時間累積。",
       soulQuestions: ["你換了這麼多方向，究竟是在追尋夢想，還是在逃避困難？", "如果熱情退去，你還願意承諾堅持到底嗎？", "你總是激勵別人，但誰來激勵你？"],
-      characterImage: characterImageUrl, dessert: { name: "草莓莓果千層", description: "層次繽紛且富有生命力，裝滿奇奇怪怪且閃亮的靈感碎片。", imageUrl: DESSERT_IMAGES.MILLE_CREPE_STRAWBERRY, ctaLink: "https://linktr.ee/moon_moon_dessert" }
+      characterImage: characterImageUrl, dessert: { name: "草莓莓果千層蛋糕", description: "層次繽紛且富有生命力，裝滿奇奇怪怪且閃亮的靈感碎片。", imageUrl: DESSERT_IMAGES.MILLE_CREPE_STRAWBERRY, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     // --- 守護者 (Sentinels) ---
     "ISTJ": {
