@@ -817,6 +817,12 @@ export default function V2App({ user }: V2AppProps) {
   const digitalPersonaIntro = variantReport?.design.quote ?? '';
   const importantQuote = variantReport?.important ?? '';
 
+  const currentStateLabel = cleanText(variantReport?.currentState.label ?? '');
+  const currentStateBody = cleanText(variantReport?.currentState.body ?? '');
+  const stateTruthSubtitle = cleanText(variantReport?.stateTruth.subtitle ?? '');
+  const stateTruthBody = cleanText(variantReport?.stateTruth.body ?? '');
+  const resonanceArchetype = variantReport?.resonanceArchetype ?? [];
+
   const REPORT_MARQUEE = `KIWIMU V2 · 狀態光譜測驗 · DEEP REPORT · ${fullType ?? ''} · `;
 
   return (
@@ -904,7 +910,7 @@ export default function V2App({ user }: V2AppProps) {
         <div style={{ background: 'var(--bg-1)', border: '1px solid var(--b1)', borderRadius: 'var(--r-xl)', padding: '32px 24px', textAlign: 'center', marginBottom: 52 }}>
           <p className="ad-paywall-eyebrow" style={{ marginBottom: 12 }}>⬡ Premium</p>
           <h2 className="ad-paywall-title">V2 完整報告正式上線後可解鎖</h2>
-          <p className="ad-paywall-sub">Section 02 – 07 · 職涯 × 關係 · 靈魂甜點 · 帶走的字</p>
+          <p className="ad-paywall-sub">Section 02 – 09 · 職涯 × 關係 · 靈魂甜點 · 帶走的字</p>
           <button
             type="button"
             className="ad-btn-primary"
@@ -956,9 +962,32 @@ export default function V2App({ user }: V2AppProps) {
           <p className="ad-reflect">你現在比較接近哪一種運作模式？是環境讓你如此，還是你選擇了這樣？</p>
         </div>
 
-        {/* ── 03: DIMENSION SPECTRUM ───────────────────────────── */}
+        {/* ── 03: CURRENT STATE ────────────────────────────────── */}
+        {currentStateBody ? (
+          <div className="ad-section">
+            <p className="ad-section-kicker">03 · Current State</p>
+            <h2 className="ad-section-title">你現在比較常活在的狀態</h2>
+            <p className="ad-section-lead">這不是你永遠的樣子，而是你目前最熟悉的一種應對方式。狀態會變，這份命名只是幫你看清楚此刻的自己。</p>
+            <div className="ad-card" style={{ marginBottom: 12 }}>
+              {currentStateLabel ? (
+                <div className="ad-list-label" style={{ marginBottom: 10 }}>{currentStateLabel}</div>
+              ) : null}
+              <p style={{ fontSize: 14, lineHeight: 1.88, color: 'var(--t2)', whiteSpace: 'pre-line' }}>{currentStateBody}</p>
+            </div>
+            {stateTruthBody ? (
+              <div className="ad-card">
+                <div className="ad-list-label" style={{ marginBottom: 10 }}>
+                  💭 狀態真相{stateTruthSubtitle ? `：${stateTruthSubtitle}` : ''}
+                </div>
+                <p style={{ fontSize: 14, lineHeight: 1.88, color: 'var(--t2)', whiteSpace: 'pre-line' }}>{stateTruthBody}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* ── 04: DIMENSION SPECTRUM ───────────────────────────── */}
         <div className="ad-section">
-          <p className="ad-section-kicker">03 · Dimension Spectrum</p>
+          <p className="ad-section-kicker">04 · Dimension Spectrum</p>
           <h2 className="ad-section-title">你的四維光譜</h2>
           <p className="ad-section-lead">認知偏好是光譜，不是非此即彼的分類。偏向某一端，代表你習慣用那個方式接收和處理世界。</p>
           <div className="ad-dim-grid">
@@ -976,10 +1005,10 @@ export default function V2App({ user }: V2AppProps) {
           </div>
         </div>
 
-        {/* ── 04: DIGITAL PERSONA ──────────────────────────────── */}
+        {/* ── 05: DIGITAL PERSONA ──────────────────────────────── */}
         {behaviorLogic.length > 0 ? (
           <div className="ad-section">
-            <p className="ad-section-kicker">04 · Digital Persona</p>
+            <p className="ad-section-kicker">05 · Digital Persona</p>
             <h2 className="ad-section-title">在 2026 數位環境中，你這組怎麼運作？</h2>
             <p className="ad-section-lead">數位環境讓行為模式更可見。你在這裡的慣性，通常比你對自己的認知更接近真實的樣子。</p>
             {digitalPersonaIntro ? (
@@ -998,9 +1027,9 @@ export default function V2App({ user }: V2AppProps) {
           </div>
         ) : null}
 
-        {/* ── 05: HISTORICAL ARCHETYPES ────────────────────────── */}
+        {/* ── 06: HISTORICAL ARCHETYPES ────────────────────────── */}
         <div className="ad-section">
-          <p className="ad-section-kicker">05 · Historical Archetypes</p>
+          <p className="ad-section-kicker">06 · Historical Archetypes</p>
           <h2 className="ad-section-title">同類過渡期的歷史原型</h2>
           <p className="ad-section-lead">找到跨時代有同樣模式的人，不是要你複製他們。是讓你知道這種思維方式有完整的脈絡，走過去的人不只你一個。</p>
           {(psychArchetype?.figures ?? []).length > 0 ? (
@@ -1023,9 +1052,26 @@ export default function V2App({ user }: V2AppProps) {
           </div>
         </div>
 
-        {/* ── 06: CAREER × RELATIONSHIP ────────────────────────── */}
+        {/* ── 07: RESONANCE ARCHETYPES ─────────────────────────── */}
+        {resonanceArchetype.length > 0 ? (
+          <div className="ad-section">
+            <p className="ad-section-kicker">07 · Resonance Archetypes</p>
+            <h2 className="ad-section-title">共鳴原型</h2>
+            <p className="ad-section-lead">不是說你就是他們，而是他們身上有一種你也在活出的頻率。找到共鳴，是為了知道你不是唯一一個這樣運作的人。</p>
+            <div className="ad-grid-2">
+              {resonanceArchetype.map((figure) => (
+                <div key={figure.name} className="ad-person-card">
+                  <div className="ad-person-name">{figure.name}</div>
+                  <div className="ad-person-body">{figure.body}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {/* ── 08: CAREER × RELATIONSHIP ────────────────────────── */}
         <div className="ad-section">
-          <p className="ad-section-kicker">06 · Career × Relationship</p>
+          <p className="ad-section-kicker">08 · Career × Relationship</p>
           <h2 className="ad-section-title">{careerContent.title} × {relationshipContent.title}</h2>
           <p className="ad-section-lead">你在工作裡的反應方式，通常也是你在親密關係中的語言。兩者往往有同樣的心理根源。</p>
           <div className="ad-grid-2">
@@ -1055,9 +1101,9 @@ export default function V2App({ user }: V2AppProps) {
           <p className="ad-reflect">你壓制的那一面，是因為某段經歷，還是從來沒有機會展現？</p>
         </div>
 
-        {/* ── 07: SOUL REFLECTION ──────────────────────────────── */}
+        {/* ── 09: SOUL REFLECTION ──────────────────────────────── */}
         <div className="ad-section">
-          <p className="ad-section-kicker">07 · Soul Reflection</p>
+          <p className="ad-section-kicker">09 · Soul Reflection</p>
           <h2 className="ad-section-title">{dessertContent.name}</h2>
           <p className="ad-section-lead">靈魂甜點是一個隱喻，試圖描述讓你感到真實的那種狀態。深問不需要答案，讓問題待在那裡也是一種方式。</p>
           <div className="ad-grid-2">

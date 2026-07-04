@@ -197,6 +197,39 @@ function parseCarry(content) {
   return cleanText((section(content, '帶走這個').split('\n---')[0] || '').replace(/\[!IMPORTANT\][\s\S]*$/u, ''));
 }
 
+function parseCurrentState(content) {
+  const raw = section(content, '🎯 當前狀態命名');
+  const label = firstMatch(raw, /\*\*([^*]+)\*\*/);
+  return {
+    label: cleanInline(label).replace(/^「/, '').replace(/」$/, '').trim(),
+    body: cleanText(raw),
+  };
+}
+
+function parseStateTruth(content) {
+  const heading = /^## 💭 狀態真相[：:]?\s*(.*)$/mu.exec(content);
+  const subtitle = cleanInline(heading?.[1] || '');
+  const raw = section(content, '💭 狀態真相');
+  return {
+    subtitle,
+    body: cleanText(raw),
+  };
+}
+
+function parseResonanceArchetype(content) {
+  const raw = section(content, '🎭 共鳴原型');
+  const items = [];
+  const re = /^-\s+\*{0,2}([^*\n]+?)\*{0,2}\s+—\s+([\s\S]*?)(?=\n-\s|\n---|$)/gm;
+  let match;
+  while ((match = re.exec(raw)) !== null) {
+    items.push({
+      name: cleanInline(match[1]),
+      body: cleanInline(match[2]),
+    });
+  }
+  return items;
+}
+
 function parseImportant(content) {
   const match = /> \[!IMPORTANT\]\n> ([\s\S]*?)(?=\n\n---|\n## |$)/m.exec(content);
   return cleanInline(match?.[1] || '');
@@ -223,10 +256,13 @@ function parseVariantFile(filePath, familyKey) {
     tags: parsePlainBullets(section(content, '🏷️ 關鍵標籤牆')),
     dimension: parseDimension(content),
     suppressedSide: cleanText(section(content, '🪞 被壓住的另一面')),
+    currentState: parseCurrentState(content),
+    stateTruth: parseStateTruth(content),
     career: culture.career,
     relationship: culture.relationship,
     dessert: parseDessert(content),
     abyssal: parseAbyssal(content),
+    resonanceArchetype: parseResonanceArchetype(content),
     carry: parseCarry(content),
     important: parseImportant(content),
   };
@@ -280,10 +316,13 @@ export type V2VariantReport = {
   tags: Array<{ label: string; body: string }>;
   dimension: { tip: string; bullets: Array<{ label: string; body: string }> };
   suppressedSide: string;
+  currentState: { label: string; body: string };
+  stateTruth: { subtitle: string; body: string };
   career: { title: string; bullets: Array<{ label: string; body: string }> };
   relationship: { title: string; bullets: Array<{ label: string; body: string }> };
   dessert: { name: string; visualLogic: string; pairings: Array<{ label: string; body: string }> };
   abyssal: Array<{ title: string; body: string }>;
+  resonanceArchetype: Array<{ name: string; body: string }>;
   carry: string;
   important: string;
 };
