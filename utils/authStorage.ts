@@ -231,12 +231,16 @@ export function openPassportLogin(options: OpenPassportLoginOptions = {}): boole
 
   const popup = window.open(popupUrl, 'kiwimu-passport-login', buildPopupFeatures());
   if (!popup) {
-    options.onError?.({
+    const blockedDetail: PassportSsoMessage = {
       type: PASSPORT_SSO_MESSAGE_TYPE,
       status: 'error',
       redirectTo: fallbackUrl,
-      message: '登入視窗無法開啟，請允許瀏覽器彈出視窗後再試一次。',
-    });
+      message: '登入視窗無法開啟，正在改用整頁登入…',
+    };
+    options.onError?.(blockedDetail);
+    // Popup blocked by the browser: fall back to a full-page redirect so the
+    // user can still complete login, instead of leaving them on an error toast.
+    window.location.href = fallbackUrl;
     return false;
   }
 
