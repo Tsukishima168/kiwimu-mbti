@@ -92,19 +92,34 @@ skips existing ones.
 
 Custom dimensions:
 
+- `site_id`
 - `page_name`
 - `screen_name`
 - `mbti_type`
 - `source`
+- `source_site`
+- `target_site`
 - `unlock_type`
 - `button_name`
 - `button_location`
 - `campaign_id`
 - `checkout_url`
+- `reward_id`
+- `stamp_id`
+- `prize_type`
+- `entrance_source`
+- `method`
+- `intent`
 
 Key events:
 
 - `quiz_completion`
+- `sign_up`
+- `login`
+- `passport_checkin`
+- `stamp_claim`
+- `reward_redeemed`
+- `add_to_cart`
 - `begin_checkout`
 - `purchase`
 

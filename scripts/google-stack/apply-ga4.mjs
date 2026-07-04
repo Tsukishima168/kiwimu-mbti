@@ -8,18 +8,37 @@ import {
 } from './common.mjs';
 
 const customDimensions = [
+  ['site_id', 'Canonical site identifier for the five-site Kiwimu universe.'],
   ['page_name', 'Virtual page path or screen path for Kiwimu funnel analysis.'],
   ['screen_name', 'Screen name used by screen_engagement events.'],
   ['mbti_type', 'MBTI type associated with quiz completion, result views, and V2 events.'],
   ['source', 'Internal source surface such as v1_result_card, v2_quiz, or answers_article.'],
+  ['source_site', 'Originating site for cross-site journeys and Passport broker flows.'],
+  ['target_site', 'Destination site for cross-site outbound journeys.'],
   ['unlock_type', 'V2 entitlement or unlock source.'],
   ['button_name', 'Canonical CTA button name.'],
   ['button_location', 'Canonical CTA button location.'],
   ['campaign_id', 'Campaign identifier for acquisition and quiz completion events.'],
   ['checkout_url', 'Checkout destination used by V2 unlock CTAs.'],
+  ['reward_id', 'Reward identifier for Passport, Map, and Gacha reward flows.'],
+  ['stamp_id', 'Passport stamp identifier for claim and unlock flows.'],
+  ['prize_type', 'Prize category emitted by Gacha and reward experiences.'],
+  ['entrance_source', 'Entry source for Passport and cross-site acquisition surfaces.'],
+  ['method', 'Auth, claim, unlock, or checkout method.'],
+  ['intent', 'User intent for identity, reward, checkout, or navigation flows.'],
 ];
 
-const keyEvents = ['quiz_completion', 'begin_checkout', 'purchase'];
+const keyEvents = [
+  'quiz_completion',
+  'sign_up',
+  'login',
+  'passport_checkin',
+  'stamp_claim',
+  'reward_redeemed',
+  'add_to_cart',
+  'begin_checkout',
+  'purchase',
+];
 
 const createOrSkip = async (label, createFn) => {
   try {
