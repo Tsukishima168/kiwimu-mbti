@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAuthSupabaseClient } from '../../utils/supabaseAuthBridge';
-import { buildPassportLoginUrl } from '../../utils/authStorage';
+import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT, type PassportLoginUiOptions } from '../../utils/authStorage';
 
 export interface SupabaseAuthState {
   isLoggedIn: boolean;
@@ -20,25 +20,44 @@ export function useSupabaseAuth(): SupabaseAuthState {
       return;
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const applySession = (session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) => {
       setIsLoggedIn(session !== null);
       setEmail(session?.user?.email ?? null);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      applySession(session);
       setIsLoading(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(session !== null);
-      setEmail(session?.user?.email ?? null);
+      applySession(session);
     });
 
-    return () => subscription.unsubscribe();
+    const handlePassportAuthComplete = () => {
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        applySession(session);
+        setIsLoading(false);
+      });
+    };
+    window.addEventListener(PASSPORT_AUTH_COMPLETE_EVENT, handlePassportAuthComplete);
+
+    return () => {
+      window.removeEventListener(PASSPORT_AUTH_COMPLETE_EVENT, handlePassportAuthComplete);
+      subscription.unsubscribe();
+    };
   }, []);
 
   return { isLoggedIn, isLoading, email };
 }
 
-export async function loginWithGoogle(): Promise<void> {
-  window.location.href = buildPassportLoginUrl();
+export async function loginWithGoogle(options: Pick<PassportLoginUiOptions, 'onError'> = {}): Promise<void> {
+  openPassportLogin({
+    intent: 'v2_login',
+    onError: (detail) => {
+      options.onError?.(detail.message || '登入視窗已關閉，請再試一次。');
+    },
+  });
 }

@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { v1ReportCopy } from '../i18n/v1Report.generated';
 import { trackResultView } from '../utils/analytics';
 import { shareResultToLine } from '../utils/liffShare';
+import type { PassportLoginUiOptions } from '../utils/authStorage';
 
 import { IdentityCard } from './cards/IdentityCard';
 import { RadarCard } from './cards/RadarCard';
@@ -24,7 +25,7 @@ interface ResultCardFlowProps {
     onViewArchive?: () => void;
     isArchiveMode?: boolean;
     user?: AppUser | null;
-    onLogin?: () => void;
+    onLogin?: (options?: PassportLoginUiOptions) => void;
     onLogout?: () => void;
 }
 

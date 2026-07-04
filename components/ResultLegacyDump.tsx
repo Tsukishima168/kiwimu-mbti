@@ -11,6 +11,7 @@ import UserMenu from './UserMenu';
 import { shareResultToLine } from '../utils/liffShare';
 import { trackResultDownload, trackResultShare, trackButtonClick, trackResultView } from '../utils/analytics';
 import { trackOutboundClick } from '../utils/utmTracking';
+import type { PassportLoginUiOptions } from '../utils/authStorage';
 
 
 interface ResultProps {
@@ -21,10 +22,12 @@ interface ResultProps {
   onViewArchive?: () => void;
   isArchiveMode?: boolean;
   user?: AppUser | null;
-  onLogin?: () => void;
+  onLogin?: (options?: PassportLoginUiOptions) => void;
   onLogout?: () => void;
   isSharedView?: boolean;
 }
+
+type UnlockEntryPoint = 'locked_section' | 'floating_banner';
 
 const ALL_TYPES = ['ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP', 'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'];
 
@@ -33,7 +36,7 @@ const SOUL_ANCHOR_MAP: Record<string, any> = {
   INTP: { name: "檸檬柚子千層蛋糕", series: "千層", quad: "亮色", alt: ["蜜香紅茶千層", "草莓莓果千層"], drinkA: "日本柚子美式", drinkT: "薄荷茶", hook: "結構細膩且層次分明，適合在深度思考中尋求一絲清亮。" },
   ENTJ: { name: "奶酒提拉米蘇", series: "提拉米蘇", quad: "深色", alt: ["經典提拉米蘇", "抹茶提拉米蘇"], drinkA: "美式咖啡", drinkT: "焙茶拿鐵", hook: "微醺的權力展演，苦甜之間盡是掌控局勢的餘韻。" },
   ENTP: { name: "柚子蘋果提拉米蘇", series: "提拉米蘇", quad: "亮色", alt: ["奶酒提拉米蘇", "抹茶提拉米蘇"], drinkA: "日本柚子美式", drinkT: "烤布丁拿鐵", hook: "打破常規的驚喜風味，在每一次味覺挑戰中看見邊界。" },
-  INFJ: { name: "茶香巴斯克", series: "巴斯克", quad: "深色", alt: ["北海道經典巴斯克", "檸檬巴斯克"], drinkA: "博士茶", drinkT: "抹茶拿鐵", hook: "沈穩的茶韻撫平外界的嘈雜，帶你潛入最深的內在宇宙。" },
+  INFJ: { name: "茶香巴斯克", series: "巴斯克", quad: "深色", alt: ["北海道經典巴斯克", "檸檬巴斯克"], drinkA: "博士茶", drinkT: "抹茶拿鐵", hook: "沉穩的茶韻撫平外界的嘈雜，帶你潛入最深的內在宇宙。" },
   INFP: { name: "北海道十勝戚風蛋糕", series: "戚風", quad: "經典", alt: ["檸檬蘋果戚風", "莓果戚風"], drinkA: "博士茶", drinkT: "花草茶", hook: "輕盈柔軟的著陸點，在銳利的世界裡提供一場溫柔的安放。" },
   ENFJ: { name: "檸檬蘋果戚風蛋糕", series: "戚風", quad: "亮色", alt: ["北海道十勝戚風", "莓果戚風"], drinkA: "西西里美式", drinkT: "抹茶拿鐵", hook: "明亮如陽光的清新力量，溫暖並照亮每一個被遺忘的角落。" },
   ENFP: { name: "草莓莓果千層蛋糕", series: "千層", quad: "果香", alt: ["檸檬柚子千層", "蜜香紅茶千層"], drinkA: "日本柚子美式", drinkT: "花草茶", hook: "層次繽紛且富有生命力，裝滿奇奇怪怪且閃亮的靈感碎片。" },
@@ -166,6 +169,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const [shareImage, setShareImage] = useState<{ url: string; title: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState('已複製連結到剪貼簿');
+  const [unlockEntryPoint, setUnlockEntryPoint] = useState<UnlockEntryPoint | null>(null);
 
   // V1 Login Gate — shared links always stay partial and should not unlock via login.
   const isLocked = ((user == null || user.isAnonymous) || isSharedView) && !isArchiveMode;
@@ -188,9 +192,15 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const storyOutro = extractStoryExcerpt(resultData.summary || anchor.hook || resultData.quote, 92);
   const quoteLines = splitQuoteLines(resultData.quote);
   const titleLines = splitEditorialTitle(resultData.title);
+  const showUnlockModal = unlockEntryPoint !== null;
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowMenu(false); };
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowMenu(false);
+        setUnlockEntryPoint(null);
+      }
+    };
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
@@ -208,7 +218,20 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const triggerFullReportLogin = (entryPoint: 'locked_section' | 'floating_banner') => {
     sessionStorage.setItem('post_login_destination', 'result');
     sessionStorage.setItem('result_unlock_entry_point', entryPoint);
-    onLogin?.();
+    setUnlockEntryPoint(entryPoint);
+  };
+
+  const confirmFullReportLogin = () => {
+    if (unlockEntryPoint) {
+      sessionStorage.setItem('result_unlock_entry_point', unlockEntryPoint);
+    }
+    trackButtonClick('confirm_passport_login', 'result_unlock_modal');
+    onLogin?.({
+      presentation: 'popup',
+      onError: (message) => {
+        showCustomToast(message || '登入視窗已關閉，請再試一次。');
+      },
+    });
   };
 
   const handleLineShare = async () => {
@@ -532,6 +555,55 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
       {onLogin && onLogout && (
         <div className="fixed top-6 right-6 z-50">
           <UserMenu user={user} onLogin={onLogin} onLogout={onLogout} />
+        </div>
+      )}
+
+      {showUnlockModal && (
+        <div
+          className="fixed inset-0 z-[80] flex items-end justify-center bg-black/45 px-4 pb-4 pt-16 backdrop-blur-sm md:items-center md:pb-16"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="unlock-login-title"
+        >
+          <div className="w-full max-w-[420px] border-2 border-kiwi-dark bg-white shadow-2xl">
+            <div className="flex items-start justify-between border-b border-gray-100 px-6 py-5">
+              <div>
+                <p className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.35em] text-gray-300">PASSPORT LOGIN</p>
+                <h3 id="unlock-login-title" className="font-serif text-2xl font-bold leading-tight text-kiwi-dark">
+                  保留這份結果後登入
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setUnlockEntryPoint(null)}
+                className="flex h-9 w-9 items-center justify-center border border-gray-200 text-lg leading-none text-gray-400 transition-colors hover:border-kiwi-dark hover:text-kiwi-dark"
+                aria-label="關閉登入提示"
+              >
+                ×
+              </button>
+            </div>
+            <div className="px-6 py-6">
+              <p className="font-serif text-sm leading-7 text-gray-600">
+                這份 {fullResultType} 報告已暫存在目前裝置。登入會短暫開啟 Passport，完成後自動回到這個結果頁，不會要求你重新測驗。
+              </p>
+              <div className="mt-6 grid gap-3">
+                <button
+                  type="button"
+                  onClick={confirmFullReportLogin}
+                  className="w-full bg-kiwi-dark px-5 py-4 text-[10px] font-bold uppercase tracking-[0.28em] text-white transition-colors hover:bg-black"
+                >
+                  前往 Passport 登入
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUnlockEntryPoint(null)}
+                  className="w-full border border-gray-200 px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-gray-500 transition-colors hover:border-kiwi-dark hover:text-kiwi-dark"
+                >
+                  先留在結果頁
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1152,7 +1224,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   number: '03',
                   title: '領取護照印章',
                   subtitle: 'PASSPORT STAMP',
-                  description: '完成 MBTI 後可直接領取護照印章，保存你的身份與回訪紀錄',
+                  description: '完成 MBTI 後可直接領取護照印章，保存你的身分與回訪紀錄',
                   url: `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-passport&mbti_type=${resultData.id}&variant=${identitySuffix}`,
                   external: true,
                   onClick: () => trackOutboundClick('PASSPORT', 'navigation', { destination_type: 'passport', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-passport&mbti_type=${resultData.id}&variant=${identitySuffix}` }),

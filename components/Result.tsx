@@ -6,6 +6,7 @@ import type { AppUser } from '../types';
 import { MbtiResultData, Score } from '../types';
 import { getResultData } from '../constants';
 import { getVariant } from '../utils/logic';
+import type { PassportLoginUiOptions } from '../utils/authStorage';
 
 interface ResultProps {
     resultData: MbtiResultData;
@@ -15,7 +16,7 @@ interface ResultProps {
     onViewArchive?: () => void;
     isArchiveMode?: boolean;
     user?: AppUser | null;
-    onLogin?: () => void;
+    onLogin?: (options?: PassportLoginUiOptions) => void;
     onLogout?: () => void;
     isSharedView?: boolean;
 }

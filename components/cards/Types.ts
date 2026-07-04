@@ -1,5 +1,6 @@
 import type { AppUser } from '../../types';
 import { MbtiResultData, Score } from '../../types';
+import type { PassportLoginUiOptions } from '../../utils/authStorage';
 
 export interface CardProps {
     resultData: MbtiResultData;
@@ -15,6 +16,6 @@ export interface CardProps {
     onNext?: () => void;
     onPrev?: () => void;
     onSkipRegistration?: () => void;
-    onLogin?: () => void;
+    onLogin?: (options?: PassportLoginUiOptions) => void;
     isArchiveMode?: boolean;
 }

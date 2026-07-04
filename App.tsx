@@ -56,6 +56,7 @@ import { sendDiscordNotification } from './utils/discord';
 import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 import { applyRuntimeSeo } from './utils/seo';
+import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT, type PassportLoginUiOptions } from './utils/authStorage';
 
 const Result = lazy(() => import('./components/Result'));
 const MyArchive = lazy(() => import('./components/MyArchive'));
@@ -77,12 +78,14 @@ const RouteFallback = () => (
 
 type Stage = 'login' | 'callback' | 'intro' | 'manifesto' | 'quiz' | 'loading' | 'result' | 'archive' | 'og-render' | 'state-test' | 'today' | '404';
 type PostLoginDestination = 'intro' | 'result' | 'archive';
+type LoginOptions = PassportLoginUiOptions;
 
 const ROOT_PATHS = new Set(['/', '/index.html']);
 const V1_PATHS = new Set(['/quiz', '/v1']);
 const POST_LOGIN_DESTINATION_KEY = 'post_login_destination';
 const SITE_URL = 'https://kiwimu.com';
 const DEFAULT_SOCIAL_IMAGE = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
+const DEFAULT_LOGIN_ERROR_MESSAGE = '登入視窗已關閉，請再試一次。';
 
 const isV1Pathname = (pathname: string) =>
   Array.from(V1_PATHS).some((basePath) => pathname === basePath || pathname.startsWith(`${basePath}/`));
@@ -270,6 +273,11 @@ const App: React.FC = () => {
   const lastSessionRestoreUidRef = React.useRef<string | null>(null);
 
   const { saveCompletedTest, saveToCloud } = useCloudSync(user);
+
+  const showLoginError = (message: string) => {
+    setShowSaveToast({ show: true, success: false, message });
+    window.setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4500);
+  };
 
   const applyRouteFromLocation = (hasSavedResult: boolean) => {
     const rParam = new URLSearchParams(window.location.search).get('r');
@@ -545,6 +553,14 @@ const App: React.FC = () => {
       handleSession(session?.user ?? null);
     });
 
+    const handlePassportAuthComplete = () => {
+      void supabase.auth.getSession().then(({ data }) => {
+        if (!active) return;
+        handleSession(data.session?.user ?? null);
+      });
+    };
+    window.addEventListener(PASSPORT_AUTH_COMPLETE_EVENT, handlePassportAuthComplete);
+
     void (async () => {
       const restore = await restoreAuthSessionFromUrl();
       if (!active) return;
@@ -560,6 +576,7 @@ const App: React.FC = () => {
 
     return () => {
       active = false;
+      window.removeEventListener(PASSPORT_AUTH_COMPLETE_EVENT, handlePassportAuthComplete);
       subscription.unsubscribe();
     };
   }, []);
@@ -732,7 +749,7 @@ const App: React.FC = () => {
     setStage('intro');
   };
 
-  const handleLogin = () => {
+  const handleLogin = (options: LoginOptions = {}) => {
     // Always mark flow_stage so handleSession can return to correct stage after OAuth
     sessionStorage.setItem('login_origin_stage', stage);
     sessionStorage.setItem('flow_stage', 'login');
@@ -763,7 +780,22 @@ const App: React.FC = () => {
       is_shared_view: isSharedView,
       session_id: getSessionId(),
     });
-    setStage('login');
+    if (options.presentation === 'screen') {
+      setStage('login');
+      return;
+    }
+
+    openPassportLogin({
+      intent: shouldRestoreResult ? 'unlock_report' : 'login',
+      onError: (detail) => {
+        const message = detail.message || DEFAULT_LOGIN_ERROR_MESSAGE;
+        if (options.onError) {
+          options.onError(message);
+        } else {
+          showLoginError(message);
+        }
+      },
+    });
   };
 
   const handleLogout = async () => {
@@ -794,12 +826,16 @@ const App: React.FC = () => {
         mbti_type: resultData?.id,
       });
       sessionStorage.setItem('flow_stage', 'login');
+      sessionStorage.setItem('login_origin_stage', stage);
       sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, 'archive');
       if (resultData && scores) {
         sessionStorage.setItem('last_quiz_result', JSON.stringify(resultData));
         sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
       }
-      setStage('login');
+      openPassportLogin({
+        intent: 'archive',
+        onError: (detail) => showLoginError(detail.message || DEFAULT_LOGIN_ERROR_MESSAGE),
+      });
     } else {
       trackArchiveView({
         has_result: Boolean(resultData),

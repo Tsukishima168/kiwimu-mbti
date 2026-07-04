@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { buildPassportLoginUrl } from '../utils/authStorage';
+import { openPassportLogin } from '../utils/authStorage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackLoginAttempt, trackLoginFailure } from '../utils/analytics';
 import { trackAction } from '../utils/userDataCollector';
@@ -22,21 +22,28 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
             is_unlock_mode: isUnlockMode,
             flow_stage: sessionStorage.getItem('flow_stage') || 'unknown',
         };
+        const handleLoginError = (message: string) => {
+            setError(message);
+            trackLoginFailure('google', message || 'unknown_error', loginContext);
+            trackAction('login_failure', {
+                provider: 'google',
+                reason: message || 'unknown_error',
+                ...loginContext,
+            });
+        };
+
         try {
             trackLoginAttempt('google', loginContext);
             trackAction('login_attempt', {
                 provider: 'google',
                 ...loginContext,
             });
-            window.location.href = buildPassportLoginUrl();
-        } catch (err: any) {
-            setError(err.message);
-            trackLoginFailure('google', err.message || 'unknown_error', loginContext);
-            trackAction('login_failure', {
-                provider: 'google',
-                reason: err.message || 'unknown_error',
-                ...loginContext,
+            openPassportLogin({
+                intent: isUnlockMode ? 'unlock_report' : 'login',
+                onError: (detail) => handleLoginError(detail.message || '登入失敗，請再試一次。'),
             });
+        } catch (err: any) {
+            handleLoginError(err.message || 'unknown_error');
             console.error(err);
         }
     };
