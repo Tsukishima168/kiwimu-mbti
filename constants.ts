@@ -299,7 +299,7 @@ export const QUESTIONS: Question[] = [
     imageUrl: "https://picsum.photos/seed/pendulum_swing/800/400",
     dimensionPair: 'JP',
     options: [
-      { label: "懸著不決會讓我焦慮，營願快點拍板結果再調整。", value: 'J' },
+      { label: "懸著不決會讓我焦慮，寧願快點拍板結果再調整。", value: 'J' },
       { label: "能多留幾個選項就多留幾個，不到最後一刻不想把話說死。", value: 'P' }
     ]
   },
@@ -392,8 +392,8 @@ export const QUESTIONS: Question[] = [
     imageUrl: "https://picsum.photos/seed/foggy_mountain_path/800/400",
     dimensionPair: 'AT',
     options: [
-      { label: "倾向先樂觀看待：「真的發生再說，到時候再處理。」", value: 'A' },
-      { label: "會先在腦中演一輪最糟的劇本，預預想各種備案。", value: 'Turbulent' }
+      { label: "傾向先樂觀看待：「真的發生再說，到時候再處理。」", value: 'A' },
+      { label: "會先在腦中演一輪最糟的劇本，預想各種備案。", value: 'Turbulent' }
     ]
   },
   {
@@ -595,7 +595,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       characterImage: characterImageUrl, dessert: { name: "北海道經典巴斯克", description: "極致的濃度直達靈魂核心，理智與感官的完美角力。", imageUrl: DESSERT_IMAGES.BASQUE_CLASSIC, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
     "INTP": {
-      id: "INTP", title: "邏輯解構者", summary: "沈迷於宇宙奧秘的思考者，腦洞無邊無際。", quote: "「比起答案，我更喜歡那些無解的問題。」", keywords: ["好奇", "邏輯", "解構", "真理"], bgColor: getBgColor("INTP"),
+      id: "INTP", title: "邏輯解構者", summary: "沉迷於宇宙奧秘的思考者，腦洞無邊無際。", quote: "「比起答案，我更喜歡那些無解的問題。」", keywords: ["好奇", "邏輯", "解構", "真理"], bgColor: getBgColor("INTP"),
       coreAnalysis: "你是思想的遊牧民族。你的大腦24小時都在運作，試圖找出萬物背後的原理。你不在乎世俗的成功標準，只在乎思維是否足夠清晰、邏輯是否足夠優美。你常被認為活在自己的世界裡，但那是因為你的世界比現實更有趣。",
       dimensionAnalysis: { EI: "內向 (I) 讓你專注於內在邏輯。", SN: "直覺 (N) 讓你看到抽象關聯。", TF: "思考 (T) 是你唯一的準則。", JP: "感知 (P) 讓你保持開放與靈活。", AT: "對自我懷疑的處理機制。" },
       strengths: ["分析能力", "創新思維", "客觀公正", "學習力強"],
@@ -608,7 +608,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       relationships: {
         style: "理性的浪漫。喜歡能和你進行智力辯論的伴侶，對於過度情緒化的關係感到棘手。",
         strengths: "你很真實，不玩心理遊戲。在關係中你給予伴侶極大的自由空間，並總是能提供獨特的觀點。",
-        advice: "你的沈默常被誤解為冷漠。試著用語言表達你的感受，即使這對你來說很彆扭。情感邏輯和數學邏輯是不一樣的。"
+        advice: "你的沉默常被誤解為冷漠。試著用語言表達你的感受，即使這對你來說很彆扭。情感邏輯和數學邏輯是不一樣的。"
       },
       socialStyle: "在感興趣的話題上滔滔不絕，其他時間隱形。", growthAdvice: "試著與現實世界建立一點連結，哪怕只是從整理房間開始。",
       soulQuestions: ["你是否用「邏輯」作為擋箭牌，來逃避處理混亂的情感？", "如果真理會傷害到你愛的人，你還會堅持說出來嗎？", "你活在腦中很久了，要不要出來曬曬太陽？"],
@@ -617,7 +617,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
     "ENTJ": {
       id: "ENTJ", title: "天生指揮官", summary: "你是天生的統帥。擁有宏大的願景與鐵一般的意志。", quote: "「不可能這個詞，只存在於愚人的字典裡。」", keywords: ["野心", "戰略", "果斷", "權力"], bgColor: getBgColor("ENTJ"),
       coreAnalysis: "你是天生的領袖。在大腦中，一切事物都被轉化為實現目標的資源。你對低效與混亂有著天然的厭惡，總是渴望在充滿挑戰的環境中建立秩序。你不僅看見森林，你還規劃了整座森林的採伐與重生路徑。",
-      dimensionAnalysis: { EI: "外向 (E) 賦予你奪取主導權的衝動。", SN: "直覺 (N) 是你的長遠戰略指南。", TF: "思考 (T) 是你最強大的武器。", JP: "判斷 (J) 讓你的決策果斷如雷。", AT: "身份維度影響你對壓力的耐受度。" },
+      dimensionAnalysis: { EI: "外向 (E) 賦予你奪取主導權的衝動。", SN: "直覺 (N) 是你的長遠戰略指南。", TF: "思考 (T) 是你最強大的武器。", JP: "判斷 (J) 讓你的決策果斷如雷。", AT: "身分維度影響你對壓力的耐受度。" },
       strengths: ["決策力", "戰略", "自信", "效率"],
       blindSpots: ["冷酷", "傲慢", "缺乏耐心", "忽視情感"],
       career: {
@@ -630,7 +630,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
         strengths: "你對關係有明確的規劃，願意投入資源讓彼此的生活更好。你是伴侶最堅強的靠山，沒有什麼難題是你無法解決的。",
         advice: "不要把伴侶當成下屬。在工作上你需要贏，但在感情中你需要愛。試著展現你的脆弱，這不會削弱你的力量，反而會增加你的魅力。"
       },
-      socialStyle: "強勢且直接。討厭浪費時間的閒聊。", growthAdvice: "學會聆聽沈默的聲音，那裡藏著你忽略的情感細節。",
+      socialStyle: "強勢且直接。討厭浪費時間的閒聊。", growthAdvice: "學會聆聽沉默的聲音，那裡藏著你忽略的情感細節。",
       soulQuestions: ["你征服了世界，然後呢？", "如果愛意味著必須示弱，你還敢愛嗎？", "你是否把「效率」看得比「人性」更重要？"],
       characterImage: characterImageUrl, dessert: { name: "奶酒提拉米蘇", description: "微醺的權力展演，苦甜之間盡是掌控局勢的餘韻。", imageUrl: DESSERT_IMAGES.TIRAMISU_BAILEYS, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
@@ -683,7 +683,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       blindSpots: ["不切實際", "容易受傷", "缺乏執行力", "逃避衝突"],
       career: {
         style: "你需要創意與自由，無法忍受官僚與僵化的體制。工作必須符合你的個人價值觀。",
-        advice: "你的熱情來得快去得也快，容易陷入「想得太多，做得太少」的循環。試著建立微小的日常紀律，讓靈感能夠落地。不要因為職場的現實面而感到幻滅，學習在不完美的一環境中守護你的初心，而不是逃避。",
+        advice: "你的熱情來得快去得也快，容易陷入「想得太多，做得太少」的循環。試著建立微小的日常紀律，讓靈感能夠落地。不要因為職場的現實面而感到幻滅，學習在不完美的環境中守護你的初心，而不是逃避。",
         suitableJobs: ["作家", "藝術家", "心理學家", "編輯"]
       },
       relationships: {
@@ -737,7 +737,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
     },
     // --- 守護者 (Sentinels) ---
     "ISTJ": {
-      id: "ISTJ", title: "守序捍衛者", summary: "可靠現實的基石，維護秩序的沈默守護者。", quote: "「承諾就是契約，事實勝於雄辯。」", keywords: ["責任", "細節", "傳統", "秩序"], bgColor: getBgColor("ISTJ"),
+      id: "ISTJ", title: "守序捍衛者", summary: "可靠現實的基石，維護秩序的沉默守護者。", quote: "「承諾就是契約，事實勝於雄辯。」", keywords: ["責任", "細節", "傳統", "秩序"], bgColor: getBgColor("ISTJ"),
       coreAnalysis: "你是社會的基石。你誠實、直接、盡忠職守。你相信事實、數據與經過驗證的方法，而不是空泛的理論。你做事井井有條，對細節有著驚人的記憶力。你不喜歡變動，因為那代表著不可控的風險。",
       dimensionAnalysis: { EI: "內向 (I) 讓你專注內在標準。", SN: "實感 (S) 讓你腳踏實地。", TF: "思考 (T) 讓你客觀公正。", JP: "判斷 (J) 讓你計畫周全。", AT: "對責任的焦慮感。" },
       strengths: ["誠實", "負責", "細心", "遵守規範"],
@@ -831,7 +831,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       relationships: {
         style: "需要大量空間。不喜歡黏膩與過多的情感交流，喜歡一起並肩作戰或體驗活動。",
         strengths: "你不黏人，尊重伴侶的隱私，並且總能在危機時刻挺身而出解決問題。你的愛表現在行動上，而非言語。",
-        advice: "不要把「需要空間」當作逃避溝通的藉口。伴侶無法讀懂你的沈默，偶爾的主動關心能避免讓對方感到被冷落。"
+        advice: "不要把「需要空間」當作逃避溝通的藉口。伴侶無法讀懂你的沉默，偶爾的主動關心能避免讓對方感到被冷落。"
       },
       socialStyle: "極簡社交，廢話耐受度低。", growthAdvice: "試著敞開心扉，情感的交會能帶來驚喜；不要用「理性」來逃避感受。",
       soulQuestions: ["你總是修得好東西，但你修得好關係嗎？", "你追求的自由，是真正的自由，還是只是不想承擔責任？", "如果這一次不能重來，你會更謹慎還是更瘋狂？"],
@@ -893,7 +893,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
         strengths: "你非常大方且熱情，總是不遺餘力地讓伴侶開心。你是最佳的玩伴，也是最溫暖的安慰者。",
         advice: "不要只聽好聽話，也試著去聽聽伴侶的逆耳忠言。當困難來臨時，不要選擇忽視，一起面對問題會讓關係更緊密。"
       },
-      socialStyle: "我在哪裡，哪裡就是派對。", growthAdvice: "表面光鮮亮麗很好，但內在的厚度能讓你走得更遠；深度不代表沈重，而是根基。",
+      socialStyle: "我在哪裡，哪裡就是派對。", growthAdvice: "表面光鮮亮麗很好，但內在的厚度能讓你走得更遠；深度不代表沉重，而是根基。",
       soulQuestions: ["當派對結束，人群散去，你能面對孤獨嗎？", "你追求物質的享受，是在填補內心的什麼空洞？", "如果這輩子只能專注做一件事，那會是什麼？"],
       characterImage: characterImageUrl, dessert: { name: "檸檬巴斯克", description: "帶著焦糖外殼登場，酸亮得不留退路。你不需要宣告自己來了——整個場域早已感受到你的存在。", imageUrl: DESSERT_IMAGES.BASQUE_CLASSIC, ctaLink: "https://linktr.ee/moon_moon_dessert" }
     },
@@ -903,7 +903,7 @@ export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResul
       dimensionAnalysis: {
         EI: "在獨處與社交之間尋找平衡。", SN: "既看見了樹木，也看見了森林。", TF: "理智與感性交織運作。", JP: "擁有原則，但也懂得隨遇而安。", AT: "在變動中重塑自我。"
       },
-      strengths: ["強大的環境適應力", "快速學習能力", "高度的心理韌性"], blindSpots: ["偶爾陷入身份認同的迷惘"],
+      strengths: ["強大的環境適應力", "快速學習能力", "高度的心理韌性"], blindSpots: ["偶爾陷入身分認同的迷惘"],
       career: { style: "靈活多樣的工作型態。", advice: "找到你的核心錨點，別讓流動變成了漂流。", suitableJobs: ["顧問", "自由職業者", "產品經理"] },
       relationships: { style: "追求動態平衡的伴侶關係。", strengths: "極強的包容力與寬容度。", advice: "學習定義你的「核心底線」。" },
       socialStyle: "視情況調整社交模式。", growthAdvice: "擁抱複雜性，你不需要急著定義自己。",
