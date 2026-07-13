@@ -298,7 +298,7 @@ const buildVersionTagWall = (
 
 const REPORT_CHAPTERS: ReportNavChapter[] = [
   { id: 'ch-01', label: '01 當下的你', locked: false },
-  { id: 'ch-02', label: '02 你的版本', locked: false },
+  { id: 'ch-02', label: '02 你的版本', locked: true },
   { id: 'ch-03', label: '03 四個維度', locked: true },
   { id: 'ch-04', label: '04 認知行為模式', locked: true },
   { id: 'ch-05', label: '05 你的原型', locked: true },
@@ -523,6 +523,41 @@ export default function V2App({ user }: V2AppProps) {
     };
   }, []);
 
+  // Entrance reveal: fade/rise each block once as it scrolls into view.
+  useEffect(() => {
+    if (!fullType) {
+      return;
+    }
+
+    const targets = Array.from(document.querySelectorAll<HTMLElement>('.ad-reveal'));
+    if (targets.length === 0) {
+      return;
+    }
+
+    if (typeof IntersectionObserver === 'undefined') {
+      targets.forEach((node) => node.classList.add('is-visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
+    );
+
+    targets.forEach((node) => observer.observe(node));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fullType, canReadReport]);
+
   const handleCheckout = () => {
     void (async () => {
     if (!fullType) {
@@ -614,6 +649,22 @@ export default function V2App({ user }: V2AppProps) {
     window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
   };
 
+  const handleChapterNav = (chapterId: string) => {
+    const prefersReducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const behavior: ScrollBehavior = prefersReducedMotion ? 'auto' : 'smooth';
+    const target =
+      document.getElementById(chapterId) ?? document.querySelector<HTMLElement>('.ad-paywall-box');
+
+    if (target) {
+      target.scrollIntoView({ behavior, block: 'start' });
+      if (document.getElementById(chapterId)) {
+        setActiveChapter(chapterId);
+      }
+    }
+  };
+
   if (!resultBundle || !fullType) {
     const marquee = 'KIWIMU V2 · COMING SOON · 32 VARIANTS · 心理原型層 · 即將公布 · ';
     const v15Bundle = source === 'v15_quiz' ? getLastV2PrototypeResult() : null;
@@ -630,39 +681,28 @@ export default function V2App({ user }: V2AppProps) {
         <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl items-center">
           <div className="v2-panel w-full p-8 md:p-10">
             <span
-              className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
-              style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                background: '#CCFF00',
-                color: '#1A1A1A',
-                border: '1px solid #1A1A1A',
-                borderRadius: 999,
-              }}
+              className="ad-coming-badge inline-flex items-center gap-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
             >
-              <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: '#1A1A1A' }} />
+              <span className="ad-dot-ink inline-block w-1.5 h-1.5 rounded-full" />
               即將公布 · COMING SOON
             </span>
             <p className="v2-eyebrow mt-4">KIWIMU V2 · MBTI 進化版</p>
             <h1
-              className="mt-3 text-4xl font-bold leading-[1.05] md:text-5xl"
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              className="ad-coming-title mt-3 text-4xl font-bold leading-[1.05] md:text-5xl"
             >
               看見 16 型<br />看不見的那一層
             </h1>
             {v15FullType ? (
               <div
-                className="mt-5 rounded-2xl px-5 py-4"
-                style={{ background: '#1A1A1A', color: '#F8F8F5' }}
+                className="ad-v15-box mt-5 rounded-2xl px-5 py-4"
               >
                 <p
-                  className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/50"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  className="ad-v15-label text-[10px] font-bold uppercase tracking-[0.22em] text-white/50"
                 >
                   V1.5 分流結果
                 </p>
                 <p
-                  className="mt-2 text-2xl font-bold"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                  className="ad-v15-type mt-2 text-2xl font-bold"
                 >
                   {v15FullType}
                 </p>
@@ -686,12 +726,10 @@ export default function V2App({ user }: V2AppProps) {
               ].map((line) => (
                 <div
                   key={line}
-                  className="flex items-center gap-2 text-white/40"
-                  style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
+                  className="ad-mono-11 flex items-center gap-2 text-white/40"
                 >
                   <span
-                    className="inline-block w-1.5 h-1.5 rounded-full"
-                    style={{ background: '#CCFF00' }}
+                    className="ad-dot-acid inline-block w-1.5 h-1.5 rounded-full"
                   />
                   {line}
                 </div>
@@ -712,8 +750,7 @@ export default function V2App({ user }: V2AppProps) {
               </a>
             </div>
             <p
-              className="mt-6 text-white/30"
-              style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
+              className="ad-mono-11 mt-6 text-white/30"
             >
               V2 上線後會在這裡公布。先做 V1 / V1.5，型別資料未來可以直接帶進來。
             </p>
@@ -818,6 +855,8 @@ export default function V2App({ user }: V2AppProps) {
   const importantQuote = variantReport?.important ?? '';
 
   const REPORT_MARQUEE = `KIWIMU V2 · 狀態光譜測驗 · DEEP REPORT · ${fullType ?? ''} · `;
+  const activeChapterLabel =
+    REPORT_CHAPTERS.find((chapter) => chapter.id === activeChapter)?.label ?? REPORT_CHAPTERS[0].label;
 
   return (
     <div className="v2-root" style={{ ...rootStyle, background: 'var(--bg-0)', color: 'var(--t1)', minHeight: '100vh' }}>
@@ -828,8 +867,31 @@ export default function V2App({ user }: V2AppProps) {
       {/* Scroll progress bar */}
       <div className="v2-report-progress" style={{ width: `${scrollProgress}%` }} />
 
+      {/* Floating chapter nav — right rail on desktop, bottom bar on mobile */}
+      <nav className="ad-chapternav" aria-label="Chapters">
+        <span className="ad-chapternav-current" aria-hidden="true">{activeChapterLabel}</span>
+        <div className="ad-chapternav-track">
+          {REPORT_CHAPTERS.map((chapter) => {
+            const isActive = activeChapter === chapter.id;
+            const isLocked = chapter.locked && !canReadReport;
+            return (
+              <button
+                key={chapter.id}
+                type="button"
+                className={`ad-chapternav-item${isActive ? ' is-active' : ''}${isLocked ? ' is-locked' : ''}`}
+                onClick={() => handleChapterNav(chapter.id)}
+                aria-current={isActive ? 'true' : undefined}
+              >
+                <span className="ad-chapternav-label">{chapter.label}</span>
+                <span className="ad-chapternav-dot" />
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
       {/* Fixed marquee */}
-      <div className="marquee-container" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100 }}>
+      <div className="marquee-container ad-marquee-fixed">
         <div className="marquee-track">
           <span className="marquee-text">{REPORT_MARQUEE.repeat(4)}</span>
           <span className="marquee-text">{REPORT_MARQUEE.repeat(4)}</span>
@@ -839,7 +901,7 @@ export default function V2App({ user }: V2AppProps) {
       <div className="ad-page">
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <header className="ad-hero">
+      <header id="ch-01" className="ad-hero ad-reveal">
         <div className="ad-hero-eyebrow">
           <span className="ad-hero-eyebrow-dot" />
           {familyMeta.familyLabel} · Kiwimu V2 深度報告
@@ -876,7 +938,7 @@ export default function V2App({ user }: V2AppProps) {
       </header>
 
       {/* ── 01: TAG WALL (FREE) ──────────────────────────────── */}
-      <div className="ad-section">
+      <div className="ad-section ad-reveal">
         <p className="ad-section-kicker">01 · Tag Wall</p>
         <h2 className="ad-section-title">五個能瞬間辨識你的 V2 標籤</h2>
         <div className="ad-tag-grid">
@@ -901,21 +963,20 @@ export default function V2App({ user }: V2AppProps) {
 
       {/* ── PAYWALL GATE ─────────────────────────────────────── */}
       {!canReadReport ? (
-        <div style={{ background: 'var(--bg-1)', border: '1px solid var(--b1)', borderRadius: 'var(--r-xl)', padding: '32px 24px', textAlign: 'center', marginBottom: 52 }}>
-          <p className="ad-paywall-eyebrow" style={{ marginBottom: 12 }}>⬡ Premium</p>
+        <div className="ad-paywall-box ad-reveal">
+          <p className="ad-paywall-eyebrow">⬡ Premium</p>
           <h2 className="ad-paywall-title">V2 完整報告正式上線後可解鎖</h2>
           <p className="ad-paywall-sub">Section 02 – 07 · 職涯 × 關係 · 靈魂甜點 · 帶走的字</p>
           <button
             type="button"
-            className="ad-btn-primary"
-            style={{ display: 'inline-flex', margin: '0 auto' }}
+            className="ad-btn-primary ad-btn-center"
             onClick={handleCheckout}
           >
             {unlockPrimaryLabel}
           </button>
           {IS_DEV && isLocalPreview ? (
-            <div style={{ marginTop: 12 }}>
-              <button type="button" className="ad-btn-ghost" style={{ display: 'inline-flex', margin: '0 auto', fontSize: 12 }} onClick={handleResetPreview}>
+            <div className="ad-mt-12">
+              <button type="button" className="ad-btn-ghost ad-btn-center ad-btn-sm" onClick={handleResetPreview}>
                 重置預覽
               </button>
             </div>
@@ -924,12 +985,12 @@ export default function V2App({ user }: V2AppProps) {
       ) : (
         <>
         {/* ── 02: PROFESSIONAL INSIGHTS ───────────────────────── */}
-        <div className="ad-section">
+        <div id="ch-02" className="ad-section ad-reveal">
           <p className="ad-section-kicker">02 · Professional Insights</p>
           <h2 className="ad-section-title">{professionalTitle}</h2>
           <p className="ad-section-lead">壓力與安穩之間，同一個人會用不同的方式運作。A 與 T 並非優劣，而是兩種真實的狀態切換。</p>
-          <div className="ad-card" style={{ marginBottom: 10 }}>
-            <p style={{ fontSize: 15, lineHeight: 1.88, color: 'var(--t2)' }}>{professionalBody}</p>
+          <div className="ad-card ad-mb-8">
+            <p className="ad-body-15">{professionalBody}</p>
           </div>
           <div className="ad-grid-2">
             {compareCards.map((card) => (
@@ -957,7 +1018,7 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── 03: DIMENSION SPECTRUM ───────────────────────────── */}
-        <div className="ad-section">
+        <div id="ch-03" className="ad-section ad-reveal">
           <p className="ad-section-kicker">03 · Dimension Spectrum</p>
           <h2 className="ad-section-title">你的四維光譜</h2>
           <p className="ad-section-lead">認知偏好是光譜，不是非此即彼的分類。偏向某一端，代表你習慣用那個方式接收和處理世界。</p>
@@ -978,20 +1039,20 @@ export default function V2App({ user }: V2AppProps) {
 
         {/* ── 04: DIGITAL PERSONA ──────────────────────────────── */}
         {behaviorLogic.length > 0 ? (
-          <div className="ad-section">
+          <div id="ch-04" className="ad-section ad-reveal">
             <p className="ad-section-kicker">04 · Digital Persona</p>
             <h2 className="ad-section-title">在 2026 數位環境中，你這組怎麼運作？</h2>
             <p className="ad-section-lead">數位環境讓行為模式更可見。你在這裡的慣性，通常比你對自己的認知更接近真實的樣子。</p>
             {digitalPersonaIntro ? (
-              <div className="ad-card" style={{ marginBottom: 12 }}>
-                <p style={{ fontSize: 14, lineHeight: 1.88, color: 'var(--t2)' }}>{digitalPersonaIntro}</p>
+              <div className="ad-card ad-mb-12">
+                <p className="ad-body-15">{digitalPersonaIntro}</p>
               </div>
             ) : null}
             <div className="ad-card">
               <div className="ad-list-label">行為邏輯</div>
               <ul className="ad-arrow-list">
                 {behaviorLogic.map((item) => (
-                  <li key={item.label}><strong style={{ color: 'var(--t1)', marginRight: 4 }}>{item.label}：</strong>{item.body}</li>
+                  <li key={item.label}><strong className="ad-strong-label">{item.label}：</strong>{item.body}</li>
                 ))}
               </ul>
             </div>
@@ -999,12 +1060,12 @@ export default function V2App({ user }: V2AppProps) {
         ) : null}
 
         {/* ── 05: HISTORICAL ARCHETYPES ────────────────────────── */}
-        <div className="ad-section">
+        <div id="ch-05" className="ad-section ad-reveal">
           <p className="ad-section-kicker">05 · Historical Archetypes</p>
           <h2 className="ad-section-title">同類過渡期的歷史原型</h2>
           <p className="ad-section-lead">找到跨時代有同樣模式的人，不是要你複製他們。是讓你知道這種思維方式有完整的脈絡，走過去的人不只你一個。</p>
           {(psychArchetype?.figures ?? []).length > 0 ? (
-            <div className="ad-grid-3" style={{ marginBottom: 12 }}>
+            <div className="ad-grid-3 ad-mb-12">
               {(psychArchetype?.figures ?? []).slice(0, 3).map((figure) => (
                 <div key={figure.name} className="ad-person-card">
                   <div className="ad-person-name">{figure.name}</div>
@@ -1013,7 +1074,7 @@ export default function V2App({ user }: V2AppProps) {
               ))}
             </div>
           ) : (
-            <p style={{ fontSize: 13, color: 'var(--t3)', lineHeight: 1.7, marginBottom: 12 }}>
+            <p className="ad-body-14-muted">
               歷史原型資料整理中。
             </p>
           )}
@@ -1024,13 +1085,13 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── 06: CAREER × RELATIONSHIP ────────────────────────── */}
-        <div className="ad-section">
+        <div id="ch-06" className="ad-section ad-reveal">
           <p className="ad-section-kicker">06 · Career × Relationship</p>
           <h2 className="ad-section-title">{careerContent.title} × {relationshipContent.title}</h2>
           <p className="ad-section-lead">你在工作裡的反應方式，通常也是你在親密關係中的語言。兩者往往有同樣的心理根源。</p>
           <div className="ad-grid-2">
             <div className="ad-card">
-              <div className="ad-list-label" style={{ marginBottom: 12 }}>職涯生存模式</div>
+              <div className="ad-list-label">職涯生存模式</div>
               <ul className="ad-arrow-list">
                 {careerContent.bullets.map((item) => (
                   <li key={item.label}>{item.body}</li>
@@ -1038,7 +1099,7 @@ export default function V2App({ user }: V2AppProps) {
               </ul>
             </div>
             <div className="ad-card">
-              <div className="ad-list-label" style={{ marginBottom: 12 }}>關係運作模式</div>
+              <div className="ad-list-label">關係運作模式</div>
               <ul className="ad-arrow-list">
                 {relationshipContent.bullets.map((item) => (
                   <li key={item.label}>{item.body}</li>
@@ -1056,14 +1117,14 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── 07: SOUL REFLECTION ──────────────────────────────── */}
-        <div className="ad-section">
+        <div className="ad-section ad-reveal">
           <p className="ad-section-kicker">07 · Soul Reflection</p>
           <h2 className="ad-section-title">{dessertContent.name}</h2>
           <p className="ad-section-lead">靈魂甜點是一個隱喻，試圖描述讓你感到真實的那種狀態。深問不需要答案，讓問題待在那裡也是一種方式。</p>
           <div className="ad-grid-2">
             <div>
-              <div className="ad-card" style={{ marginBottom: 10 }}>
-                <p style={{ fontSize: 14, lineHeight: 1.82, color: 'var(--t2)', marginBottom: 12 }}>
+              <div className="ad-card ad-mb-8">
+                <p className="ad-body-15 ad-mb-12">
                   {dessertContent.visualLogic}
                 </p>
                 {dessertContent.pairings.map((pairing) => (
@@ -1086,7 +1147,7 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── CARRY / IMPORTANT ────────────────────────────────── */}
-        <div className="ad-carry-section">
+        <div className="ad-carry-section ad-reveal">
           <div className="ad-carry-eyebrow">帶走的字</div>
           <p className="ad-carry-frame">這份報告讀到這裡，你帶走的不是一個分類，而是一種認識自己的角度。</p>
           <p className="ad-carry-body">{carryFull}</p>
@@ -1098,7 +1159,7 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── FOOTER ───────────────────────────────────────────── */}
-        <div className="ad-footer">
+        <div className="ad-footer ad-reveal">
           <p className="ad-footer-title">你的靈魂甜點已選定</p>
           <p className="ad-footer-sub">{dessertContent.name} — 在月島的某個角落等你</p>
           <div className="ad-btn-row">
@@ -1130,7 +1191,7 @@ export default function V2App({ user }: V2AppProps) {
 
       {/* ── DEV STRIP ────────────────────────────────────────── */}
       {IS_DEV ? (
-        <section className="v2-dev-strip" style={{ marginTop: 32 }}>
+        <section className="v2-dev-strip ad-mt-32">
           <div>
             <p className="v2-label">LOCAL DEBUG</p>
             <p>source={source} · mbti={fullType} · entitlement={isUnlocked ? 'unlocked' : 'locked'}</p>
