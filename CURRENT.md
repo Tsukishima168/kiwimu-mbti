@@ -55,7 +55,10 @@ Last updated: 2026-06-04
 - Phase A(還債):砍 v2.css 死重+去重字體載入、刪 V2QuizApp.tsx、inline style 收斂成 class、字級統一 15px/1.9、間距對齊 8px、色值改用 CSS var
 - Phase B(升級):章節導覽補 id+浮動導覽 UI、Apple Dark 語彙內細節打磨、components/v2/DESIGN.md 改寫成符合實作的規格書
 - 紅線:不動 App.tsx/package.json/package-lock.json(S1 WIP 保留);不改任何中文文案字串;不動 data/*.generated.ts
-- 狀態:✅ 完成,未 commit(待 Penso 拍板 commit)
+- 狀態:✅ 已 commit `dd1d420`(Phase A+B+P1 修復)
+- Phase C(細節完整化,Penso 2026-07-12 口頭核可)✅ 完成:改動全收斂在 v2-dark.css 單檔——①marquee 補結構 CSS 成真 ticker(32px 單行/40s 線性/reduce 已覆蓋;手機首屏奪回 ~330px);②§04 箭頭清單斷欄修成懸掛縮排;③Coming Soon 空狀態 token 對齊 Apple Dark;④paywall 卡加酸綠頂線;⑤手機導覽 dot 觸控區 42×42
+- Phase C 驗證:tsc=14 基線、build 綠、真 Chrome 實測 marquee 動畫 running/單行、§04 清單修復、鎖定卡層次、手機 390 無橫向溢出;調度者親驗全數通過
+- Phase C 刻意不動:03 光譜條加刻度/動畫(DESIGN.md 判為新增裝飾,保守保留)、dev-only「V2 CONTENT SYNC REQUIRED」空狀態標題對比度(開發訊息,後續評估)
 - Phase A 完成(sonnet):v2.css 2449→362 行、刪 V2QuizApp.tsx、V2App inline style 30→3(僅剩動態)、正文統一 15px/1.9、字體 @import 去重到 v2.css:1
 - Phase B 完成(opus):6 個 id="ch-0x" 錨點(V2App.tsx:904-1088)、右側浮動導覽軌+手機底部條(位於 871-887 附近)、.ad-reveal 進場動效(IO 一次性+reduced-motion 覆蓋)、focus-visible/active 補齊、DESIGN.md 改寫為 Apple Dark 實作規格(舊版備份 DESIGN.md.bak-20260712)、刪孤兒 KiwimuCharacter.tsx
 - 紅隊(fresh sonnet)PASS with issues:唯一 P1 = ch-02.locked 舊資料錯 → 已修(V2App.tsx:301 false→true),鎖定態經 test.localhost 實測驗證(paywall 下 02-06 全 is-locked)
