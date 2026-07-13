@@ -19,7 +19,7 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
 const FooterLinks = () => {
   const { language } = useLanguage();
-  const langSuffix = language === 'zh-TW' ? '' : `-${language}`;
+  const langSuffix = language === 'zh' ? '' : `-${language}`;
   const privacyText = language === 'en' ? 'Privacy Policy' : language === 'ja' ? 'プライバシーポリシー' : language === 'ko' ? '개인정보 보호정책' : '隱私權政策';
   const termsText = language === 'en' ? 'Terms of Use' : language === 'ja' ? '利用規約' : language === 'ko' ? '이용 약관' : '使用者條款';
 
@@ -238,7 +238,12 @@ const buildV1SeoConfig = (stage: Stage, pathname: string, resultData: MbtiResult
         title: 'Kiwimu MBTI 人格測驗',
         description: '用 MBTI 找到你的靈魂甜點與人格語言。',
       }
-    : fallbackMap[stage];
+    : stage === 'result'
+      ? {
+          title: 'Kiwimu 結果頁',
+          description: 'Kiwimu 正在整理你的 MBTI 結果。',
+        }
+      : fallbackMap[stage];
 
   return {
     title: fallback.title,

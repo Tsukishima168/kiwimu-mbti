@@ -12,7 +12,7 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
     const [error, setError] = useState<string | null>(null);
     const { language } = useLanguage();
 
-    const langSuffix = language === 'zh-TW' ? '' : `-${language}`;
+    const langSuffix = language === 'zh' ? '' : `-${language}`;
     const privacyText = language === 'en' ? 'Privacy Policy' : language === 'ja' ? 'プライバシーポリシー' : language === 'ko' ? '개인정보 보호정책' : '隱私權政策';
     const termsText = language === 'en' ? 'Terms of Use' : language === 'ja' ? '利用規約' : language === 'ko' ? '이용 약관' : '使用者條款';
 

@@ -24,8 +24,8 @@ interface ResultProps {
 const Result: React.FC<ResultProps> = (props) => {
     const { language } = useLanguage();
 
-    // If language is zh-TW (or zh), use the legacy V1 design and content
-    if (language === 'zh-TW' || language === 'zh') {
+    // If language is zh, use the legacy V1 design and content
+    if (language === 'zh') {
         // Force V1 content from constants.ts to ensure "V1 content" requirement
         const variant = getVariant(props.rawScores);
         const v1Data = getResultData(props.resultData.id, variant);

@@ -41,12 +41,12 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
     const [hasSkippedGate, setHasSkippedGate] = useState(false);
 
     const percentages = calculatePercentages(rawScores);
-    const resultAT = percentages.A >= percentages.Turbulent ? 'A' : 'T';
+    const resultAT: 'A' | 'T' = percentages.A >= percentages.Turbulent ? 'A' : 'T';
     const identitySuffix = resultAT;
     const fullCode = `${resultData.id}-${resultAT}`;
 
     const { language, t } = useLanguage();
-    const langKey = (language === 'zh-TW' ? 'zh' : language) as 'zh' | 'en' | 'ja' | 'ko';
+    const langKey = language as 'zh' | 'en' | 'ja' | 'ko';
 
     const reportCopy =
         v1ReportCopy[fullCode]?.[langKey]
@@ -90,9 +90,9 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
     const displayBlindSpots = reportCopy?.blindSpots?.length ? reportCopy.blindSpots : resultData.blindSpots;
     const displayCareerStyle = reportCopy?.career?.style || resultData.career.style;
     const displayCareerAdvice = reportCopy?.career?.advice || resultData.career.advice;
-    const displayRelStyle = reportCopy?.relationships?.style || resultData.relationships.romance || resultData.relationships.style;
+    const displayRelStyle = reportCopy?.relationships?.style || resultData.relationships.style;
     const displayRelAdvice = reportCopy?.relationships?.advice || resultData.relationships.advice;
-    const displayRelStrengths = reportCopy?.relationships?.style || resultData.relationships.strengths || resultData.relationships.style || resultData.relationships.romance;
+    const displayRelStrengths = resultData.relationships.strengths || resultData.relationships.style;
 
     // Pick localized hook for DessertCard
     const displayHook = langKey === 'zh'
@@ -239,7 +239,7 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
                     style={{ transform: `translateX(-${activeIndex * 100}%)` }}
                 >
                     {cards.map((card) => {
-                        const ActiveComponent = card.component;
+                        const ActiveComponent = card.component as React.ComponentType<any>;
                         return (
                             <div key={card.id} className="w-full h-full flex-shrink-0 relative">
                                 {/* Pass through pointer events correctly; cards need ptr events for scrolling */}

@@ -554,7 +554,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
       {/* Floating UserMenu */}
       {onLogin && onLogout && (
         <div className="fixed top-6 right-6 z-50">
-          <UserMenu user={user} onLogin={onLogin} onLogout={onLogout} />
+          <UserMenu user={user ?? null} onLogin={onLogin} onLogout={onLogout} />
         </div>
       )}
 

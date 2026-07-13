@@ -209,7 +209,7 @@ const buildSpectrumRows = (
   type: string,
   variant: VariantCode,
   scores: Score,
-  dimensionBullets: Array<{ label: string; body: string }>,
+  dimensionBullets: ReadonlyArray<{ label: string; body: string }>,
 ): SpectrumRow[] => {
   const percentages = calculatePercentages(scores);
   const descriptions = new Map(dimensionBullets.map((item) => [item.label, item.body]));
@@ -240,10 +240,12 @@ const buildPrototypeCopy = (
   const aItems = report.professional.subtypes.A.items;
   const tItems = report.professional.subtypes.T.items;
 
+  const abstractBody = report.abstract.body;
+
   return {
     eyebrow: `${familyMeta.familyLabel} · KIWIMU V2 深度報告`,
     subtitle: `${report.title} · ${typeTitle}`,
-    soulQuote: cleanText(report.soulQuote || report.closing || resultData.quote || report.abstract.body),
+    soulQuote: cleanText(report.soulQuote || report.closing || resultData.quote || abstractBody),
     heroLines: [report.abstract.body, report.design.quote, ...report.design.behaviorLogic.map((item) => item.body)].slice(0, 3),
     status: variant === 'A' ? '當前狀態：穩定輸出期 / 低噪推進中' : '當前狀態：高頻調整期 / 自我監測中',
     tags: buildTagWall(resultData.id, variant).slice(0, 6),
@@ -414,7 +416,7 @@ export default function V2App({ user }: V2AppProps) {
       unlockType: unlocked.unlockType,
       source,
     });
-    trackV2Unlocked(fullType, unlocked.unlockType, source);
+    trackV2Unlocked(fullType || 'unknown', unlocked.unlockType || 'unknown', source || 'unknown');
   }, [fullType, params, source]);
 
   useEffect(() => {

@@ -359,7 +359,7 @@ function findResult(answers: number[]): StateResult {
 const MARQUEE_TEXT = 'KIWIMU STATE TEST · 今天你是哪種奶油狀態？ · MOON DESSERT · 5 QUESTIONS · ';
 const LITE_VARIANT_KEY = 'kiwimu_lite_ab_variant';
 
-function resolveLiteAssignment() {
+function resolveLiteAssignment(): { version: 'A' | 'B'; sourceHint: string } {
   const params = new URLSearchParams(window.location.search);
   const forcedVariant = params.get('v')?.toUpperCase();
 
@@ -408,7 +408,7 @@ function resolveLiteAssignment() {
   return { version, sourceHint };
 }
 
-function buildFullQuizUrl(version: 'A' | 'B', resultId?: number) {
+function buildFullQuizUrl(version: 'A' | 'B', resultId?: string | number) {
   const currentParams = new URLSearchParams(window.location.search);
   const nextParams = new URLSearchParams();
   const passThroughKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'source'];

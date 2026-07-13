@@ -98,7 +98,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         </p>
                                     </div>
                                     <a
-                                        href={`https://map.kiwimu.com/?mbti=${testRuns[0]?.result || ''}`}
+                                        href={`https://map.kiwimu.com/?mbti=${testRuns[0]?.mbtiType || testRuns[0]?.resultType || ''}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         onClick={() => trackButtonClick('island_link', 'archive_cross_site', 'https://map.kiwimu.com/')}

@@ -32,7 +32,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     useEffect(() => {
         const fetchQuestions = async () => {
             // 如果是中文版，鎖定使用 constants.ts 中的 QUESTIONS (V1)
-            if (language === 'zh' || language === 'zh-TW') {
+            if (language === 'zh') {
                 setQuestions(QUESTIONS);
                 setQuestionsLoaded(true);
                 return;
