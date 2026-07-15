@@ -124,7 +124,7 @@ export default function V2QuizFlow() {
         <div className="ad-orb ad-orb-2" />
 
         {/* Marquee */}
-        <div className="marquee-container" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100 }}>
+        <div className="marquee-container ad-marquee-fixed">
           <div className="marquee-track">
             <span className="marquee-text">{MARQUEE.repeat(4)}</span>
             <span className="marquee-text">{MARQUEE.repeat(4)}</span>
@@ -223,7 +223,7 @@ export default function V2QuizFlow() {
   return (
     <div className="ad-quiz-screen">
       {/* Marquee */}
-      <div className="marquee-container" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100 }}>
+      <div className="marquee-container ad-marquee-fixed">
         <div className="marquee-track">
           <span className="marquee-text">{MARQUEE.repeat(4)}</span>
           <span className="marquee-text">{MARQUEE.repeat(4)}</span>

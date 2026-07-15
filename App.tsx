@@ -936,7 +936,7 @@ const App: React.FC = () => {
         <div className={`min-h-screen bg-kiwi-bg transition-colors duration-1000 ${stage === 'quiz' ? 'bg-[#fff5e6]' : ''} overflow-x-hidden`}>
           {stage !== 'og-render' && <DiscordLinkGate user={user} onLogin={handleLogin} />}
           {stage !== 'intro' && stage !== 'manifesto' && stage !== 'og-render' && (
-            <div className="fixed top-6 right-6 z-50">
+            <div className="fixed top-[calc(var(--ku-rail-height)+1.5rem)] right-6 z-50">
               <UserMenu user={user} onLogin={handleLogin} onLogout={handleLogout} />
             </div>
           )}

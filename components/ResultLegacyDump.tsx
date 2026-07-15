@@ -553,7 +553,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
     <div className="min-h-screen bg-kiwi-bg pb-24 fade-in select-none">
       {/* Floating UserMenu */}
       {onLogin && onLogout && (
-        <div className="fixed top-6 right-6 z-50">
+        <div className="fixed top-[calc(var(--ku-rail-height)+1.5rem)] right-6 z-50">
           <UserMenu user={user ?? null} onLogin={onLogin} onLogout={onLogout} />
         </div>
       )}
@@ -609,7 +609,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
 
       {/* ── SHARED VIEW BANNER ── 當透過 ?r= 連結進來，引導訪客做測驗 */}
       {isSharedView && (
-        <div className="fixed top-0 left-0 right-0 z-[60] bg-black text-white py-3 px-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center shadow-xl">
+        <div className="fixed top-[var(--ku-rail-height)] left-0 right-0 z-[60] bg-black text-white py-3 px-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center shadow-xl">
           <span className="text-xs sm:text-sm font-medium">
             <span className="opacity-60 mr-1.5">✦</span>
             你正在查看朋友的靈魂甜點 · {resultData.id}-{resultAT} {resultData.title}

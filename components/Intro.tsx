@@ -109,7 +109,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
 
         {/* 圓形動畫容器 */}
         <div
-          className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden shadow-2xl mb-12 relative group cursor-pointer bg-gray-100"
+          className="ku-orbit-frame w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden mb-12 relative group cursor-pointer bg-gray-100"
           onClick={() => { trackButtonClick('進入_圓形', 'intro_main'); onStart(); }}
         >
           <img
@@ -122,6 +122,8 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
             <span className="text-white font-display text-xl tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300">{t('enter')}</span>
           </div>
         </div>
+
+        <p className="ku-site-kicker mb-5">01 / Personality lab</p>
 
         <h1 className="text-3xl md:text-4xl font-serif font-bold tracking-[0.08em] text-kiwi-dark mb-4">
           {t('kiwimu_universe')}
@@ -136,7 +138,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
 
         <button
           onClick={() => { trackButtonClick('Start_開始旅程', 'intro_main'); onStart(); }}
-          className="px-12 py-4 border border-black text-black hover:bg-black hover:text-white transition-all duration-300 font-bold tracking-[0.2em] text-sm uppercase hover:scale-105 active:scale-95 hover:shadow-lg"
+          className="ku-primary-action px-12 py-4 tracking-[0.2em] text-sm uppercase"
         >
           {t('start_journey')}
         </button>
