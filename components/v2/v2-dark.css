@@ -1162,7 +1162,7 @@
 .v2-report-layer-bar { display: none !important; }
 .v2-report-progress {
   position: fixed;
-  top: 0; left: 0;
+  top: var(--ku-rail-height); left: 0;
   height: 2px;
   background: var(--acid);
   z-index: 200;
@@ -1171,7 +1171,7 @@
 
 /* ─── Floating chapter nav ─── */
 /* Anchored blocks clear the fixed marquee when scrolled to. */
-[id^="ch-0"] { scroll-margin-top: 88px; }
+[id^="ch-0"] { scroll-margin-top: calc(var(--ku-rail-height) + 40px); }
 
 .ad-chapternav {
   position: fixed;
@@ -1407,7 +1407,13 @@
 .ad-v15-type { font-family: var(--f-display); color: var(--acid); }
 .ad-mono-11 { font-family: var(--f-mono); font-size: 11px; }
 
-.ad-marquee-fixed { position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+.ad-marquee-fixed {
+  position: fixed;
+  top: var(--ku-rail-height);
+  right: 0;
+  left: 0;
+  z-index: 100;
+}
 
 .ad-paywall-box {
   position: relative;

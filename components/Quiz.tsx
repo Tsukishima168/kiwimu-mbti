@@ -177,7 +177,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
 
             <div className="flex flex-col min-h-screen bg-kiwi-bg">
                 {/* Header */}
-                <div className="fixed top-0 left-0 right-0 z-50 bg-kiwi-bg/95 backdrop-blur-sm">
+                <div className="fixed top-[var(--ku-rail-height)] left-0 right-0 z-50 bg-kiwi-bg/95 backdrop-blur-sm">
                     <div className="max-w-3xl mx-auto px-6 h-20 flex items-end justify-between pb-4">
                         <div className="flex items-center gap-4">
                             <h1 className="text-sm font-serif font-bold text-kiwi-dark tracking-[0.08em] uppercase">

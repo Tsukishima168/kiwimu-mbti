@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-kiwi-bg: #fafafa;
+  --color-kiwi-surface: #ffffff;
+  --color-kiwi-dark: #121212;
+  --color-kiwi-grey: #757575;
+  --color-kiwi-lightgrey: #e0e0e0;
+  --color-kiwi-accent: #000000;
+  --color-kiwi-green: #d4ff00;
+
+  --font-sans: "Noto Sans TC", sans-serif;
+  --font-serif: "Noto Serif TC", "Cormorant Garamond", serif;
+  --font-display: "Noto Serif TC", "Cormorant Garamond", serif;
+}

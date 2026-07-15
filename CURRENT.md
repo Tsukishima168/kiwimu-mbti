@@ -1,6 +1,15 @@
 # Kiwimu / MBTI Current
 
-Last updated: 2026-06-04
+Last updated: 2026-07-15
+
+## Five-site visual system · 2026-07-15
+
+- Added the shared Kiwimu Universe rail, site role label, primary-action treatment, and hero orbit frame. The canonical contract is `docs/five-site-design-system.md`.
+- The mobile rail centers the active site without causing page-level horizontal overflow; desktop and 390px browser QA passed.
+- Replaced the production Tailwind CDN runtime with the existing Tailwind 4 Vite build path while preserving the V1 palette and typography tokens.
+- Fresh-context review caught and fixed V1 quiz/result plus V2 marquee overlap, excluded the dedicated OG capture route, and hardened rail contrast, focus, and reduced-motion behavior across all five copies.
+- Verified `npx tsc --noEmit --pretty false`, `npm run build`, homepage, and `/read/quiz`; the remaining local console warning is the expected missing `VITE_LINE_LIFF_ID`.
+- Status: source changes are local and uncommitted; no push or production deployment was performed in this pass.
 
 ## Status
 
