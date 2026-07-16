@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { Resend } from 'resend';
+import { Resend, type CreateEmailOptions } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || 'MBTI Lab <onboarding@resend.dev>';
@@ -32,13 +32,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        const { data, error } = await resend.emails.send({
+        const payload: CreateEmailOptions = {
             from: FROM,
             to: [to],
             subject,
-            text: text || undefined,
-            html: html || undefined,
-        });
+            ...(html ? { html } : { text: text as string }),
+        };
+        const { data, error } = await resend.emails.send(payload);
 
         if (error) {
             console.error('Resend error:', error);
