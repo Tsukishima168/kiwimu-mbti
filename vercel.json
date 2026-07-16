@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/api/economy/mbti-attempt",
+            "destination": "/api/economy/mbti-completed"
+        },
+        {
             "source": "/api/(.*)",
             "destination": "/api/$1"
         },
