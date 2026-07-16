@@ -36,7 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             from: FROM,
             to: [to],
             subject,
-            ...(html ? { html } : { text: text as string }),
+            ...(html ? { html, ...(text ? { text } : {}) } : { text: text as string }),
         };
         const { data, error } = await resend.emails.send(payload);
 
