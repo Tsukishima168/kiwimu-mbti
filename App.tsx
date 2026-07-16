@@ -4,7 +4,7 @@ import { AppUser, Option, MbtiResultData, Score } from './types';
 import { getAuthSupabaseClient, restoreAuthSessionFromUrl, toAppUser, signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
 import { useCloudSync } from './hooks/useCloudSync';
 import { calculateResults, getVariant } from './utils/logic';
-import { getResultData } from './constants';
+import { getResultData, QUESTIONS } from './constants';
 import { loadResultData } from './utils/dataLoader';
 import Intro from './components/Intro';
 import Quiz from './components/Quiz';
@@ -53,7 +53,7 @@ import { sendResultEmail } from './utils/sendResultEmail';
 import NotFound from './components/NotFound';
 import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
-import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
+import { reportMbtiCompleted } from './utils/economyEvents';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 import { applyRuntimeSeo } from './utils/seo';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT, type PassportLoginUiOptions } from './utils/authStorage';
@@ -664,6 +664,19 @@ const App: React.FC = () => {
 
     trackSsoEvent('quiz_completed', { mbti_type: type, variant });
 
+    // Economy v2 only receives answer indices and a tracking UUID. Identity is
+    // verified from the shared Supabase JWT and all eligibility lives on server.
+    void reportMbtiCompleted({
+      answers,
+      questionBank: QUESTIONS,
+      quizVersion: 'v1-40',
+    }).then(result => {
+      trackAction('economy_mbti_completed', {
+        code: result?.code || 'UNAVAILABLE',
+        quizVersion: 'v1-40',
+      });
+    });
+
     // 【新增】追蹤行銷轉換事件
     trackMarketingEvent(MARKETING_EVENTS.COMPLETE_QUIZ, {
       mbtiType: type,
@@ -732,8 +745,6 @@ const App: React.FC = () => {
     replaceRoute('/quiz/result');
     setStage('result');
 
-    // 🎮 W2-6 / LIFF-3：MBTI 完成積分觸發（+2 pts，每週限一次）
-    triggerMbtiCompletePoints();
   };
 
   const handleRetest = () => {

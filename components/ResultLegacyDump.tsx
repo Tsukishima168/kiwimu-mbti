@@ -12,6 +12,7 @@ import { shareResultToLine } from '../utils/liffShare';
 import { trackResultDownload, trackResultShare, trackButtonClick, trackResultView } from '../utils/analytics';
 import { trackOutboundClick } from '../utils/utmTracking';
 import type { PassportLoginUiOptions } from '../utils/authStorage';
+import { usePendingEconomyClaimUrl } from '../hooks/usePendingEconomyClaimUrl';
 
 
 interface ResultProps {
@@ -186,6 +187,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const fullResultType = `${resultData.id}-${identitySuffix}`;
   const exploreUrl = `/explore?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-explore&source=v1_result&mbti_type=${resultData.id}&variant=${identitySuffix}`;
   const v2ReportUrl = `/read/${fullResultType}?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-v2&utm_content=v1-result-v2&source=v1_result`;
+  const passportUrl = usePendingEconomyClaimUrl(
+    `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-passport&mbti_type=${resultData.id}&variant=${identitySuffix}`,
+  );
   const anchor = SOUL_ANCHOR_MAP[resultData.id] || SOUL_ANCHOR_MAP["ISFP"];
   const isOgRenderPreview = typeof window !== 'undefined' && window.location.pathname.includes('/og-render');
   const storyExcerpt = extractStoryExcerpt(resultData.coreAnalysis, 132);
@@ -1225,9 +1229,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   title: '領取護照印章',
                   subtitle: 'PASSPORT STAMP',
                   description: '完成 MBTI 後可直接領取護照印章，保存你的身分與回訪紀錄',
-                  url: `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-passport&mbti_type=${resultData.id}&variant=${identitySuffix}`,
+                  url: passportUrl,
                   external: true,
-                  onClick: () => trackOutboundClick('PASSPORT', 'navigation', { destination_type: 'passport', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-passport&mbti_type=${resultData.id}&variant=${identitySuffix}` }),
+                  onClick: () => trackOutboundClick('PASSPORT', 'navigation', { destination_type: 'passport', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: passportUrl }),
                 },
                 {
                   id: 'dessert-booking',

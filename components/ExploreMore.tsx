@@ -1,5 +1,6 @@
 import React from 'react';
 import { buildDessertOrderLink, buildMoonMapLink, buildPassportLink, trackOutboundClick } from '../utils/utmTracking';
+import { withPendingEconomyClaim } from '../utils/economyClaims';
 
 interface ExploreMoreProps {
   mbtiType?: string;
@@ -11,7 +12,7 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
   const dessertUrl = mbtiType
     ? buildDessertOrderLink(mbtiType, variant || 'A')
     : 'https://map.kiwimu.com/menu?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q1-integration&utm_content=soul-dessert-button';
-  const passportUrl = passportClaimUrl || buildPassportLink();
+  const passportUrl = withPendingEconomyClaim(passportClaimUrl || buildPassportLink());
   const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType) : 'https://map.kiwimu.com';
 
   const products = [
