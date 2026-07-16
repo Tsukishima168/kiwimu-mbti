@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { parseEconomyResponse, type EconomyResponseCode } from '../../shared/economy.js';
-import { parseMbtiCompletion } from '../../server/economy/mbtiCompletion.js';
+import { parseMbtiAttemptRequest } from '../../server/economy/mbtiAttempt.js';
 import {
   getBearerToken,
   jsonBodySize,
@@ -9,8 +9,8 @@ import {
 } from '../../server/economy/requestSecurity.js';
 import { getEconomyAdminClient } from '../../server/economy/supabaseAdmin.js';
 
-const MAX_REQUEST_BYTES = 4_096;
-const PENDING_CLAIM_TTL_MS = 7 * 24 * 60 * 60 * 1_000;
+const MAX_REQUEST_BYTES = 256;
+const ATTEMPT_TTL_MS = 2 * 60 * 60 * 1_000;
 
 function economyResponse(
   response: VercelResponse,
@@ -34,13 +34,12 @@ export default async function handler(request: VercelRequest, response: VercelRe
   if (!requestOriginMatchesHost(request)) {
     return economyResponse(response, 403, requestId, 'INVALID_PROOF');
   }
-
   if (jsonBodySize(request.body) > MAX_REQUEST_BYTES) {
     return economyResponse(response, 400, requestId, 'INVALID_PROOF');
   }
 
-  const completion = parseMbtiCompletion(request.body);
-  if (!completion) {
+  const attemptRequest = parseMbtiAttemptRequest(request.body);
+  if (!attemptRequest) {
     return economyResponse(response, 400, requestId, 'INVALID_PROOF');
   }
 
@@ -50,34 +49,30 @@ export default async function handler(request: VercelRequest, response: VercelRe
   }
 
   const bearerToken = getBearerToken(request);
-  let actorUserId: string | null = null;
+  let subjectUserId: string | null = null;
   if (request.headers.authorization && !bearerToken) {
     return economyResponse(response, 401, requestId, 'AUTH_REQUIRED');
   }
   if (bearerToken) {
-    const { data: authData, error: authError } = await admin.auth.getUser(bearerToken);
-    if (authError || !authData.user) {
+    const { data, error } = await admin.auth.getUser(bearerToken);
+    if (error || !data.user) {
       return economyResponse(response, 401, requestId, 'AUTH_REQUIRED');
     }
-    actorUserId = authData.user.id;
+    subjectUserId = data.user.id;
   }
 
-  const rpcResult = await admin.rpc('economy_complete_mbti_attempt', {
-    p_attempt_proof: completion.attemptProof,
-    p_completion_id: completion.completionId,
-    p_quiz_version: completion.quizVersion,
-    p_result_type: completion.resultType,
-    p_variant: completion.variant,
-    p_answers_sha256: completion.answersSha256,
-    p_actor_user_id: actorUserId,
-    p_pending_expires_at: new Date(Date.now() + PENDING_CLAIM_TTL_MS).toISOString(),
+  const rpcResult = await admin.rpc('economy_issue_mbti_attempt', {
+    p_attempt_id: randomUUID(),
+    p_quiz_version: attemptRequest.quizVersion,
+    p_subject_user_id: subjectUserId,
+    p_expires_at: new Date(Date.now() + ATTEMPT_TTL_MS).toISOString(),
     p_request_id: requestId,
   });
 
   if (rpcResult.error) {
-    console.error('[economy] MBTI event RPC unavailable', {
+    console.error('[economy] MBTI attempt RPC unavailable', {
       requestId,
-      authenticated: Boolean(actorUserId),
+      authenticated: Boolean(subjectUserId),
       code: rpcResult.error.code || null,
     });
     return economyResponse(response, 503, requestId, 'ROLLOUT_DISABLED');
@@ -85,7 +80,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   const parsed = parseEconomyResponse(rpcResult.data, requestId);
   if (!parsed) {
-    console.error('[economy] Invalid MBTI event RPC response', { requestId });
+    console.error('[economy] Invalid MBTI attempt RPC response', { requestId });
     return economyResponse(response, 502, requestId, 'NOT_ELIGIBLE');
   }
 

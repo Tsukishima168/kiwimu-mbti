@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test:economy": "vitest run shared/economy.test.ts server/economy/mbtiCompletion.test.ts utils/economyClaims.test.ts utils/economyEvents.test.ts",
+    "test:economy": "vitest run shared/economy.test.ts server/economy/mbtiAttempt.test.ts server/economy/mbtiCompletion.test.ts utils/economyClaims.test.ts utils/economyEvents.test.ts utils/economyOutbox.integration.test.ts",
     "preview": "vite preview",
     "sync:v1:reports": "node scripts/generate-v1-report-from-obsidian.mjs",
     "sync:v2:tw:reports": "node scripts/generate-v2-tw-drafts.mjs",

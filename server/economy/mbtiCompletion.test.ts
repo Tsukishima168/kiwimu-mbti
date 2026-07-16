@@ -9,6 +9,7 @@ import {
 } from './mbtiCompletion';
 
 const COMPLETION_ID = '11111111-1111-4111-8111-111111111111';
+const ATTEMPT_PROOF = `${COMPLETION_ID}.${'a'.repeat(64)}`;
 
 describe('parseMbtiCompletion', () => {
   it.each([
@@ -23,6 +24,7 @@ describe('parseMbtiCompletion', () => {
 
   it('recomputes a V1 result from the canonical question bank', () => {
     const parsed = parseMbtiCompletion({
+      attempt_proof: ATTEMPT_PROOF,
       completion_id: COMPLETION_ID,
       quiz_version: 'v1-40',
       answer_indices: QUESTIONS.map(() => 0),
@@ -39,6 +41,7 @@ describe('parseMbtiCompletion', () => {
 
   it('recomputes a V2 result independently of client labels', () => {
     const parsed = parseMbtiCompletion({
+      attempt_proof: ATTEMPT_PROOF,
       completion_id: COMPLETION_ID,
       quiz_version: 'v2-tw-40',
       answer_indices: V2_TAIWAN_QUESTIONS.map(() => 1),
@@ -48,11 +51,12 @@ describe('parseMbtiCompletion', () => {
   });
 
   it.each([
-    { completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: [] },
-    { completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: QUESTIONS.map(() => 2) },
-    { completion_id: COMPLETION_ID, quiz_version: 'unknown', answer_indices: QUESTIONS.map(() => 0) },
-    { completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: QUESTIONS.map(() => 0), points: 999999 },
-    { completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: QUESTIONS.map(() => 0), actor_user_id: COMPLETION_ID },
+    { attempt_proof: ATTEMPT_PROOF, completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: [] },
+    { attempt_proof: ATTEMPT_PROOF, completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: QUESTIONS.map(() => 2) },
+    { attempt_proof: ATTEMPT_PROOF, completion_id: COMPLETION_ID, quiz_version: 'unknown', answer_indices: QUESTIONS.map(() => 0) },
+    { attempt_proof: 'forged', completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: QUESTIONS.map(() => 0) },
+    { attempt_proof: ATTEMPT_PROOF, completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: QUESTIONS.map(() => 0), points: 999999 },
+    { attempt_proof: ATTEMPT_PROOF, completion_id: COMPLETION_ID, quiz_version: 'v1-40', answer_indices: QUESTIONS.map(() => 0), actor_user_id: COMPLETION_ID },
   ])('rejects incomplete, forged, or asset-bearing payloads', payload => {
     expect(parseMbtiCompletion(payload)).toBeNull();
   });
@@ -61,6 +65,7 @@ describe('parseMbtiCompletion', () => {
 describe('EconomyEventV1 construction', () => {
   it('contains verified evidence but no client-authoritative asset field', () => {
     const parsed = parseMbtiCompletion({
+      attempt_proof: ATTEMPT_PROOF,
       completion_id: COMPLETION_ID,
       quiz_version: 'v1-40',
       answer_indices: QUESTIONS.map(() => 0),

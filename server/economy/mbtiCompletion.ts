@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import type { Dimension } from '../../types.js';
 import type { MbtiQuizVersion } from '../../shared/economy.js';
-import { UUID_PATTERN, isPlainRecord } from '../../shared/economy.js';
+import { MBTI_ATTEMPT_PROOF_PATTERN, UUID_PATTERN, isPlainRecord } from '../../shared/economy.js';
 
 type AnswerIndex = 0 | 1;
 
@@ -14,6 +14,7 @@ interface ServerQuestion {
 }
 
 export interface ParsedMbtiCompletion {
+  attemptProof: string;
   completionId: string;
   quizVersion: MbtiQuizVersion;
   answerIndices: AnswerIndex[];
@@ -22,7 +23,7 @@ export interface ParsedMbtiCompletion {
   answersSha256: string;
 }
 
-const ALLOWED_BODY_KEYS = new Set(['completion_id', 'quiz_version', 'answer_indices']);
+const ALLOWED_BODY_KEYS = new Set(['attempt_proof', 'completion_id', 'quiz_version', 'answer_indices']);
 const SCORING_DIMENSIONS = [
   ['E', 'I'],
   ['S', 'N'],
@@ -82,10 +83,13 @@ export function parseMbtiCompletion(value: unknown): ParsedMbtiCompletion | null
   if (!isPlainRecord(value)) return null;
   if (Object.keys(value).some(key => !ALLOWED_BODY_KEYS.has(key))) return null;
 
+  const attemptProof = value.attempt_proof;
   const completionId = value.completion_id;
   const quizVersion = value.quiz_version;
   const answerIndices = value.answer_indices;
   if (
+    typeof attemptProof !== 'string' ||
+    !MBTI_ATTEMPT_PROOF_PATTERN.test(attemptProof) ||
     typeof completionId !== 'string' ||
     !UUID_PATTERN.test(completionId) ||
     !isQuizVersion(quizVersion) ||
@@ -109,6 +113,7 @@ export function parseMbtiCompletion(value: unknown): ParsedMbtiCompletion | null
     .digest('hex');
 
   return {
+    attemptProof,
     completionId,
     quizVersion,
     answerIndices: normalizedIndices,

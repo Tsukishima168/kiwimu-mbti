@@ -8,7 +8,7 @@ import { trackAction } from '../../utils/userDataCollector';
 import { trackPageView, trackScreenEngagement } from '../../utils/analytics';
 import { applyRuntimeSeo } from '../../utils/seo';
 import { buildV2QuizPath, buildV2ReportPath, normalizeV2Pathname } from '../../utils/v2Routes';
-import { reportMbtiCompleted } from '../../utils/economyEvents';
+import { prepareMbtiAttempt, queueMbtiCompleted } from '../../utils/economyEvents';
 import type { Option } from '../../types';
 import './v2-tailwind.css';
 import './v2.css';
@@ -61,6 +61,7 @@ export default function V2QuizFlow() {
 
   const handleStart = () => {
     setStarted(true);
+    void prepareMbtiAttempt('v2-tw-40');
     trackAction('v2_quiz_flow_start', { quizId: 'v2-tw-40' });
   };
 
@@ -76,11 +77,11 @@ export default function V2QuizFlow() {
         variant,
         source: 'v2_quiz_tw_40',
       });
-      await reportMbtiCompleted({
+      queueMbtiCompleted({
         answers: nextAnswers,
         questionBank: QUESTIONS,
         quizVersion: 'v2-tw-40',
-      }, { retry: false });
+      });
       window.location.assign(buildV2ReportPath(`${type}-${variant}`));
     } catch (err) {
       console.error('V2QuizFlow: failed to resolve result', err);

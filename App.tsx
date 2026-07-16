@@ -53,7 +53,11 @@ import { sendResultEmail } from './utils/sendResultEmail';
 import NotFound from './components/NotFound';
 import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
-import { reportMbtiCompleted } from './utils/economyEvents';
+import {
+  installMbtiEconomyOutboxRetry,
+  prepareMbtiAttempt,
+  reportMbtiCompleted,
+} from './utils/economyEvents';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 import { applyRuntimeSeo } from './utils/seo';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT, type PassportLoginUiOptions } from './utils/authStorage';
@@ -386,6 +390,8 @@ const App: React.FC = () => {
     init();
   }, []);
 
+  useEffect(() => installMbtiEconomyOutboxRetry(), []);
+
   // 【新增】測試模式快捷鍵（Ctrl+Shift+T）
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -633,6 +639,7 @@ const App: React.FC = () => {
     // 【新增】追蹤開始測驗
     trackMarketingEvent(MARKETING_EVENTS.START_QUIZ);
     trackAction('start_quiz');
+    void prepareMbtiAttempt('v1-40');
 
     setStage('quiz');
   };
