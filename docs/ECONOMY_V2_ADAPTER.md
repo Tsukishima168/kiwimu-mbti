@@ -37,6 +37,13 @@ Shop is the only migration publisher. This adapter must remain a Draft and rollo
 
 No Kiwimu migration is allowed to create shared Economy tables or RPCs.
 
+As of 2026-07-16, the shared RPC/schema contract has passed a
+production-compatible hosted Supabase staging apply, lint, Auth/RLS/PostgREST,
+replay and concurrency validation. The production project still has none of
+the six Economy v2 versions and the Kiwimu PR remains Draft pending explicit
+migration/merge/deploy authorization. The anonymous issuance rate-limit item
+remains a 100% rollout gate, not permission to bypass default-off controls.
+
 ## Verification
 
 ```bash
