@@ -2,6 +2,7 @@
 // 確保所有外部連結都有正確的 UTM 參數，便於追蹤來源和轉換
 
 import { SITE_ID, compactUtmParams, getUtmParamsFromUrl, trackEvent } from './crossSiteTracking';
+import { MARKETING_EVENTS, trackLINEEvent } from './marketingPixels';
 
 interface UTMParams {
   utm_source: string;      // 來源：mbti-lab, moon-map, passport
@@ -16,6 +17,14 @@ interface ExternalLink {
   baseUrl: string;
   defaultSource: string;
 }
+
+// LINE Ads 自訂事件對照表
+// 刻意只掛兩個高訊號目的地：事件切太細會讓每個受眾都湊不到可用量。
+// 其餘目的地（MOON_MAP / PASSPORT / GACHA / DISCORD / INSTAGRAM）不送 LINE cv。
+const LINE_CV_BY_LINK_KEY: Record<string, string> = {
+  LINE_OA: MARKETING_EVENTS.CLICK_LINE_CTA,
+  DESSERT_BOOKING: MARKETING_EVENTS.CLICK_DESSERT_LINK,
+};
 
 const TARGET_SITE_BY_LINK_KEY: Record<string, string> = {
   DESSERT_BOOKING: 'dessert_booking',
@@ -256,6 +265,12 @@ export function trackOutboundClick(
   };
 
   trackEvent('outbound_click', payload);
+
+  // LINE Ads 轉換事件（單一掛載點，涵蓋所有既有與未來的 outbound CTA）
+  const lineEventName = LINE_CV_BY_LINK_KEY[linkKey as string];
+  if (lineEventName) {
+    trackLINEEvent(lineEventName, { medium, url: trackedUrl });
+  }
 
   // Console log（開發模式）
   if (import.meta.env.DEV) {
