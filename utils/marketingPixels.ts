@@ -18,8 +18,9 @@ const PIXEL_CONFIG = {
     pixelId: '', // 填入 TikTok Pixel ID
   },
   line: {
-    enabled: false, // 設為 true 啟用
-    tagId: '', // 填入 LINE Tag ID
+    enabled: true,
+    // LINE Tag（LINE Ads 成效追蹤）。非機密值，可用 VITE_LINE_TAG_ID 覆寫
+    tagId: import.meta.env.VITE_LINE_TAG_ID || 'f13358fc-4047-4059-8d79-013e0f7b89f6',
   }
 };
 
@@ -217,6 +218,7 @@ export function trackTikTokEvent(eventName: string, params?: any) {
 // ============================================
 export function initLINETag() {
   if (!PIXEL_CONFIG.line.enabled || !PIXEL_CONFIG.line.tagId) return;
+  if ((window as any)._lt) return; // 已注入過（StrictMode 重複掛載時避免重複送 pv）
   
   // 載入 LINE Tag
   const script = document.createElement('script');
@@ -232,7 +234,7 @@ export function initLINETag() {
       customerType: 'account',
       tagId: '${PIXEL_CONFIG.line.tagId}'
     });
-    _lt('send', 'pv', []);
+    _lt('send', 'pv', ['${PIXEL_CONFIG.line.tagId}']);
   `;
   document.head.appendChild(script);
   
@@ -241,11 +243,17 @@ export function initLINETag() {
 
 export function trackLINEEvent(eventName: string, params?: any) {
   if (!PIXEL_CONFIG.line.enabled || !(window as any)._lt) return;
+  // base code 已送出 pv，PageView 不再重複送成轉換事件（cv）
+  if (eventName === MARKETING_EVENTS.PAGE_VIEW) return;
   
-  (window as any)._lt('send', 'cv', {
-    type: eventName,
-    ...params
-  });
+  // LINE Tag 官方格式：第 3 參數只吃 { type }，第 4 參數必須帶 tagId 陣列
+  // params 不送給 LINE（LINE Tag 不支援自訂參數），僅留給 debug log
+  (window as any)._lt(
+    'send',
+    'cv',
+    { type: eventName },
+    [PIXEL_CONFIG.line.tagId]
+  );
   
   console.log('📊 LINE 事件:', eventName, params);
 }

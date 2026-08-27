@@ -10,6 +10,7 @@ import html2canvas from 'html2canvas';
 import UserMenu from './UserMenu';
 import { shareResultToLine } from '../utils/liffShare';
 import { trackResultDownload, trackResultShare, trackButtonClick, trackResultView } from '../utils/analytics';
+import { MARKETING_EVENTS, trackLINEEvent } from '../utils/marketingPixels';
 import { trackOutboundClick } from '../utils/utmTracking';
 import type { PassportLoginUiOptions } from '../utils/authStorage';
 
@@ -1322,7 +1323,12 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     href={V2_NOTIFY_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={() => trackButtonClick('v1_result_line_follow', 'v1_result_upsell', V2_NOTIFY_URL)}
+                    onClick={() => {
+                      trackButtonClick('v1_result_line_follow', 'v1_result_upsell', V2_NOTIFY_URL);
+                      // 這顆走 trackButtonClick 而非 trackOutboundClick，不會經過
+                      // utmTracking 的 LINE cv 掛載點，需個別送出
+                      trackLINEEvent(MARKETING_EVENTS.CLICK_LINE_CTA, { medium: 'v1_result_upsell' });
+                    }}
                     className="rounded-full px-5 py-4 text-center text-xs font-semibold uppercase tracking-[0.12em] md:text-sm md:tracking-[0.18em]"
                     style={{ background: 'transparent', color: '#F8F8F5', border: '1px solid rgba(248,248,245,0.32)' }}
                   >
