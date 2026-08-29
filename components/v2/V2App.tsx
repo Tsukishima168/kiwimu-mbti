@@ -40,6 +40,7 @@ import {
   type V2VariantCode,
 } from '../../utils/v2Routes';
 import { buildDessertOrderLink, trackDessertOrderClick } from '../../utils/utmTracking';
+import { withPendingEconomyClaim } from '../../utils/economyClaims';
 import './v2-tailwind.css';
 import './v2.css';
 import './v2-dark.css';
@@ -787,7 +788,9 @@ export default function V2App({ user }: V2AppProps) {
   const dimensionBullets = variantReport?.dimension.bullets.length ? variantReport.dimension.bullets : report.dimension.bullets;
   const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, dimensionBullets);
   const dessertOrderUrl = buildDessertOrderLink(resultData.id, variant);
-  const passportUrl = `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v2-footer-passport&mbti_type=${resultData.id}&variant=${variant}`;
+  const passportUrl = withPendingEconomyClaim(
+    `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v2-footer-passport&mbti_type=${resultData.id}&variant=${variant}`,
+  );
   const versionTags = variantReport?.tags.length
     ? variantReport.tags.map((tag) => cleanText(tag.label)).filter(Boolean).slice(0, 6)
     : buildVersionTagWall(report, currentVariant, prototypeCopy.tags);

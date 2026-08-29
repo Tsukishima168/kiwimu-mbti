@@ -1,3 +1,6 @@
+import { getPendingEconomyClaimId } from './economyClaims';
+import { UUID_PATTERN } from '../shared/economy';
+
 const SHARED_COOKIE_DOMAIN = '.kiwimu.com';
 const COOKIE_CHUNK_PREFIX = 'chunks:';
 const MAX_COOKIE_CHUNK_LENGTH = 3500;
@@ -15,6 +18,7 @@ export interface PassportLoginUrlOptions {
   presentation?: PassportLoginPresentation;
   intent?: string;
   sourceSite?: string;
+  economyClaimId?: string;
 }
 
 export interface PassportSsoMessage {
@@ -188,6 +192,10 @@ export function buildPassportLoginUrl(
   }
   if (options.sourceSite) {
     url.searchParams.set('source_site', options.sourceSite);
+  }
+  const economyClaimId = options.economyClaimId || getPendingEconomyClaimId();
+  if (economyClaimId && UUID_PATTERN.test(economyClaimId)) {
+    url.searchParams.set('economy_claim', economyClaimId);
   }
   return url.toString();
 }

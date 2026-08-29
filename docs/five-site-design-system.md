@@ -43,6 +43,7 @@ Updated: 2026-07-15
 - 現在所在站點以 lime 節點、底線與 `aria-current="page"` 表示。
 - 桌機顯示品牌、序號、英文站名與中文職責；手機改成水平捲動，不擠壓內容。
 - 站點切換使用同頁導覽，不用強迫新分頁。
+- 每次站點連結點擊送出非帳務 `universe_nav_click`，固定包含 `source_site`、`target_site`、`viewport`、`viewport_width`、`viewport_height`、`viewport_category`、`login_status` 與 `surface`；事件只供 GA4 分析，不得寫入 Economy ledger 或決定點數。
 - Admin shell 不顯示公開 Universe Rail。
 - 專用社群圖 capture 路由不顯示 rail；全螢幕遊戲、購物車與 modal 開啟時可覆蓋 rail，確保關閉控制不被遮擋。
 - 既有 fixed 子路由 header 必須以 `--ku-rail-height` 下移，不得與 rail 互相覆蓋。
@@ -78,3 +79,4 @@ Updated: 2026-07-15
 5. `prefers-reduced-motion: reduce` 下無不必要 transition。
 6. 五站 typecheck/build 通過，既有核心流程沒有因外層 chrome 改變。
 7. Capture、全螢幕 overlay 與 fixed header 的顯示層級符合上述例外，不遮擋返回或關閉控制。
+8. 五站 Rail 實際點擊皆送出完整 `universe_nav_click`，analytics 未初始化或傳送失敗時仍可正常換站。
