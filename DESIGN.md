@@ -1,7 +1,12 @@
-# Design System — Kiwimu MBTI Lab (V1.5 + V2)
+# Design System — Kiwimu MBTI Lab（V1／Explore；V2 歷史參考）
 
 > 建立：2026-03-26 | 依據：Obsidian `MBTI_V2_開發執行狀態.md` + 跨專案視覺比對
-> 適用範圍：`/explore`（V1.5）+ `/v2`（V2）
+> 現行適用範圍：`/` 與 `/explore`。`/read/quiz`、`/read/:TYPE-VARIANT` 不適用本檔。
+>
+> **Scope correction（2026-08-20）**：V2 已採 Apple Dark，正式 SSOT 為
+> `components/v2/DESIGN.md` 與 `components/v2/v2-dark.css`。本檔下方提及 V2、
+> `/v2`、Neo-Brutalist 共用規則或 `MBTI-Lab-V1.5-TEST` 元件的段落均屬歷史參考，
+> 不得覆蓋現行 V2。
 
 ---
 

@@ -21,10 +21,11 @@ import { sendDiscordNotification } from '../../utils/discord';
 import { getSession, trackAction } from '../../utils/userDataCollector';
 import { trackPageView, trackScreenEngagement } from '../../utils/analytics';
 import { applyRuntimeSeo } from '../../utils/seo';
+import { KIWIMU_CAMPAIGN_ASSETS } from '../../data/kiwimuVisualAssets';
 
 type Stage = 'intro' | 'quiz' | 'result';
 const SITE_URL = 'https://kiwimu.com';
-const DEFAULT_SOCIAL_IMAGE = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
+const DEFAULT_SOCIAL_IMAGE = KIWIMU_CAMPAIGN_ASSETS.socialFallback.src;
 
 function getQuizVersion(): 'A' | 'B' {
   const params = new URLSearchParams(window.location.search);

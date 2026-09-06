@@ -1,3 +1,11 @@
+/**
+ * @deprecated 2026-08-20：舊 V2 資產需求藍圖，路徑尚未建立且不得作為 runtime SSOT。
+ * 現行正式資產請使用 `data/kiwimuVisualAssets.ts`；本檔只保留歷史規格查詢。
+ *
+ * 2026-09-05：本檔列的 hero / cover / share 等版位，已由 32 場景資產管線實作
+ * （`scripts/build-mbti32-assets.py` → `data/mbti32Assets.generated.ts`），
+ * 產出落在 `public/assets/mbti32/`。此處的 `/assets/dev/v2-tw` 路徑從未存在。
+ */
 export type V2ReportFamilyKey = 'analysts' | 'diplomats' | 'sentinels' | 'explorers';
 
 export interface V2ImageSlotSpec {

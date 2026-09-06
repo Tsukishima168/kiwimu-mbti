@@ -54,6 +54,21 @@ export default defineConfig(({ mode }) => {
           globIgnores: ['**/vendor-*.js'],
           runtimeCaching: [
             {
+              // MBTI 32 場景資產（同源）— 舊圖在 Cloudinary 才被涵蓋，
+              // 新圖改為 /public 靜態檔後不在 precache 也不在 runtimeCaching，
+              // 離線時報告頁主圖會開天窗。這條補上。
+              urlPattern: /\/assets\/mbti32\/.*\.(?:webp|jpg)$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'kiwimu-mbti32',
+                expiration: {
+                  maxEntries: 48,
+                  maxAgeSeconds: 60 * 60 * 24 * 60, // 60 天
+                },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
               // Cloudinary 圖片 — 快取優先（讓結果頁離線可看）
               urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
               handler: 'CacheFirst',
@@ -105,7 +120,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(import.meta.dirname, '.'),
       }
     }
   };

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { ExplorePersonality } from '../../data/questions-explore';
 import { Language } from '../../contexts/LanguageContext';
 import { trackButtonClick } from '../../utils/analytics';
+import { getStateAsset } from '../../data/kiwimuVisualAssets';
+import KiwimuVisual from '../visuals/KiwimuVisual';
 
 const tk = {
   ink:   '#1A1A1A',
@@ -53,6 +55,7 @@ const VARIANT_LABELS: Record<Language, Record<'A' | 'T', string>> = {
 
 export default function ExploreResult({ language, mbtiType, suffix, personality, quizVersion, resultCopy, onRetest }: Props) {
   const fullType = `${mbtiType}-${suffix}`;
+  const stateAsset = getStateAsset(personality.stateGroup);
   const v2ReportUrl = `/read/${fullType}?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-v2&utm_content=explore-result-v2&source=v15_result`;
   const passportUrl = `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=explore-result-passport&mbti_type=${mbtiType}&variant=${suffix}`;
   const [copied, setCopied] = useState(false);
@@ -125,11 +128,11 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
 
         {/* Character */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32, marginLeft: -24, marginRight: -24 }}>
-          {personality.imageUrl ? (
-            <img src={personality.imageUrl} alt={`Kiwimu ${personality.state}`} style={{ width: '100%', maxWidth: 320, height: 320, objectFit: 'contain' }} />
-          ) : (
-            <div style={{ width: 240, height: 240, background: tk.acid, border: `1.5px solid ${tk.ink}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.1em', color: tk.ink }}>kiwimu</div>
-          )}
+          <KiwimuVisual
+            asset={stateAsset}
+            alt={`Kiwimu ${personality.state}`}
+            style={{ width: '100%', maxWidth: 320, height: 320, objectFit: 'contain' }}
+          />
         </div>
 
         {/* Divider */}

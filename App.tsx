@@ -61,6 +61,7 @@ import {
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 import { applyRuntimeSeo } from './utils/seo';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT, type PassportLoginUiOptions } from './utils/authStorage';
+import { KIWIMU_CAMPAIGN_ASSETS } from './data/kiwimuVisualAssets';
 
 const Result = lazy(() => import('./components/Result'));
 const MyArchive = lazy(() => import('./components/MyArchive'));
@@ -70,7 +71,6 @@ const Today = lazy(() => import('./pages/Today'));
 const ResultLegacyDump = lazy(() => import('./components/ResultLegacyDump'));
 const V2App = lazy(() => import('./components/v2/V2App'));
 const V2QuizFlow = lazy(() => import('./components/v2/V2QuizFlow'));
-const V2QaNotes = lazy(() => import('./components/v2/V2QaNotes'));
 const AnswersHub = lazy(() => import('./pages/AnswersHub'));
 const AnswerArticle = lazy(() => import('./pages/AnswerArticle'));
 
@@ -88,7 +88,7 @@ const ROOT_PATHS = new Set(['/', '/index.html']);
 const V1_PATHS = new Set(['/quiz', '/v1']);
 const POST_LOGIN_DESTINATION_KEY = 'post_login_destination';
 const SITE_URL = 'https://kiwimu.com';
-const DEFAULT_SOCIAL_IMAGE = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
+const DEFAULT_SOCIAL_IMAGE = KIWIMU_CAMPAIGN_ASSETS.socialFallback.src;
 const DEFAULT_LOGIN_ERROR_MESSAGE = '登入視窗已關閉，請再試一次。';
 
 const isV1Pathname = (pathname: string) =>
@@ -938,7 +938,6 @@ const App: React.FC = () => {
     return (
       <Suspense fallback={<RouteFallback />}>
         {normalizedV2Path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>}
-        <V2QaNotes />
       </Suspense>
     );
   }

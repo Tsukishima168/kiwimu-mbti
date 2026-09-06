@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ExploreQuiz as ExploreQuizType, ExploreOption } from '../../data/questions-explore';
 import { Language } from '../../contexts/LanguageContext';
+import { KIWIMU_CAMPAIGN_ASSETS } from '../../data/kiwimuVisualAssets';
+import KiwimuVisual from '../visuals/KiwimuVisual';
 
 const tk = {
   ink:   '#1A1A1A',
@@ -8,9 +10,6 @@ const tk = {
   acid:  '#CCFF00',
   muted: '#888880',
 } as const;
-
-const COVER  = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774772303/redesigned-photo-1774598290392_wlohqn.png';
-const AVATAR = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774779587/Speak_all_bkpgxc.webp';
 
 interface Props {
   language: Language;
@@ -60,7 +59,7 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
       <div style={{
         position:           'absolute',
         inset:              0,
-        backgroundImage:    `url(${COVER})`,
+        backgroundImage:    `url(${KIWIMU_CAMPAIGN_ASSETS.landingHero.src})`,
         backgroundSize:     'cover',
         backgroundPosition: 'center',
         filter:             'blur(28px)',
@@ -153,9 +152,9 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
               display: 'flex', alignItems: 'flex-end', gap: 10,
               animation: 'slideUp 0.25s ease',
             }}>
-              <img
-                src={AVATAR}
-                alt="Kiwimu"
+              <KiwimuVisual
+                asset={KIWIMU_CAMPAIGN_ASSETS.conversationAvatar}
+                loading="eager"
                 style={{ width: 80, height: 80, objectFit: 'contain', flexShrink: 0 }}
               />
               <div style={{

@@ -26,6 +26,8 @@
 .ku-universe-rail {
   position: relative;
   z-index: 40;
+  /* viewport-fit=cover 之後，standalone 模式下這條軌會鑽到狀態列底下 */
+  padding-top: env(safe-area-inset-top, 0px);
   width: 100%;
   min-height: 3rem;
   overflow: hidden;

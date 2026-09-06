@@ -33,6 +33,7 @@ function cleanText(value = '') {
   return value
     .replace(/\r/g, '')
     .replace(/\*\*/g, '')
+    .replace(/^\s*---\s*$/gm, '')
     .replace(/([\u4e00-\u9fff])\./g, '$1。')
     .replace(/^[>\s]+/gm, '')
     .replace(/\n{3,}/g, '\n\n')
@@ -202,6 +203,53 @@ function parseImportant(content) {
   return cleanInline(match?.[1] || '');
 }
 
+
+/**
+ * 「當前狀態命名」＋「狀態真相」——V2 的狀態層。
+ *
+ * 依 SSOT `00_V2_狀態導向升級補充_2026-04.md`：V2 不是更長的 MBTI 報告，
+ * 而是一份狀態報告；MBTI 降成入口座標，主標不該停在「你是 INTJ」。
+ * 這兩節 32 篇草案都寫好了，先前沒被撈進來，前台因此退回兩句寫死的字串。
+ *
+ * 狀態名的格式是「主狀態 / 型別化說法」，例如「低頻穩定期 / 過度控制期」。
+ * 主狀態可跨型別聚類（九宮格用），後半是該型別的表現方式。
+ */
+function parseState(content) {
+  const naming = section(content, '當前狀態命名');
+  const truth = section(content, '狀態真相');
+  if (!naming && !truth) return null;
+
+  // 草案有兩種寫法：整段引用，或「引用一行 + 純段落說明」
+  const stripQuote = (text) =>
+    text
+      .split('\n')
+      .map((line) => line.replace(/^>\s?/, ''))
+      .join('\n');
+
+  const body = stripQuote(naming);
+  const bold = /\*\*[「『]?([^*」』]+)[」』]?\*\*/.exec(body)?.[1]?.trim() || '';
+  // 草案半形／全形斜線都有人用
+  const [primary, secondary] = bold.split(/\s*[\/／]\s*/).map((part) => part.trim());
+
+  // 名稱那一行之後的內容 = 定調段（「這不是你永遠的樣子……」）
+  const lines = body.split('\n');
+  const nameLineIndex = lines.findIndex((line) => line.includes(bold) && bold);
+  const framing = cleanText(
+    lines
+      .slice(nameLineIndex === -1 ? 0 : nameLineIndex + 1)
+      .join('\n')
+      .replace(/^---$/gm, ''),
+  );
+
+  return {
+    name: bold,
+    primary: primary || bold,
+    secondary: secondary || '',
+    framing,
+    truth: cleanText(stripQuote(truth).replace(/^---$/gm, '')),
+  };
+}
+
 function parseVariantFile(filePath, familyKey) {
   const content = fs.readFileSync(filePath, 'utf8');
   const frontmatter = parseFrontmatter(content);
@@ -222,12 +270,14 @@ function parseVariantFile(filePath, familyKey) {
     professional,
     tags: parsePlainBullets(section(content, '🏷️ 關鍵標籤牆')),
     dimension: parseDimension(content),
+    state: parseState(content),
     suppressedSide: cleanText(section(content, '🪞 被壓住的另一面')),
     career: culture.career,
     relationship: culture.relationship,
     dessert: parseDessert(content),
     abyssal: parseAbyssal(content),
     carry: parseCarry(content),
+    practices: parseLabeledBullets(section(content, '可以試的小練習')),
     important: parseImportant(content),
   };
 }
@@ -279,12 +329,26 @@ export type V2VariantReport = {
   };
   tags: Array<{ label: string; body: string }>;
   dimension: { tip: string; bullets: Array<{ label: string; body: string }> };
+  /** 狀態層：來自草案的「當前狀態命名」與「狀態真相」 */
+  state: {
+    /** 完整狀態名，例如「低頻穩定期 / 過度控制期」 */
+    name: string;
+    /** 主狀態（可跨型別聚類） */
+    primary: string;
+    /** 該型別的表現方式 */
+    secondary: string;
+    /** 定調段：這不是你永遠的樣子 */
+    framing: string;
+    /** 你現在主要靠什麼活著 */
+    truth: string;
+  } | null;
   suppressedSide: string;
   career: { title: string; bullets: Array<{ label: string; body: string }> };
   relationship: { title: string; bullets: Array<{ label: string; body: string }> };
   dessert: { name: string; visualLogic: string; pairings: Array<{ label: string; body: string }> };
   abyssal: Array<{ title: string; body: string }>;
   carry: string;
+  practices: Array<{ label: string; body: string }>;
   important: string;
 };
 

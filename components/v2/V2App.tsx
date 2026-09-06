@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import type { AppUser } from '../../types';
 import {
   getV2TaiwanDraft,
-  V2_TW_DRAFT_SOURCE,
   type V2TaiwanDraftReport,
 } from '../../data/v2TaiwanDrafts.generated';
-import { getV2PsychArchetype } from '../../data/v2PsychArchetypes.generated';
+import V2Welcome from './V2Welcome';
+import { getDimensionDescription, matchingRecordedResult, hasDimensionAnswers } from './reportReading';
 import { getV2VariantReport } from '../../data/v2VariantReports.generated';
 import { getRarityData } from '../../data/rarityData';
 import { getResultData } from '../../constants';
@@ -41,6 +41,17 @@ import {
 } from '../../utils/v2Routes';
 import { buildDessertOrderLink, trackDessertOrderClick } from '../../utils/utmTracking';
 import { withPendingEconomyClaim } from '../../utils/economyClaims';
+import {
+  KIWIMU_CAMPAIGN_ASSETS,
+  getDessertAsset,
+  getIdentityAsset,
+  getSceneAsset,
+  sceneAccentStyle,
+  toAbsoluteAssetUrl,
+} from '../../data/kiwimuVisualAssets';
+import KiwimuVisual from '../visuals/KiwimuVisual';
+import KiwimuScenePlate from '../visuals/KiwimuScenePlate';
+import KiwimuAtlasWall from '../visuals/KiwimuAtlasWall';
 import './v2-tailwind.css';
 import './v2.css';
 import './v2-dark.css';
@@ -57,7 +68,7 @@ type SpectrumRow = {
   label: string;
   selectedCode: string;
   oppositeCode: string;
-  selectedPct: number;
+  selectedPct: number | null;
   description: string;
 };
 
@@ -77,6 +88,7 @@ type CompareCard = {
   energyLabel: string;
   energy: string;
   cost?: string;
+  details?: Array<{ label: string; body: string }>;
 };
 
 type VariantPrototypeCopy = {
@@ -187,19 +199,6 @@ const getOppositeKey = (selectedKey: PercentageKey): PercentageKey => {
   }
 };
 
-const buildSyntheticScores = (type: string, variant: V2VariantCode): Score => ({
-  E: type.includes('E') ? 74 : 26,
-  I: type.includes('I') ? 74 : 26,
-  S: type.includes('S') ? 71 : 29,
-  N: type.includes('N') ? 71 : 29,
-  T: type.includes('T') ? 68 : 32,
-  F: type.includes('F') ? 68 : 32,
-  J: type.includes('J') ? 64 : 36,
-  P: type.includes('P') ? 64 : 36,
-  A: variant === 'A' ? 66 : 34,
-  Turbulent: variant === 'T' ? 66 : 34,
-});
-
 const buildTagWall = (type: string, variant: VariantCode): TagCard[] => {
   const tags = type.split('').map((letter) => DIMENSION_TAGS[letter]).filter(Boolean);
   tags.push(variant === 'A' ? DIMENSION_TAGS.A : DIMENSION_TAGS.T_VARIANT);
@@ -213,20 +212,19 @@ const buildSpectrumRows = (
   dimensionBullets: ReadonlyArray<{ label: string; body: string }>,
 ): SpectrumRow[] => {
   const percentages = calculatePercentages(scores);
-  const descriptions = new Map(dimensionBullets.map((item) => [item.label, item.body]));
 
   return SPECTRUM_CONFIG.map((config) => {
     const selectedCode = config.selectedFromVariant ? variant : type[config.selectedFromType || 0];
     const selectedKey = (config.selectedKey || selectedCode) as PercentageKey;
     const oppositeKey = config.selectedFromVariant ? getOppositeKey(selectedKey) : getOppositeKey(selectedCode as PercentageKey);
-    const descriptionKey = selectedCode === 'A' || selectedCode === 'T' ? 'A / T (自我認同)' : `${selectedCode} (${selectedCode === 'I' ? '內向' : selectedCode === 'N' ? '直覺' : selectedCode === 'T' ? '思考' : selectedCode === 'J' ? '判斷' : selectedCode === 'E' ? '外向' : selectedCode === 'S' ? '實感' : selectedCode === 'F' ? '情感' : '感知'})`;
+
 
     return {
       label: config.label,
       selectedCode,
       oppositeCode: oppositeKey === 'Turbulent' ? 'T' : oppositeKey,
-      selectedPct: percentages[selectedKey],
-      description: descriptions.get(descriptionKey) || descriptions.get('A / T (自我認同)') || '',
+      selectedPct: hasDimensionAnswers(scores, selectedKey, oppositeKey) ? percentages[selectedKey] : null,
+      description: getDimensionDescription(selectedCode, dimensionBullets, Boolean(config.selectedFromVariant)),
     };
   });
 };
@@ -303,9 +301,11 @@ const REPORT_CHAPTERS: ReportNavChapter[] = [
   { id: 'ch-01', label: '01 當下的你', locked: false },
   { id: 'ch-02', label: '02 你的版本', locked: true },
   { id: 'ch-03', label: '03 四個維度', locked: true },
-  { id: 'ch-04', label: '04 認知行為模式', locked: true },
-  { id: 'ch-05', label: '05 你的原型', locked: true },
-  { id: 'ch-06', label: '06 帶走這個', locked: true },
+  { id: 'ch-04', label: '04 日常的反應', locked: true },
+  { id: 'ch-05', label: '05 可以試的事', locked: true },
+  { id: 'ch-06', label: '06 工作與關係', locked: true },
+  { id: 'ch-07', label: '07 感官與提問', locked: true },
+  { id: 'ch-08', label: '08 帶走這個', locked: true },
 ];
 
 export default function V2App({ user }: V2AppProps) {
@@ -317,27 +317,23 @@ export default function V2App({ user }: V2AppProps) {
   const [entitlement, setEntitlementState] = useState<V2Entitlement>(() =>
     isLocalPreview ? readCachedV2Entitlement() : { status: 'locked' },
   );
+  const [reportMessage, setReportMessage] = useState('');
   const [activeChapter, setActiveChapter] = useState('ch-01');
   const [scrollProgress, setScrollProgress] = useState(0);
   const source = params.get('source') || 'direct';
   const isUnlocked = entitlement.status === 'unlocked';
   const canReadReport = isUnlocked || isLocalPreview;
 
-  const routeBundle = useMemo(() => {
-    if (!routeTarget) return null;
-    return {
-      resultData: getResultData(routeTarget.type, routeTarget.variant),
-      scores: buildSyntheticScores(routeTarget.type, routeTarget.variant),
-    };
-  }, [routeTarget]);
-
-  const resultBundle = useMemo(() => {
-    if (source === 'v2_quiz') {
-      return getLastV2PrototypeResult() || routeBundle || getLastV1Result();
-    }
-
-    return routeBundle || getLastV1Result();
-  }, [routeBundle, source]);
+  const recordedBundle = useMemo(() => {
+    const v2 = getLastV2PrototypeResult();
+    const v1 = getLastV1Result();
+    return routeTarget ? matchingRecordedResult(routeTarget.fullType, [v2, v1]) : (source === 'v2_quiz' ? v2 || v1 : v1);
+  }, [routeTarget, source]);
+  const resultBundle = useMemo(() => recordedBundle || (routeTarget ? {
+    resultData: getResultData(routeTarget.type, routeTarget.variant),
+    // A shared type page has no personal scores. Its spectrum stays qualitative.
+    scores: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0, A: 0, Turbulent: 0 },
+  } : null), [recordedBundle, routeTarget]);
 
   const variant = routeTarget?.variant || (resultBundle ? getVariant(resultBundle.scores) : 'A');
   const fullType = routeTarget?.fullType || (resultBundle ? `${resultBundle.resultData.id}-${variant}` : null);
@@ -367,9 +363,15 @@ export default function V2App({ user }: V2AppProps) {
       ? `${fullType} MBTI 深度報告｜${report.title}｜Kiwimu × 月島甜點`
       : '免費 MBTI 深度報告｜Kiwimu MBTI V2';
     const description = fullType && report && resultBundle
-      ? `${fullType} 深度 MBTI 報告：${report.title}。從 16 型 × A/T 變體解讀你的靈魂甜點、職涯傾向與情緒敘事。試讀免費，NT$149 解鎖完整 Kiwimu V2 報告。`
-      : '免費 MBTI 16 型試讀，NT$149 解鎖 Kiwimu V2 深度報告：A/T 變體、維度、關係、原型與收束提問一次讀完。';
-    const image = resultBundle?.resultData.characterImage || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
+      ? `${fullType} 深度 MBTI 報告：${report.title}。從 16 型 × A/T 變體解讀你的靈魂甜點、職涯傾向與情緒敘事。提供免費試讀，完整報告仍在整理中。`
+      : 'Kiwimu V2 敘事探索：40 道生活情境，讀懂 A/T 傾向、日常反應、關係與小練習。完成後可免費試讀。';
+    // 分享圖優先用該 A/T 變體的場景圖；JPEG 版是給 LINE 等對 WebP 支援不穩的爬蟲。
+    const ogScene = getSceneAsset(fullType);
+    const image = ogScene
+      ? toAbsoluteAssetUrl(ogScene.ogJpg.src)
+      : getIdentityAsset(baseType || '')?.src
+        || resultBundle?.resultData.characterImage
+        || KIWIMU_CAMPAIGN_ASSETS.socialFallback.src;
 
     applyRuntimeSeo({
       title,
@@ -622,6 +624,7 @@ export default function V2App({ user }: V2AppProps) {
         window.location.assign(result.paymentUrl);
       } catch (error) {
         console.error('Failed to start LINE Pay checkout', error);
+        setReportMessage('暫時無法開啟付款頁，請稍後再試。');
         trackAction('v2_checkout_error', {
           mbtiType: fullType,
           source,
@@ -637,19 +640,14 @@ export default function V2App({ user }: V2AppProps) {
   };
 
   const handleShareStory = async () => {
-    if (!fullType) {
-      return;
-    }
-
-    trackAction('v2_story_share_click', { mbtiType: fullType, source });
-
+    if (!fullType) return;
     try {
-      await navigator.clipboard.writeText(window.location.href);
-    } catch (error) {
-      console.warn('Failed to copy V2 share URL', error);
+      await navigator.clipboard.writeText(canonicalUrl);
+      setReportMessage('報告連結已複製，可以貼給想分享的人。');
+      trackAction('v2_story_share_click', { mbtiType: fullType, source });
+    } catch {
+      setReportMessage(`無法自動複製，請手動複製連結：${canonicalUrl}`);
     }
-
-    window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
   };
 
   const handleChapterNav = (chapterId: string) => {
@@ -669,108 +667,17 @@ export default function V2App({ user }: V2AppProps) {
   };
 
   if (!resultBundle || !fullType) {
-    const marquee = 'KIWIMU V2 · COMING SOON · 32 VARIANTS · 心理原型層 · 即將公布 · ';
-    const v15Bundle = source === 'v15_quiz' ? getLastV2PrototypeResult() : null;
-    const v15FullType = v15Bundle ? `${v15Bundle.resultData.id}-${getVariant(v15Bundle.scores)}` : null;
-    const v15Title = v15Bundle?.resultData.title;
-    return (
-      <div className="v2-root min-h-screen px-5 pt-24 pb-16">
-        <div className="marquee-container">
-          <div className="marquee-track">
-            <span className="marquee-text">{marquee.repeat(3)}</span>
-            <span className="marquee-text">{marquee.repeat(3)}</span>
-          </div>
-        </div>
-        <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl items-center">
-          <div className="v2-panel w-full p-8 md:p-10">
-            <span
-              className="ad-coming-badge inline-flex items-center gap-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
-            >
-              <span className="ad-dot-ink inline-block w-1.5 h-1.5 rounded-full" />
-              即將公布 · COMING SOON
-            </span>
-            <p className="v2-eyebrow mt-4">KIWIMU V2 · MBTI 進化版</p>
-            <h1
-              className="ad-coming-title mt-3 text-4xl font-bold leading-[1.05] md:text-5xl"
-            >
-              看見 16 型<br />看不見的那一層
-            </h1>
-            {v15FullType ? (
-              <div
-                className="ad-v15-box mt-5 rounded-2xl px-5 py-4"
-              >
-                <p
-                  className="ad-v15-label text-[10px] font-bold uppercase tracking-[0.22em] text-white/50"
-                >
-                  V1.5 分流結果
-                </p>
-                <p
-                  className="ad-v15-type mt-2 text-2xl font-bold"
-                >
-                  {v15FullType}
-                </p>
-                {v15Title && <p className="mt-1 text-sm text-white/70">{v15Title}</p>}
-                <p className="mt-3 text-xs text-white/60 leading-relaxed">
-                  V2 上線後會直接帶你進 {v15FullType} 的深度報告。<br />
-                  在那之前，先做完整 V1 看完免費版。
-                </p>
-              </div>
-            ) : (
-              <p className="mt-5 text-base leading-relaxed text-white/70">
-                V2 把 16 型再拆成 32 種變體，疊上心理原型層與歷史軌跡，寫成一份只屬於你的深度報告。<br />
-                目前內容仍在最後校對，先用下面的入口認識自己的 MBTI。
-              </p>
-            )}
-            <div className="mt-6 space-y-2">
-              {[
-                '32 variant：A 穩定核心 × T 自審驅動',
-                '心理原型層 × 歷史軌跡，不只是四個字母',
-                '台灣版敘事，不是翻譯過來的框架',
-              ].map((line) => (
-                <div
-                  key={line}
-                  className="ad-mono-11 flex items-center gap-2 text-white/40"
-                >
-                  <span
-                    className="ad-dot-acid inline-block w-1.5 h-1.5 rounded-full"
-                  />
-                  {line}
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="/quiz"
-                className="kiwimu-btn kiwimu-btn-primary flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]"
-              >
-                先做 V1 純 MBTI
-              </a>
-              <a
-                href="/read/quiz"
-                className="kiwimu-btn flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]"
-              >
-                30 秒 V1.5 分流
-              </a>
-            </div>
-            <p
-              className="ad-mono-11 mt-6 text-white/30"
-            >
-              V2 上線後會在這裡公布。先做 V1 / V1.5，型別資料未來可以直接帶進來。
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    return <V2Welcome />;
   }
 
   if (!report) {
     return (
-      <div className="v2-root">
+      <div className="v2-surface v2-root">
         <div className="v2-shell">
           <section className="v2-panel v2-empty-panel">
-            <p className="v2-label">V2 CONTENT SYNC REQUIRED</p>
-            <h1 className="v2-empty-title">{resultBundle.resultData.id} 的台灣版草案尚未同步</h1>
-            <p className="v2-empty-copy">目前 `/read` 會直接讀取 `{V2_TW_DRAFT_SOURCE}`，請先同步草案資料再看這個 prototype。</p>
+            <p className="v2-label">報告整理中</p>
+            <h1 className="v2-empty-title">{resultBundle.resultData.id} 的內容暫時無法顯示</h1>
+            <p className="v2-empty-copy">請稍後再試，或回到圖鑑入口重新探索。</p>
           </section>
         </div>
       </div>
@@ -778,13 +685,18 @@ export default function V2App({ user }: V2AppProps) {
   }
 
   const { resultData, scores } = resultBundle;
+  const identityAsset = getIdentityAsset(resultData.id);
+  // 32 場景圖以 `${type}-${variant}` 對應；缺圖時退回既有 16 型 identity cutout。
+  const sceneAsset = getSceneAsset(fullType);
   const familyMeta = FAMILY_META[report.familyKey as ReportFamilyKey];
   const currentVariant = variant as VariantCode;
   const prototypeCopy = buildPrototypeCopy(currentVariant, report, resultData);
   const variantReport = getV2VariantReport(fullType);
+  // 狀態層：草案裡的「當前狀態命名」。MBTI 是入口座標，狀態才是此刻的讀數。
+  // 兩者並置——32 型仍是主標與分享單位，狀態升到同一層而不是取代它。
+  const stateInfo = variantReport?.state ?? null;
   const oppositeVariant = currentVariant === 'A' ? 'T' : 'A';
   const oppositeVariantReport = getV2VariantReport(`${resultData.id}-${oppositeVariant}`);
-  const psychArchetype = getV2PsychArchetype(fullType);
   const dimensionBullets = variantReport?.dimension.bullets.length ? variantReport.dimension.bullets : report.dimension.bullets;
   const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, dimensionBullets);
   const dessertOrderUrl = buildDessertOrderLink(resultData.id, variant);
@@ -796,7 +708,7 @@ export default function V2App({ user }: V2AppProps) {
     : buildVersionTagWall(report, currentVariant, prototypeCopy.tags);
   const rootStyle = {
     '--v2-ink': 'var(--t1)',
-    '--v2-acid': '#CCFF00',
+    '--v2-acid': 'var(--signal)',
     '--v2-paper': 'var(--bg-2)',
     '--v2-muted': 'var(--t3)',
     '--v2-family': familyMeta.familyAccent,
@@ -817,7 +729,7 @@ export default function V2App({ user }: V2AppProps) {
       strategy: cleanText(subtypeItems[0]?.body || fallbackCard.strategy),
       energyLabel: cleanText(subtypeItems[1]?.label || fallbackCard.energyLabel),
       energy: cleanText(subtypeItems[1]?.body || fallbackCard.energy),
-      cost: cleanText(subtypeItems[3]?.body || subtypeItems[2]?.body || fallbackCard.cost || '') || undefined,
+      details: subtypeItems.slice(2).map(item => ({ label: cleanText(item.label), body: cleanText(item.body) })),
     };
   });
 
@@ -830,6 +742,7 @@ export default function V2App({ user }: V2AppProps) {
   const careerContent = variantReport?.career.bullets.length ? variantReport.career : report.career;
   const relationshipContent = variantReport?.relationship.bullets.length ? variantReport.relationship : report.relationship;
   const dessertContent = variantReport?.dessert.name ? variantReport.dessert : report.dessert;
+  const dessertAsset = getDessertAsset(resultData.id, dessertContent.name);
   const abyssalContent = variantReport?.abyssal.length ? variantReport.abyssal : report.abyssal;
   const carryFull = cleanText(variantReport?.carry || variantReport?.important || report.closing);
   const coverQuote = cleanText(variantReport?.soulQuote || report.soulQuote || variantReport?.important || report.closing || resultData.quote || abstractContent);
@@ -864,7 +777,15 @@ export default function V2App({ user }: V2AppProps) {
     REPORT_CHAPTERS.find((chapter) => chapter.id === activeChapter)?.label ?? REPORT_CHAPTERS[0].label;
 
   return (
-    <div className="v2-root" style={{ ...rootStyle, background: 'var(--bg-0)', color: 'var(--t1)', minHeight: '100vh' }}>
+    <div
+      className="v2-surface v2-root v2-report-shell"
+      style={{
+        ...rootStyle,
+        ...sceneAccentStyle(sceneAsset),
+        // 背景交給 CSS：inline style 會蓋掉 .v2-surface.v2-report-shell 的頂光漸層
+        color: 'var(--t1)',
+      }}
+    >
       {/* Ambient orbs */}
       <div className="ad-orb ad-orb-1" />
       <div className="ad-orb ad-orb-2" />
@@ -873,7 +794,7 @@ export default function V2App({ user }: V2AppProps) {
       <div className="v2-report-progress" style={{ width: `${scrollProgress}%` }} />
 
       {/* Floating chapter nav — right rail on desktop, bottom bar on mobile */}
-      <nav className="ad-chapternav" aria-label="Chapters">
+      <nav className="ad-chapternav" aria-label="報告章節">
         <span className="ad-chapternav-current" aria-hidden="true">{activeChapterLabel}</span>
         <div className="ad-chapternav-track">
           {REPORT_CHAPTERS.map((chapter) => {
@@ -895,6 +816,18 @@ export default function V2App({ user }: V2AppProps) {
         </div>
       </nav>
 
+      <details className="ad-mobile-contents">
+        <summary><span>{activeChapterLabel}</span><span>章節目錄 <span aria-hidden="true">⌃</span></span></summary>
+        <nav aria-label="手機報告章節">
+          {REPORT_CHAPTERS.map(chapter => (
+            <button key={chapter.id} type="button" aria-current={chapter.id === activeChapter ? 'location' : undefined}
+              onClick={event => { const details = event.currentTarget.closest('details'); if (details) details.open = false; handleChapterNav(chapter.id); }}>
+              <span>{chapter.label}</span><span>{chapter.locked && !canReadReport ? '完整報告' : '↗'}</span>
+            </button>
+          ))}
+        </nav>
+      </details>
+
       {/* Fixed marquee */}
       <div className="marquee-container ad-marquee-fixed">
         <div className="marquee-track">
@@ -912,6 +845,15 @@ export default function V2App({ user }: V2AppProps) {
           {familyMeta.familyLabel} · Kiwimu V2 深度報告
         </div>
 
+        {sceneAsset ? (
+          <KiwimuScenePlate
+            asset={sceneAsset}
+            bleed
+            priority
+            indexLabel={`NO. ${String(sceneAsset.index).padStart(2, '0')} / 32`}
+          />
+        ) : null}
+
         <div className="ad-hero-row">
           <div className="ad-hero-type-block">
             <div className="ad-hero-type-row">
@@ -925,27 +867,50 @@ export default function V2App({ user }: V2AppProps) {
             </div>
             <p className="ad-hero-subtitle">{coverKicker} · {coverTitle}</p>
           </div>
-          {resultData.characterImage ? (
+          {!sceneAsset && identityAsset ? (
             <div className="ad-char-reveal">
-              <img src={resultData.characterImage} alt={`${resultData.id} 角色`} />
+              <KiwimuVisual
+                asset={identityAsset}
+                alt={`${fullType} 人格 Kiwimu 插畫`}
+                loading="eager"
+                fetchPriority="high"
+              />
             </div>
           ) : null}
         </div>
 
-        <blockquote className="ad-hero-quote">{coverQuote}</blockquote>
-        <p className="ad-hero-abstract">{abstractContent}</p>
-        <p className="ad-hero-snapshot">這份報告是你此刻的心理快照，不是固定的標籤。人在不同階段、不同狀態下，側重點會移動。</p>
+        {stateInfo ? (
+          <div className="ad-hero-statename">
+            <span className="ad-hero-statename-head">
+              <span className="ad-hero-statename-dot" />
+              這份敘事的狀態
+            </span>
+            <strong className="ad-hero-statename-primary">{stateInfo.primary}</strong>
+            {stateInfo.secondary ? (
+              <span className="ad-hero-statename-secondary">{stateInfo.secondary}</span>
+            ) : null}
+          </div>
+        ) : null}
 
-        <div className="ad-hero-state">
-          <span className="ad-hero-state-dot" />
-          <span>{currentVariant === 'A' ? '當前狀態：穩定輸出期 / 低噪推進中' : '當前狀態：高頻調整期 / 自我監測中'}</span>
-        </div>
+        <blockquote className="ad-hero-quote">{coverQuote}</blockquote>
+        {stateInfo?.framing ? (
+          <p className="ad-hero-framing">{stateInfo.framing}</p>
+        ) : null}
+        <p className="ad-hero-abstract">{abstractContent}</p>
+        <p className="ad-hero-snapshot">狀態名稱由這次的型別對應，是理解日常的敘事提示。它還沒有獨立測量你最近的能量或耗損；讀到不符合自己的地方，可以保留不同意見。</p>
+
+        {stateInfo ? null : (
+          <div className="ad-hero-state">
+            <span className="ad-hero-state-dot" />
+            <span>{currentVariant === 'A' ? '當前狀態：穩定輸出期 / 低噪推進中' : '當前狀態：高頻調整期 / 自我監測中'}</span>
+          </div>
+        )}
       </header>
 
       {/* ── 01: TAG WALL (FREE) ──────────────────────────────── */}
       <div className="ad-section ad-reveal">
         <p className="ad-section-kicker">01 · Tag Wall</p>
-        <h2 className="ad-section-title">五個能瞬間辨識你的 V2 標籤</h2>
+        <h2 className="ad-section-title">五個理解自己的切角</h2>
         <div className="ad-tag-grid">
           {versionTags.slice(0, 5).map((tag, idx) => {
             const zhPart = tag.split('(')[0]?.trim() ?? tag;
@@ -993,11 +958,28 @@ export default function V2App({ user }: V2AppProps) {
         <div id="ch-02" className="ad-section ad-reveal">
           <p className="ad-section-kicker">02 · Professional Insights</p>
           <h2 className="ad-section-title">{professionalTitle}</h2>
-          <p className="ad-section-lead">壓力與安穩之間，同一個人會用不同的方式運作。A 與 T 並非優劣，而是兩種真實的狀態切換。</p>
+          <p className="ad-section-lead">A 與 T 描述兩種自我回應傾向。把它們放在一起讀，看看哪些做法替你省力，哪些也讓你付出代價。</p>
+          {/* 狀態真相：付費層的第一個回報。免費區只給狀態名，這裡才說「你靠什麼活著」。 */}
+          {stateInfo?.truth ? (
+            <div className="ad-state-truth ad-mb-8">
+              <p className="ad-state-truth-kicker">
+                <span className="ad-state-truth-dot" />
+                狀態真相 · {stateInfo.primary}
+              </p>
+              <div className="ad-state-truth-body">
+                {stateInfo.truth.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => (
+                  line.startsWith('- ')
+                    ? <p key={line} className="ad-state-truth-item">{line.slice(2)}</p>
+                    : <p key={line} className="ad-state-truth-line">{line}</p>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <div className="ad-card ad-mb-8">
             <p className="ad-body-15">{professionalBody}</p>
           </div>
-          <div className="ad-grid-2">
+          <p className="ad-compare-hint">A / T 對照 · 左右滑動閱讀兩種傾向</p>
+          <div className="ad-grid-2 ad-compare-scroll" tabIndex={0} role="region" aria-label="A 與 T 傾向對照">
             {compareCards.map((card) => (
               <div key={card.code} className={`ad-subtype-card${card.code === currentVariant ? ' is-active' : ''}`}>
                 <div className="ad-subtype-header">
@@ -1005,7 +987,7 @@ export default function V2App({ user }: V2AppProps) {
                     <div className="ad-subtype-big-letter">{card.code}</div>
                     <div className="ad-subtype-tone">{card.tone}</div>
                   </div>
-                  {card.code === currentVariant ? <span className="ad-badge-acid">你的型</span> : null}
+                  {card.code === currentVariant ? <span className="ad-badge-acid">本次傾向</span> : null}
                 </div>
                 <div className="ad-subtype-name">{card.title}</div>
                 <div className="ad-subtype-row">
@@ -1016,26 +998,32 @@ export default function V2App({ user }: V2AppProps) {
                   <div className="ad-subtype-label">{card.energyLabel}</div>
                   <div className="ad-subtype-value">{card.energy}</div>
                 </div>
+                {card.details?.map(item => (
+                  <div className="ad-subtype-row" key={item.label}>
+                    <div className="ad-subtype-label">{item.label}</div>
+                    <div className="ad-subtype-value">{item.body}</div>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
-          <p className="ad-reflect">你現在比較接近哪一種運作模式？是環境讓你如此，還是你選擇了這樣？</p>
+          <p className="ad-reflect">回想一個最近的情境：這個反應當時幫了你什麼？後來又留下了什麼？</p>
         </div>
 
         {/* ── 03: DIMENSION SPECTRUM ───────────────────────────── */}
         <div id="ch-03" className="ad-section ad-reveal">
           <p className="ad-section-kicker">03 · Dimension Spectrum</p>
           <h2 className="ad-section-title">你的四維光譜</h2>
-          <p className="ad-section-lead">認知偏好是光譜，不是非此即彼的分類。偏向某一端，代表你習慣用那個方式接收和處理世界。</p>
+          <p className="ad-section-lead">四組偏好提供不同的觀察角度。百分比只表示本機這次作答的加權傾向，不代表能力、人口排名或診斷。</p>
           <div className="ad-dim-grid">
             {spectrumRows.slice(0, 4).map((row) => (
               <div key={row.label} className="ad-dim-card">
                 <div className="ad-dim-letter">{row.selectedCode}</div>
                 <div className="ad-dim-name">{DIM_NAMES[row.selectedCode] ?? row.selectedCode}</div>
-                <div className="ad-dim-track">
-                  <div className="ad-dim-fill" style={{ width: `${row.selectedPct}%` }} />
-                </div>
-                <div className="ad-dim-score">{row.selectedPct}%</div>
+                {row.selectedPct !== null ? <>
+                  <div className="ad-dim-track" aria-hidden="true"><div className="ad-dim-fill" style={{ width: `${row.selectedPct}%` }} /></div>
+                  <div className="ad-dim-score">{row.selectedPct}% <span>本次作答</span></div>
+                </> : <p className="ad-dim-score-note">型別閱讀 · 尚無本機作答分數</p>}
                 <div className="ad-dim-tip">{row.description}</div>
               </div>
             ))}
@@ -1046,8 +1034,8 @@ export default function V2App({ user }: V2AppProps) {
         {behaviorLogic.length > 0 ? (
           <div id="ch-04" className="ad-section ad-reveal">
             <p className="ad-section-kicker">04 · Digital Persona</p>
-            <h2 className="ad-section-title">在 2026 數位環境中，你這組怎麼運作？</h2>
-            <p className="ad-section-lead">數位環境讓行為模式更可見。你在這裡的慣性，通常比你對自己的認知更接近真實的樣子。</p>
+            <h2 className="ad-section-title">回到訊息、工作與日常裡</h2>
+            <p className="ad-section-lead">以下是這個型別的敘事觀察。找一個你熟悉的場景對照，看看哪些反應像你，哪些需要換個說法。</p>
             {digitalPersonaIntro ? (
               <div className="ad-card ad-mb-12">
                 <p className="ad-body-15">{digitalPersonaIntro}</p>
@@ -1064,36 +1052,25 @@ export default function V2App({ user }: V2AppProps) {
           </div>
         ) : null}
 
-        {/* ── 05: HISTORICAL ARCHETYPES ────────────────────────── */}
-        <div id="ch-05" className="ad-section ad-reveal">
-          <p className="ad-section-kicker">05 · Historical Archetypes</p>
-          <h2 className="ad-section-title">同類過渡期的歷史原型</h2>
-          <p className="ad-section-lead">找到跨時代有同樣模式的人，不是要你複製他們。是讓你知道這種思維方式有完整的脈絡，走過去的人不只你一個。</p>
-          {(psychArchetype?.figures ?? []).length > 0 ? (
-            <div className="ad-grid-3 ad-mb-12">
-              {(psychArchetype?.figures ?? []).slice(0, 3).map((figure) => (
-                <div key={figure.name} className="ad-person-card">
-                  <div className="ad-person-name">{figure.name}</div>
-                  <div className="ad-person-body">{figure.body}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="ad-body-14-muted">
-              歷史原型資料整理中。
-            </p>
-          )}
-          <div className="ad-rarity-card">
-            <div className="ad-rarity-label">⬡ Rarity Profile · 稀缺組合</div>
-            <div className="ad-rarity-body">{psychArchetype?.rarity ?? prototypeCopy.frequencyNote}</div>
+        <section id="ch-05" className="ad-section ad-reveal">
+          <p className="ad-section-kicker">05 · Small Practices</p>
+          <h2 className="ad-section-title">把理解，放進一件小事裡。</h2>
+          <p className="ad-section-lead">不用一次改變很多。挑一個有感的練習，試完再看看它是否適合你。</p>
+          <div className="ad-practice-list">
+            {variantReport?.practices.map((item, index) => (
+              <article key={item.label} className="ad-practice">
+                <span className="ad-practice-index" aria-hidden="true">{['?', '↗', '↔', '◌'][index]}</span>
+                <div><h3>{item.label}</h3><p>{item.body}</p></div>
+              </article>
+            ))}
           </div>
-        </div>
+        </section>
 
         {/* ── 06: CAREER × RELATIONSHIP ────────────────────────── */}
         <div id="ch-06" className="ad-section ad-reveal">
           <p className="ad-section-kicker">06 · Career × Relationship</p>
           <h2 className="ad-section-title">{careerContent.title} × {relationshipContent.title}</h2>
-          <p className="ad-section-lead">你在工作裡的反應方式，通常也是你在親密關係中的語言。兩者往往有同樣的心理根源。</p>
+          <p className="ad-section-lead">工作與關係可能喚起不同的反應。分開讀這兩個場景，看看你在哪裡自在，又在哪裡需要多一點空間。</p>
           <div className="ad-grid-2">
             <div className="ad-card">
               <div className="ad-list-label">職涯生存模式</div>
@@ -1114,21 +1091,35 @@ export default function V2App({ user }: V2AppProps) {
           </div>
           {suppressedSideText ? (
             <div className="ad-suppressed-card">
-              <div className="ad-suppressed-label">⬡ Suppressed Side · 壓制面</div>
+              <div className="ad-suppressed-label">另一個還沒說出口的需要</div>
               <p className="ad-suppressed-body">{suppressedSideText}</p>
             </div>
           ) : null}
-          <p className="ad-reflect">你壓制的那一面，是因為某段經歷，還是從來沒有機會展現？</p>
+          <p className="ad-reflect">如果有一句話一直沒說出口，你希望在什麼樣的場合被聽見？</p>
         </div>
 
         {/* ── 07: SOUL REFLECTION ──────────────────────────────── */}
-        <div className="ad-section ad-reveal">
+        <div id="ch-07" className="ad-section ad-reveal">
           <p className="ad-section-kicker">07 · Soul Reflection</p>
           <h2 className="ad-section-title">{dessertContent.name}</h2>
-          <p className="ad-section-lead">靈魂甜點是一個隱喻，試圖描述讓你感到真實的那種狀態。深問不需要答案，讓問題待在那裡也是一種方式。</p>
+          <p className="ad-section-lead">把甜點當作這份敘事的味覺比喻。下面的問題可以慢慢想，也可以先從一口熟悉的味道開始。</p>
           <div className="ad-grid-2">
             <div>
-              <div className="ad-card ad-mb-8">
+              <div className="ad-card ad-dessert-card ad-mb-8">
+                {dessertAsset ? (
+                  <figure className="ad-dessert-visual">
+                    <KiwimuVisual
+                      asset={dessertAsset}
+                      className="ad-dessert-image"
+                      alt={`${fullType} 靈魂甜點：${dessertContent.name}`}
+                      fit="cover"
+                    />
+                    <figcaption className="ad-dessert-caption">
+                      <span className="ad-dessert-caption-code">Soul Dessert · {fullType}</span>
+                      <span className="ad-dessert-caption-name">{dessertContent.name}</span>
+                    </figcaption>
+                  </figure>
+                ) : null}
                 <p className="ad-body-15 ad-mb-12">
                   {dessertContent.visualLogic}
                 </p>
@@ -1143,7 +1134,7 @@ export default function V2App({ user }: V2AppProps) {
             <div>
               {abyssalContent.map((q, idx) => (
                 <div key={q.title} className="ad-abyssal-card">
-                  <div className="ad-abyssal-index">Abyssal 0{idx + 1} · {q.title}</div>
+                  <div className="ad-abyssal-index">留給自己 0{idx + 1} · {q.title}</div>
                   <div className="ad-abyssal-body">{q.body}</div>
                 </div>
               ))}
@@ -1152,7 +1143,7 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── CARRY / IMPORTANT ────────────────────────────────── */}
-        <div className="ad-carry-section ad-reveal">
+        <div id="ch-08" className="ad-carry-section ad-reveal">
           <div className="ad-carry-eyebrow">帶走的字</div>
           <p className="ad-carry-frame">這份報告讀到這裡，你帶走的不是一個分類，而是一種認識自己的角度。</p>
           <p className="ad-carry-body">{carryFull}</p>
@@ -1165,8 +1156,8 @@ export default function V2App({ user }: V2AppProps) {
 
         {/* ── FOOTER ───────────────────────────────────────────── */}
         <div className="ad-footer ad-reveal">
-          <p className="ad-footer-title">你的靈魂甜點已選定</p>
-          <p className="ad-footer-sub">{dessertContent.name} — 在月島的某個角落等你</p>
+          <p className="ad-footer-title">讓這次閱讀，回到生活。</p>
+          <p className="ad-footer-sub">{dessertContent.name} · 這次敘事的味覺提案</p>
           <div className="ad-btn-row">
             <a
               href={dessertOrderUrl}
@@ -1175,10 +1166,10 @@ export default function V2App({ user }: V2AppProps) {
               className="ad-btn-primary"
               onClick={() => trackDessertOrderClick(resultData.id, variant)}
             >
-              立即訂購你的靈魂甜點 →
+              查看月島甜點 →
             </a>
             <button type="button" className="ad-btn-ghost" onClick={handleShareStory}>
-              分享到 IG Story
+              複製報告連結
             </button>
             <a
               href={passportUrl}
@@ -1187,12 +1178,14 @@ export default function V2App({ user }: V2AppProps) {
               className="ad-btn-ghost"
               onClick={() => trackButtonClick('v2_footer_to_passport', 'v2_footer', passportUrl)}
             >
-              保存到 Passport
+              開啟 Passport
             </a>
           </div>
         </div>
         </>
       )}
+
+      {reportMessage ? <p className="ad-feedback" role="status">{reportMessage}</p> : null}
 
       {/* ── DEV STRIP ────────────────────────────────────────── */}
       {IS_DEV ? (
