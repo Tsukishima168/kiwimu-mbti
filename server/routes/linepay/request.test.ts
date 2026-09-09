@@ -89,7 +89,7 @@ describe('POST /api/linepay/request security', () => {
     await handler(request(), res);
 
     expect(state.status).toBe(200);
-    expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({ userUid: '' }));
+    expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({ userUid: null }));
   });
 
   it('binds the order only to the user verified from the bearer token', async () => {
