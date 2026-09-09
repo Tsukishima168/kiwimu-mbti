@@ -57,7 +57,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Never trust a user id supplied by the browser. If the buyer is signed in,
   // derive the id from the verified Supabase access token; anonymous checkout
   // remains supported with a null user id and the high-entropy order proof.
-  let userUid = '';
+  let userUid: string | null = null;
   const bearerToken = getBearerToken(req);
   if (bearerToken) {
     const admin = getUserAdminDb();
