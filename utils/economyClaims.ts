@@ -58,11 +58,19 @@ export function rememberPendingEconomyClaim(claimId: string, expiresAt: string):
       PENDING_CLAIM_STORAGE_KEY,
       JSON.stringify({ claimId, expiresAt } satisfies StoredPendingClaim),
     );
-    window.dispatchEvent(new Event(PENDING_ECONOMY_CLAIM_EVENT));
-    return true;
   } catch {
     return false;
   }
+
+  try {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(PENDING_ECONOMY_CLAIM_EVENT));
+    }
+  } catch {
+    // The claim is already durable. A listener failure must not make the
+    // outbox treat the successful storage write as a loss.
+  }
+  return true;
 }
 
 export function getPendingEconomyClaimId(): string | null {

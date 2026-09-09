@@ -1,6 +1,6 @@
 # Kiwimu Economy v2 Adapter
 
-Last updated: 2026-07-16
+Last updated: 2026-09-09
 
 ## Authority boundary
 
@@ -39,14 +39,15 @@ No Kiwimu migration is allowed to create shared Economy tables or RPCs.
 
 As of 2026-07-16, the shared RPC/schema contract has passed a
 production-compatible hosted Supabase staging apply, lint, Auth/RLS/PostgREST,
-replay and concurrency validation. The production project still has none of
-the six Economy v2 versions and the Kiwimu PR remains Draft pending explicit
-migration/merge/deploy authorization. The anonymous issuance rate-limit item
-remains a 100% rollout gate, not permission to bypass default-off controls.
+replay and concurrency validation. The production project still has no
+repo-verifiable evidence of the six Economy v2 versions or the anonymous
+issuance rate limit. Keep rollout disabled until those external gates are
+verified; merging the default-off adapter does not authorize enabling rollout.
 
 ## Verification
 
 ```bash
+npm test
 npm run test:economy
 npx tsc --noEmit --pretty false
 npx tsc --ignoreConfig --noEmit --pretty false --target ES2022 --module ESNext \
@@ -56,5 +57,11 @@ npm run build
 vercel build
 git diff --check
 ```
+
+
+The two routes have separate entry files and select a fixed operation before
+parsing the request body. The completion route cannot issue an attempt proof,
+so a path-scoped rate limit on `/api/economy/mbti-attempt` cannot be bypassed by
+posting an attempt-shaped body to `/api/economy/mbti-completed`.
 
 The API contract smoke must verify that a request containing `points=999999` is rejected with `INVALID_PROOF`, a missing/forged/replayed/expired attempt proof cannot create an event, a cross-origin request is rejected, V2 navigation is not blocked, and app routes continue to render.

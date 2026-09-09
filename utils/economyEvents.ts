@@ -1,5 +1,5 @@
 import type { Option } from '../types';
-import type { EconomyResponse, MbtiQuizVersion } from '../shared/economy';
+import type { EconomyResponse, EconomyResponseCode, MbtiQuizVersion } from '../shared/economy';
 import {
   MBTI_ATTEMPT_PROOF_PATTERN,
   UUID_PATTERN,
@@ -48,6 +48,14 @@ const AUTH_TIMEOUT_MS = 1_000;
 const MAX_OUTBOX_ENTRIES = 10;
 const MAX_OUTBOX_AGE_MS = 7 * 24 * 60 * 60 * 1_000;
 const RETRY_MAX_MS = 5 * 60 * 1_000;
+// Proof and session problems are recoverable, but only for a while. Rollout
+// being off is not counted here: the adapter is meant to hold those entries
+// until rollout flips on, so they keep the 7 day age bound as their only limit.
+const MAX_PROOF_RETRY_ATTEMPTS = 12;
+const RECOVERABLE_ECONOMY_CODES: ReadonlySet<EconomyResponseCode> = new Set([
+  'INVALID_PROOF',
+  'EXPIRED',
+]);
 
 let flushPromise: Promise<EconomyResponse | null> | null = null;
 let retryTimer: ReturnType<typeof globalThis.setTimeout> | null = null;
@@ -369,13 +377,40 @@ async function flushOutbox(): Promise<EconomyResponse | null> {
 
     const claimId = response.data.claim_id;
     const expiresAt = response.data.expires_at;
+    let hasPendingClaim = false;
     if (
       response.code === 'AUTH_REQUIRED' &&
       typeof claimId === 'string' &&
       UUID_PATTERN.test(claimId) &&
       typeof expiresAt === 'string'
     ) {
-      rememberPendingEconomyClaim(claimId, expiresAt);
+      hasPendingClaim = rememberPendingEconomyClaim(claimId, expiresAt);
+    }
+
+    // The completion is work the user already did. A rejected proof, or an
+    // unauthenticated reply that carries no claim to redeem later, leaves it
+    // unrecorded — dropping the entry here is what silently loses the points.
+    // Clear the spent proof and let the next flush mint a fresh one instead.
+    const recoverable =
+      RECOVERABLE_ECONOMY_CODES.has(response.code) ||
+      (response.code === 'AUTH_REQUIRED' && !hasPendingClaim);
+
+    if (recoverable && entry.attempts < MAX_PROOF_RETRY_ATTEMPTS) {
+      clearAttempt(entry.quizVersion, attempt.proof);
+      entry.attemptProof = null;
+      entry.attemptNotBefore = null;
+      entry.attemptExpiresAt = null;
+      retryEntry(entry);
+      index += 1;
+      continue;
+    }
+
+    if (recoverable) {
+      console.warn('[economy] dropping MBTI completion after repeated failures', {
+        completionId: entry.completionId,
+        attempts: entry.attempts,
+        code: response.code,
+      });
     }
 
     lastResponse = response;

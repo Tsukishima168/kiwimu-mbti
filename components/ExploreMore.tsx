@@ -1,6 +1,6 @@
 import React from 'react';
 import { buildDessertOrderLink, buildMoonMapLink, buildPassportLink, trackOutboundClick } from '../utils/utmTracking';
-import { withPendingEconomyClaim } from '../utils/economyClaims';
+import { usePendingEconomyClaimUrl } from '../hooks/usePendingEconomyClaimUrl';
 
 interface ExploreMoreProps {
   mbtiType?: string;
@@ -12,7 +12,9 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
   const dessertUrl = mbtiType
     ? buildDessertOrderLink(mbtiType, variant || 'A')
     : 'https://map.kiwimu.com/menu?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q1-integration&utm_content=soul-dessert-button';
-  const passportUrl = withPendingEconomyClaim(passportClaimUrl || buildPassportLink());
+  // Re-reads the claim when the outbox flush publishes it, instead of
+  // snapshotting whatever was known at first render.
+  const passportUrl = usePendingEconomyClaimUrl(passportClaimUrl || buildPassportLink());
   const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType) : 'https://map.kiwimu.com';
 
   const products = [
