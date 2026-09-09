@@ -1,8 +1,8 @@
-# V2 Visual Thesis + 狀態視覺文法
+# V2 Visual Thesis + 狀態視覺文法（歷史提案）
 
-> 這份文件是 V2 的視覺主張與文法書。先於 DESIGN.md 存在，用來定義「為什麼 V2 長這樣」。DESIGN.md 是規則（color、type、component），這份是主張（thesis）。
+> 這份文件先於 Apple Dark 實作存在，僅保留設計沿革。現行規格請讀 `DESIGN.md`。
 >
-> **Status**: 提案中，未落地。尚未修改任何程式碼。
+> **Status**: Historical／未落地／已被 Apple Dark 取代。不得作為實作 SSOT。
 
 ---
 

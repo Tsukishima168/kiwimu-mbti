@@ -28,7 +28,7 @@ function getAdminDb() {
     return createClient(url, serviceRoleKey, {
         db: { schema: 'mbti' },
         auth: { persistSession: false, autoRefreshToken: false },
-    } as Parameters<typeof createClient>[2]);
+    } as unknown as Parameters<typeof createClient>[2]);
 }
 
 // 多語言配置

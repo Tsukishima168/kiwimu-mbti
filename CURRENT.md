@@ -1,6 +1,20 @@
 # Kiwimu / MBTI Current
 
-Last updated: 2026-07-15
+Last updated: 2026-07-16
+
+## Economy v2 adapter · 2026-07-16
+
+- Branch `codex/kiwimu-economy-v2-adapter-20260716`、Draft PR #14。
+- Browser 只提交 server-issued attempt proof、completion UUID、quiz version
+  與 canonical answer indices；點數、每週資格、身份、結果與 idempotency
+  都由 Shop/Supabase 決定。偽造 `points=999999`、identity、proof 或重播不能
+  建立正式資產。
+- 33 個 Economy tests、Vite production build、API contract review 與
+  `git diff --check` 通過。shared foundation 已在 hosted Supabase staging
+  通過 migration、lint、Auth/RLS/PostgREST、proof replay 與併發驗證。
+- Production 尚未套用六項 Economy migration，所有 rollout flag 仍未建立／
+  預設關閉，PR 尚未 merge／deploy。匿名 issuance 的 production rate limit
+  仍是擴大到 100% 前的營運 gate。
 
 ## Five-site visual system · 2026-07-15
 

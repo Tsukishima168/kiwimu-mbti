@@ -1,8 +1,7 @@
 import React from 'react';
 import LanguageToggle from '../LanguageToggle';
-
-const COVER   = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1774772303/redesigned-photo-1774598290392_wlohqn.png';
-const WORDMARK = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1769501231/%E6%A8%99%E6%BA%96%E5%AD%97-02_ndnf7x.png';
+import KiwimuVisual from '../visuals/KiwimuVisual';
+import { KIWIMU_BRAND_ASSETS, KIWIMU_CAMPAIGN_ASSETS } from '../../data/kiwimuVisualAssets';
 
 interface Props {
   introCopy: {
@@ -23,7 +22,7 @@ const ExploreIntro: React.FC<Props> = ({ introCopy, quizTitle, onStart }) => {
       style={{
         position: 'relative',
         height: '100svh',
-        backgroundImage: `url(${COVER})`,
+        backgroundImage: `url(${KIWIMU_CAMPAIGN_ASSETS.landingHero.src})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         overflow: 'hidden',
@@ -95,13 +94,13 @@ const ExploreIntro: React.FC<Props> = ({ introCopy, quizTitle, onStart }) => {
         padding: '0 28px',
       }}>
         {/* 標準字 */}
-        <img
-          src={WORDMARK}
-          alt="Kiwimu"
+        <KiwimuVisual
+          asset={KIWIMU_BRAND_ASSETS.wordmark}
+          loading="eager"
+          fetchPriority="high"
           style={{
             height: 32,
             width: 'auto',
-            objectFit: 'contain',
             filter: 'brightness(0) invert(1)',
             opacity: 0.9,
           }}

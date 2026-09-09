@@ -3,13 +3,21 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test": "vitest run",
+    "test:economy": "vitest run shared/economy.test.ts server/economy/mbtiAttempt.test.ts server/economy/mbtiCompletion.test.ts server/economy/requestSecurity.test.ts utils/economyClaims.test.ts utils/economyEvents.test.ts utils/economyOutbox.integration.test.ts utils/economyOutbox.failurePaths.test.ts utils/v2Access.test.ts",
     "preview": "vite preview",
     "sync:v1:reports": "node scripts/generate-v1-report-from-obsidian.mjs",
     "sync:v2:tw:reports": "node scripts/generate-v2-tw-drafts.mjs",
     "generate:v2:32-reports": "node scripts/generate-v2-32-report-pack.mjs",
+    "assets:mbti32": "python3 scripts/build-mbti32-assets.py",
+    "assets:mbti32:verify": "python3 scripts/build-mbti32-assets.py --verify .tmp/mbti32-boxes.png",
     "generate:v2:variant-reports": "node scripts/generate-v2-variant-reports.mjs",
     "generate:answers:marketing": "node scripts/generate-answer-marketing-pack.mjs",
     "google-stack:auth": "node scripts/google-stack/auth.mjs",
@@ -23,33 +31,34 @@
     "generate:v2:archetypes": "node scripts/generate-v2-psych-archetypes.mjs"
   },
   "dependencies": {
-    "@google/genai": "^2.10.0",
-    "@line/liff": "^2.27.3",
-    "@supabase/supabase-js": "^2.93.1",
-    "@types/qrcode": "^1.5.6",
-    "@vercel/node": "^5.7.15",
-    "discord.js": "^14.26.4",
-    "dotenv": "^17.2.3",
-    "google-spreadsheet": "^5.0.2",
+    "@google/genai": "^2.17.1",
+    "@line/liff": "^2.30.0",
+    "@supabase/supabase-js": "^2.112.3",
+    "discord.js": "^14.27.0",
+    "dotenv": "^17.4.2",
+    "google-spreadsheet": "^5.3.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "qrcode": "^1.5.4",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "recharts": "^3.5.0",
-    "resend": "^6.16.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "recharts": "^3.10.1",
+    "resend": "^6.20.0",
     "tweetnacl": "^1.0.3"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.2.4",
-    "@types/node": "^26.1.0",
-    "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.0.0",
-    "tailwindcss": "^4.2.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vercel/node": "^5.10.1",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite": "^8.1.2",
-    "vite-plugin-pwa": "^1.2.0",
+    "vite": "^8.2.1",
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^4.1.10",
     "workbox-core": "^7.4.1",
     "workbox-precaching": "^7.4.1",
     "workbox-window": "^7.4.1"
@@ -58,16 +67,16 @@
     "@vercel/node": {
       "path-to-regexp": "6.3.0"
     },
-    "undici": "6.27.0",
+    "undici": "6.28.0",
     "@vercel/python-analysis": {
       "minimatch": "10.2.5",
       "smol-toml": "1.6.1",
-      "js-yaml": "4.3.0"
+      "js-yaml": "4.3.1"
     },
     "@vercel/static-config": {
       "ajv": "^8.18.0"
     },
     "@babel/plugin-transform-modules-systemjs": "7.29.4",
-    "fast-uri": "3.1.2"
+    "fast-uri": "3.1.5"
   }
 }

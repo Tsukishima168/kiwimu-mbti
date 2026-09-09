@@ -24,6 +24,12 @@ export type LinePayPaymentRequestInfo = {
   };
 };
 
+export const V2_LINE_PAY_ORDER_PATTERN = /^V2-[A-Z]{4}-[AT]-\d+-[0-9a-f]{32}$/;
+export const V2_ORDER_COOKIE_NAME = '__Host-kiwimu-v2-order';
+export const V2_REPORT_PRICE_TWD = 149;
+export const V2_REPORT_CURRENCY = 'TWD';
+const V2_ORDER_COOKIE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
+
 function getBaseUrl() {
   return process.env.LINE_PAY_BASE_URL || 'https://sandbox-api-pay.line.me';
 }
@@ -93,7 +99,9 @@ export function buildLinePayApiPath(pathname: string) {
 export function buildV2LinePayOrderId(mbtiType: string) {
   const normalizedType = mbtiType.toUpperCase();
   const stamp = Date.now();
-  const suffix = crypto.randomBytes(4).toString('hex');
+  // The order id is also the anonymous buyer's proof when loading paid content.
+  // Keep 128 bits of entropy so a timestamp does not reduce it to a guessable key.
+  const suffix = crypto.randomBytes(16).toString('hex');
   return `V2-${normalizedType}-${stamp}-${suffix}`;
 }
 
@@ -101,6 +109,32 @@ export function parseMbtiTypeFromOrderId(orderId?: string | null) {
   if (!orderId) return null;
   const match = orderId.match(/^V2-([A-Z]{4}-[AT])-/);
   return match ? match[1] : null;
+}
+
+export function readV2OrderIdCookie(cookieHeader?: string | string[] | null) {
+  const raw = Array.isArray(cookieHeader) ? cookieHeader.join(';') : cookieHeader || '';
+  const encodedValue = raw
+    .split(';')
+    .map(part => part.trim())
+    .find(part => part.startsWith(`${V2_ORDER_COOKIE_NAME}=`))
+    ?.slice(V2_ORDER_COOKIE_NAME.length + 1);
+  if (!encodedValue) return '';
+
+  try {
+    const orderId = decodeURIComponent(encodedValue);
+    return V2_LINE_PAY_ORDER_PATTERN.test(orderId) ? orderId : '';
+  } catch {
+    return '';
+  }
+}
+
+export function buildV2OrderCookie(orderId: string) {
+  if (!V2_LINE_PAY_ORDER_PATTERN.test(orderId)) {
+    throw new Error('Invalid V2 LINE Pay order id');
+  }
+  // __Host- cookies require Path=/ and no Domain attribute. The broader path is
+  // the price of browser-enforced host scoping; HttpOnly keeps the proof out of JS.
+  return `${V2_ORDER_COOKIE_NAME}=${encodeURIComponent(orderId)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${V2_ORDER_COOKIE_MAX_AGE_SECONDS}`;
 }
 
 export function buildAppBaseUrl(requestOrigin?: string) {

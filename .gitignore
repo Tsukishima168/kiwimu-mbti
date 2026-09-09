@@ -57,3 +57,8 @@ scripts/test-*.ts
 # V1.5 AI Studio scaffold（題庫已移植至 data/，此資料夾為參考用）
 MBTI-Lab-V1.5-TEST/
 .vercel
+
+# MBTI 32 資產管線
+__pycache__/
+*.pyc
+.tmp/

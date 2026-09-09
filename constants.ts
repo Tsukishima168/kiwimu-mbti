@@ -1,5 +1,6 @@
 
 import { Question, MbtiResultData } from './types';
+import { KIWIMU_DESSERT_CATALOG, getIdentityAsset } from './data/kiwimuVisualAssets';
 
 export const QUESTIONS: Question[] = [
   // --- E vs I ---
@@ -446,25 +447,6 @@ export const DIMENSION_EXPLANATIONS = [
   }
 ];
 
-const MBTI_IMAGE_MAP: Record<string, string> = {
-  INTJ: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438026/mbti_INTJ_sitgas.png",
-  INTP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438026/mbti_INTP_n89sv2.png",
-  ENTJ: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438025/mbti_ENTJ_jrtdic.png",
-  ENTP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438025/mbti_ENTP_iikzmh.png",
-  INFJ: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438024/mbti_INFJ_fvjxy5.png",
-  INFP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438023/mbti_INFP_j2qekb.png",
-  ENFJ: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438023/mbti_ENFJ_fdpmlb.png",
-  ENFP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438022/mbti_ENFP_dcbmdx.png",
-  ISTJ: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438022/mbti_ISTJ_m3uc4m.png",
-  ISFJ: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438021/mbti_ISFJ_zjjqq6.png",
-  ESTJ: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438021/mbti_ESTJ_r8crof.png",
-  ESFJ: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438021/mbti_ESFJ_jzjd3v.png",
-  ISTP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438020/mbti_ISTP_ajlimj.png",
-  ISFP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438020/mbti_ISFP_xdgb6x.png",
-  ESTP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438020/mbti_ESTP_rfs53m.png",
-  ESFP: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767438020/mbti_ESFP_hsuas1.png",
-};
-
 /** 角色插畫背後色塊：依網路上最常見的四象限分類（NT / NF / SJ / SP） */
 export const MBTI_BG_COLORS: Record<string, string> = {
   INTJ: "#F3E5F5", INTP: "#F3E5F5", ENTJ: "#F3E5F5", ENTP: "#F3E5F5",
@@ -473,25 +455,9 @@ export const MBTI_BG_COLORS: Record<string, string> = {
   ISTP: "#FFF3E0", ISFP: "#FFF3E0", ESTP: "#FFF3E0", ESFP: "#FFF3E0",
 };
 
-// 請將以下的 Placeholder URL 替換成您實際的圖片網址
-const DESSERT_IMAGES: Record<string, string> = {
-  BASQUE_CLASSIC: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866456/BASQUE_CLASSIC_c6fb92.webp",
-  MILLE_CREPE_LEMON: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866456/MILLE_CREPE_LEMON_dcxrgr.webp",
-  TIRAMISU_BAILEYS: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866456/TIRAMISU_BAILEYS_vkzkxr.webp",
-  TIRAMISU_YUZU: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866456/TIRAMISU_YUZU_pu1r82.webp",
-  BASQUE_TEA: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/BASQUE_TEA_izkwws.webp",
-  CHIFFON_HOKKAIDO: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
-  CHIFFON_LEMON: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_LEMON_ppn6t3.webp",
-  MILLE_CREPE_STRAWBERRY: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/MILLE_CREPE_STRAWBERRY_s6bf22.webp",
-  MILLE_CREPE_CLASSIC: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
-  PUDDING_CLASSIC: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/PUDDING_CLASSIC_fm8hng.webp",
-  BASQUE_SALTED_EGG: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/BASQUE_SALTED_EGG_cwc3ah.webp",
-  CHIFFON_BERRY: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
-  TIRAMISU_CLASSIC: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp",
-  TIRAMISU_MATCHA: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/TIRAMISU_MATCHA_wz4qxo.webp",
-  MILLE_CREPE_CHOCO: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CHOCO_dtlgov.webp",
-  CHIFFON_FRUIT: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
-};
+const DESSERT_IMAGES = Object.fromEntries(
+  Object.entries(KIWIMU_DESSERT_CATALOG).map(([id, asset]) => [id, asset.src]),
+) as Record<keyof typeof KIWIMU_DESSERT_CATALOG, string>;
 
 // A/T Variant Map to create 32 distinct personalities
 const VARIANT_NUANCES: Record<string, { A: string; T: string }> = {
@@ -562,7 +528,7 @@ const VARIANT_NUANCES: Record<string, { A: string; T: string }> = {
 };
 
 export const getResultData = (type: string, variant: 'A' | 'T' = 'A'): MbtiResultData => {
-  const characterImageUrl = MBTI_IMAGE_MAP[type] || `https://picsum.photos/seed/mbti_${type}/800/1000`;
+  const characterImageUrl = getIdentityAsset(type)?.src || `https://picsum.photos/seed/mbti_${type}/800/1000`;
 
   const getBgColor = (t: string) => {
     if (['INTJ', 'INTP', 'ENTJ', 'ENTP'].includes(t)) return '#F3E5F5';

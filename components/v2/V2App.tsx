@@ -1,15 +1,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AppUser } from '../../types';
+import V2Welcome from './V2Welcome';
+import { getDimensionDescription, matchingRecordedResult, hasDimensionAnswers } from './reportReading';
+import type { V2VariantReport } from '../../data/v2VariantReports.generated';
 import {
-  getV2TaiwanDraft,
-  V2_TW_DRAFT_SOURCE,
-  type V2TaiwanDraftReport,
-} from '../../data/v2TaiwanDrafts.generated';
-import { getV2PsychArchetype } from '../../data/v2PsychArchetypes.generated';
-import { getV2VariantReport } from '../../data/v2VariantReports.generated';
+  getV2VariantSummary,
+  type V2VariantSummary,
+} from '../../data/v2VariantSummaries.generated';
 import { getRarityData } from '../../data/rarityData';
 import { getResultData } from '../../constants';
 import type { MbtiResultData, Score } from '../../types';
+import {
+  loadUnifiedDessertContract,
+  type UnifiedDessertContract,
+} from '../../utils/dataLoader';
 import { calculatePercentages, getVariant } from '../../utils/logic';
 import { trackAction } from '../../utils/userDataCollector';
 import {
@@ -23,11 +27,12 @@ import {
 import { applyRuntimeSeo } from '../../utils/seo';
 import {
   clearV2Entitlement,
+  clearLegacyV2OrderId,
   getLastV1Result,
   getLastV2PrototypeResult,
   readCachedV2Entitlement,
+  readLegacyV2OrderId,
   hasV2UnlockQuery,
-  setV2Entitlement,
   unlockV2Purchase,
   unlockV2Preview,
   type V2Entitlement,
@@ -40,6 +45,17 @@ import {
   type V2VariantCode,
 } from '../../utils/v2Routes';
 import { buildDessertOrderLink, trackDessertOrderClick } from '../../utils/utmTracking';
+import { usePendingEconomyClaimUrl } from '../../hooks/usePendingEconomyClaimUrl';
+import {
+  KIWIMU_CAMPAIGN_ASSETS,
+  getIdentityAsset,
+  getSceneAsset,
+  sceneAccentStyle,
+  toAbsoluteAssetUrl,
+} from '../../data/kiwimuVisualAssets';
+import KiwimuVisual from '../visuals/KiwimuVisual';
+import KiwimuScenePlate from '../visuals/KiwimuScenePlate';
+import KiwimuAtlasWall from '../visuals/KiwimuAtlasWall';
 import './v2-tailwind.css';
 import './v2.css';
 import './v2-dark.css';
@@ -50,13 +66,18 @@ interface V2AppProps {
 
 type ReportFamilyKey = 'analysts' | 'diplomats' | 'sentinels' | 'explorers';
 type VariantCode = 'A' | 'T';
+type DessertLoadStatus = 'idle' | 'loading' | 'ready' | 'unavailable';
+type PaidReportBundle = {
+  report: V2VariantReport;
+  oppositeReport: V2VariantReport | null;
+};
 type PercentageKey = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P' | 'A' | 'Turbulent';
 
 type SpectrumRow = {
   label: string;
   selectedCode: string;
   oppositeCode: string;
-  selectedPct: number;
+  selectedPct: number | null;
   description: string;
 };
 
@@ -76,6 +97,7 @@ type CompareCard = {
   energyLabel: string;
   energy: string;
   cost?: string;
+  details?: Array<{ label: string; body: string }>;
 };
 
 type VariantPrototypeCopy = {
@@ -92,8 +114,6 @@ type VariantPrototypeCopy = {
   frequencySecondary: string;
   frequencySecondaryLabel: string;
   frequencyNote: string;
-  footerTitle: string;
-  footerSubtitle: string;
 };
 
 type ReportNavChapter = {
@@ -104,6 +124,7 @@ type ReportNavChapter = {
 
 const LOCAL_PREVIEW_HOSTS = new Set(['localhost', '127.0.0.1']);
 const IS_DEV = import.meta.env.DEV;
+const IS_CHECKOUT_ENABLED = import.meta.env.VITE_V2_CHECKOUT_ENABLED === 'true';
 
 const FAMILY_META: Record<ReportFamilyKey, { familyLabel: string; familyAccent: string; familyKeyLabel: string; familyStage: string }> = {
   analysts: {
@@ -186,19 +207,6 @@ const getOppositeKey = (selectedKey: PercentageKey): PercentageKey => {
   }
 };
 
-const buildSyntheticScores = (type: string, variant: V2VariantCode): Score => ({
-  E: type.includes('E') ? 74 : 26,
-  I: type.includes('I') ? 74 : 26,
-  S: type.includes('S') ? 71 : 29,
-  N: type.includes('N') ? 71 : 29,
-  T: type.includes('T') ? 68 : 32,
-  F: type.includes('F') ? 68 : 32,
-  J: type.includes('J') ? 64 : 36,
-  P: type.includes('P') ? 64 : 36,
-  A: variant === 'A' ? 66 : 34,
-  Turbulent: variant === 'T' ? 66 : 34,
-});
-
 const buildTagWall = (type: string, variant: VariantCode): TagCard[] => {
   const tags = type.split('').map((letter) => DIMENSION_TAGS[letter]).filter(Boolean);
   tags.push(variant === 'A' ? DIMENSION_TAGS.A : DIMENSION_TAGS.T_VARIANT);
@@ -212,64 +220,60 @@ const buildSpectrumRows = (
   dimensionBullets: ReadonlyArray<{ label: string; body: string }>,
 ): SpectrumRow[] => {
   const percentages = calculatePercentages(scores);
-  const descriptions = new Map(dimensionBullets.map((item) => [item.label, item.body]));
 
   return SPECTRUM_CONFIG.map((config) => {
     const selectedCode = config.selectedFromVariant ? variant : type[config.selectedFromType || 0];
     const selectedKey = (config.selectedKey || selectedCode) as PercentageKey;
     const oppositeKey = config.selectedFromVariant ? getOppositeKey(selectedKey) : getOppositeKey(selectedCode as PercentageKey);
-    const descriptionKey = selectedCode === 'A' || selectedCode === 'T' ? 'A / T (自我認同)' : `${selectedCode} (${selectedCode === 'I' ? '內向' : selectedCode === 'N' ? '直覺' : selectedCode === 'T' ? '思考' : selectedCode === 'J' ? '判斷' : selectedCode === 'E' ? '外向' : selectedCode === 'S' ? '實感' : selectedCode === 'F' ? '情感' : '感知'})`;
+
 
     return {
       label: config.label,
       selectedCode,
       oppositeCode: oppositeKey === 'Turbulent' ? 'T' : oppositeKey,
-      selectedPct: percentages[selectedKey],
-      description: descriptions.get(descriptionKey) || descriptions.get('A / T (自我認同)') || '',
+      selectedPct: hasDimensionAnswers(scores, selectedKey, oppositeKey) ? percentages[selectedKey] : null,
+      description: getDimensionDescription(selectedCode, dimensionBullets, Boolean(config.selectedFromVariant)),
     };
   });
 };
 
 const buildPrototypeCopy = (
   variant: VariantCode,
-  report: V2TaiwanDraftReport,
+  summary: V2VariantSummary,
   resultData: MbtiResultData,
 ): VariantPrototypeCopy => {
-  const familyMeta = FAMILY_META[report.familyKey as ReportFamilyKey];
+  const familyMeta = FAMILY_META[summary.familyKey as ReportFamilyKey];
   const typeTitle = variant === 'A' ? '穩定變體' : '高敏變體';
-  const aItems = report.professional.subtypes.A.items;
-  const tItems = report.professional.subtypes.T.items;
-
-  const abstractBody = report.abstract.body;
+  const abstractBody = summary.abstract.body;
 
   return {
     eyebrow: `${familyMeta.familyLabel} · KIWIMU V2 深度報告`,
-    subtitle: `${report.title} · ${typeTitle}`,
-    soulQuote: cleanText(report.soulQuote || report.closing || resultData.quote || abstractBody),
-    heroLines: [report.abstract.body, report.design.quote, ...report.design.behaviorLogic.map((item) => item.body)].slice(0, 3),
+    subtitle: `${summary.title} · ${typeTitle}`,
+    soulQuote: cleanText(summary.soulQuote || resultData.quote || abstractBody),
+    heroLines: [summary.abstract.body],
     status: variant === 'A' ? '當前狀態：穩定輸出期 / 低噪推進中' : '當前狀態：高頻調整期 / 自我監測中',
     tags: buildTagWall(resultData.id, variant).slice(0, 6),
-    professionalQuote: report.professional.coreBody,
+    professionalQuote: abstractBody,
     compareCards: [
       {
         code: 'A',
         badge: variant === 'A' ? '你的型' : '相對型',
-        title: report.professional.subtypes.A.title,
-        tone: report.professional.subtypes.A.tone,
-        strategyLabel: aItems[0]?.label || '情緒能量',
-        strategy: aItems[0]?.body || report.professional.coreBody,
-        energyLabel: aItems[1]?.label || '穩定度',
-        energy: aItems[1]?.body || report.abstract.body,
+        title: '較快定盤',
+        tone: 'A 變體',
+        strategyLabel: '自我回應',
+        strategy: '比較容易信任當下判斷，遇到壓力時傾向先採取行動。',
+        energyLabel: '閱讀提醒',
+        energy: '穩定感能節省反覆確認的力氣，也可能讓他人跟不上你的決定。',
       },
       {
         code: 'T',
         badge: variant === 'T' ? '你的型' : '另一型',
-        title: report.professional.subtypes.T.title,
-        tone: report.professional.subtypes.T.tone,
-        strategyLabel: tItems[0]?.label || '情緒能量',
-        strategy: tItems[0]?.body || report.professional.coreBody,
-        energyLabel: tItems[1]?.label || '內隱焦慮',
-        energy: tItems[1]?.body || report.abstract.body,
+        title: '較常回看',
+        tone: 'T 變體',
+        strategyLabel: '自我回應',
+        strategy: '比較常回頭檢查自己的判斷，遇到壓力時會多看幾種可能。',
+        energyLabel: '閱讀提醒',
+        energy: '敏感度能捕捉細節，也可能讓一個已經足夠的答案遲遲不能落地。',
       },
     ],
     frequencyPrimary: `${getRarityData(resultData.id)?.totalPopulation ?? 2.4}%`,
@@ -277,34 +281,18 @@ const buildPrototypeCopy = (
     frequencySecondary: variant === 'A' ? '1.0%' : '0.9%',
     frequencySecondaryLabel: '變體切面',
     frequencyNote: '這個比例不是要證明你多特別，而是讓你知道這種狀態確實有人活過。',
-    footerTitle: report.dessert.name,
-    footerSubtitle: report.dessert.visualLogic,
   };
-};
-
-const buildVersionTagWall = (
-  report: V2TaiwanDraftReport,
-  variant: VariantCode,
-  fallbackTags: TagCard[],
-) => {
-  return [
-    report.professional.subtypes[variant].title,
-    report.abstract.label,
-    ...report.design.behaviorLogic.map((item) => item.label),
-    ...fallbackTags.map((tag) => tag.zh),
-  ]
-    .map((item) => cleanText(item))
-    .filter((item, index, source) => item && source.indexOf(item) === index)
-    .slice(0, 6);
 };
 
 const REPORT_CHAPTERS: ReportNavChapter[] = [
   { id: 'ch-01', label: '01 當下的你', locked: false },
-  { id: 'ch-02', label: '02 你的版本', locked: true },
-  { id: 'ch-03', label: '03 四個維度', locked: true },
-  { id: 'ch-04', label: '04 認知行為模式', locked: true },
-  { id: 'ch-05', label: '05 你的原型', locked: true },
-  { id: 'ch-06', label: '06 帶走這個', locked: true },
+  { id: 'ch-02', label: '02 你怎麼保護自己', locked: true },
+  { id: 'ch-03', label: '03 偏好怎麼出現', locked: true },
+  { id: 'ch-04', label: '04 生活裡的樣子', locked: true },
+  { id: 'ch-05', label: '05 可以試的事', locked: true },
+  { id: 'ch-06', label: '06 工作與關係', locked: true },
+  { id: 'ch-07', label: '07 感官與提問', locked: true },
+  { id: 'ch-08', label: '08 帶走這個', locked: true },
 ];
 
 export default function V2App({ user }: V2AppProps) {
@@ -313,36 +301,71 @@ export default function V2App({ user }: V2AppProps) {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
   const hasQuery = window.location.search.length > 1;
   const routeTarget = useMemo(() => parseV2RouteTarget(pathname, params), [params, pathname]);
-  const [entitlement, setEntitlementState] = useState<V2Entitlement>(() =>
-    isLocalPreview ? readCachedV2Entitlement() : { status: 'locked' },
-  );
+  const [entitlement, setEntitlementState] = useState<V2Entitlement>(() => readCachedV2Entitlement());
+  const [paidReports, setPaidReports] = useState<PaidReportBundle | null>(null);
+  const [reportAccessStatus, setReportAccessStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle');
+  const [reportMessage, setReportMessage] = useState('');
   const [activeChapter, setActiveChapter] = useState('ch-01');
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [dessertContract, setDessertContract] = useState<UnifiedDessertContract | null>(null);
+  const [dessertLoadStatus, setDessertLoadStatus] = useState<DessertLoadStatus>('idle');
   const source = params.get('source') || 'direct';
-  const isUnlocked = entitlement.status === 'unlocked';
-  const canReadReport = isUnlocked || isLocalPreview;
+  const canReadReport = Boolean(paidReports?.report);
+  const isUnlocked = canReadReport;
+  const isReportLoading = reportAccessStatus === 'loading';
 
-  const routeBundle = useMemo(() => {
-    if (!routeTarget) return null;
-    return {
-      resultData: getResultData(routeTarget.type, routeTarget.variant),
-      scores: buildSyntheticScores(routeTarget.type, routeTarget.variant),
-    };
-  }, [routeTarget]);
-
-  const resultBundle = useMemo(() => {
-    if (source === 'v2_quiz') {
-      return getLastV2PrototypeResult() || routeBundle || getLastV1Result();
-    }
-
-    return routeBundle || getLastV1Result();
-  }, [routeBundle, source]);
+  const recordedBundle = useMemo(() => {
+    const v2 = getLastV2PrototypeResult();
+    const v1 = getLastV1Result();
+    return routeTarget ? matchingRecordedResult(routeTarget.fullType, [v2, v1]) : (source === 'v2_quiz' ? v2 || v1 : v1);
+  }, [routeTarget, source]);
+  const resultBundle = useMemo(() => recordedBundle || (routeTarget ? {
+    resultData: getResultData(routeTarget.type, routeTarget.variant),
+    // A shared type page has no personal scores. Its spectrum stays qualitative.
+    scores: { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0, A: 0, Turbulent: 0 },
+  } : null), [recordedBundle, routeTarget]);
 
   const variant = routeTarget?.variant || (resultBundle ? getVariant(resultBundle.scores) : 'A');
   const fullType = routeTarget?.fullType || (resultBundle ? `${resultBundle.resultData.id}-${variant}` : null);
-  const report = useMemo(() => (resultBundle ? getV2TaiwanDraft(resultBundle.resultData.id) : null), [resultBundle]);
+  const variantSummary = useMemo(
+    () => (fullType ? getV2VariantSummary(fullType) : null),
+    [fullType],
+  );
+  const dessertType = resultBundle?.resultData.id ?? null;
   const canonicalPath = fullType ? buildV2ReportPath(fullType) : '/read';
   const canonicalUrl = `https://kiwimu.com${canonicalPath}`;
+
+  // The pending claim is written by the outbox flush, which finishes after this
+  // component first renders, so a plain call would snapshot the pre-claim URL
+  // and the CTA would drop economy_claim. Stays above the early returns below
+  // so the hook call is unconditional.
+  const passportUrl = usePendingEconomyClaimUrl(
+    resultBundle
+      ? `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v2-footer-passport&mbti_type=${resultBundle.resultData.id}&variant=${variant}`
+      : 'https://passport.kiwimu.com',
+  );
+
+  useEffect(() => {
+    if (!dessertType) {
+      setDessertContract(null);
+      setDessertLoadStatus('idle');
+      return;
+    }
+
+    let cancelled = false;
+    setDessertContract(null);
+    setDessertLoadStatus('loading');
+
+    void loadUnifiedDessertContract(dessertType).then((contract) => {
+      if (cancelled) return;
+      setDessertContract(contract);
+      setDessertLoadStatus(contract ? 'ready' : 'unavailable');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dessertType]);
 
   useEffect(() => {
     const normalizedPath = normalizeV2Pathname(window.location.pathname);
@@ -360,15 +383,20 @@ export default function V2App({ user }: V2AppProps) {
   }, [routeTarget]);
 
   useEffect(() => {
-    // 砍掉 32 變體 pack 的 SEO title 優先級，統一用 16 型 Z 世代稱號（report.title）
     const baseType = resultBundle?.resultData.id;
-    const title = fullType && report
-      ? `${fullType} MBTI 深度報告｜${report.title}｜Kiwimu × 月島甜點`
+    const title = fullType && variantSummary
+      ? `${fullType} MBTI 深度報告｜${variantSummary.title}｜Kiwimu × 月島甜點`
       : '免費 MBTI 深度報告｜Kiwimu MBTI V2';
-    const description = fullType && report && resultBundle
-      ? `${fullType} 深度 MBTI 報告：${report.title}。從 16 型 × A/T 變體解讀你的靈魂甜點、職涯傾向與情緒敘事。試讀免費，NT$149 解鎖完整 Kiwimu V2 報告。`
-      : '免費 MBTI 16 型試讀，NT$149 解鎖 Kiwimu V2 深度報告：A/T 變體、維度、關係、原型與收束提問一次讀完。';
-    const image = resultBundle?.resultData.characterImage || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
+    const description = fullType && variantSummary && resultBundle
+      ? `${fullType} 深度 MBTI 報告：${variantSummary.title}。從 16 型 × A/T 變體解讀你的靈魂甜點、職涯傾向與情緒敘事。提供免費試讀，完整報告仍在整理中。`
+      : 'Kiwimu V2 敘事探索：40 道生活情境，讀懂 A/T 傾向、日常反應、關係與小練習。完成後可免費試讀。';
+    // 分享圖優先用該 A/T 變體的場景圖；JPEG 版是給 LINE 等對 WebP 支援不穩的爬蟲。
+    const ogScene = getSceneAsset(fullType);
+    const image = ogScene
+      ? toAbsoluteAssetUrl(ogScene.ogJpg.src)
+      : getIdentityAsset(baseType || '')?.src
+        || resultBundle?.resultData.characterImage
+        || KIWIMU_CAMPAIGN_ASSETS.socialFallback.src;
 
     applyRuntimeSeo({
       title,
@@ -386,13 +414,13 @@ export default function V2App({ user }: V2AppProps) {
         // 此頁專屬
         fullType,                     // 例 INTJ-A
         baseType,                     // 例 INTJ
-        report?.title,                // 例 冷血腦內小劇場導演
+        variantSummary?.title,
         // 商品鉤子
         'Kiwimu', '月島甜點', '靈魂甜點', 'NT$149 MBTI 深度報告',
       ].filter(Boolean).join(','),
       robots: fullType && !hasQuery ? 'index,follow' : 'noindex,follow',
     });
-  }, [canonicalUrl, fullType, hasQuery, report, resultBundle]);
+  }, [canonicalUrl, fullType, hasQuery, resultBundle, variantSummary]);
 
   useEffect(() => {
     const enteredAt = Date.now();
@@ -403,13 +431,12 @@ export default function V2App({ user }: V2AppProps) {
   }, [canonicalPath]);
 
   useEffect(() => {
-    if (!fullType || !hasV2UnlockQuery(params, { allowPreview: IS_DEV, allowSuccess: true })) {
+    if (!fullType || !hasV2UnlockQuery(params, { allowPreview: IS_DEV })) {
       return;
     }
 
-    const unlocked = params.get('unlock') === 'success'
-      ? unlockV2Purchase(params.get('order_id') || params.get('transaction_id') || 'linepay')
-      : unlockV2Preview(params.get('order_id') || 'query-preview');
+    // Dev-only preview stays synchronous: it grants no paid entitlement.
+    const unlocked = unlockV2Preview(params.get('order_id') || 'query-preview');
     setEntitlementState(unlocked);
     trackAction('v2_unlock_success', {
       mbtiType: fullType,
@@ -418,6 +445,149 @@ export default function V2App({ user }: V2AppProps) {
     });
     trackV2Unlocked(fullType || 'unknown', unlocked.unlockType || 'unknown', source || 'unknown');
   }, [fullType, params, source]);
+
+  useEffect(() => {
+    // `?unlock=success` arrives on the LINE Pay confirm redirect, but the query
+    // string alone proves nothing: anyone could append it to a report URL. Ask
+    // the server whether the order really reached `confirmed` before granting
+    // anything, and stay locked if the answer is anything other than yes.
+    if (!fullType || params.get('unlock') !== 'success') {
+      return;
+    }
+
+    let cancelled = false;
+    const legacyOrderId = readLegacyV2OrderId();
+
+    void (async () => {
+      let verified = false;
+      let reason = 'verify_failed';
+      try {
+        const response = await fetch('/api/v2/verify-unlock', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mbtiType: fullType, orderId: legacyOrderId || undefined }),
+        });
+        const payload = await response.json().catch(() => null);
+        verified = response.ok
+          && Boolean(payload?.ok)
+          && payload?.data?.mbtiType?.toUpperCase() === fullType;
+        reason = typeof payload?.code === 'string' ? payload.code : reason;
+      } catch {
+        reason = 'network_error';
+      }
+
+      if (cancelled) return;
+
+      if (!verified) {
+        trackAction('v2_unlock_rejected', { mbtiType: fullType, reason, source });
+        return;
+      }
+
+      const unlocked = unlockV2Purchase('http-only-cookie', fullType);
+      setEntitlementState(unlocked);
+      clearLegacyV2OrderId();
+      trackAction('v2_unlock_success', {
+        mbtiType: fullType,
+        unlockType: unlocked.unlockType,
+        source,
+      });
+      trackV2Unlocked(fullType, unlocked.unlockType || 'unknown', source || 'unknown');
+
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('unlock');
+      cleanUrl.searchParams.delete('order_id');
+      cleanUrl.searchParams.delete('transaction_id');
+      window.history.replaceState({}, '', `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fullType, params, source]);
+
+  useEffect(() => {
+    if (!fullType) {
+      setPaidReports(null);
+      return;
+    }
+
+    let cancelled = false;
+    setPaidReports(null);
+    setReportAccessStatus('loading');
+
+    const loadPaidReports = async () => {
+      if (IS_DEV && isLocalPreview) {
+        const module = await import('../../data/v2VariantReports.generated');
+        if (cancelled) return;
+        const report = module.getV2VariantReport(fullType);
+        if (!report) throw new Error('REPORT_NOT_FOUND');
+        const oppositeCode = `${fullType.slice(0, 4)}-${fullType.endsWith('-A') ? 'T' : 'A'}`;
+        setPaidReports({
+          report,
+          oppositeReport: module.getV2VariantReport(oppositeCode),
+        });
+        setReportAccessStatus('granted');
+        return;
+      }
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const legacyOrderId = readLegacyV2OrderId();
+      const supabase = getAuthSupabaseClient();
+      const { data: sessionData } = supabase
+        ? await supabase.auth.getSession()
+        : { data: { session: null } };
+      const token = sessionData.session?.access_token;
+      if (token) headers.Authorization = `Bearer ${token}`;
+      if (
+        entitlement.sourceOrderId
+        && !['supabase-db', 'server-verified', 'http-only-cookie'].includes(entitlement.sourceOrderId)
+      ) {
+        headers['X-V2-Order-Id'] = entitlement.sourceOrderId;
+      } else if (legacyOrderId) {
+        headers['X-V2-Order-Id'] = legacyOrderId;
+      }
+
+      const response = await fetch('/api/v2/report', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers,
+        body: JSON.stringify({ mbtiType: fullType }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.ok || payload?.data?.report?.fullCode !== fullType) {
+        throw new Error(typeof payload?.code === 'string' ? payload.code : 'REPORT_ACCESS_FAILED');
+      }
+
+      if (cancelled) return;
+      setPaidReports(payload.data as PaidReportBundle);
+      setReportAccessStatus('granted');
+      const unlocked = unlockV2Purchase('server-verified', fullType);
+      setEntitlementState(unlocked);
+      clearLegacyV2OrderId();
+      setReportMessage('');
+    };
+
+    void loadPaidReports().catch((error) => {
+      if (cancelled) return;
+      if (!(error instanceof Error) || error.message !== 'ENTITLEMENT_REQUIRED') {
+        console.error('Failed to load V2 paid report', error);
+      }
+      setPaidReports(null);
+      setReportAccessStatus('denied');
+      if (!isLocalPreview) {
+        clearV2Entitlement();
+        setEntitlementState({ status: 'locked' });
+        if (entitlement.status === 'unlocked' || params.get('unlock') === 'success') {
+          setReportMessage('無法驗證完整報告權限，請重新登入或從付款完成頁返回。');
+        }
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fullType, isLocalPreview]);
 
   useEffect(() => {
     if (!fullType || entitlement.status === 'unlocked') {
@@ -433,51 +603,12 @@ export default function V2App({ user }: V2AppProps) {
   }, [entitlement.status, fullType, source, user]);
 
   useEffect(() => {
-    const checkSupabaseEntitlement = async () => {
-      const supabase = getAuthSupabaseClient();
-      if (!supabase) {
-        if (!isLocalPreview) {
-          clearV2Entitlement();
-        }
-        return;
-      }
-
-      const { data: { user: sbUser } } = await supabase.auth.getUser();
-      if (!sbUser) {
-        if (!isLocalPreview) {
-          clearV2Entitlement();
-        }
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('v2_unlocked_at')
-        .eq('id', sbUser.id)
-        .single();
-
-      if ((profile as { v2_unlocked_at: string | null } | null)?.v2_unlocked_at) {
-        const unlocked: V2Entitlement = {
-          status: 'unlocked',
-          unlockType: 'one_time',
-          unlockedAt: (profile as { v2_unlocked_at: string }).v2_unlocked_at,
-          sourceOrderId: 'supabase-db',
-          expiresAt: null,
-        };
-        setV2Entitlement(unlocked);
-        setEntitlementState(unlocked);
-        trackAction('v2_unlock_from_supabase', { mbtiType: fullType || 'unknown', source });
-        trackV2Unlocked(fullType || 'unknown', 'one_time', 'supabase-db');
-      } else if (!isLocalPreview) {
-        clearV2Entitlement();
-      }
-    };
-
-    void checkSupabaseEntitlement();
-  }, [fullType, isLocalPreview, source]);
-
-  useEffect(() => {
     if (!fullType) {
+      return;
+    }
+
+    if (!IS_DEV && !IS_CHECKOUT_ENABLED) {
+      setReportMessage('完整報告目前仍在展示測試，正式解鎖開放後就能在這裡完成付款。');
       return;
     }
 
@@ -487,26 +618,28 @@ export default function V2App({ user }: V2AppProps) {
       (node): node is HTMLElement => Boolean(node),
     );
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    const updateActiveChapter = () => {
+      // A fixed reading line is more stable than intersectionRatio for long mobile
+      // chapters: the previous section can occupy more viewport area even after the
+      // next heading has reached the reader. Eight geometry reads are small enough to
+      // run on the passive scroll event and keep the final smooth-scroll frame exact.
+      const readingLine = Math.min(window.innerHeight * 0.28, 240);
+      const current = sections.reduce(
+        (selected, candidate) =>
+          candidate.getBoundingClientRect().top <= readingLine ? candidate : selected,
+        sections[0],
+      );
 
-        if (visible) {
-          setActiveChapter(visible.target.id);
-        }
-      },
-      {
-        rootMargin: '-20% 0px -60% 0px',
-        threshold: [0, 0.15, 0.3, 0.5, 0.75, 1],
-      },
-    );
+      if (current) {
+        setActiveChapter(current.id);
+      }
+    };
 
-    sections.forEach((section) => observer.observe(section));
+    updateActiveChapter();
+    window.addEventListener('scroll', updateActiveChapter, { passive: true });
 
     return () => {
-      observer.disconnect();
+      window.removeEventListener('scroll', updateActiveChapter);
     };
   }, [fullType, canReadReport]);
 
@@ -596,15 +729,21 @@ export default function V2App({ user }: V2AppProps) {
     }
 
       try {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        const supabase = getAuthSupabaseClient();
+        const { data: sessionData } = supabase
+          ? await supabase.auth.getSession()
+          : { data: { session: null } };
+        if (sessionData.session?.access_token) {
+          headers.Authorization = `Bearer ${sessionData.session.access_token}`;
+        }
+
         const response = await fetch('/api/linepay/request', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({
             mbtiType: fullType,
             source,
-            userUid: user?.uid || null,
           }),
         });
 
@@ -621,6 +760,7 @@ export default function V2App({ user }: V2AppProps) {
         window.location.assign(result.paymentUrl);
       } catch (error) {
         console.error('Failed to start LINE Pay checkout', error);
+        setReportMessage('暫時無法開啟付款頁，請稍後再試。');
         trackAction('v2_checkout_error', {
           mbtiType: fullType,
           source,
@@ -636,19 +776,14 @@ export default function V2App({ user }: V2AppProps) {
   };
 
   const handleShareStory = async () => {
-    if (!fullType) {
-      return;
-    }
-
-    trackAction('v2_story_share_click', { mbtiType: fullType, source });
-
+    if (!fullType) return;
     try {
-      await navigator.clipboard.writeText(window.location.href);
-    } catch (error) {
-      console.warn('Failed to copy V2 share URL', error);
+      await navigator.clipboard.writeText(canonicalUrl);
+      setReportMessage('報告連結已複製，可以貼給想分享的人。');
+      trackAction('v2_story_share_click', { mbtiType: fullType, source });
+    } catch {
+      setReportMessage(`無法自動複製，請手動複製連結：${canonicalUrl}`);
     }
-
-    window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer');
   };
 
   const handleChapterNav = (chapterId: string) => {
@@ -668,108 +803,17 @@ export default function V2App({ user }: V2AppProps) {
   };
 
   if (!resultBundle || !fullType) {
-    const marquee = 'KIWIMU V2 · COMING SOON · 32 VARIANTS · 心理原型層 · 即將公布 · ';
-    const v15Bundle = source === 'v15_quiz' ? getLastV2PrototypeResult() : null;
-    const v15FullType = v15Bundle ? `${v15Bundle.resultData.id}-${getVariant(v15Bundle.scores)}` : null;
-    const v15Title = v15Bundle?.resultData.title;
-    return (
-      <div className="v2-root min-h-screen px-5 pt-24 pb-16">
-        <div className="marquee-container">
-          <div className="marquee-track">
-            <span className="marquee-text">{marquee.repeat(3)}</span>
-            <span className="marquee-text">{marquee.repeat(3)}</span>
-          </div>
-        </div>
-        <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl items-center">
-          <div className="v2-panel w-full p-8 md:p-10">
-            <span
-              className="ad-coming-badge inline-flex items-center gap-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
-            >
-              <span className="ad-dot-ink inline-block w-1.5 h-1.5 rounded-full" />
-              即將公布 · COMING SOON
-            </span>
-            <p className="v2-eyebrow mt-4">KIWIMU V2 · MBTI 進化版</p>
-            <h1
-              className="ad-coming-title mt-3 text-4xl font-bold leading-[1.05] md:text-5xl"
-            >
-              看見 16 型<br />看不見的那一層
-            </h1>
-            {v15FullType ? (
-              <div
-                className="ad-v15-box mt-5 rounded-2xl px-5 py-4"
-              >
-                <p
-                  className="ad-v15-label text-[10px] font-bold uppercase tracking-[0.22em] text-white/50"
-                >
-                  V1.5 分流結果
-                </p>
-                <p
-                  className="ad-v15-type mt-2 text-2xl font-bold"
-                >
-                  {v15FullType}
-                </p>
-                {v15Title && <p className="mt-1 text-sm text-white/70">{v15Title}</p>}
-                <p className="mt-3 text-xs text-white/60 leading-relaxed">
-                  V2 上線後會直接帶你進 {v15FullType} 的深度報告。<br />
-                  在那之前，先做完整 V1 看完免費版。
-                </p>
-              </div>
-            ) : (
-              <p className="mt-5 text-base leading-relaxed text-white/70">
-                V2 把 16 型再拆成 32 種變體，疊上心理原型層與歷史軌跡，寫成一份只屬於你的深度報告。<br />
-                目前內容仍在最後校對，先用下面的入口認識自己的 MBTI。
-              </p>
-            )}
-            <div className="mt-6 space-y-2">
-              {[
-                '32 variant：A 穩定核心 × T 自審驅動',
-                '心理原型層 × 歷史軌跡，不只是四個字母',
-                '台灣版敘事，不是翻譯過來的框架',
-              ].map((line) => (
-                <div
-                  key={line}
-                  className="ad-mono-11 flex items-center gap-2 text-white/40"
-                >
-                  <span
-                    className="ad-dot-acid inline-block w-1.5 h-1.5 rounded-full"
-                  />
-                  {line}
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="/quiz"
-                className="kiwimu-btn kiwimu-btn-primary flex-1 px-6 py-4 text-center text-sm font-black uppercase tracking-[0.18em]"
-              >
-                先做 V1 純 MBTI
-              </a>
-              <a
-                href="/read/quiz"
-                className="kiwimu-btn flex-1 px-6 py-4 text-center text-sm font-semibold uppercase tracking-[0.18em]"
-              >
-                30 秒 V1.5 分流
-              </a>
-            </div>
-            <p
-              className="ad-mono-11 mt-6 text-white/30"
-            >
-              V2 上線後會在這裡公布。先做 V1 / V1.5，型別資料未來可以直接帶進來。
-            </p>
-          </div>
-        </div>
-      </div>
-    );
+    return <V2Welcome />;
   }
 
-  if (!report) {
+  if (!variantSummary) {
     return (
-      <div className="v2-root">
+      <div className="v2-surface v2-root">
         <div className="v2-shell">
           <section className="v2-panel v2-empty-panel">
-            <p className="v2-label">V2 CONTENT SYNC REQUIRED</p>
-            <h1 className="v2-empty-title">{resultBundle.resultData.id} 的台灣版草案尚未同步</h1>
-            <p className="v2-empty-copy">目前 `/read` 會直接讀取 `{V2_TW_DRAFT_SOURCE}`，請先同步草案資料再看這個 prototype。</p>
+            <p className="v2-label">報告整理中</p>
+            <h1 className="v2-empty-title">{resultBundle.resultData.id} 的內容暫時無法顯示</h1>
+            <p className="v2-empty-copy">請稍後再試，或回到圖鑑入口重新探索。</p>
           </section>
         </div>
       </div>
@@ -777,23 +821,28 @@ export default function V2App({ user }: V2AppProps) {
   }
 
   const { resultData, scores } = resultBundle;
-  const familyMeta = FAMILY_META[report.familyKey as ReportFamilyKey];
+  const identityAsset = getIdentityAsset(resultData.id);
+  // 32 場景圖以 `${type}-${variant}` 對應；缺圖時退回既有 16 型 identity cutout。
+  const sceneAsset = getSceneAsset(fullType);
+  const familyMeta = FAMILY_META[variantSummary.familyKey as ReportFamilyKey];
   const currentVariant = variant as VariantCode;
-  const prototypeCopy = buildPrototypeCopy(currentVariant, report, resultData);
-  const variantReport = getV2VariantReport(fullType);
+  const prototypeCopy = buildPrototypeCopy(currentVariant, variantSummary, resultData);
+  const variantReport = paidReports?.report ?? null;
+  // 狀態層：草案裡的「當前狀態命名」。MBTI 是入口座標，狀態才是此刻的讀數。
+  // 兩者並置——32 型仍是主標與分享單位，狀態升到同一層而不是取代它。
+  const stateInfo = variantReport?.state ?? variantSummary?.state ?? null;
+  const stateTruth = variantReport?.state?.truth ?? '';
   const oppositeVariant = currentVariant === 'A' ? 'T' : 'A';
-  const oppositeVariantReport = getV2VariantReport(`${resultData.id}-${oppositeVariant}`);
-  const psychArchetype = getV2PsychArchetype(fullType);
-  const dimensionBullets = variantReport?.dimension.bullets.length ? variantReport.dimension.bullets : report.dimension.bullets;
+  const oppositeVariantReport = paidReports?.oppositeReport ?? null;
+  const dimensionBullets = variantReport?.dimension.bullets ?? [];
   const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, dimensionBullets);
-  const dessertOrderUrl = buildDessertOrderLink(resultData.id, variant);
-  const passportUrl = `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v2-footer-passport&mbti_type=${resultData.id}&variant=${variant}`;
-  const versionTags = variantReport?.tags.length
-    ? variantReport.tags.map((tag) => cleanText(tag.label)).filter(Boolean).slice(0, 6)
-    : buildVersionTagWall(report, currentVariant, prototypeCopy.tags);
+  const previewTags = variantReport?.tags ?? variantSummary?.tags ?? [];
+  const versionTags = previewTags.length
+    ? previewTags.map((tag) => cleanText(tag.label)).filter(Boolean).slice(0, 6)
+    : prototypeCopy.tags.map((tag) => tag.zh).slice(0, 6);
   const rootStyle = {
     '--v2-ink': 'var(--t1)',
-    '--v2-acid': '#CCFF00',
+    '--v2-acid': 'var(--signal)',
     '--v2-paper': 'var(--bg-2)',
     '--v2-muted': 'var(--t3)',
     '--v2-family': familyMeta.familyAccent,
@@ -814,31 +863,69 @@ export default function V2App({ user }: V2AppProps) {
       strategy: cleanText(subtypeItems[0]?.body || fallbackCard.strategy),
       energyLabel: cleanText(subtypeItems[1]?.label || fallbackCard.energyLabel),
       energy: cleanText(subtypeItems[1]?.body || fallbackCard.energy),
-      cost: cleanText(subtypeItems[3]?.body || subtypeItems[2]?.body || fallbackCard.cost || '') || undefined,
+      details: subtypeItems.slice(2).map(item => ({ label: cleanText(item.label), body: cleanText(item.body) })),
     };
   });
 
   const currentCompareCard =
     compareCards.find((card) => card.code === currentVariant) || compareCards[0];
-  const abstractContent = variantReport?.abstract.body || report.abstract.body;
-  const professionalTitle = cleanText(variantReport?.professional.coreTitle || report.professional.coreTitle);
-  const professionalBody = cleanText(variantReport?.professional.coreBody || report.professional.coreBody);
-  const dimensionTip = cleanText(variantReport?.dimension.tip || report.dimension.tip);
-  const careerContent = variantReport?.career.bullets.length ? variantReport.career : report.career;
-  const relationshipContent = variantReport?.relationship.bullets.length ? variantReport.relationship : report.relationship;
-  const dessertContent = variantReport?.dessert.name ? variantReport.dessert : report.dessert;
-  const abyssalContent = variantReport?.abyssal.length ? variantReport.abyssal : report.abyssal;
-  const carryFull = cleanText(variantReport?.carry || variantReport?.important || report.closing);
-  const coverQuote = cleanText(variantReport?.soulQuote || report.soulQuote || variantReport?.important || report.closing || resultData.quote || abstractContent);
-  const coverKicker = cleanText(variantReport?.abstract.label || report.abstract.label || currentCompareCard.tone);
-  const coverTitle = cleanText(variantReport?.title || report.title || professionalTitle);
+  const abstractContent = variantReport?.abstract.body || variantSummary.abstract.body;
+  const professionalTitle = cleanText(variantReport?.professional.coreTitle || variantSummary.title);
+  const professionalBody = cleanText(
+    variantReport?.narrative.overview
+      || variantReport?.professional.coreBody
+      || variantSummary.abstract.body,
+  );
+  const dimensionTip = cleanText(variantReport?.dimension.tip);
+  const careerContent = variantReport?.career ?? { title: '工作裡的推進方式', bullets: [] };
+  const relationshipContent = variantReport?.relationship ?? { title: '關係裡的靠近方式', bullets: [] };
+  const editorialDessert = variantReport?.dessert ?? { name: '', visualLogic: '', pairings: [] };
+  const dessertNameFromContract = cleanText(
+    dessertContract?.display_name || dessertContract?.soul_dessert_name,
+  );
+  const dessertName = dessertNameFromContract || '月島甜點提案';
+  const dessertCanonicalName = cleanText(dessertContract?.canonical_name);
+  const dessertDescription = cleanText(dessertContract?.description)
+    || (dessertLoadStatus === 'loading'
+      ? '正在讀取月島現行菜單。'
+      : dessertContract?.linkage_type === 'seasonal'
+        ? '這份配對會隨季節檔期調整，目前沒有固定商品介紹。'
+        : dessertContract
+          ? '月島菜單目前沒有提供固定商品介紹。'
+          : '目前無法同步月島菜單；為避免顯示過期品項，先不使用草稿中的商品名稱與照片。');
+  const dessertNarrative = dessertNameFromContract === cleanText(editorialDessert.name)
+    ? cleanText(editorialDessert.visualLogic)
+    : '';
+  const dessertAvailability = dessertContract?.is_available === false
+    ? '目前未標示為可供應。'
+    : '實際供應、規格與價格以菜單頁為準。';
+  const dessertLinkageNote = dessertLoadStatus === 'loading'
+    ? '正在同步月島現行菜單。'
+    : dessertContract?.linkage_type === 'exact'
+      ? `已對應現行品項。${dessertAvailability}`
+      : dessertContract?.linkage_type === 'theme_match'
+        ? `這是依風味主題配對的現行品項，不代表同一款甜點。${dessertAvailability}`
+        : dessertContract?.linkage_type === 'seasonal'
+          ? '這是季節性配對，品項可能隨檔期更換；請以菜單頁為準。'
+          : '目前無法讀取月島現行菜單，請直接前往菜單確認。';
+  const dessertSourceSummary = [
+    dessertCanonicalName ? `菜單品名：${dessertCanonicalName}` : '',
+    dessertLinkageNote,
+  ].filter(Boolean).join(' ');
+  const dessertImageUrl = cleanText(dessertContract?.image_url);
+  const dessertOrderUrl = dessertContract?.cta_url || buildDessertOrderLink(resultData.id, variant);
+  const abyssalContent = variantReport?.abyssal ?? [];
+  const carryFull = cleanText(variantReport?.carry || variantReport?.important || variantSummary.soulQuote);
+  const coverQuote = cleanText(variantReport?.soulQuote || variantSummary.soulQuote || variantReport?.important || resultData.quote || abstractContent);
+  const coverKicker = cleanText(variantReport?.abstract.label || variantSummary.abstract.label || currentCompareCard.tone);
+  const coverTitle = cleanText(variantReport?.title || variantSummary.title || professionalTitle);
   const unlockPrimaryLabel = isUnlocked
     ? '列印 / 收藏完整報告'
     : isLocalPreview
       ? '解鎖我的完整報告'
       : IS_DEV
         ? 'DEV 階段暫不開放'
-        : '解鎖我的完整報告';
+        : 'NT$149 解鎖這份完整報告';
 
   // ─ Apple Dark helpers ─
   const DIM_NAMES: Record<string, string> = {
@@ -853,15 +940,30 @@ export default function V2App({ user }: V2AppProps) {
     .replace(/\n---\s*$/mu, '').trim();
 
   const behaviorLogic = variantReport?.design.behaviorLogic ?? [];
-  const digitalPersonaIntro = variantReport?.design.quote ?? '';
   const importantQuote = variantReport?.important ?? '';
+  const narrativeScenes = variantReport?.narrative.scenes ?? [];
+  const narrativeCounterpoint = variantReport?.narrative.counterpoint ?? '';
+  const sceneFor = (kind: 'state' | 'daily' | 'work' | 'relationship') =>
+    narrativeScenes.find((scene) => scene.kind === kind);
+  const stateScene = sceneFor('state');
+  const dailyScene = sceneFor('daily');
+  const workScene = sceneFor('work');
+  const relationshipScene = sceneFor('relationship');
 
   const REPORT_MARQUEE = `KIWIMU V2 · 狀態光譜測驗 · DEEP REPORT · ${fullType ?? ''} · `;
   const activeChapterLabel =
     REPORT_CHAPTERS.find((chapter) => chapter.id === activeChapter)?.label ?? REPORT_CHAPTERS[0].label;
 
   return (
-    <div className="v2-root" style={{ ...rootStyle, background: 'var(--bg-0)', color: 'var(--t1)', minHeight: '100vh' }}>
+    <div
+      className="v2-surface v2-root v2-report-shell"
+      style={{
+        ...rootStyle,
+        ...sceneAccentStyle(sceneAsset),
+        // 背景交給 CSS：inline style 會蓋掉 .v2-surface.v2-report-shell 的頂光漸層
+        color: 'var(--t1)',
+      }}
+    >
       {/* Ambient orbs */}
       <div className="ad-orb ad-orb-1" />
       <div className="ad-orb ad-orb-2" />
@@ -870,7 +972,7 @@ export default function V2App({ user }: V2AppProps) {
       <div className="v2-report-progress" style={{ width: `${scrollProgress}%` }} />
 
       {/* Floating chapter nav — right rail on desktop, bottom bar on mobile */}
-      <nav className="ad-chapternav" aria-label="Chapters">
+      <nav className="ad-chapternav" aria-label="報告章節">
         <span className="ad-chapternav-current" aria-hidden="true">{activeChapterLabel}</span>
         <div className="ad-chapternav-track">
           {REPORT_CHAPTERS.map((chapter) => {
@@ -892,6 +994,18 @@ export default function V2App({ user }: V2AppProps) {
         </div>
       </nav>
 
+      <details className="ad-mobile-contents">
+        <summary><span>{activeChapterLabel}</span><span>章節目錄 <span aria-hidden="true">⌃</span></span></summary>
+        <nav aria-label="手機報告章節">
+          {REPORT_CHAPTERS.map(chapter => (
+            <button key={chapter.id} type="button" aria-current={chapter.id === activeChapter ? 'location' : undefined}
+              onClick={event => { const details = event.currentTarget.closest('details'); if (details) details.open = false; handleChapterNav(chapter.id); }}>
+              <span>{chapter.label}</span><span>{chapter.locked && !canReadReport ? '完整報告' : '↗'}</span>
+            </button>
+          ))}
+        </nav>
+      </details>
+
       {/* Fixed marquee */}
       <div className="marquee-container ad-marquee-fixed">
         <div className="marquee-track">
@@ -909,6 +1023,15 @@ export default function V2App({ user }: V2AppProps) {
           {familyMeta.familyLabel} · Kiwimu V2 深度報告
         </div>
 
+        {sceneAsset ? (
+          <KiwimuScenePlate
+            asset={sceneAsset}
+            bleed
+            priority
+            indexLabel={`NO. ${String(sceneAsset.index).padStart(2, '0')} / 32`}
+          />
+        ) : null}
+
         <div className="ad-hero-row">
           <div className="ad-hero-type-block">
             <div className="ad-hero-type-row">
@@ -922,27 +1045,50 @@ export default function V2App({ user }: V2AppProps) {
             </div>
             <p className="ad-hero-subtitle">{coverKicker} · {coverTitle}</p>
           </div>
-          {resultData.characterImage ? (
+          {!sceneAsset && identityAsset ? (
             <div className="ad-char-reveal">
-              <img src={resultData.characterImage} alt={`${resultData.id} 角色`} />
+              <KiwimuVisual
+                asset={identityAsset}
+                alt={`${fullType} 人格 Kiwimu 插畫`}
+                loading="eager"
+                fetchPriority="high"
+              />
             </div>
           ) : null}
         </div>
 
-        <blockquote className="ad-hero-quote">{coverQuote}</blockquote>
-        <p className="ad-hero-abstract">{abstractContent}</p>
-        <p className="ad-hero-snapshot">這份報告是你此刻的心理快照，不是固定的標籤。人在不同階段、不同狀態下，側重點會移動。</p>
+        {stateInfo ? (
+          <div className="ad-hero-statename">
+            <span className="ad-hero-statename-head">
+              <span className="ad-hero-statename-dot" />
+              這份敘事的狀態
+            </span>
+            <strong className="ad-hero-statename-primary">{stateInfo.primary}</strong>
+            {stateInfo.secondary ? (
+              <span className="ad-hero-statename-secondary">{stateInfo.secondary}</span>
+            ) : null}
+          </div>
+        ) : null}
 
-        <div className="ad-hero-state">
-          <span className="ad-hero-state-dot" />
-          <span>{currentVariant === 'A' ? '當前狀態：穩定輸出期 / 低噪推進中' : '當前狀態：高頻調整期 / 自我監測中'}</span>
-        </div>
+        <blockquote className="ad-hero-quote">{coverQuote}</blockquote>
+        {stateInfo?.framing ? (
+          <p className="ad-hero-framing">{stateInfo.framing}</p>
+        ) : null}
+        <p className="ad-hero-abstract">{abstractContent}</p>
+        <p className="ad-hero-snapshot">狀態名稱由這次的型別對應，是理解日常的敘事提示。它還沒有獨立測量你最近的能量或耗損；讀到不符合自己的地方，可以保留不同意見。</p>
+
+        {stateInfo ? null : (
+          <div className="ad-hero-state">
+            <span className="ad-hero-state-dot" />
+            <span>{currentVariant === 'A' ? '當前狀態：穩定輸出期 / 低噪推進中' : '當前狀態：高頻調整期 / 自我監測中'}</span>
+          </div>
+        )}
       </header>
 
       {/* ── 01: TAG WALL (FREE) ──────────────────────────────── */}
       <div className="ad-section ad-reveal">
         <p className="ad-section-kicker">01 · Tag Wall</p>
-        <h2 className="ad-section-title">五個能瞬間辨識你的 V2 標籤</h2>
+        <h2 className="ad-section-title">五個理解自己的切角</h2>
         <div className="ad-tag-grid">
           {versionTags.slice(0, 5).map((tag, idx) => {
             const zhPart = tag.split('(')[0]?.trim() ?? tag;
@@ -966,16 +1112,24 @@ export default function V2App({ user }: V2AppProps) {
       {/* ── PAYWALL GATE ─────────────────────────────────────── */}
       {!canReadReport ? (
         <div className="ad-paywall-box ad-reveal">
-          <p className="ad-paywall-eyebrow">⬡ Premium</p>
-          <h2 className="ad-paywall-title">V2 完整報告正式上線後可解鎖</h2>
-          <p className="ad-paywall-sub">Section 02 – 07 · 職涯 × 關係 · 靈魂甜點 · 帶走的字</p>
-          <button
-            type="button"
-            className="ad-btn-primary ad-btn-center"
-            onClick={handleCheckout}
-          >
-            {unlockPrimaryLabel}
-          </button>
+          <p className="ad-paywall-eyebrow">⬡ {isReportLoading ? 'Verifying' : 'Premium'}</p>
+          <h2 className="ad-paywall-title">
+            {isReportLoading ? '正在驗證並載入完整報告' : IS_CHECKOUT_ENABLED ? '解鎖這份完整 V2 報告' : '完整報告即將開放'}
+          </h2>
+          <p className="ad-paywall-sub">
+            {isReportLoading
+              ? '請稍候，通過權限確認後會自動展開。'
+              : 'Section 02 – 08 · 職涯 × 關係 · 靈魂甜點 · 帶走的字'}
+          </p>
+          {!isReportLoading && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
+            <button
+              type="button"
+              className="ad-btn-primary ad-btn-center"
+              onClick={handleCheckout}
+            >
+              {unlockPrimaryLabel}
+            </button>
+          ) : null}
           {IS_DEV && isLocalPreview ? (
             <div className="ad-mt-12">
               <button type="button" className="ad-btn-ghost ad-btn-center ad-btn-sm" onClick={handleResetPreview}>
@@ -989,12 +1143,32 @@ export default function V2App({ user }: V2AppProps) {
         {/* ── 02: PROFESSIONAL INSIGHTS ───────────────────────── */}
         <div id="ch-02" className="ad-section ad-reveal">
           <p className="ad-section-kicker">02 · Professional Insights</p>
-          <h2 className="ad-section-title">{professionalTitle}</h2>
-          <p className="ad-section-lead">壓力與安穩之間，同一個人會用不同的方式運作。A 與 T 並非優劣，而是兩種真實的狀態切換。</p>
+          <h2 className="ad-section-title">保護自己的方式，也有它的代價</h2>
+          <p className="ad-section-lead">A 與 T 描述兩種自我回應傾向。把它們放在一起讀，看看哪些做法替你省力，哪些也讓你付出代價。</p>
           <div className="ad-card ad-mb-8">
             <p className="ad-body-15">{professionalBody}</p>
           </div>
-          <div className="ad-grid-2">
+          {stateScene ? (
+            <aside className="ad-narrative-scene ad-mb-12" aria-label="一個可能的狀態畫面">
+              <span className="ad-narrative-scene-kicker">一個可能的畫面</span>
+              <h3>{stateScene.label}</h3>
+              <p>{stateScene.body}</p>
+            </aside>
+          ) : null}
+          {stateTruth ? (
+            <details className="ad-state-details ad-mb-12">
+              <summary>再往下一層：{stateInfo?.primary} 的狀態機制</summary>
+              <div className="ad-state-truth-body">
+                {stateTruth.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => (
+                  line.startsWith('- ')
+                    ? <p key={line} className="ad-state-truth-item">{line.slice(2)}</p>
+                    : <p key={line} className="ad-state-truth-line">{line}</p>
+                ))}
+              </div>
+            </details>
+          ) : null}
+          <p className="ad-compare-hint">A / T 對照 · 左右滑動閱讀兩種傾向</p>
+          <div className="ad-grid-2 ad-compare-scroll" tabIndex={0} role="region" aria-label="A 與 T 傾向對照">
             {compareCards.map((card) => (
               <div key={card.code} className={`ad-subtype-card${card.code === currentVariant ? ' is-active' : ''}`}>
                 <div className="ad-subtype-header">
@@ -1002,7 +1176,7 @@ export default function V2App({ user }: V2AppProps) {
                     <div className="ad-subtype-big-letter">{card.code}</div>
                     <div className="ad-subtype-tone">{card.tone}</div>
                   </div>
-                  {card.code === currentVariant ? <span className="ad-badge-acid">你的型</span> : null}
+                  {card.code === currentVariant ? <span className="ad-badge-acid">本次傾向</span> : null}
                 </div>
                 <div className="ad-subtype-name">{card.title}</div>
                 <div className="ad-subtype-row">
@@ -1013,26 +1187,35 @@ export default function V2App({ user }: V2AppProps) {
                   <div className="ad-subtype-label">{card.energyLabel}</div>
                   <div className="ad-subtype-value">{card.energy}</div>
                 </div>
+                {card.details?.map(item => (
+                  <div className="ad-subtype-row" key={item.label}>
+                    <div className="ad-subtype-label">{item.label}</div>
+                    <div className="ad-subtype-value">{item.body}</div>
+                  </div>
+                ))}
               </div>
             ))}
           </div>
-          <p className="ad-reflect">你現在比較接近哪一種運作模式？是環境讓你如此，還是你選擇了這樣？</p>
+          {narrativeCounterpoint ? (
+            <p className="ad-reader-permission">{narrativeCounterpoint}</p>
+          ) : null}
+          <p className="ad-reflect">回想一個最近的情境：這個反應當時幫了你什麼？後來又留下了什麼？</p>
         </div>
 
         {/* ── 03: DIMENSION SPECTRUM ───────────────────────────── */}
         <div id="ch-03" className="ad-section ad-reveal">
           <p className="ad-section-kicker">03 · Dimension Spectrum</p>
-          <h2 className="ad-section-title">你的四維光譜</h2>
-          <p className="ad-section-lead">認知偏好是光譜，不是非此即彼的分類。偏向某一端，代表你習慣用那個方式接收和處理世界。</p>
+          <h2 className="ad-section-title">四種偏好怎麼出現</h2>
+          <p className="ad-section-lead">四組偏好提供不同的觀察角度。百分比只表示本機這次作答的加權傾向，不代表能力、人口排名或診斷。</p>
           <div className="ad-dim-grid">
             {spectrumRows.slice(0, 4).map((row) => (
               <div key={row.label} className="ad-dim-card">
                 <div className="ad-dim-letter">{row.selectedCode}</div>
                 <div className="ad-dim-name">{DIM_NAMES[row.selectedCode] ?? row.selectedCode}</div>
-                <div className="ad-dim-track">
-                  <div className="ad-dim-fill" style={{ width: `${row.selectedPct}%` }} />
-                </div>
-                <div className="ad-dim-score">{row.selectedPct}%</div>
+                {row.selectedPct !== null ? <>
+                  <div className="ad-dim-track" aria-hidden="true"><div className="ad-dim-fill" style={{ width: `${row.selectedPct}%` }} /></div>
+                  <div className="ad-dim-score">{row.selectedPct}% <span>本次作答</span></div>
+                </> : <p className="ad-dim-score-note">型別閱讀 · 尚無本機作答分數</p>}
                 <div className="ad-dim-tip">{row.description}</div>
               </div>
             ))}
@@ -1043,12 +1226,14 @@ export default function V2App({ user }: V2AppProps) {
         {behaviorLogic.length > 0 ? (
           <div id="ch-04" className="ad-section ad-reveal">
             <p className="ad-section-kicker">04 · Digital Persona</p>
-            <h2 className="ad-section-title">在 2026 數位環境中，你這組怎麼運作？</h2>
-            <p className="ad-section-lead">數位環境讓行為模式更可見。你在這裡的慣性，通常比你對自己的認知更接近真實的樣子。</p>
-            {digitalPersonaIntro ? (
-              <div className="ad-card ad-mb-12">
-                <p className="ad-body-15">{digitalPersonaIntro}</p>
-              </div>
+            <h2 className="ad-section-title">它在生活裡的樣子</h2>
+            <p className="ad-section-lead">以下是這個型別的敘事觀察。找一個你熟悉的場景對照，看看哪些反應像你，哪些需要換個說法。</p>
+            {dailyScene ? (
+              <aside className="ad-narrative-scene ad-mb-12" aria-label="一個可能的日常畫面">
+                <span className="ad-narrative-scene-kicker">一個可能的畫面</span>
+                <h3>{dailyScene.label}</h3>
+                <p>{dailyScene.body}</p>
+              </aside>
             ) : null}
             <div className="ad-card">
               <div className="ad-list-label">行為邏輯</div>
@@ -1061,39 +1246,35 @@ export default function V2App({ user }: V2AppProps) {
           </div>
         ) : null}
 
-        {/* ── 05: HISTORICAL ARCHETYPES ────────────────────────── */}
-        <div id="ch-05" className="ad-section ad-reveal">
-          <p className="ad-section-kicker">05 · Historical Archetypes</p>
-          <h2 className="ad-section-title">同類過渡期的歷史原型</h2>
-          <p className="ad-section-lead">找到跨時代有同樣模式的人，不是要你複製他們。是讓你知道這種思維方式有完整的脈絡，走過去的人不只你一個。</p>
-          {(psychArchetype?.figures ?? []).length > 0 ? (
-            <div className="ad-grid-3 ad-mb-12">
-              {(psychArchetype?.figures ?? []).slice(0, 3).map((figure) => (
-                <div key={figure.name} className="ad-person-card">
-                  <div className="ad-person-name">{figure.name}</div>
-                  <div className="ad-person-body">{figure.body}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="ad-body-14-muted">
-              歷史原型資料整理中。
-            </p>
-          )}
-          <div className="ad-rarity-card">
-            <div className="ad-rarity-label">⬡ Rarity Profile · 稀缺組合</div>
-            <div className="ad-rarity-body">{psychArchetype?.rarity ?? prototypeCopy.frequencyNote}</div>
+        <section id="ch-05" className="ad-section ad-reveal">
+          <p className="ad-section-kicker">05 · Small Practices</p>
+          <h2 className="ad-section-title">把理解，放進一件小事裡。</h2>
+          <p className="ad-section-lead">不用一次改變很多。挑一個有感的練習，試完再看看它是否適合你。</p>
+          <div className="ad-practice-list">
+            {variantReport?.practices.map((item, index) => (
+              <article key={item.label} className="ad-practice">
+                <span className="ad-practice-index" aria-hidden="true">{['?', '↗', '↔', '◌'][index]}</span>
+                <div><h3>{item.label}</h3><p>{item.body}</p></div>
+              </article>
+            ))}
           </div>
-        </div>
+        </section>
 
         {/* ── 06: CAREER × RELATIONSHIP ────────────────────────── */}
         <div id="ch-06" className="ad-section ad-reveal">
           <p className="ad-section-kicker">06 · Career × Relationship</p>
-          <h2 className="ad-section-title">{careerContent.title} × {relationshipContent.title}</h2>
-          <p className="ad-section-lead">你在工作裡的反應方式，通常也是你在親密關係中的語言。兩者往往有同樣的心理根源。</p>
+          <h2 className="ad-section-title">工作裡的推進方式 × 關係裡的靠近方式</h2>
+          <p className="ad-section-lead">工作與關係可能喚起不同的反應。分開讀這兩個場景，看看你在哪裡自在，又在哪裡需要多一點空間。</p>
           <div className="ad-grid-2">
             <div className="ad-card">
               <div className="ad-list-label">職涯生存模式</div>
+              {workScene ? (
+                <aside className="ad-narrative-scene ad-narrative-scene-inline ad-narrative-scene-leading" aria-label="一個可能的工作畫面">
+                  <span className="ad-narrative-scene-kicker">一個可能的畫面</span>
+                  <h3>{workScene.label}</h3>
+                  <p>{workScene.body}</p>
+                </aside>
+              ) : null}
               <ul className="ad-arrow-list">
                 {careerContent.bullets.map((item) => (
                   <li key={item.label}>{item.body}</li>
@@ -1102,6 +1283,13 @@ export default function V2App({ user }: V2AppProps) {
             </div>
             <div className="ad-card">
               <div className="ad-list-label">關係運作模式</div>
+              {relationshipScene ? (
+                <aside className="ad-narrative-scene ad-narrative-scene-inline ad-narrative-scene-leading" aria-label="一個可能的關係畫面">
+                  <span className="ad-narrative-scene-kicker">一個可能的畫面</span>
+                  <h3>{relationshipScene.label}</h3>
+                  <p>{relationshipScene.body}</p>
+                </aside>
+              ) : null}
               <ul className="ad-arrow-list">
                 {relationshipContent.bullets.map((item) => (
                   <li key={item.label}>{item.body}</li>
@@ -1111,36 +1299,55 @@ export default function V2App({ user }: V2AppProps) {
           </div>
           {suppressedSideText ? (
             <div className="ad-suppressed-card">
-              <div className="ad-suppressed-label">⬡ Suppressed Side · 壓制面</div>
+              <div className="ad-suppressed-label">另一個還沒說出口的需要</div>
               <p className="ad-suppressed-body">{suppressedSideText}</p>
             </div>
           ) : null}
-          <p className="ad-reflect">你壓制的那一面，是因為某段經歷，還是從來沒有機會展現？</p>
+          <p className="ad-reflect">如果有一句話一直沒說出口，你希望在什麼樣的場合被聽見？</p>
         </div>
 
         {/* ── 07: SOUL REFLECTION ──────────────────────────────── */}
-        <div className="ad-section ad-reveal">
-          <p className="ad-section-kicker">07 · Soul Reflection</p>
-          <h2 className="ad-section-title">{dessertContent.name}</h2>
-          <p className="ad-section-lead">靈魂甜點是一個隱喻，試圖描述讓你感到真實的那種狀態。深問不需要答案，讓問題待在那裡也是一種方式。</p>
+        <div id="ch-07" className="ad-section ad-reveal">
+          <p className="ad-section-kicker">07 · Taste Pairing</p>
+          <h2 className="ad-section-title">{dessertName}</h2>
+          <p className="ad-section-lead">甜點配對是 Kiwimu 的品牌敘事，不是心理測量結論。品項資料同步月島菜單；實際供應、規格與價格以菜單頁為準。</p>
           <div className="ad-grid-2">
             <div>
-              <div className="ad-card ad-mb-8">
+              <div className="ad-card ad-dessert-card ad-mb-8">
+                {dessertImageUrl ? (
+                  <figure className="ad-dessert-visual">
+                    <img
+                      src={dessertImageUrl}
+                      className="ad-dessert-image"
+                      alt={`${dessertName}，月島菜單品項`}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <figcaption className="ad-dessert-caption">
+                      <span className="ad-dessert-caption-code">Menu Pairing · {fullType}</span>
+                      <span className="ad-dessert-caption-name">{dessertName}</span>
+                    </figcaption>
+                  </figure>
+                ) : null}
                 <p className="ad-body-15 ad-mb-12">
-                  {dessertContent.visualLogic}
+                  {dessertDescription}
                 </p>
-                {dessertContent.pairings.map((pairing) => (
-                  <div key={pairing.label} className="ad-pairing-card">
-                    <div className="ad-pairing-label">{pairing.label}</div>
-                    <div className="ad-pairing-body">{pairing.body}</div>
+                <div className="ad-pairing-card">
+                  <div className="ad-pairing-label">月島菜單真相源</div>
+                  <div className="ad-pairing-body">{dessertSourceSummary}</div>
+                </div>
+                {dessertNarrative ? (
+                  <div className="ad-pairing-card">
+                    <div className="ad-pairing-label">品牌敘事 · 非商品說明</div>
+                    <div className="ad-pairing-body">{dessertNarrative}</div>
                   </div>
-                ))}
+                ) : null}
               </div>
             </div>
             <div>
               {abyssalContent.map((q, idx) => (
                 <div key={q.title} className="ad-abyssal-card">
-                  <div className="ad-abyssal-index">Abyssal 0{idx + 1} · {q.title}</div>
+                  <div className="ad-abyssal-index">留給自己 0{idx + 1} · {q.title}</div>
                   <div className="ad-abyssal-body">{q.body}</div>
                 </div>
               ))}
@@ -1149,7 +1356,7 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── CARRY / IMPORTANT ────────────────────────────────── */}
-        <div className="ad-carry-section ad-reveal">
+        <div id="ch-08" className="ad-carry-section ad-reveal">
           <div className="ad-carry-eyebrow">帶走的字</div>
           <p className="ad-carry-frame">這份報告讀到這裡，你帶走的不是一個分類，而是一種認識自己的角度。</p>
           <p className="ad-carry-body">{carryFull}</p>
@@ -1162,8 +1369,8 @@ export default function V2App({ user }: V2AppProps) {
 
         {/* ── FOOTER ───────────────────────────────────────────── */}
         <div className="ad-footer ad-reveal">
-          <p className="ad-footer-title">你的靈魂甜點已選定</p>
-          <p className="ad-footer-sub">{dessertContent.name} — 在月島的某個角落等你</p>
+          <p className="ad-footer-title">讓這次閱讀，回到生活。</p>
+          <p className="ad-footer-sub">{dessertName} · 這次敘事的味覺提案</p>
           <div className="ad-btn-row">
             <a
               href={dessertOrderUrl}
@@ -1172,10 +1379,10 @@ export default function V2App({ user }: V2AppProps) {
               className="ad-btn-primary"
               onClick={() => trackDessertOrderClick(resultData.id, variant)}
             >
-              立即訂購你的靈魂甜點 →
+              查看月島甜點 →
             </a>
             <button type="button" className="ad-btn-ghost" onClick={handleShareStory}>
-              分享到 IG Story
+              複製報告連結
             </button>
             <a
               href={passportUrl}
@@ -1184,12 +1391,14 @@ export default function V2App({ user }: V2AppProps) {
               className="ad-btn-ghost"
               onClick={() => trackButtonClick('v2_footer_to_passport', 'v2_footer', passportUrl)}
             >
-              保存到 Passport
+              開啟 Passport
             </a>
           </div>
         </div>
         </>
       )}
+
+      {reportMessage ? <p className="ad-feedback" role="status">{reportMessage}</p> : null}
 
       {/* ── DEV STRIP ────────────────────────────────────────── */}
       {IS_DEV ? (

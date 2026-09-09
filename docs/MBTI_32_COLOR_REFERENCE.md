@@ -1,5 +1,14 @@
 # MBTI 人格 32 色對照表
 
+> **Status：歷史參考，已被場景取樣色取代（2026-09-05）。**
+>
+> V2 現行的人格色不再手工指定，而是從該變體的 32 場景圖實際取樣後正規化而得，
+> 由 `scripts/build-mbti32-assets.py` 寫入 `data/mbti32Assets.generated.ts` 的
+> `palette.deep / accent / glow`，再經 `sceneAccentStyle()` 注入
+> `--type-deep / --type-accent / --type-glow`。圖與 UI 因此必然同源，不會各說各話。
+>
+> 本表僅供歷史查詢與離線輸出素材參考，**不得**用於控制網站顏色。
+
 **用途**：16 型 × A/T 的人格色，用於角色插畫背後背景色塊。  
 **規則**：A 較飽和/堅定，T 較柔/霧。
 

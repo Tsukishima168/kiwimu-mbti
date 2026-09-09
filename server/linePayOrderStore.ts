@@ -76,6 +76,10 @@ type UpdateLinePayOrderInput = Partial<
   >
 >;
 
+type UpdateLinePayOrderOptions = {
+  expectedStatuses?: LinePayOrderStatus[];
+};
+
 export function isLinePayOrderStoreAvailable() {
   return Boolean(getUserAdminDb());
 }
@@ -164,9 +168,42 @@ export async function getLinePayOrder(
   return null;
 }
 
+export async function hasConfirmedLinePayOrderForUser(
+  userId: string,
+  mbtiType: string,
+): Promise<boolean | undefined> {
+  const db = getUserAdminDb();
+  if (!db) return undefined;
+
+  let publicError: unknown = null;
+  for (const schema of LINE_PAY_ORDER_SCHEMAS) {
+    const { data, error } = await linePayOrders(db, schema)
+      .select('order_id')
+      .eq('user_uid', userId)
+      .eq('mbti_type', mbtiType)
+      .eq('status', 'confirmed')
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      if (schema === 'public') publicError = error;
+      else console.warn('[LINE PAY] legacy entitlement lookup failed', error);
+      continue;
+    }
+    if (data) return true;
+  }
+
+  if (publicError) {
+    console.error('[LINE PAY] entitlement lookup error', publicError);
+    return undefined;
+  }
+  return false;
+}
+
 export async function updateLinePayOrder(
   orderId: string,
   input: UpdateLinePayOrderInput,
+  options: UpdateLinePayOrderOptions = {},
 ): Promise<boolean> {
   const db = getUserAdminDb();
   if (!db) return false;
@@ -178,9 +215,13 @@ export async function updateLinePayOrder(
   let publicError: unknown = null;
 
   for (const schema of LINE_PAY_ORDER_SCHEMAS) {
-    const { data, error } = await linePayOrders(db, schema)
+    let query = linePayOrders(db, schema)
       .update(updatePayload)
-      .eq('order_id', orderId)
+      .eq('order_id', orderId);
+    if (options.expectedStatuses?.length) {
+      query = query.in('status', options.expectedStatuses);
+    }
+    const { data, error } = await query
       .select('order_id')
       .maybeSingle();
 

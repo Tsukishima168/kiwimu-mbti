@@ -4,7 +4,7 @@ import { AppUser, Option, MbtiResultData, Score } from './types';
 import { getAuthSupabaseClient, restoreAuthSessionFromUrl, toAppUser, signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
 import { useCloudSync } from './hooks/useCloudSync';
 import { calculateResults, getVariant } from './utils/logic';
-import { getResultData } from './constants';
+import { getResultData, QUESTIONS } from './constants';
 import { loadResultData } from './utils/dataLoader';
 import Intro from './components/Intro';
 import Quiz from './components/Quiz';
@@ -53,10 +53,15 @@ import { sendResultEmail } from './utils/sendResultEmail';
 import NotFound from './components/NotFound';
 import DiscordLinkGate from './components/DiscordLinkGate';
 import { sendDiscordNotification } from './utils/discord';
-import { triggerMbtiCompletePoints } from './utils/questPointsTrigger';
+import {
+  installMbtiEconomyOutboxRetry,
+  prepareMbtiAttempt,
+  reportMbtiCompleted,
+} from './utils/economyEvents';
 import { isV2Pathname, normalizeV2Pathname } from './utils/v2Routes';
 import { applyRuntimeSeo } from './utils/seo';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT, type PassportLoginUiOptions } from './utils/authStorage';
+import { KIWIMU_CAMPAIGN_ASSETS } from './data/kiwimuVisualAssets';
 
 const Result = lazy(() => import('./components/Result'));
 const MyArchive = lazy(() => import('./components/MyArchive'));
@@ -66,7 +71,6 @@ const Today = lazy(() => import('./pages/Today'));
 const ResultLegacyDump = lazy(() => import('./components/ResultLegacyDump'));
 const V2App = lazy(() => import('./components/v2/V2App'));
 const V2QuizFlow = lazy(() => import('./components/v2/V2QuizFlow'));
-const V2QaNotes = lazy(() => import('./components/v2/V2QaNotes'));
 const AnswersHub = lazy(() => import('./pages/AnswersHub'));
 const AnswerArticle = lazy(() => import('./pages/AnswerArticle'));
 
@@ -84,7 +88,7 @@ const ROOT_PATHS = new Set(['/', '/index.html']);
 const V1_PATHS = new Set(['/quiz', '/v1']);
 const POST_LOGIN_DESTINATION_KEY = 'post_login_destination';
 const SITE_URL = 'https://kiwimu.com';
-const DEFAULT_SOCIAL_IMAGE = 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png';
+const DEFAULT_SOCIAL_IMAGE = KIWIMU_CAMPAIGN_ASSETS.socialFallback.src;
 const DEFAULT_LOGIN_ERROR_MESSAGE = '登入視窗已關閉，請再試一次。';
 
 const isV1Pathname = (pathname: string) =>
@@ -386,6 +390,8 @@ const App: React.FC = () => {
     init();
   }, []);
 
+  useEffect(() => installMbtiEconomyOutboxRetry(), []);
+
   // 【新增】測試模式快捷鍵（Ctrl+Shift+T）
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -633,6 +639,7 @@ const App: React.FC = () => {
     // 【新增】追蹤開始測驗
     trackMarketingEvent(MARKETING_EVENTS.START_QUIZ);
     trackAction('start_quiz');
+    void prepareMbtiAttempt('v1-40');
 
     setStage('quiz');
   };
@@ -663,6 +670,19 @@ const App: React.FC = () => {
     });
 
     trackSsoEvent('quiz_completed', { mbti_type: type, variant });
+
+    // Economy v2 only receives answer indices and a tracking UUID. Identity is
+    // verified from the shared Supabase JWT and all eligibility lives on server.
+    void reportMbtiCompleted({
+      answers,
+      questionBank: QUESTIONS,
+      quizVersion: 'v1-40',
+    }).then(result => {
+      trackAction('economy_mbti_completed', {
+        code: result?.code || 'UNAVAILABLE',
+        quizVersion: 'v1-40',
+      });
+    });
 
     // 【新增】追蹤行銷轉換事件
     trackMarketingEvent(MARKETING_EVENTS.COMPLETE_QUIZ, {
@@ -732,8 +752,6 @@ const App: React.FC = () => {
     replaceRoute('/quiz/result');
     setStage('result');
 
-    // 🎮 W2-6 / LIFF-3：MBTI 完成積分觸發（+2 pts，每週限一次）
-    triggerMbtiCompletePoints();
   };
 
   const handleRetest = () => {
@@ -919,8 +937,7 @@ const App: React.FC = () => {
     const normalizedV2Path = normalizeV2Pathname(_path);
     return (
       <Suspense fallback={<RouteFallback />}>
-        {normalizedV2Path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>}
-        <V2QaNotes />
+        {normalizedV2Path === '/read/quiz' ? <V2QuizFlow user={user} /> : <div className="v2-app"><V2App user={user} /></div>}
       </Suspense>
     );
   }
