@@ -41,6 +41,7 @@ SUPABASE_USER_SERVICE_ROLE_KEY=your-service-role-key
 - `SUPABASE_USER_URL` / `SUPABASE_USER_SERVICE_ROLE_KEY`
   - 這組只給 server API route 使用，不可放到前端
   - 新環境以 `public.line_pay_orders` 為準；程式只為既有資料保留 `mbti.line_pay_orders` fallback
+- LINE Pay v3 的 `transactionId` 可能是 19 位數；server 必須先用 `response.text()` 讀回傳，再把 16 位以上數字轉成字串後 `JSON.parse`，避免 JavaScript 數字精度導致 request 儲存值與 confirm redirect 值不同。
 
 ## 本次新增的 API
 
