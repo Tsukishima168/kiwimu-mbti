@@ -88,7 +88,7 @@ export async function requestLinePay<T>({
     throw new Error(`LINE Pay HTTP ${response.status}: ${text}`);
   }
 
-  return (await response.json()) as LinePayApiResponse<T>;
+  return parseLinePayApiResponse<T>(await response.text());
 }
 
 export function buildLinePayApiPath(pathname: string) {
@@ -143,4 +143,9 @@ export function buildAppBaseUrl(requestOrigin?: string) {
 
 export function isLinePaySuccessCode(returnCode: string) {
   return returnCode === '0000';
+}
+
+export function parseLinePayApiResponse<T>(text: string): LinePayApiResponse<T> {
+  const bigintSafeText = text.replace(/:\s*(\d{16,})(?=\s*[,}\]])/g, ': "$1"');
+  return JSON.parse(bigintSafeText) as LinePayApiResponse<T>;
 }

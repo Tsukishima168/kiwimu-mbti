@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildV2LinePayOrderId,
   buildV2OrderCookie,
+  parseLinePayApiResponse,
   parseMbtiTypeFromOrderId,
   readV2OrderIdCookie,
 } from './linePay';
@@ -28,5 +29,13 @@ describe('V2 LINE Pay order proof', () => {
     expect(cookie).toContain('HttpOnly');
     expect(cookie).toContain('Secure');
     expect(readV2OrderIdCookie(cookie)).toBe(orderId);
+  });
+
+  it('keeps LINE Pay transaction ids as exact strings', () => {
+    const payload = parseLinePayApiResponse<{ transactionId: string }>(
+      '{"returnCode":"0000","returnMessage":"OK","info":{"transactionId":2026090902381099110}}',
+    );
+
+    expect(payload.info?.transactionId).toBe('2026090902381099110');
   });
 });
