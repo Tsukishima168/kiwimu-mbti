@@ -96,7 +96,7 @@
 
 .ku-universe-rail__wordmark {
   font-family: var(--ku-font-display);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -105,7 +105,7 @@
 .ku-universe-rail__meta {
   color: rgba(247, 247, 242, 0.55);
   font-family: var(--ku-font-mono);
-  font-size: 0.52rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -178,7 +178,7 @@
   align-self: center;
   color: rgba(247, 247, 242, 0.3);
   font-family: var(--ku-font-mono);
-  font-size: 0.5rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.08em;
 }
@@ -186,7 +186,7 @@
 .ku-universe-rail__label {
   align-self: end;
   font-family: var(--ku-font-display);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -195,7 +195,7 @@
 .ku-universe-rail__descriptor {
   align-self: start;
   color: rgba(247, 247, 242, 0.55);
-  font-size: 0.55rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   line-height: 1.1;
 }
@@ -275,9 +275,17 @@
   }
 }
 
+@media (min-width: 40.001rem) {
+  .ku-universe-rail {
+    position: sticky;
+    top: 0;
+    z-index: 160;
+  }
+}
+
 @media (max-width: 40rem) {
   :root {
-    --ku-rail-height: calc(5.1rem + 1px);
+    --ku-rail-height: calc(4.75rem + 1px);
   }
 
   .ku-universe-rail__inner {
@@ -286,18 +294,23 @@
 
   .ku-universe-rail__identity {
     min-width: 0;
-    min-height: 2.2rem;
+    min-height: 2rem;
     justify-content: space-between;
     padding: 0 var(--ku-space-3);
     border-right: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
+  .ku-universe-rail__wordmark {
+    font-size: 0.75rem;
+    letter-spacing: 0.13em;
+  }
+
   .ku-universe-rail__identity::after {
     color: rgba(247, 247, 242, 0.55);
     content: 'EXPLORE 05';
     font-family: var(--ku-font-mono);
-    font-size: 0.5rem;
+    font-size: 0.6875rem;
     font-weight: 600;
     letter-spacing: 0.12em;
   }
@@ -307,9 +320,27 @@
   }
 
   .ku-universe-rail__link {
-    flex-basis: 7.4rem;
-    min-height: 2.9rem;
+    flex-basis: 6.9rem;
+    grid-template-rows: 1fr;
+    align-items: center;
+    min-height: 2.75rem;
+    padding-block: 0.35rem;
     scroll-snap-align: start;
+  }
+
+  .ku-universe-rail__index {
+    grid-row: 1;
+    font-size: 0.6875rem;
+  }
+
+  .ku-universe-rail__label {
+    align-self: center;
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+
+  .ku-universe-rail__descriptor {
+    display: none;
   }
 }
 

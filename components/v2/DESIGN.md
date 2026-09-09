@@ -5,7 +5,7 @@
 > 並回頭更新本文件。
 >
 > **Status**: 現行實作（live）。
-> **Last updated**: 2026-09-06（Quiet Atlas Reading Edition）
+> **Last updated**: 2026-09-08（Quiet Atlas Narrative Edition）
 >
 > 舊版 Apple Dark 規格保留在 `DESIGN.md.bak-20260905`，
 > 舊 CSS 保留在 `v2-dark.css.bak-20260905`。
@@ -28,8 +28,9 @@
 
 ## 0.1 視覺資產契約
 
-- `data/kiwimuVisualAssets.ts` 是所有 Kiwimu 圖片的唯一映射來源；正式元件不得再散寫
-  Cloudinary URL，也不得直接 import `data/mbti32Assets.generated.ts`。
+- `data/kiwimuVisualAssets.ts` 是所有靜態 Kiwimu 圖片的唯一映射來源；正式元件不得再散寫
+  Cloudinary URL，也不得直接 import `data/mbti32Assets.generated.ts`。月島現行商品圖是例外：
+  只能使用 unified dessert contract 回傳的 `image_url`，不得把動態商品 URL 抄回靜態 catalog。
 - `components/visuals/KiwimuVisual.tsx` 統一處理 intrinsic size、載入策略、CORS、
   `object-fit` 與失敗 fallback。
 - `components/visuals/KiwimuScenePlate.tsx` 是場景圖版（圓拱畫框 + 博物館式標註）的
@@ -57,8 +58,8 @@
 - 角色框（`CHARACTER_BOXES`）是人工逐張核定後寫死在管線裡的，不做自動偵測：
   厚塗筆觸會讓連通區塊碎裂，亮地板與暗角都會被誤判。
   更換素材後跑 `npm run assets:mbti32:verify` 產生疊框拼版重新核對。
-- Soul Reflection 依當前報告甜點名稱選用既有甜點圖；無精確名稱匹配時，才回退到
-  16 型既有映射。圖片保留自然色，外框、caption 與資訊層遵守本規格。
+- Taste Pairing 的商品圖只讀 unified dessert contract；沒有現行圖片就留白並交代菜單狀態，
+  不可依 16 型或草稿名稱猜一張相似圖片。圖片保留自然色，外框、caption 與資訊層遵守本規格。
 
 ---
 
@@ -208,6 +209,10 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
   敘事探索工具，不是醫療或心理診斷。
 - 測驗以一題一屏為基準；手機選項固定在拇指可達區，長題不得把第二個選項推到摺線下。
   進度按已作答題數計算，章節切換只負責節奏，不得讓進度倒退。
+- 手機閱讀字級分三層：主要內文 16px、次要提示 14px、介面標註 12px；選項文字 16px，
+  不以 10–11px 承載需要讀懂的資訊。
+- 手機不顯示 V2 跑馬燈，跨站導覽在首屏後隨頁面捲走，只保留頂端 3px 閱讀進度；
+  桌機跨站導覽維持 sticky，跑馬燈固定在其下方。
 - 選項保持對等語氣，不暗示成熟度或能力高低。A/T 題目描述最近的自我回應方式，
   前四軸描述較穩定的偏好。
 
@@ -223,9 +228,9 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 | 章 | `REPORT_CHAPTERS` 標題 | 錨點區塊（`id`） | 併入同章的後續區塊 |
 |---|---|---|---|
 | ch-01 | 01 當下的你 | HERO（`header.ad-hero`：圖版 + 型別 + 引文） | Tag Wall（01） |
-| ch-02 | 02 你的版本 | Professional Insights（02） | — |
-| ch-03 | 03 四個維度 | Dimension Spectrum（03） | — |
-| ch-04 | 04 日常的反應 | Digital Persona（04） | — |
+| ch-02 | 02 你怎麼保護自己 | Professional Insights（02） | 狀態場景、A/T 對照 |
+| ch-03 | 03 偏好怎麼出現 | Dimension Spectrum（03） | — |
+| ch-04 | 04 生活裡的樣子 | Digital Persona（04） | 日常場景 |
 | ch-05 | 05 可以試的事 | 四張可執行練習卡（05） | — |
 | ch-06 | 06 工作與關係 | Career × Relationship（06） | — |
 | ch-07 | 07 感官與提問 | Soul Reflection + Abyssal Questions（07） | — |
@@ -235,12 +240,12 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
   平時只顯示 dot，hover 整條或該章 active 時浮現標籤（`--f-mono`）。active dot 以訊號色
   發光並微放大。
 - **手機（≤ 560px）**：使用底部原生 `<details>` 清單。收合時顯示目前章節，展開後
-  顯示八個有文字的跳轉按鈕；配合頂部 2px 進度條。清單不依賴 hover，按鈕觸控高度
+  顯示八個有文字的跳轉按鈕；配合頂部 3px 進度條。清單不依賴 hover，按鈕觸控高度
   至少 44px，且不遮內容（`.ad-page` 已有底部安全留白）。
 - **點擊**：`handleChapterNav` 平滑捲動至該章；若該章區塊未渲染（鎖定態），
   fallback 捲至 `.ad-paywall-box`。
 - **鎖定顯示**：`chapter.locked && !canReadReport` 時該 pill 呈鎖定弱化樣式。
-- 錨點清空遮擋：`[id^="ch-0"] { scroll-margin-top: 88px; }`。
+- 錨點清空遮擋：桌機保留 100px；手機因已移除頂部跑馬燈，改為 20px。
 
 ---
 
@@ -252,6 +257,20 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
   `v2PsychArchetypes`），**不得手改 generated 檔**。
 - 題目與 32 變體內容住在 Obsidian 正本，經生成器輸出。每份變體必須有 `state` 與
   四個 `practices`：覺察問題、行為實驗、關係練習、感官停頓。
+- 每份變體還必須有 `narrative` 前台敘事層：一段 70–130 字的核心說明、`state`／
+  `daily`／`work`／`relationship` 四個 60–110 字的生活場景，以及辨識留白。
+  生成器與測試要阻止缺場景、順序錯誤、過長內容與「天生／永遠／注定／一眼看穿」
+  等斷言進入這一層。
+- 前台敘事順序固定為「觀察 → 場景 → 功能或代價 → 可選行動」。場景使用
+  `.ad-narrative-scene` 顯示，每章最多一張；工作與關係各自放在所屬卡片內，避免
+  把例子堆成另一面文字牆。
+- 型別對應出的狀態只是敘事假設。獨立九格狀態量測完成前，介面必須明示它沒有測量
+  最近能量或耗損；文案用「可能、常見、可以對照」等語氣，並允許讀者保留不同意見。
+- 甜點的品名、現行商品名、介紹、圖片、供應狀態與 CTA 以月島 unified dessert contract
+  為真相源（production 走 `/api/mbti-dessert`，本機開發直讀 Shop API）。草稿中的
+  `dessert.name`／`visualLogic`／`pairings` 只屬編輯敘事：名稱吻合時可把 `visualLogic`
+  標成「品牌敘事 · 非商品說明」，未經菜單驗證的配飲不得以前台商品資訊呈現。
+- API 無法讀取時，前台不得回退到過期品名或推測圖片；只顯示同步失敗狀態與菜單 CTA。
 - 歷史原型、名人歸類與稀有度若沒有可核對來源，只能留在編輯草案，不能進正式前台。
 - 分享連結直接開啟型別報告時，若本機沒有同型別完整作答紀錄，只顯示質性維度說明，
   不得合成百分比。A/T 是近期自我回應傾向，不宣稱為官方 MBTI 第五維。
@@ -270,9 +289,9 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 
 ## 10. 邊界：本規格不管的地方
 
-- **跨站導覽軌 `.ku-universe-rail`**（`styles/kiwimu-universe.css`）是五站共用元件，
-  自帶 `--ku-lime #d4ff00` 系統。本次刻意不改：單站改動會讓五站導覽視覺分岔。
-  若要統一到 Quiet Atlas，必須五站一起處理，屬另一個決策。
+- **跨站導覽軌 `.ku-universe-rail`**（`styles/kiwimu-universe.css`）沿用五站共用的
+  `--ku-lime #d4ff00` 色彩系統。本 repo 只調整可讀性與定位：桌機 11–12px 並 sticky；
+  手機 77px 高、隱藏重複 descriptor、隨文件捲走。若要讓五站完全一致，仍需同步其餘四站。
 - **`/` 與 `/explore`（V1.5）** 走根目錄 `DESIGN.md` 的 Neo-Brutalist 紙白系統。
   本次只把免費結果頁的角色圖換成該變體的 `portrait`，並加上圖鑑式標註，
   沒有改動該面的色彩系統。

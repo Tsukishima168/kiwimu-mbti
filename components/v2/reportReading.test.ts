@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { LastV1ResultBundle } from '../../utils/v2Access';
 import { V2_TAIWAN_QUESTIONS } from '../../data/v2TaiwanQuestions.generated';
 import { V2_VARIANT_REPORTS } from '../../data/v2VariantReports.generated';
+import { V2_VARIANT_SUMMARIES } from '../../data/v2VariantSummaries.generated';
 import { getDimensionDescription, hasDimensionAnswers, matchingRecordedResult } from './reportReading';
 
 const emptyScores = {
@@ -56,6 +57,57 @@ describe('V2 report reading integrity', () => {
         '感官停頓',
       ]);
       expect(report.practices.every(item => item.body.trim().length > 0)).toBe(true);
+
+      // ch-04 (Digital Persona) renders only when behaviorLogic has entries, and it
+      // fails silently when it does not: no error, no fallback, just a missing chapter.
+      // Four variants shipped empty because the generator regex required bold markers
+      // the source headings did not always carry.
+      expect(report.design.behaviorLogic.length).toBeGreaterThan(0);
+      expect(report.design.behaviorLogic.every(item => item.label.trim() && item.body.trim())).toBe(true);
+
+      // Reader Narrative is the front-stage copy contract. Every report must offer
+      // the same four places to self-check instead of relying on abstract type claims.
+      expect(report.narrative.overview.length).toBeGreaterThanOrEqual(70);
+      expect(report.narrative.overview.length).toBeLessThanOrEqual(130);
+      expect(report.narrative.scenes.map(scene => scene.kind)).toEqual([
+        'state',
+        'daily',
+        'work',
+        'relationship',
+      ]);
+      expect(report.narrative.scenes.every(scene => scene.body.length >= 60 && scene.body.length <= 110)).toBe(true);
+      expect(report.narrative.scenes.every(scene => scene.body.split(/[。！？]/u).filter(Boolean).length >= 2)).toBe(true);
+      expect(report.narrative.counterpoint).toContain('不是對你的定論');
+
+      const readerCopy = [
+        report.narrative.overview,
+        ...report.narrative.scenes.map(scene => scene.body),
+        report.narrative.counterpoint,
+      ].join('\n');
+      expect(readerCopy).not.toMatch(/你不是/u);
+      expect(readerCopy).not.toMatch(/天生|永遠|注定|一眼看穿|終其一生/u);
+    }
+  });
+
+  it('publishes exactly 32 free summaries without paid chapter fields', () => {
+    const summaries = Object.values(V2_VARIANT_SUMMARIES);
+    expect(summaries).toHaveLength(32);
+    expect(new Set(summaries.map(summary => summary.fullCode)).size).toBe(32);
+
+    for (const summary of summaries) {
+      const full = V2_VARIANT_REPORTS[summary.fullCode];
+      expect(summary.title).toBe(full.title);
+      expect(summary.abstract).toEqual(full.abstract);
+      expect(summary.state?.name).toBe(full.state?.name);
+
+      const publicRecord = summary as unknown as Record<string, unknown>;
+      for (const paidKey of [
+        'professional', 'dimension', 'career', 'relationship', 'dessert',
+        'abyssal', 'practices', 'narrative', 'carry', 'important',
+      ]) {
+        expect(publicRecord).not.toHaveProperty(paidKey);
+      }
+      expect(summary.state).not.toHaveProperty('truth');
     }
   });
 

@@ -1,6 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { buildAppBaseUrl, parseMbtiTypeFromOrderId } from '../../server/linePay.js';
-import { updateLinePayOrder } from '../../server/linePayOrderStore.js';
+import {
+  buildAppBaseUrl,
+  buildV2OrderCookie,
+  parseMbtiTypeFromOrderId,
+} from '../../server/linePay.js';
+import { getLinePayOrder, updateLinePayOrder } from '../../server/linePayOrderStore.js';
 
 function getOrigin(req: VercelRequest) {
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
@@ -19,13 +23,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const orderId = getQueryStringValue(req.query.orderId);
   const typeFromQuery = getQueryStringValue(req.query.mbtiType);
-  const mbtiType = parseMbtiTypeFromOrderId(orderId) || typeFromQuery;
+  const storedOrder = orderId ? await getLinePayOrder(orderId) : null;
+  const mbtiType = storedOrder?.mbti_type || parseMbtiTypeFromOrderId(orderId) || typeFromQuery;
   const appBaseUrl = buildAppBaseUrl(getOrigin(req));
+
+  if (storedOrder?.status === 'confirmed') {
+    res.setHeader('Set-Cookie', buildV2OrderCookie(orderId));
+    return res.redirect(
+      302,
+      `${appBaseUrl}/read/${encodeURIComponent(mbtiType)}?unlock=success`,
+    );
+  }
+
   const nextUrl = mbtiType
-    ? `${appBaseUrl}/read/${encodeURIComponent(mbtiType)}?checkout=cancelled${orderId ? `&order_id=${encodeURIComponent(orderId)}` : ''}`
+    ? `${appBaseUrl}/read/${encodeURIComponent(mbtiType)}?checkout=cancelled`
     : `${appBaseUrl}/read?checkout=cancelled`;
 
-  if (orderId) {
+  if (orderId && storedOrder) {
     await updateLinePayOrder(orderId, {
       status: 'cancelled',
       cancelled_at: new Date().toISOString(),
@@ -34,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         source: getQueryStringValue(req.query.source) || 'linepay',
       },
       last_error: null,
-    });
+    }, { expectedStatuses: ['created', 'requested', 'request_failed', 'confirm_failed'] });
   }
 
   return res.redirect(302, nextUrl);

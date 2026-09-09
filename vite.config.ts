@@ -49,20 +49,37 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
-          // 離線快取策略（排除大型 vendor chunk 避免 service worker 超限）
+          // App shell 的 HTML 與所有必要 JS/CSS 一起預快取；index.html 會
+          // 直接載入 vendor chunk，漏掉它會讓已安裝 PWA 在離線時白屏。
           globPatterns: ['**/*.{js,css,html}'],
-          globIgnores: ['**/vendor-*.js'],
           runtimeCaching: [
             {
-              // MBTI 32 場景資產（同源）— 舊圖在 Cloudinary 才被涵蓋，
-              // 新圖改為 /public 靜態檔後不在 precache 也不在 runtimeCaching，
-              // 離線時報告頁主圖會開天窗。這條補上。
-              urlPattern: /\/assets\/mbti32\/.*\.(?:webp|jpg)$/i,
+              // MBTI 32 圖鑑牆用的小圖（avatar / portrait）。圖鑑牆一次 eager 載
+              // 32 張 avatar，和報告大圖共用一個 48 格的快取會互相擠掉：逛過三、
+              // 四個型別就把整面牆的圖清光，回圖鑑牆又要重抓。拆成兩條，牆的小圖
+              // 不會被報告大圖驅逐。32 avatar + 32 portrait = 64，留一點餘裕。
+              urlPattern: /\/assets\/mbti32\/(?:avatar|portrait)\/[^/]+\.(?:webp|jpg)$/i,
               handler: 'CacheFirst',
               options: {
-                cacheName: 'kiwimu-mbti32',
+                cacheName: 'kiwimu-mbti32-portraits-v2',
                 expiration: {
-                  maxEntries: 48,
+                  maxEntries: 70,
+                  maxAgeSeconds: 60 * 60 * 24 * 60, // 60 天
+                },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              // 報告頁主圖（scene / scene-sm）。舊圖在 Cloudinary 才被涵蓋，新圖
+              // 改為 /public 靜態檔後不在 precache 也不在 runtimeCaching，離線時
+              // 報告頁主圖會開天窗。這條補上。og / og-jpg 只給社群爬蟲抓，瀏覽器
+              // 不會請求，所以不需要額外配額。32 scene + 32 scene-sm = 64。
+              urlPattern: /\/assets\/mbti32\/scene(?:-sm)?\/[^/]+\.(?:webp|jpg)$/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'kiwimu-mbti32-scenes-v2',
+                expiration: {
+                  maxEntries: 70,
                   maxAgeSeconds: 60 * 60 * 24 * 60, // 60 天
                 },
                 cacheableResponse: { statuses: [0, 200] },

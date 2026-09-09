@@ -215,6 +215,25 @@
 }
   </script>
 
+  <script>
+    // Older LINE Pay callbacks placed order credentials in the report URL.
+    // Remove them before analytics starts so saved links and page_view payloads
+    // cannot disclose a reusable purchase proof.
+    try {
+      const checkoutUrl = new URL(window.location.href);
+      if (checkoutUrl.searchParams.has('order_id') || checkoutUrl.searchParams.has('transaction_id')) {
+        const legacyOrderId = checkoutUrl.searchParams.get('order_id');
+        if (legacyOrderId) sessionStorage.setItem('kiwimu_v2_legacy_order_id', legacyOrderId);
+        checkoutUrl.searchParams.delete('order_id');
+        checkoutUrl.searchParams.delete('transaction_id');
+        window.history.replaceState({}, '', `${checkoutUrl.pathname}${checkoutUrl.search}${checkoutUrl.hash}`);
+      }
+    } catch {
+      // Storage or History may be unavailable in a restricted webview. New
+      // callbacks use an HttpOnly cookie and never enter this compatibility path.
+    }
+  </script>
+
   <!-- Google Analytics (GA4) - 與 Firebase measurementId 同資源 -->
   <script type="module">
     // Use the new Kiwimu-Core GA4 ID for unified funnel tracking

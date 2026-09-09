@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { V2_TAIWAN_QUESTIONS } from '../../data/v2TaiwanQuestions.generated';
 import { calculateResults, getVariant } from '../../utils/logic';
 import { getResultData } from '../../constants';
@@ -9,7 +9,12 @@ import { trackPageView, trackScreenEngagement } from '../../utils/analytics';
 import { applyRuntimeSeo } from '../../utils/seo';
 import { buildV2QuizPath, buildV2ReportPath, normalizeV2Pathname } from '../../utils/v2Routes';
 import { prepareMbtiAttempt, queueMbtiCompleted } from '../../utils/economyEvents';
+import type { AppUser } from '../../types';
 import type { Option } from '../../types';
+
+// Kept lazy so the quiz chunk stays small, and prefetched near the end of the
+// quiz so the hand-off below has nothing left to download.
+const V2App = lazy(() => import('./V2App'));
 import { KIWIMU_CAMPAIGN_ASSETS, getSceneAsset } from '../../data/kiwimuVisualAssets';
 import KiwimuVisual from '../visuals/KiwimuVisual';
 import V2Welcome from './V2Welcome';
@@ -21,7 +26,11 @@ const MARQUEE = 'KIWIMU V2 · 生活反應探索 · QUIET ATLAS · ';
 const QUESTIONS = V2_TAIWAN_QUESTIONS;
 const QUIZ_CHAPTER_COUNT = 5;
 
-export default function V2QuizFlow() {
+interface V2QuizFlowProps {
+  user?: AppUser | null;
+}
+
+export default function V2QuizFlow({ user }: V2QuizFlowProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [started, setStarted] = useState(false);
@@ -31,6 +40,8 @@ export default function V2QuizFlow() {
   const [isResolving, setIsResolving] = useState(false);
   /** 跨章時的全屏過場；null = 不顯示 */
   const [chapterBreak, setChapterBreak] = useState<number | null>(null);
+  /** 答完後接手渲染報告的路徑；null = 還在測驗。設了值代表已 pushState。 */
+  const [handoffPath, setHandoffPath] = useState<string | null>(null);
 
   const totalQuestions = QUESTIONS.length;
   const question = QUESTIONS[currentIndex];
@@ -103,6 +114,24 @@ export default function V2QuizFlow() {
     trackAction('v2_quiz_flow_start', { quizId: 'v2-tw-40' });
   };
 
+  // Warm the report chunk while the last questions are being answered so the
+  // hand-off is instant rather than a spinner.
+  useEffect(() => {
+    if (currentIndex < totalQuestions - 5) return;
+    void import('./V2App');
+  }, [currentIndex, totalQuestions]);
+
+  // App.tsx picks its route from window.location.pathname at render time and
+  // never listens for popstate, so once we have handed off, going back would
+  // change the URL without changing the UI. Reload so the router-less shell
+  // re-evaluates the path.
+  useEffect(() => {
+    if (!handoffPath) return;
+    const onPop = () => window.location.reload();
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [handoffPath]);
+
   const finishQuiz = async (nextAnswers: Option[]) => {
     setErrorMessage('');
     setIsResolving(true);
@@ -121,7 +150,12 @@ export default function V2QuizFlow() {
         questionBank: QUESTIONS,
         quizVersion: 'v2-tw-40',
       });
-      window.location.assign(`${buildV2ReportPath(`${type}-${variant}`)}?source=v2_quiz`);
+      // Hand off in-place instead of reloading the page. A full navigation here
+      // threw away ~1.65MB of already-parsed JS and put a blank frame between
+      // the resolving panel and the report, right at the emotional payoff.
+      const reportPath = `${buildV2ReportPath(`${type}-${variant}`)}?source=v2_quiz`;
+      window.history.pushState({}, '', reportPath);
+      setHandoffPath(reportPath);
     } catch (err) {
       console.error('V2QuizFlow: failed to resolve result', err);
       setAnswers(nextAnswers.slice(0, -1));
@@ -170,9 +204,8 @@ export default function V2QuizFlow() {
 
   if (!started) return <V2Welcome onStart={handleStart} />;
 
-  if (isResolving) {
-    return (
-      <div className="v2-surface ad-resolving">
+  const resolvingPanel = (
+    <div className="v2-surface ad-resolving">
         <div className="ad-resolving-panel">
           <div className="ad-resolving-dots">
             <span className="ad-resolving-dot" />
@@ -186,10 +219,21 @@ export default function V2QuizFlow() {
           <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.75 }}>
             把剛才的選擇整理成型別、傾向與對應的敘事。
           </p>
-        </div>
+      </div>
+    </div>
+  );
+
+  if (handoffPath) {
+    return (
+      <div className="v2-app v2-handoff">
+        <Suspense fallback={resolvingPanel}>
+          <V2App user={user} />
+        </Suspense>
       </div>
     );
   }
+
+  if (isResolving) return resolvingPanel;
 
   if (chapterBreak !== null) {
     const BREAK_FACES = ['INFP-A', 'INTJ-A', 'ISFP-A', 'ENFP-A', 'ESFP-A'] as const;

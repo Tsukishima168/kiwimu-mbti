@@ -359,7 +359,7 @@
 }
 .ad-quiz-back {
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   color: var(--t3);
   text-decoration: none;
@@ -529,7 +529,7 @@
   color: var(--on-signal);
   border-radius: var(--r-sm);
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -545,7 +545,7 @@
   background: none;
   border: none;
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   color: var(--t3);
   cursor: pointer;
@@ -601,7 +601,7 @@
 /* Reflection prompt */
 .ad-reflect {
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
   color: var(--t3);
   letter-spacing: 0.04em;
@@ -611,6 +611,73 @@
   border: 1px solid var(--sep);
   border-radius: var(--r-md);
   background: var(--acid-dim);
+}
+
+/* Concrete scene: turns an interpretation into a recent-life picture the reader can verify. */
+.ad-narrative-scene {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid var(--b1);
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(135deg, rgba(var(--signal-rgb), 0.10), transparent 58%),
+    var(--bg-2);
+}
+.ad-narrative-scene::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--type-accent, var(--signal));
+}
+.ad-narrative-scene-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--type-glow, var(--signal));
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.ad-narrative-scene h3 {
+  margin: 0 0 8px;
+  color: var(--t1);
+  font-family: var(--f-display);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.ad-narrative-scene p {
+  margin: 0;
+  color: var(--t2);
+  font-size: 15px;
+  line-height: 1.9;
+}
+.ad-narrative-scene-inline {
+  margin-top: 20px;
+  padding: 16px 0 0 14px;
+  overflow: visible;
+  border: 0;
+  border-top: 1px solid var(--sep);
+  border-radius: 0;
+  background: transparent;
+}
+.ad-narrative-scene-inline::before {
+  inset: 16px auto auto 0;
+  width: 3px;
+  height: 28px;
+}
+.ad-narrative-scene-inline.ad-narrative-scene-leading {
+  margin: 12px 0 20px;
+}
+.ad-reader-permission {
+  margin-top: 18px;
+  padding-left: 12px;
+  border-left: 1px solid var(--sep);
+  color: var(--t3);
+  font-size: 13px;
+  line-height: 1.8;
 }
 
 /* Hero snapshot */
@@ -785,7 +852,7 @@
   align-items: center;
   gap: 8px;
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   color: var(--t3);
   padding: 10px 14px;
@@ -815,7 +882,7 @@
 }
 .ad-tag-code {
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--acid);
@@ -944,7 +1011,7 @@
 }
 .ad-dim-score {
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--acid);
   margin-bottom: 8px;
@@ -978,7 +1045,7 @@
   left: 0;
   top: 0;
   color: var(--acid);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.72;
 }
 
@@ -1276,7 +1343,7 @@
 }
 .ad-chapternav-label {
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   white-space: nowrap;
   color: var(--t3);
@@ -1338,7 +1405,7 @@
   .ad-chapternav-current {
     display: block;
     font-family: var(--f-mono);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.06em;
     color: var(--t1);
     white-space: nowrap;
@@ -1476,7 +1543,7 @@
 }
 .ad-v15-label { font-family: var(--f-mono); color: var(--t3); }
 .ad-v15-type { font-family: var(--f-display); color: var(--acid); }
-.ad-mono-11 { font-family: var(--f-mono); font-size: 11px; }
+.ad-mono-11 { font-family: var(--f-mono); font-size: 12px; }
 
 .ad-marquee-fixed {
   position: fixed;
@@ -1759,7 +1826,7 @@
   margin-bottom: 20px;
 }
 
-/* 狀態真相（付費層） */
+/* 狀態機制（付費層的延伸閱讀） */
 .ad-state-truth {
   border: 1px solid var(--b1);
   border-radius: var(--r-lg);
@@ -1807,6 +1874,43 @@
   background: var(--type-accent);
 }
 
+.ad-state-details {
+  overflow: hidden;
+  border: 1px solid var(--b1);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--bg-2) 82%, transparent);
+}
+.ad-state-details summary {
+  position: relative;
+  padding: 15px 46px 15px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  color: var(--t2);
+}
+.ad-state-details summary::-webkit-details-marker { display: none; }
+.ad-state-details summary::after {
+  content: '+';
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  color: var(--type-glow);
+  font-family: var(--f-mono);
+  font-size: 18px;
+  font-weight: 400;
+  transform: translateY(-50%);
+}
+.ad-state-details[open] summary {
+  border-bottom: 1px solid var(--b1);
+  color: var(--t1);
+}
+.ad-state-details[open] summary::after { content: '−'; }
+.ad-state-details .ad-state-truth-body { padding: 18px; }
+
 /* ═══ 手機優先修正 ═════════════════════════════════════════════════════════
    幾乎所有讀者都在手機上看這份報告，所以手機不是桌機的縮小版，是主場。
    這一段處理三件在 390px 上量到的實際問題：
@@ -1814,7 +1918,7 @@
    1. `.v2-root` 的 12px 與 `.ad-page` 的 20px 兩層 padding 疊加，兩側吃掉 32px，
       卡片內文只剩 286px —— 15px 字級下一行不到 20 個中文字，讀起來一直斷。
    2. 博物館式標註在桌機是精緻，在手機是眯眼：量到 40 處小於 12px 的文字。
-      11px 設為手機下限，字距同步收（小尺寸下寬字距反而更難讀）。
+      12px 設為手機下限，字距同步收（小尺寸下寬字距反而更難讀）。
    3. 章節導覽點擊區 42×42，差 2px 到可用門檻。
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -1833,7 +1937,7 @@
     margin-right: -18px;
   }
 
-  /* 2 · 小標下限 11px */
+  /* 2 · 小標下限 12px */
   .ad-section-kicker,
   .ad-tag-en,
   .ad-list-label,
@@ -1845,14 +1949,14 @@
   .ad-suppressed-label,
   .ad-pairing-label,
   .ad-carry-eyebrow,
-  .ad-state-truth-kicker { font-size: 11px; letter-spacing: 0.13em; }
+  .ad-state-truth-kicker { font-size: 12px; letter-spacing: 0.13em; }
 
   /* 這幾個含中文，10.5px 在手機上讀不動 */
   .ad-scene-code,
   .ad-scene-index,
   .ad-hero-variant-label,
   .ad-hero-statename-head,
-  .ad-dessert-caption-code { font-size: 11px; letter-spacing: 0.13em; }
+  .ad-dessert-caption-code { font-size: 12px; letter-spacing: 0.13em; }
 
   .ad-tag-code { font-size: 11.5px; letter-spacing: 0.08em; }
   .ad-reflect { font-size: 13px; }
@@ -1934,7 +2038,7 @@
   color: var(--t3);
 }
 @media (max-width: 560px) {
-  .v2-surface .ad-atlas-caption { font-size: 11px; letter-spacing: 0.16em; }
+  .v2-surface .ad-atlas-caption { font-size: 12px; letter-spacing: 0.16em; }
 }
 
 /* 落地頁手機版：原本 flex 垂直置中 + 80px 上留白，圖鑑帶進來之後
@@ -2146,7 +2250,7 @@
 }
 .v2-surface .ad-chapter-break-label {
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.26em;
   text-transform: uppercase;
@@ -2195,7 +2299,7 @@
   gap: 20px;
   padding-bottom: 24px;
   border-bottom: 1px solid var(--b1);
-  font: 11px var(--f-mono);
+  font: 12px var(--f-mono);
   letter-spacing: .13em;
   color: var(--t3);
 }
@@ -2211,7 +2315,7 @@
 .ad-welcome-copy h1 em { font-style: normal; color: var(--moss); }
 .ad-welcome-lead { max-width: 31em; font-size: 16px; line-height: 1.95; color: var(--t2); margin: 0; }
 .ad-welcome-facts { display: flex; gap: 44px; margin: 32px 0; }
-.ad-welcome-facts dt { font-size: 11px; color: var(--t3); margin-bottom: 8px; }
+.ad-welcome-facts dt { font-size: 12px; color: var(--t3); margin-bottom: 8px; }
 .ad-welcome-facts dd { font: 400 36px/1.2 var(--f-display); margin: 0; }
 .ad-welcome-facts dd span { font: 12px var(--f-body); margin-left: 6px; color: var(--t3); }
 .ad-welcome-facts .ad-welcome-pace { font: 400 23px/1.9 var(--f-body); }
@@ -2226,16 +2330,16 @@
 .v2-surface.ad-welcome .ad-atlas-grid { grid-template-columns: repeat(8, 1fr); mask-image: none; -webkit-mask-image: none; gap: 6px; }
 .v2-surface.ad-welcome .ad-atlas-tile { opacity: .8; filter: none; }
 .v2-surface.ad-welcome .ad-atlas-tile.is-highlighted { opacity: 1; }
-.v2-surface.ad-welcome .ad-atlas-caption { font: 11px/1.6 var(--f-mono); letter-spacing: .06em; }
+.v2-surface.ad-welcome .ad-atlas-caption { font: 12px/1.6 var(--f-mono); letter-spacing: .06em; }
 .ad-welcome-guide { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding-top: 32px; border-top: 1px solid var(--b1); }
-.ad-welcome-guide span { font-size: 11px; color: var(--signal); }
+.ad-welcome-guide span { font-size: 12px; color: var(--signal); }
 .ad-welcome-guide h2 { font-size: 18px; font-weight: 500; margin: 12px 0; }
 .ad-welcome-guide p { font-size: 13px; line-height: 1.85; color: var(--t2); margin: 0; }
-.ad-welcome-colophon { color: var(--t3); font-size: 11px; line-height: 1.85; margin: 36px 0 0; padding-top: 20px; border-top: 1px solid var(--sep); }
+.ad-welcome-colophon { color: var(--t3); font-size: 12px; line-height: 1.85; margin: 36px 0 0; padding-top: 20px; border-top: 1px solid var(--sep); }
 
 /* A quieter reading column: meaningful hierarchy, fewer boxes. */
 .v2-surface .ad-section { margin-top: 64px; }
-.v2-surface .ad-section-kicker { letter-spacing: .12em; font-size: 11px; margin-bottom: 12px; }
+.v2-surface .ad-section-kicker { letter-spacing: .12em; font-size: 12px; margin-bottom: 12px; }
 .v2-surface .ad-section-title { font-size: clamp(23px, 3vw, 30px); line-height: 1.5; letter-spacing: -.025em; text-wrap: pretty; }
 .v2-surface .ad-section-lead { font-size: 15px; line-height: 1.9; margin-bottom: 24px; }
 .v2-surface .ad-card { padding: 24px; }
@@ -2247,7 +2351,7 @@
 .v2-surface .ad-dim-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .v2-surface .ad-dim-card { padding: 24px; min-width: 0; }
 .v2-surface .ad-dim-tip { color: var(--t2); font-size: 14px; line-height: 1.85; }
-.v2-surface .ad-dim-score span, .ad-dim-score-note { font-size: 11px; font-weight: 400; color: var(--t3); line-height: 1.8; }
+.v2-surface .ad-dim-score span, .ad-dim-score-note { font-size: 12px; font-weight: 400; color: var(--t3); line-height: 1.8; }
 .ad-dim-score-note { margin: 16px 0; }
 .ad-practice-list { border-top: 1px solid var(--b1); }
 .ad-practice { display: grid; grid-template-columns: 40px 1fr; gap: 20px; padding: 26px 0; border-bottom: 1px solid var(--b1); }
@@ -2270,24 +2374,24 @@
   .ad-mobile-contents nav { padding: 8px; max-height: 60dvh; overflow-y: auto; }
   .ad-mobile-contents button { display: flex; width: 100%; min-height: 46px; justify-content: space-between; align-items: center; padding: 12px; border: 0; background: transparent; color: var(--t2); border-radius: var(--r-sm); font: 13px var(--f-body); text-align: left; cursor: pointer; }
   .ad-mobile-contents button[aria-current], .ad-mobile-contents button:hover { background: var(--bg-3); color: var(--t1); }
-  .ad-mobile-contents button > span:last-child { font-size: 11px; color: var(--t3); }
+  .ad-mobile-contents button > span:last-child { font-size: 12px; color: var(--t3); }
   .v2-surface .ad-page { padding-bottom: 120px; }
 }
 @media (max-width: 700px) {
   .v2-surface .marquee-text,
   .v2-surface .ad-hero-eyebrow,
-  .v2-surface .ad-badge-acid { font-size: 11px; }
+  .v2-surface .ad-badge-acid { font-size: 12px; }
   .v2-surface .ad-quiz-status,
   .v2-surface .ad-quiz-q-num,
   .v2-surface .ad-chapter-label,
-  .v2-surface .ad-quiz-helper { font-size: 11px; }
+  .v2-surface .ad-quiz-helper { font-size: 12px; }
   .v2-surface .ad-quiz-back {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
   }
   .v2-surface.ad-welcome { padding: 24px 20px 32px; }
-  .ad-welcome-masthead { padding-bottom: 20px; font-size: 11px; letter-spacing: .04em; }
+  .ad-welcome-masthead { padding-bottom: 20px; font-size: 12px; letter-spacing: .04em; }
   .ad-welcome-masthead > span:last-child { max-width: 8em; text-align: right; line-height: 1.5; }
   .ad-welcome-layout { display: flex; flex-direction: column; gap: 36px; padding: 32px 0; }
   .ad-welcome-copy h1 { font-size: clamp(27px, 7.5vw, 42px); }
@@ -2324,7 +2428,7 @@
   .v2-surface .ad-dim-letter { grid-row: span 2; font-size: 40px; }
   .v2-surface .ad-dim-tip { grid-column: 1 / -1; margin-top: 12px; }
   .v2-surface .ad-dim-track, .v2-surface .ad-dim-score { grid-column: 2; }
-  .ad-compare-hint { display: block; font-size: 11px; line-height: 1.7; color: var(--t3); margin: 0 0 12px; }
+  .ad-compare-hint { display: block; font-size: 12px; line-height: 1.7; color: var(--t3); margin: 0 0 12px; }
   .v2-surface .ad-compare-scroll { display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 88%; gap: 12px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding: 4px 0 16px; scrollbar-color: var(--moss) var(--bg-1); }
   .ad-compare-scroll .ad-subtype-card { scroll-snap-align: start; }
 }
@@ -2342,4 +2446,134 @@
 @media print {
   .v2-surface :is(.ad-mobile-contents, .ad-chapternav, .ad-marquee-fixed, .v2-dev-strip) { display: none; }
   .v2-surface .ad-compare-scroll { display: grid; grid-template-columns: 1fr 1fr; overflow: visible; }
+}
+
+
+/* ═══ 測驗 → 報告的就地交接 ══════════════════════════════════════════════
+   V2QuizFlow 答完後不再整頁導向，而是原地掛上 V2App。這段只負責把接手的
+   那一瞬間收乾淨，避免 resolving 面板直接硬切成報告。
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: no-preference) {
+  .v2-handoff {
+    animation: ad-handoff-in var(--dur-slow, 520ms) ease both;
+  }
+}
+
+@keyframes ad-handoff-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ═══ Mobile reading pass · 2026-09-07 ════════════════════════════════
+   The universe rail belongs to normal document flow, so a fixed marquee
+   anchored below its initial height leaves an empty strip after the rail
+   scrolls away. Mobile keeps one calm progress line and gives the recovered
+   height back to the report and quiz. Typography below is content-first:
+   16px reading copy, 14px secondary copy, 12px labels. */
+.v2-surface .ad-section-lead,
+.v2-surface :is(.ad-body-15, .ad-subtype-value, .ad-arrow-list li, .ad-pairing-body, .ad-abyssal-body, .ad-suppressed-body),
+.v2-surface .ad-narrative-scene p,
+.v2-surface .ad-hero-framing,
+.v2-surface .ad-hero-abstract {
+  font-size: 16px;
+}
+
+@media (max-width: 700px) {
+  .v2-surface .ad-marquee-fixed {
+    display: none;
+  }
+
+  .v2-surface .v2-report-progress {
+    top: 0;
+    height: 3px;
+  }
+
+  .v2-surface [id^="ch-"] {
+    scroll-margin-top: 20px;
+  }
+
+  .v2-surface .ad-page {
+    padding-top: 20px;
+  }
+
+  .v2-surface .ad-hero {
+    padding-top: 22px;
+  }
+
+  .v2-surface .ad-scene {
+    margin-bottom: 22px;
+  }
+
+  .v2-surface .ad-scene-figure {
+    aspect-ratio: 4 / 3;
+  }
+
+  .v2-surface .ad-hero-row {
+    margin-bottom: 18px;
+  }
+
+  .v2-surface .ad-hero-subtitle,
+  .v2-surface .ad-hero-framing,
+  .v2-surface .ad-hero-abstract,
+  .v2-surface .ad-section-lead,
+  .v2-surface :is(.ad-body-15, .ad-subtype-value, .ad-arrow-list li, .ad-pairing-body, .ad-abyssal-body, .ad-suppressed-body),
+  .v2-surface .ad-narrative-scene p {
+    font-size: 16px;
+  }
+
+  .v2-surface .ad-hero-quote {
+    font-size: 17px;
+    line-height: 1.8;
+  }
+
+  .v2-surface :is(.ad-hero-snapshot, .ad-reflect, .ad-feedback, .ad-dim-tip, .ad-carry-frame) {
+    font-size: 14px;
+  }
+
+  .v2-surface :is(.ad-hero-eyebrow, .ad-section-kicker, .ad-state-truth-kicker, .ad-subtype-label, .ad-dim-score span, .ad-dim-score-note, .ad-compare-hint, .ad-narrative-scene-kicker) {
+    font-size: 12px;
+  }
+
+  .v2-surface .ad-mobile-contents summary {
+    font-size: 13px;
+  }
+
+  .v2-surface .ad-mobile-contents button {
+    font-size: 14px;
+  }
+
+  .v2-surface .ad-mobile-contents button > span:last-child {
+    font-size: 12px;
+  }
+
+  .v2-surface.ad-quiz-screen {
+    padding-top: 14px;
+  }
+
+  .v2-surface .ad-quiz-panel {
+    padding-top: 12px;
+  }
+
+  .v2-surface :is(.ad-quiz-status, .ad-quiz-q-num, .ad-chapter-label, .ad-quiz-helper) {
+    font-size: 12px;
+  }
+
+  .v2-surface .ad-question-hint {
+    font-size: 13px;
+  }
+
+  .v2-surface .ad-option {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .v2-surface .ad-hero-type {
+    font-size: clamp(50px, 14.5vw, 62px);
+  }
+
+  .v2-surface .ad-hero-variant-chip {
+    width: 38px;
+    height: 38px;
+  }
 }

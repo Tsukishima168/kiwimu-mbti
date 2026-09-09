@@ -937,7 +937,7 @@ const App: React.FC = () => {
     const normalizedV2Path = normalizeV2Pathname(_path);
     return (
       <Suspense fallback={<RouteFallback />}>
-        {normalizedV2Path === '/read/quiz' ? <V2QuizFlow /> : <div className="v2-app"><V2App user={user} /></div>}
+        {normalizedV2Path === '/read/quiz' ? <V2QuizFlow user={user} /> : <div className="v2-app"><V2App user={user} /></div>}
       </Suspense>
     );
   }
