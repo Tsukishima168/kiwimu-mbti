@@ -3,8 +3,8 @@ import {
   buildAppBaseUrl,
   buildV2OrderCookie,
   parseMbtiTypeFromOrderId,
-} from '../../server/linePay.js';
-import { getLinePayOrder, updateLinePayOrder } from '../../server/linePayOrderStore.js';
+} from '../../linePay.js';
+import { getLinePayOrder, updateLinePayOrder } from '../../linePayOrderStore.js';
 
 function getOrigin(req: VercelRequest) {
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';

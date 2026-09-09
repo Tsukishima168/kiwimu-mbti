@@ -44,6 +44,8 @@ SUPABASE_USER_SERVICE_ROLE_KEY=your-service-role-key
 
 ## 本次新增的 API
 
+LINE Pay、V2 與 Economy 各使用一個動態 Vercel entrypoint，公開 URL 維持不變，避免 Hobby plan 的 12 Functions 上限阻擋部署。
+
 - `POST /api/linepay/request`
   - 建立付款請求
   - 先建立 `line_pay_orders`，建單失敗會中止付款請求，避免使用者付款後找不到訂單

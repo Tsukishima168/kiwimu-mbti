@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getLinePayOrder } from '../../server/linePayOrderStore.js';
+import { getLinePayOrder } from '../../linePayOrderStore.js';
 import {
   readV2OrderIdCookie,
   V2_LINE_PAY_ORDER_PATTERN,
-} from '../../server/linePay.js';
-import { jsonBodySize, requestOriginMatchesHost } from '../../server/economy/requestSecurity.js';
+} from '../../linePay.js';
+import { jsonBodySize, requestOriginMatchesHost } from '../../economy/requestSecurity.js';
 
 /**
  * POST /api/v2/verify-unlock { mbtiType }

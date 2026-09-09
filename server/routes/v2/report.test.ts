@@ -7,11 +7,11 @@ const mocks = vi.hoisted(() => ({
   getUserAdminDb: vi.fn(),
 }));
 
-vi.mock('../../server/linePayOrderStore.js', () => ({
+vi.mock('../../linePayOrderStore.js', () => ({
   getLinePayOrder: mocks.getLinePayOrder,
   hasConfirmedLinePayOrderForUser: mocks.hasConfirmedLinePayOrderForUser,
 }));
-vi.mock('../../server/supabase/user-admin.js', () => ({
+vi.mock('../../supabase/user-admin.js', () => ({
   getUserAdminDb: mocks.getUserAdminDb,
 }));
 

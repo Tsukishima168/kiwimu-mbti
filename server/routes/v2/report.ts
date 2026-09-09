@@ -1,12 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getV2VariantReport } from '../../data/v2VariantReports.generated.js';
-import { readV2OrderIdCookie, V2_LINE_PAY_ORDER_PATTERN } from '../../server/linePay.js';
-import { getBearerToken, jsonBodySize, requestOriginMatchesHost } from '../../server/economy/requestSecurity.js';
+import { getV2VariantReport } from '../../../data/v2VariantReports.generated.js';
+import { readV2OrderIdCookie, V2_LINE_PAY_ORDER_PATTERN } from '../../linePay.js';
+import { getBearerToken, jsonBodySize, requestOriginMatchesHost } from '../../economy/requestSecurity.js';
 import {
   getLinePayOrder,
   hasConfirmedLinePayOrderForUser,
-} from '../../server/linePayOrderStore.js';
-import { getUserAdminDb } from '../../server/supabase/user-admin.js';
+} from '../../linePayOrderStore.js';
+import { getUserAdminDb } from '../../supabase/user-admin.js';
 
 const FULL_CODE_PATTERN = /^[A-Z]{4}-[AT]$/;
 const MAX_BODY_BYTES = 1_024;

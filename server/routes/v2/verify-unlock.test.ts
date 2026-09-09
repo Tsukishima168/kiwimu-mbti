@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const mocks = vi.hoisted(() => ({ getLinePayOrder: vi.fn() }));
-vi.mock('../../server/linePayOrderStore.js', () => ({
+vi.mock('../../linePayOrderStore.js', () => ({
   getLinePayOrder: mocks.getLinePayOrder,
 }));
 

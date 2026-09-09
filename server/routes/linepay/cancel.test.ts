@@ -6,12 +6,12 @@ const mocks = vi.hoisted(() => ({
   updateLinePayOrder: vi.fn(),
 }));
 
-vi.mock('../../server/linePay.js', () => ({
+vi.mock('../../linePay.js', () => ({
   buildAppBaseUrl: () => 'https://kiwimu.com',
   buildV2OrderCookie: (orderId: string) => `__Host-kiwimu-v2-order=${orderId}; HttpOnly; Secure`,
   parseMbtiTypeFromOrderId: () => 'ESTJ-A',
 }));
-vi.mock('../../server/linePayOrderStore.js', () => ({
+vi.mock('../../linePayOrderStore.js', () => ({
   getLinePayOrder: mocks.getLinePayOrder,
   updateLinePayOrder: mocks.updateLinePayOrder,
 }));

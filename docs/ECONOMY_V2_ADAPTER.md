@@ -59,9 +59,10 @@ git diff --check
 ```
 
 
-The two routes have separate entry files and select a fixed operation before
-parsing the request body. The completion route cannot issue an attempt proof,
-so a path-scoped rate limit on `/api/economy/mbti-attempt` cannot be bypassed by
+The two public URLs share one dynamic Vercel entrypoint to stay within the Hobby
+function limit. The router selects a fixed operation from the path before the
+body is parsed. The completion URL cannot issue an attempt proof, so a
+path-scoped rate limit on `/api/economy/mbti-attempt` cannot be bypassed by
 posting an attempt-shaped body to `/api/economy/mbti-completed`.
 
 The API contract smoke must verify that a request containing `points=999999` is rejected with `INVALID_PROOF`, a missing/forged/replayed/expired attempt proof cannot create an event, a cross-origin request is rejected, V2 navigation is not blocked, and app routes continue to render.

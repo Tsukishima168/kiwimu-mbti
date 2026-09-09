@@ -9,14 +9,14 @@ import {
   type LinePayPaymentRequestInfo,
   V2_REPORT_CURRENCY,
   V2_REPORT_PRICE_TWD,
-} from '../../server/linePay.js';
-import { createLinePayOrder, updateLinePayOrder } from '../../server/linePayOrderStore.js';
+} from '../../linePay.js';
+import { createLinePayOrder, updateLinePayOrder } from '../../linePayOrderStore.js';
 import {
   getBearerToken,
   jsonBodySize,
   requestOriginMatchesHost,
-} from '../../server/economy/requestSecurity.js';
-import { getUserAdminDb } from '../../server/supabase/user-admin.js';
+} from '../../economy/requestSecurity.js';
+import { getUserAdminDb } from '../../supabase/user-admin.js';
 
 function getOrigin(req: VercelRequest) {
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';

@@ -8,12 +8,12 @@ import {
   requestLinePay,
   V2_REPORT_CURRENCY,
   V2_REPORT_PRICE_TWD,
-} from '../../server/linePay.js';
+} from '../../linePay.js';
 import {
   getLinePayOrder,
   updateLinePayOrder,
-} from '../../server/linePayOrderStore.js';
-import { getUserAdminDb } from '../../server/supabase/user-admin.js';
+} from '../../linePayOrderStore.js';
+import { getUserAdminDb } from '../../supabase/user-admin.js';
 
 function getOrigin(req: VercelRequest) {
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';

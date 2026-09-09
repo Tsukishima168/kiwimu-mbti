@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   requestLinePay: vi.fn(),
 }));
 
-vi.mock('../../server/linePay.js', () => ({
+vi.mock('../../linePay.js', () => ({
   buildAppBaseUrl: () => 'https://kiwimu.com',
   buildLinePayApiPath: () => '/v3/payments/line-tx-1/confirm',
   buildV2OrderCookie: (orderId: string) => `__Host-kiwimu-v2-order=${orderId}; HttpOnly; Secure`,
@@ -17,11 +17,11 @@ vi.mock('../../server/linePay.js', () => ({
   V2_REPORT_CURRENCY: 'TWD',
   V2_REPORT_PRICE_TWD: 149,
 }));
-vi.mock('../../server/linePayOrderStore.js', () => ({
+vi.mock('../../linePayOrderStore.js', () => ({
   getLinePayOrder: mocks.getLinePayOrder,
   updateLinePayOrder: mocks.updateLinePayOrder,
 }));
-vi.mock('../../server/supabase/user-admin.js', () => ({ getUserAdminDb: () => null }));
+vi.mock('../../supabase/user-admin.js', () => ({ getUserAdminDb: () => null }));
 
 import handler from './confirm';
 

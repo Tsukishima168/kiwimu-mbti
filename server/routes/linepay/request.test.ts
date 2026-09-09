@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   getUserAdminDb: vi.fn(),
 }));
 
-vi.mock('../../server/linePay.js', () => ({
+vi.mock('../../linePay.js', () => ({
   buildAppBaseUrl: () => 'https://kiwimu.com',
   buildLinePayApiPath: () => '/v3/payments/request',
   buildV2LinePayOrderId: () => `V2-ESTJ-A-1788920000000-${'a'.repeat(32)}`,
@@ -18,11 +18,11 @@ vi.mock('../../server/linePay.js', () => ({
   V2_REPORT_CURRENCY: 'TWD',
   V2_REPORT_PRICE_TWD: 149,
 }));
-vi.mock('../../server/linePayOrderStore.js', () => ({
+vi.mock('../../linePayOrderStore.js', () => ({
   createLinePayOrder: mocks.createLinePayOrder,
   updateLinePayOrder: mocks.updateLinePayOrder,
 }));
-vi.mock('../../server/supabase/user-admin.js', () => ({
+vi.mock('../../supabase/user-admin.js', () => ({
   getUserAdminDb: mocks.getUserAdminDb,
 }));
 

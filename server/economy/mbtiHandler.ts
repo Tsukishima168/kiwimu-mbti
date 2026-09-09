@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { parseEconomyResponse, type EconomyResponseCode } from '../../shared/economy.js';
-import { parseMbtiAttemptRequest } from '../../server/economy/mbtiAttempt.js';
-import { parseMbtiCompletion } from '../../server/economy/mbtiCompletion.js';
+import { parseMbtiAttemptRequest } from './mbtiAttempt.js';
+import { parseMbtiCompletion } from './mbtiCompletion.js';
 import {
   getBearerToken,
   jsonBodySize,
   requestOriginMatchesHost,
-} from '../../server/economy/requestSecurity.js';
-import { getEconomyAdminClient } from '../../server/economy/supabaseAdmin.js';
+} from './requestSecurity.js';
+import { getEconomyAdminClient } from './supabaseAdmin.js';
 
 const MAX_REQUEST_BYTES = 4_096;
 const ATTEMPT_TTL_MS = 2 * 60 * 60 * 1_000;
@@ -111,8 +111,4 @@ export async function handleMbtiEconomyRequest(
   }
 
   return response.status(200).json(parsed);
-}
-
-export default function handler(request: VercelRequest, response: VercelResponse) {
-  return handleMbtiEconomyRequest(request, response, 'completion');
 }
