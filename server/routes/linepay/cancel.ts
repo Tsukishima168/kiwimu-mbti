@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
   buildAppBaseUrl,
   buildV2OrderCookie,
+  clearV2PendingOrderCookie,
   parseMbtiTypeFromOrderId,
 } from '../../linePay.js';
 import { getLinePayOrder, updateLinePayOrder } from '../../linePayOrderStore.js';
@@ -28,7 +29,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const appBaseUrl = buildAppBaseUrl(getOrigin(req));
 
   if (storedOrder?.status === 'confirmed') {
-    res.setHeader('Set-Cookie', buildV2OrderCookie(orderId));
+    res.setHeader('Set-Cookie', [
+      buildV2OrderCookie(orderId),
+      clearV2PendingOrderCookie(),
+    ]);
     return res.redirect(
       302,
       `${appBaseUrl}/read/${encodeURIComponent(mbtiType)}?unlock=success`,
@@ -51,5 +55,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }, { expectedStatuses: ['created', 'requested', 'request_failed', 'confirm_failed'] });
   }
 
+  res.setHeader('Set-Cookie', clearV2PendingOrderCookie());
   return res.redirect(302, nextUrl);
 }

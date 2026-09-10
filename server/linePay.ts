@@ -26,9 +26,11 @@ export type LinePayPaymentRequestInfo = {
 
 export const V2_LINE_PAY_ORDER_PATTERN = /^V2-[A-Z]{4}-[AT]-\d+-[0-9a-f]{32}$/;
 export const V2_ORDER_COOKIE_NAME = '__Host-kiwimu-v2-order';
+export const V2_PENDING_ORDER_COOKIE_NAME = '__Host-kiwimu-v2-pending-order';
 export const V2_REPORT_PRICE_TWD = 149;
 export const V2_REPORT_CURRENCY = 'TWD';
 const V2_ORDER_COOKIE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
+const V2_PENDING_ORDER_COOKIE_MAX_AGE_SECONDS = 30 * 60;
 
 function getBaseUrl() {
   return process.env.LINE_PAY_BASE_URL || 'https://sandbox-api-pay.line.me';
@@ -111,13 +113,13 @@ export function parseMbtiTypeFromOrderId(orderId?: string | null) {
   return match ? match[1] : null;
 }
 
-export function readV2OrderIdCookie(cookieHeader?: string | string[] | null) {
+function readV2Cookie(cookieHeader: string | string[] | null | undefined, cookieName: string) {
   const raw = Array.isArray(cookieHeader) ? cookieHeader.join(';') : cookieHeader || '';
   const encodedValue = raw
     .split(';')
     .map(part => part.trim())
-    .find(part => part.startsWith(`${V2_ORDER_COOKIE_NAME}=`))
-    ?.slice(V2_ORDER_COOKIE_NAME.length + 1);
+    .find(part => part.startsWith(`${cookieName}=`))
+    ?.slice(cookieName.length + 1);
   if (!encodedValue) return '';
 
   try {
@@ -128,6 +130,14 @@ export function readV2OrderIdCookie(cookieHeader?: string | string[] | null) {
   }
 }
 
+export function readV2OrderIdCookie(cookieHeader?: string | string[] | null) {
+  return readV2Cookie(cookieHeader, V2_ORDER_COOKIE_NAME);
+}
+
+export function readV2PendingOrderIdCookie(cookieHeader?: string | string[] | null) {
+  return readV2Cookie(cookieHeader, V2_PENDING_ORDER_COOKIE_NAME);
+}
+
 export function buildV2OrderCookie(orderId: string) {
   if (!V2_LINE_PAY_ORDER_PATTERN.test(orderId)) {
     throw new Error('Invalid V2 LINE Pay order id');
@@ -135,6 +145,17 @@ export function buildV2OrderCookie(orderId: string) {
   // __Host- cookies require Path=/ and no Domain attribute. The broader path is
   // the price of browser-enforced host scoping; HttpOnly keeps the proof out of JS.
   return `${V2_ORDER_COOKIE_NAME}=${encodeURIComponent(orderId)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${V2_ORDER_COOKIE_MAX_AGE_SECONDS}`;
+}
+
+export function buildV2PendingOrderCookie(orderId: string) {
+  if (!V2_LINE_PAY_ORDER_PATTERN.test(orderId)) {
+    throw new Error('Invalid V2 LINE Pay order id');
+  }
+  return `${V2_PENDING_ORDER_COOKIE_NAME}=${encodeURIComponent(orderId)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${V2_PENDING_ORDER_COOKIE_MAX_AGE_SECONDS}`;
+}
+
+export function clearV2PendingOrderCookie() {
+  return `${V2_PENDING_ORDER_COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 }
 
 export function buildAppBaseUrl(requestOrigin?: string) {

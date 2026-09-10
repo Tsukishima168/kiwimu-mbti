@@ -11,6 +11,7 @@ vi.mock('../../linePay.js', () => ({
   buildAppBaseUrl: () => 'https://kiwimu.com',
   buildLinePayApiPath: () => '/v3/payments/line-tx-1/confirm',
   buildV2OrderCookie: (orderId: string) => `__Host-kiwimu-v2-order=${orderId}; HttpOnly; Secure`,
+  clearV2PendingOrderCookie: () => '__Host-kiwimu-v2-pending-order=; Max-Age=0',
   isLinePaySuccessCode: (code: string) => code === '0000',
   parseMbtiTypeFromOrderId: () => 'ESTJ-A',
   requestLinePay: mocks.requestLinePay,
@@ -103,7 +104,29 @@ describe('GET /api/linepay/confirm security', () => {
 
     expect(state.location).toBe('https://kiwimu.com/read/ESTJ-A?unlock=success&source=test');
     expect(state.location).not.toContain('order_id');
-    expect(state.headers['Set-Cookie']).toContain('HttpOnly');
+    expect(state.headers['Set-Cookie']).toEqual([
+      expect.stringContaining('HttpOnly'),
+      expect.stringContaining('Max-Age=0'),
+    ]);
+    expect(mocks.requestLinePay).not.toHaveBeenCalled();
+  });
+
+  it('clears the pending order cookie when the stored order is already cancelled', async () => {
+    mocks.getLinePayOrder.mockResolvedValue({
+      order_id: ORDER_ID,
+      mbti_type: 'ESTJ-A',
+      source: 'test',
+      user_uid: null,
+      status: 'cancelled',
+      amount: 149,
+      currency: 'TWD',
+      line_transaction_id: 'line-tx-1',
+    });
+    const { res, state } = response();
+    await handler(request(), res);
+
+    expect(state.location).toBe('https://kiwimu.com/read/ESTJ-A?checkout=cancelled');
+    expect(state.headers['Set-Cookie']).toContain('Max-Age=0');
     expect(mocks.requestLinePay).not.toHaveBeenCalled();
   });
 });
