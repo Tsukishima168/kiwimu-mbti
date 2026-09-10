@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../../linePay.js', () => ({
   buildAppBaseUrl: () => 'https://kiwimu.com',
   buildV2OrderCookie: (orderId: string) => `__Host-kiwimu-v2-order=${orderId}; HttpOnly; Secure`,
+  clearV2PendingOrderCookie: () => '__Host-kiwimu-v2-pending-order=; Max-Age=0',
   parseMbtiTypeFromOrderId: () => 'ESTJ-A',
 }));
 vi.mock('../../linePayOrderStore.js', () => ({
@@ -53,7 +54,10 @@ describe('GET /api/linepay/cancel security', () => {
 
     expect(mocks.updateLinePayOrder).not.toHaveBeenCalled();
     expect(state.location).toBe('https://kiwimu.com/read/ESTJ-A?unlock=success');
-    expect(state.headers['Set-Cookie']).toContain('HttpOnly');
+    expect(state.headers['Set-Cookie']).toEqual([
+      expect.stringContaining('HttpOnly'),
+      expect.stringContaining('Max-Age=0'),
+    ]);
   });
 
   it('uses a conditional transition for a cancellable order', async () => {
@@ -67,6 +71,7 @@ describe('GET /api/linepay/cancel security', () => {
     await handler(request(), res);
 
     expect(state.location).toBe('https://kiwimu.com/read/ESTJ-A?checkout=cancelled');
+    expect(state.headers['Set-Cookie']).toContain('Max-Age=0');
     expect(mocks.updateLinePayOrder).toHaveBeenCalledWith(
       ORDER_ID,
       expect.objectContaining({ status: 'cancelled' }),

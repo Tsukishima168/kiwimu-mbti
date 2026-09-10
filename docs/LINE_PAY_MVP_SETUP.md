@@ -3,14 +3,14 @@
 這版是給 V2 paywall 的最小可用流程：
 
 1. 前端點擊 `解鎖我的完整報告`
-2. 呼叫 `POST /api/linepay/request`
-3. 後端建立 LINE Pay payment request
+2. 呼叫 `POST /api/linepay/request`，後端先建立 `line_pay_orders`，並把這次待確認訂單寫入 30 分鐘的 `HttpOnly` pending cookie
+3. 後端建立 LINE Pay payment request，回傳 `paymentUrl`；前端保留原報告頁，另開 LINE Pay 付款頁
 4. 使用者在 LINE Pay 完成授權
-5. LINE Pay 導回 `GET /api/linepay/confirm`
-6. 後端 confirm 成功後把訂單證明寫入 `HttpOnly` cookie，再 redirect 回 `/read/:mbtiType?unlock=success`
-7. 前端以同源 POST 驗證 cookie；通過後再向 server 取得完整報告，訂單 id 不進頁面 URL 或 GA
+5. 正常 redirect 成功時，LINE Pay 導回 `GET /api/linepay/confirm`，後端 confirm 成功後把正式訂單證明寫入 `HttpOnly` cookie，再 redirect 回 `/read/:mbtiType?unlock=success`
+6. 若 sandbox QR / 跨裝置流程沒有導回桌機，使用者回到原報告頁按「我已完成付款，檢查解鎖」；前端呼叫 `POST /api/linepay/status`，後端用 LINE Pay check API 判斷是否可 confirm
+7. 前端以同源 POST 驗證正式 cookie；通過後再向 server 取得完整報告，訂單 id 不進頁面 URL 或 GA
 8. 若使用者已登入，同步寫回 Supabase `profiles.v2_unlocked_at`
-9. 後端同步更新 `public.line_pay_orders`（舊環境 fallback `mbti`），保留 request / confirm / cancel 狀態供對帳
+9. 後端同步更新 `public.line_pay_orders`（舊環境 fallback `mbti`），保留 request / confirm / cancel / status fallback 狀態供對帳
 
 ## 需要的環境變數
 
@@ -50,7 +50,12 @@ LINE Pay、V2 與 Economy 各使用一個動態 Vercel entrypoint，公開 URL �
 - `POST /api/linepay/request`
   - 建立付款請求
   - 先建立 `line_pay_orders`，建單失敗會中止付款請求，避免使用者付款後找不到訂單
-  - 回傳 `paymentUrl`
+  - 寫入 `__Host-kiwimu-v2-pending-order` pending cookie，效期 30 分鐘
+  - 回傳 `paymentUrl`；前端在原報告頁顯示「重新開啟付款頁」與「檢查解鎖」
+- `POST /api/linepay/status`
+  - 只接受同源請求，依 pending cookie 找到待確認訂單
+  - 呼叫 LINE Pay `GET /v3/payments/requests/{transactionId}/check`
+  - `0000` 保持鎖定；`0110` 立刻 confirm；`0121` / `0122` 清掉 pending 並要求重開付款；`0123` 視為已完成並寫入正式解鎖 cookie
 - `POST /api/v2/verify-unlock`
   - 只接受同源請求，驗證 HttpOnly cookie 對應的訂單已 confirmed 且 MBTI 型別相符
 - `POST /api/v2/report`
@@ -94,7 +99,7 @@ supabase/migrations/005_line_pay_orders_public.sql
 
 - 付費全文只由 `/api/v2/report` 在驗證訂單後回傳；localStorage 只是 UI cache，不是授權真相。
 - `V2_CHECKOUT_ENABLED` 與 `VITE_V2_CHECKOUT_ENABLED` 預設關閉；完成 LINE Pay sandbox 真人實刷與商品效期決策前不要開啟。
-- 真正長期版還要補 webhook、退款與後台 payment details 對帳。
+- status fallback 只補 LINE Pay sandbox / QR 跨裝置未 redirect 的解鎖確認；真正長期版還要補 webhook、退款與後台 payment details 對帳。
   - refund flow
   - 後台對帳 UI
 

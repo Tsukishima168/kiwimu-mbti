@@ -12,6 +12,7 @@ vi.mock('../../linePay.js', () => ({
   buildAppBaseUrl: () => 'https://kiwimu.com',
   buildLinePayApiPath: () => '/v3/payments/request',
   buildV2LinePayOrderId: () => `V2-ESTJ-A-1788920000000-${'a'.repeat(32)}`,
+  buildV2PendingOrderCookie: (orderId: string) => `__Host-kiwimu-v2-pending-order=${orderId}; HttpOnly; Secure`,
   getLinePayConfig: () => ({}),
   isLinePaySuccessCode: (code: string) => code === '0000',
   requestLinePay: mocks.requestLinePay,
@@ -42,8 +43,9 @@ function request(overrides: Partial<VercelRequest> = {}): VercelRequest {
 }
 
 function response() {
-  const state: { status?: number; body?: any } = {};
+  const state: { status?: number; body?: any; headers: Record<string, unknown> } = { headers: {} };
   const res = {
+    setHeader(name: string, value: unknown) { state.headers[name] = value; return res; },
     status(code: number) { state.status = code; return res; },
     json(body: unknown) { state.body = body; return res; },
     end() { return res; },
@@ -90,6 +92,7 @@ describe('POST /api/linepay/request security', () => {
 
     expect(state.status).toBe(200);
     expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({ userUid: null }));
+    expect(state.headers['Set-Cookie']).toContain('__Host-kiwimu-v2-pending-order=');
   });
 
   it('binds the order only to the user verified from the bearer token', async () => {

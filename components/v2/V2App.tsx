@@ -67,6 +67,7 @@ interface V2AppProps {
 type ReportFamilyKey = 'analysts' | 'diplomats' | 'sentinels' | 'explorers';
 type VariantCode = 'A' | 'T';
 type DessertLoadStatus = 'idle' | 'loading' | 'ready' | 'unavailable';
+type CheckoutStatus = 'idle' | 'starting' | 'pending' | 'checking';
 type PaidReportBundle = {
   report: V2VariantReport;
   oppositeReport: V2VariantReport | null;
@@ -305,6 +306,8 @@ export default function V2App({ user }: V2AppProps) {
   const [paidReports, setPaidReports] = useState<PaidReportBundle | null>(null);
   const [reportAccessStatus, setReportAccessStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle');
   const [reportMessage, setReportMessage] = useState('');
+  const [checkoutStatus, setCheckoutStatus] = useState<CheckoutStatus>('idle');
+  const [checkoutPaymentUrl, setCheckoutPaymentUrl] = useState('');
   const [activeChapter, setActiveChapter] = useState('ch-01');
   const [scrollProgress, setScrollProgress] = useState(0);
   const [dessertContract, setDessertContract] = useState<UnifiedDessertContract | null>(null);
@@ -695,40 +698,43 @@ export default function V2App({ user }: V2AppProps) {
 
   const handleCheckout = () => {
     void (async () => {
-    if (!fullType) {
-      return;
-    }
+      if (!fullType) {
+        return;
+      }
 
-    const checkoutUrl = '/api/linepay/request';
-    trackAction('v2_checkout_start', {
-      mbtiType: fullType,
-      source,
-      checkoutUrl,
-      mode: isLocalPreview ? 'local_simulation' : 'shop_redirect',
-    });
-    trackV2CheckoutStart(fullType, source, checkoutUrl);
+      const checkoutUrl = '/api/linepay/request';
+      trackAction('v2_checkout_start', {
+        mbtiType: fullType,
+        source,
+        checkoutUrl,
+        mode: isLocalPreview ? 'local_simulation' : 'shop_redirect',
+      });
+      trackV2CheckoutStart(fullType, source, checkoutUrl);
 
-    if (IS_DEV) {
-      if (!isLocalPreview) {
-        trackAction('v2_checkout_blocked_dev', {
+      if (IS_DEV) {
+        if (!isLocalPreview) {
+          trackAction('v2_checkout_blocked_dev', {
+            mbtiType: fullType,
+            source,
+            reason: 'dev_only_mode',
+          });
+          return;
+        }
+
+        const unlocked = unlockV2Preview(`local-${Date.now()}`);
+        setEntitlementState(unlocked);
+        trackAction('v2_unlock_success', {
           mbtiType: fullType,
-          source,
-          reason: 'dev_only_mode',
+          unlockType: unlocked.unlockType,
+          source: 'local_preview',
         });
         return;
       }
 
-      const unlocked = unlockV2Preview(`local-${Date.now()}`);
-      setEntitlementState(unlocked);
-      trackAction('v2_unlock_success', {
-        mbtiType: fullType,
-        unlockType: unlocked.unlockType,
-        source: 'local_preview',
-      });
-      return;
-    }
-
       try {
+        setCheckoutStatus('starting');
+        setCheckoutPaymentUrl('');
+        setReportMessage('');
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         const supabase = getAuthSupabaseClient();
         const { data: sessionData } = supabase
@@ -740,6 +746,7 @@ export default function V2App({ user }: V2AppProps) {
 
         const response = await fetch('/api/linepay/request', {
           method: 'POST',
+          credentials: 'same-origin',
           headers,
           body: JSON.stringify({
             mbtiType: fullType,
@@ -750,6 +757,7 @@ export default function V2App({ user }: V2AppProps) {
         const result = await response.json() as {
           ok?: boolean;
           paymentUrl?: string;
+          appPaymentUrl?: string;
           error?: string;
         };
 
@@ -757,15 +765,81 @@ export default function V2App({ user }: V2AppProps) {
           throw new Error(result.error || 'LINE Pay request failed');
         }
 
-        window.location.assign(result.paymentUrl);
+        setCheckoutPaymentUrl(result.paymentUrl);
+        setCheckoutStatus('pending');
+
+        const paymentWindow = window.open(result.paymentUrl, '_blank', 'noopener,noreferrer');
+        setReportMessage(
+          paymentWindow
+            ? 'LINE Pay 付款頁已在新分頁開啟。手機完成付款後，請回到這裡按「我已完成付款，檢查解鎖」。'
+            : '付款頁已建立。若瀏覽器沒有開新分頁，請按下方「重新開啟 LINE Pay 付款頁」。',
+        );
       } catch (error) {
         console.error('Failed to start LINE Pay checkout', error);
+        setCheckoutStatus('idle');
         setReportMessage('暫時無法開啟付款頁，請稍後再試。');
         trackAction('v2_checkout_error', {
           mbtiType: fullType,
           source,
           error: error instanceof Error ? error.message : 'unknown',
         });
+      }
+    })();
+  };
+
+  const handleCheckPaymentStatus = () => {
+    void (async () => {
+      if (!fullType) return;
+
+      try {
+        setCheckoutStatus('checking');
+        setReportMessage('正在向 LINE Pay 確認付款狀態。');
+        const response = await fetch('/api/linepay/status', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mbtiType: fullType }),
+        });
+        const payload = await response.json().catch(() => null) as {
+          ok?: boolean;
+          code?: string;
+          data?: {
+            mbtiType?: string;
+            redirectUrl?: string;
+          };
+        } | null;
+
+        if (response.ok && payload?.ok && payload.data?.redirectUrl) {
+          setReportMessage('付款已確認，正在載入完整報告。');
+          window.location.assign(payload.data.redirectUrl);
+          return;
+        }
+
+        if (response.status === 202 || payload?.code === 'AUTH_PENDING') {
+          setCheckoutStatus('pending');
+          setReportMessage('LINE Pay 尚未回報付款完成。請確認手機流程完成後，再按一次檢查解鎖。');
+          return;
+        }
+
+        const code = payload?.code || 'UNKNOWN';
+        const messageByCode: Record<string, string> = {
+          NO_PENDING_ORDER: '找不到這次付款的待確認訂單，請重新產生付款 QR。',
+          PAYMENT_CANCELLED: 'LINE Pay 回報這筆付款已取消，請重新產生付款 QR。',
+          PAYMENT_FAILED: 'LINE Pay 回報這筆付款失敗，請重新產生付款 QR。',
+          ORDER_TYPE_MISMATCH: '這筆付款和目前報告型別不同，請回到正確的報告頁重新付款。',
+          STATUS_CHECK_FAILED: '暫時無法向 LINE Pay 確認狀態，請稍後再試。',
+        };
+        if (['NO_PENDING_ORDER', 'ORDER_NOT_FOUND', 'PAYMENT_CANCELLED', 'PAYMENT_FAILED'].includes(code)) {
+          setCheckoutPaymentUrl('');
+          setCheckoutStatus('idle');
+        } else {
+          setCheckoutStatus('pending');
+        }
+        setReportMessage(messageByCode[code] || `目前尚未完成解鎖確認（${code}）。`);
+      } catch (error) {
+        console.error('Failed to check LINE Pay status', error);
+        setCheckoutStatus('pending');
+        setReportMessage('暫時無法確認付款狀態，請稍後再試。');
       }
     })();
   };
@@ -1122,14 +1196,37 @@ export default function V2App({ user }: V2AppProps) {
               : 'Section 02 – 08 · 職涯 × 關係 · 靈魂甜點 · 帶走的字'}
           </p>
           {!isReportLoading && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
-            <button
-              type="button"
-              className="ad-btn-primary ad-btn-center"
-              onClick={handleCheckout}
-            >
-              {unlockPrimaryLabel}
-            </button>
+            checkoutPaymentUrl ? (
+              <div className="ad-paywall-actions">
+                <a
+                  className="ad-btn-ghost ad-btn-center"
+                  href={checkoutPaymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  重新開啟 LINE Pay 付款頁
+                </a>
+                <button
+                  type="button"
+                  className="ad-btn-primary ad-btn-center"
+                  onClick={handleCheckPaymentStatus}
+                  disabled={checkoutStatus === 'checking'}
+                >
+                  {checkoutStatus === 'checking' ? '正在檢查付款狀態…' : '我已完成付款，檢查解鎖'}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="ad-btn-primary ad-btn-center"
+                onClick={handleCheckout}
+                disabled={checkoutStatus === 'starting'}
+              >
+                {checkoutStatus === 'starting' ? '正在建立付款頁…' : unlockPrimaryLabel}
+              </button>
+            )
           ) : null}
+          {reportMessage ? <p className="ad-paywall-note">{reportMessage}</p> : null}
           {IS_DEV && isLocalPreview ? (
             <div className="ad-mt-12">
               <button type="button" className="ad-btn-ghost ad-btn-center ad-btn-sm" onClick={handleResetPreview}>
@@ -1398,7 +1495,7 @@ export default function V2App({ user }: V2AppProps) {
         </>
       )}
 
-      {reportMessage ? <p className="ad-feedback" role="status">{reportMessage}</p> : null}
+      {reportMessage && canReadReport ? <p className="ad-feedback" role="status">{reportMessage}</p> : null}
 
       {/* ── DEV STRIP ────────────────────────────────────────── */}
       {IS_DEV ? (

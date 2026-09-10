@@ -3,6 +3,7 @@ import {
   buildAppBaseUrl,
   buildLinePayApiPath,
   buildV2LinePayOrderId,
+  buildV2PendingOrderCookie,
   getLinePayConfig,
   isLinePaySuccessCode,
   requestLinePay,
@@ -165,9 +166,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
+    res.setHeader('Set-Cookie', buildV2PendingOrderCookie(orderId));
     return res.status(200).json({
       ok: true,
       paymentUrl: result.info.paymentUrl.web,
+      appPaymentUrl: result.info.paymentUrl.app,
     });
   } catch (error) {
     await updateLinePayOrder(orderId, {
