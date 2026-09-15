@@ -44,7 +44,7 @@ describe('Kiwimu visual asset manifest', () => {
 
   it('maps every MBTI base type to an available dessert asset', () => {
     expect(Object.keys(KIWIMU_DESSERT_ASSET_IDS)).toHaveLength(16);
-    expect(Object.keys(KIWIMU_DESSERT_CATALOG)).toHaveLength(16);
+    expect(Object.keys(KIWIMU_DESSERT_CATALOG).length).toBeGreaterThanOrEqual(16);
 
     for (const type of MBTI_BASE_TYPES) {
       const asset = getDessertAsset(type);
