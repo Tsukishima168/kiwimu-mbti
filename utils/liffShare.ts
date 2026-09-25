@@ -36,7 +36,10 @@ export const shareResultToLine = async (mbtiType: string, dessertTitle: string):
         return false;
     }
 
-    const siteUrl = 'https://mbti.kiwimu.com';
+    // R7: mbti.kiwimu.com does not resolve (no DNS record) — link to the real,
+    // existing kiwimu.com route instead. `from` lets the landing site's
+    // kw_attr cookie (R4) record that this visit came from a LINE share.
+    const siteUrl = 'https://kiwimu.com/?from=mbti_line_share';
 
     const flexMessage = {
         type: "flex" as const,
@@ -46,7 +49,9 @@ export const shareResultToLine = async (mbtiType: string, dessertTitle: string):
             size: "kilo" as const,
             hero: {
                 type: "image" as const,
-                url: "https://kiwimu.com/assets/og-image-mbti.png", // A generic beautiful fallback image
+                // R7: /assets/og-image-mbti.png does not exist (SPA fallback returns
+                // index.html, not an image) — reuse index.html's working og:image.
+                url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771485556/index-image-2_prd43w.png",
                 size: "full" as const,
                 aspectRatio: "20:13" as const,
                 aspectMode: "cover" as const,

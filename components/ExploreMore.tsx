@@ -10,12 +10,12 @@ interface ExploreMoreProps {
 
 export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, passportClaimUrl }) => {
   const dessertUrl = mbtiType
-    ? buildDessertOrderLink(mbtiType, variant || 'A')
-    : 'https://map.kiwimu.com/menu?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q1-integration&utm_content=soul-dessert-button';
+    ? buildDessertOrderLink(mbtiType, variant || 'A', 'explore_dessert')
+    : 'https://map.kiwimu.com/menu?from=mbti_explore_dessert';
   // Re-reads the claim when the outbox flush publishes it, instead of
   // snapshotting whatever was known at first render.
-  const passportUrl = usePendingEconomyClaimUrl(passportClaimUrl || buildPassportLink());
-  const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType) : 'https://map.kiwimu.com';
+  const passportUrl = usePendingEconomyClaimUrl(passportClaimUrl || buildPassportLink('explore_passport'));
+  const moonMapUrl = mbtiType ? buildMoonMapLink(mbtiType, 'explore_map') : 'https://map.kiwimu.com/?from=mbti_explore_map';
 
   const products = [
     {
@@ -27,7 +27,8 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
       url: dessertUrl,
       onClick: () =>
         trackOutboundClick('DESSERT_BOOKING', 'navigation', {
-          section: 'explore-more',
+          entry_surface: 'explore_more',
+          destination_type: 'order_menu',
           mbti_type: mbtiType,
           url: dessertUrl,
         })
@@ -43,7 +44,8 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
       url: passportUrl,
       onClick: () =>
         trackOutboundClick('PASSPORT', 'navigation', {
-          section: 'explore-more',
+          entry_surface: 'explore_more',
+          destination_type: passportClaimUrl ? 'passport_claim' : 'passport_quiz',
           claim_ready: Boolean(passportClaimUrl),
           url: passportUrl,
         })
@@ -57,7 +59,8 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
       url: moonMapUrl,
       onClick: () =>
         trackOutboundClick('MOON_MAP', 'navigation', {
-          section: 'explore-more',
+          entry_surface: 'explore_more',
+          destination_type: 'map_explore',
           mbti_type: mbtiType,
           url: moonMapUrl,
         })
@@ -139,7 +142,7 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
             target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] md:text-[11px] font-mono text-gray-600 hover:text-kiwi-dark tracking-wider uppercase font-bold transition-colors underline underline-offset-4"
-            onClick={() => trackOutboundClick('LINE_OA', 'navigation', { section: 'explore-more-cta' })}
+            onClick={() => trackOutboundClick('LINE_OA', 'navigation', { entry_surface: 'explore_more_cta', destination_type: 'line_oa' })}
           >
             LINE Official
           </a>
@@ -149,7 +152,7 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
             target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] md:text-[11px] font-mono text-gray-600 hover:text-kiwi-dark tracking-wider uppercase font-bold transition-colors underline underline-offset-4"
-            onClick={() => trackOutboundClick('INSTAGRAM', 'navigation', { section: 'explore-more-cta' })}
+            onClick={() => trackOutboundClick('INSTAGRAM', 'navigation', { entry_surface: 'explore_more_cta', destination_type: 'social_profile' })}
           >
             Instagram
           </a>

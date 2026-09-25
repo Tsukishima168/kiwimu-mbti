@@ -3,6 +3,7 @@ import type { AppUser } from '../types';
 import { TestRun } from '../types';
 import { useCloudSync } from '../hooks/useCloudSync';
 import { trackButtonClick } from '../utils/analytics';
+import { buildMoonMapLink, trackOutboundClick } from '../utils/utmTracking';
 import { useLanguage } from '../contexts/LanguageContext';
 import RunTimeline from './RunTimeline';
 import RunDetail from './RunDetail';
@@ -98,10 +99,14 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
                                         </p>
                                     </div>
                                     <a
-                                        href={`https://map.kiwimu.com/?mbti=${testRuns[0]?.mbtiType || testRuns[0]?.resultType || ''}`}
+                                        href={buildMoonMapLink(testRuns[0]?.mbtiType || testRuns[0]?.resultType || '', 'archive_island_link')}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        onClick={() => trackButtonClick('island_link', 'archive_cross_site', 'https://map.kiwimu.com/')}
+                                        onClick={() => trackOutboundClick('MOON_MAP', 'navigation', {
+                                            entry_surface: 'archive_island_link',
+                                            destination_type: 'map_explore',
+                                            url: buildMoonMapLink(testRuns[0]?.mbtiType || testRuns[0]?.resultType || '', 'archive_island_link'),
+                                        })}
                                         className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 hover:from-amber-500 hover:via-yellow-500 hover:to-orange-500 text-gray-900 font-bold text-base md:text-lg rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap"
                                     >
                                         <span>{t('island_link_btn')}</span>

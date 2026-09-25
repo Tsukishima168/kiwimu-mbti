@@ -145,65 +145,79 @@ export function buildUTMLink(
 }
 
 // ============================================
-// 預設的 UTM 連結建構器
+// R3: 站內跨站連結（*.kiwimu.com）不用 UTM，改用單一 from=<來源站>_<位置>
+// 外部連結（LINE／Discord／IG…）維持原狀，仍走 buildUTMLink()。
+// ============================================
+
+const FROM_SOURCE_SITE = 'mbti';
+
+/**
+ * 建立指向其他 *.kiwimu.com 站的連結，帶單一 from 參數（不帶 utm_*）。
+ * mbti 類型不再放進網址，改由 kw_attr cookie（R4）攜帶。
+ */
+function buildInternalKiwimuLink(
+  linkKey: keyof typeof EXTERNAL_LINKS,
+  entrySurface: string,
+  additionalParams?: Record<string, string>
+): string {
+  const link = EXTERNAL_LINKS[linkKey];
+  if (!link) {
+    console.error(`Invalid link key: ${linkKey}`);
+    return '';
+  }
+
+  const url = new URL(link.baseUrl);
+  url.searchParams.set('from', `${FROM_SOURCE_SITE}_${entrySurface}`);
+
+  if (additionalParams) {
+    Object.entries(additionalParams).forEach(([key, value]) => {
+      if (value) url.searchParams.set(key, value);
+    });
+  }
+
+  return url.toString();
+}
+
+// ============================================
+// 預設的連結建構器
 // ============================================
 
 /**
- * 訂購按鈕連結（結果頁專用）
+ * 訂購按鈕連結（結果頁專用）。entrySurface 預設對應結果頁的甜點卡片。
  */
-export function buildDessertOrderLink(mbtiType: string, variant: string): string {
-  return buildUTMLink('DESSERT_BOOKING', 'result-cta', {
-    campaign: '2026-q2-kiwimu-routing',
-    content: 'soul-dessert-button',
-    additionalParams: {
-      mbti: `${mbtiType}-${variant}`,
-      from: 'mbti-test',
-      source: 'result-page'
-    }
-  });
+export function buildDessertOrderLink(mbtiType: string, variant: string, entrySurface: string = 'result_dessert'): string {
+  return buildInternalKiwimuLink('DESSERT_BOOKING', entrySurface);
 }
 
 /**
  * 月島地圖連結（結果頁專用）
  */
-export function buildMoonMapLink(mbtiType: string): string {
-  return buildUTMLink('MOON_MAP', 'result-cta', {
-    campaign: '2026-q1-integration',
-    content: 'moon-map-cta',
-    additionalParams: {
-      mbti: mbtiType
-    }
-  });
+export function buildMoonMapLink(mbtiType: string, entrySurface: string = 'result_map'): string {
+  return buildInternalKiwimuLink('MOON_MAP', entrySurface);
 }
 
 /**
  * 護照測驗連結（交叉導流）
  */
-export function buildPassportLink(): string {
-  return buildUTMLink('PASSPORT', 'navigation', {
-    campaign: '2026-q1-integration',
-    content: 'explore-more-card'
-  });
+export function buildPassportLink(entrySurface: string = 'explore_passport'): string {
+  return buildInternalKiwimuLink('PASSPORT', entrySurface);
 }
 
 /**
- * 護照領章連結（附 claim code + MBTI 類型，自動解鎖）
+ * 護照領章連結（附 claim code + MBTI 類型，自動解鎖）。
+ * claim/auto_unlock/stamp/mbti_type/variant 是領取印章的業務參數，不是行銷歸因，
+ * 維持在網址上；行銷來源改用 from=mbti_<entrySurface>。
  */
-export function buildPassportClaimLink(claimCode: string, mbtiType?: string, variant?: string): string {
+export function buildPassportClaimLink(claimCode: string, mbtiType?: string, variant?: string, entrySurface: string = 'claim'): string {
   const additionalParams: Record<string, string> = {
     claim: claimCode,
     auto_unlock: 'true',
     stamp: 'mbti_complete',
-    from: 'mbti',
   };
   if (mbtiType) additionalParams.mbti_type = mbtiType;
   if (variant) additionalParams.variant = variant;
 
-  return buildUTMLink('PASSPORT', 'navigation', {
-    campaign: '2026-q1-integration',
-    content: 'mbti-claim',
-    additionalParams,
-  });
+  return buildInternalKiwimuLink('PASSPORT', entrySurface, additionalParams);
 }
 
 /**
@@ -262,6 +276,9 @@ export function trackOutboundClick(
     link_url: trackedUrl,
     ...utmParams,
     ...rest,
+    // R5: the page navigates away right after this click fires; beacon
+    // transport ensures gtag doesn't lose the hit to the unload.
+    transport_type: 'beacon',
   };
 
   trackEvent('outbound_click', payload);

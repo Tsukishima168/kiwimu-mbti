@@ -42,6 +42,9 @@ import { initLiff } from './utils/liffShare';
 // UTM 追蹤（新增）
 import { initUTMTracking } from './utils/utmTracking';
 
+// 第一接觸歸因 cookie（R4，五站共用契約，寫入端）
+import { captureAttributionFromUrl, recordMbtiResult } from './utils/attribution';
+
 // 推薦追蹤（新增）
 import { initReferralTracking, parseReferralParams } from './utils/referralTracking';
 
@@ -368,6 +371,9 @@ const App: React.FC = () => {
       // 【新增】初始化 UTM 追蹤
       initUTMTracking();
 
+      // 【新增】第一接觸歸因 cookie（R4：外部 UTM 首次接觸 + 站內 from 覆寫）
+      captureAttributionFromUrl();
+
       // 【新增】初始化推薦追蹤
       initReferralTracking();
 
@@ -658,6 +664,9 @@ const App: React.FC = () => {
 
     // Track Completion (現有的 GA4)
     trackQuizComplete(type, 0, user?.uid || undefined);
+
+    // 【新增】R4：測驗結果覆寫 kw_attr cookie 的 mbti/mbti_ts（五站共用歸因契約）
+    recordMbtiResult(`${type}-${variant}`);
 
     // Notify Discord (Always, regardless of user login status)
     void sendDiscordNotification(type, variant, 'zh', user?.uid, {
