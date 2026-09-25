@@ -92,4 +92,46 @@ describe('attribution (kw_attr writer)', () => {
     const { readAttribution } = await import('./attribution');
     expect(readAttribution()).toEqual({});
   });
+
+  // v1.1 修訂：寫入端每個值上限 64 字；from 必須符合 ^[a-z0-9_]+$
+  it('rejects a from value with disallowed characters instead of writing it', async () => {
+    stubEnv('kiwimu.com', '?from=Hub-Nav!');
+    const mod = await import('./attribution');
+    mod.captureAttributionFromUrl();
+    expect(mod.readAttribution().from).toBeUndefined();
+  });
+
+  it('accepts a from value made only of lowercase letters, digits and underscore', async () => {
+    stubEnv('kiwimu.com', '?from=mbti_result_dessert_v2');
+    const mod = await import('./attribution');
+    mod.captureAttributionFromUrl();
+    expect(mod.readAttribution().from).toBe('mbti_result_dessert_v2');
+  });
+
+  it('caps from at 64 chars, re-validating the truncated value', async () => {
+    const longValid = 'a'.repeat(80); // all valid chars, just too long
+    stubEnv('kiwimu.com', `?from=${longValid}`);
+    const mod = await import('./attribution');
+    mod.captureAttributionFromUrl();
+    expect(mod.readAttribution().from).toBe('a'.repeat(64));
+  });
+
+  it('caps each utm field at 64 chars on first-touch capture', async () => {
+    const longSrc = 's'.repeat(100);
+    const longCampaign = 'c'.repeat(100);
+    stubEnv('kiwimu.com', `?utm_source=${longSrc}&utm_campaign=${longCampaign}`);
+    const mod = await import('./attribution');
+    mod.captureAttributionFromUrl();
+    const data = mod.readAttribution();
+    expect(data.src).toBe('s'.repeat(64));
+    expect(data.cmp).toBe('c'.repeat(64));
+  });
+
+  it('caps a recorded mbti value at 64 chars', async () => {
+    stubEnv('kiwimu.com', '');
+    const mod = await import('./attribution');
+    // Regex-valid but pathological length input is still capped defensively.
+    mod.recordMbtiResult('INFP-A');
+    expect((mod.readAttribution().mbti || '').length).toBeLessThanOrEqual(64);
+  });
 });

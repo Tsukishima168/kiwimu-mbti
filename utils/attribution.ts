@@ -15,6 +15,29 @@ const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
 const MAX_AGE_MS = MAX_AGE_SECONDS * 1000;
 const MBTI_PATTERN = /^[EI][NS][TF][JP](-[AT])?$/;
 
+// v1.1 修訂：寫入端每個值上限 64 字；from 必須符合 ^[a-z0-9_]+$。
+const MAX_VALUE_LENGTH = 64;
+const FROM_PATTERN = /^[a-z0-9_]+$/;
+
+function capLength(value: string): string {
+  return value.length > MAX_VALUE_LENGTH ? value.slice(0, MAX_VALUE_LENGTH) : value;
+}
+
+function capOrUndefined(value: string | null): string | undefined {
+  if (!value) return undefined;
+  return capLength(value);
+}
+
+/**
+ * Validates + caps a `from` value per R4 v1.1: lowercase alphanumeric and
+ * underscore only, <=64 chars. Anything else is treated as absent rather
+ * than written malformed into the shared cookie.
+ */
+function sanitizeFromValue(value: string): string | undefined {
+  const capped = capLength(value);
+  return FROM_PATTERN.test(capped) ? capped : undefined;
+}
+
 export interface KwAttrData {
   src?: string;
   med?: string;
@@ -93,18 +116,26 @@ export function captureAttributionFromUrl(search: string = typeof window !== 'un
   let changed = false;
 
   if (from) {
-    next.from = from;
-    next.from_ts = Date.now();
-    changed = true;
+    // A malformed `from` (fails ^[a-z0-9_]+$ after the 64-char cap) is
+    // dropped rather than written — and we do NOT fall back to utm_source
+    // capture, since a from= link is never also an external ad click.
+    const sanitizedFrom = sanitizeFromValue(from);
+    if (sanitizedFrom) {
+      next.from = sanitizedFrom;
+      next.from_ts = Date.now();
+      changed = true;
+    }
   } else if (utmSource) {
     const isStale = !next.ts || Date.now() - next.ts > MAX_AGE_MS;
     if (!next.src || isStale) {
-      next.src = utmSource;
-      next.med = params.get('utm_medium') || undefined;
-      next.cmp = params.get('utm_campaign') || undefined;
-      next.cnt = params.get('utm_content') || undefined;
-      next.trm = params.get('utm_term') || undefined;
-      next.land = window.location.hostname;
+      // Whole-group capture from a single source (the current URL) — never
+      // mixed field-by-field with whatever the cookie already held.
+      next.src = capLength(utmSource);
+      next.med = capOrUndefined(params.get('utm_medium'));
+      next.cmp = capOrUndefined(params.get('utm_campaign'));
+      next.cnt = capOrUndefined(params.get('utm_content'));
+      next.trm = capOrUndefined(params.get('utm_term'));
+      next.land = capLength(window.location.hostname);
       next.ts = Date.now();
       changed = true;
     }
@@ -124,7 +155,7 @@ export function recordMbtiResult(mbtiType: string): void {
   if (!mbtiType || !MBTI_PATTERN.test(mbtiType)) return;
 
   const current = readAttribution();
-  persistAttribution({ ...current, mbti: mbtiType, mbti_ts: Date.now() });
+  persistAttribution({ ...current, mbti: capLength(mbtiType), mbti_ts: Date.now() });
 }
 
 export { MBTI_PATTERN };

@@ -1241,9 +1241,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   title: '訂購靈魂甜點',
                   subtitle: 'ORDER DESSERT',
                   description: '線上預訂你的專屬甜點，到店取貨享受美味',
-                  url: `https://map.kiwimu.com/menu?from=mbti_result_dessert`,
+                  url: `https://map.kiwimu.com/menu?from=mbti_result_dessert&mbti=${fullResultType}`,
                   external: true,
-                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { destination_type: 'order_menu', entry_surface: 'result_dessert_card', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com/menu?from=mbti_result_dessert` }),
+                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { destination_type: 'order_menu', entry_surface: 'result_dessert_card', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com/menu?from=mbti_result_dessert&mbti=${fullResultType}` }),
                 },
                 {
                   id: 'moon-map',
@@ -1251,9 +1251,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   title: '月島導覽地圖',
                   subtitle: 'ISLAND MAP',
                   description: '探索 Moon Moon 品牌生態，發現完整的島嶼世界',
-                  url: `https://map.kiwimu.com?from=mbti_result_explore`,
+                  url: `https://map.kiwimu.com?from=mbti_result_explore&mbti=${fullResultType}`,
                   external: true,
-                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { destination_type: 'map_explore', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com?from=mbti_result_explore` }),
+                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { destination_type: 'map_explore', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com?from=mbti_result_explore&mbti=${fullResultType}` }),
                 },
               ].map((item) => (
                 <a

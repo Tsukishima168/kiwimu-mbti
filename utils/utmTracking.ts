@@ -184,16 +184,22 @@ function buildInternalKiwimuLink(
 
 /**
  * 訂購按鈕連結（結果頁專用）。entrySurface 預設對應結果頁的甜點卡片。
+ * v1.1 修訂：map 靠 mbti=<TYPE-variant> 業務參數顯示個人化推薦，保留在網址上
+ * （不算行銷歸因，不受 R3 utm→from 置換影響）；行銷來源改用 from=mbti_<entrySurface>。
  */
 export function buildDessertOrderLink(mbtiType: string, variant: string, entrySurface: string = 'result_dessert'): string {
-  return buildInternalKiwimuLink('DESSERT_BOOKING', entrySurface);
+  return buildInternalKiwimuLink('DESSERT_BOOKING', entrySurface, {
+    mbti: `${mbtiType}-${variant}`,
+  });
 }
 
 /**
- * 月島地圖連結（結果頁專用）
+ * 月島地圖連結（結果頁專用）。同上，保留 mbti 業務參數。
  */
 export function buildMoonMapLink(mbtiType: string, entrySurface: string = 'result_map'): string {
-  return buildInternalKiwimuLink('MOON_MAP', entrySurface);
+  return buildInternalKiwimuLink('MOON_MAP', entrySurface, {
+    mbti: mbtiType,
+  });
 }
 
 /**

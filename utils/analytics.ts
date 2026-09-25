@@ -98,6 +98,9 @@ export const trackQuizAbandon = (
         total_questions: totalQuestions,
         progress_percentage: Math.round((questionNumber / totalQuestions) * 100),
         time_spent_seconds: timeSpent,
+        // Fired from pagehide, right as the page unloads — beacon transport
+        // ensures gtag doesn't lose the hit to the navigation/unload.
+        transport_type: 'beacon' as const,
     };
 
     gtagSafe('event', 'quiz_abandon', withSiteId(eventData));

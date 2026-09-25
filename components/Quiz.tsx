@@ -35,11 +35,20 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     const completedRef = React.useRef(false);
     const abandonFiredRef = React.useRef(false);
     const answersCountRef = React.useRef(0);
+    const questionsLengthRef = React.useRef(questions.length);
 
     useEffect(() => {
         answersCountRef.current = answers.length;
     }, [answers]);
 
+    useEffect(() => {
+        questionsLengthRef.current = questions.length;
+    }, [questions.length]);
+
+    // Registered once on mount ([] deps) — questions.length is read from a ref,
+    // not a dependency, so the async question-set load (loadQuestions() → a
+    // later setQuestions) does not re-run this effect and fire a false
+    // quiz_abandon via the cleanup path.
     useEffect(() => {
         const fireAbandonIfNeeded = () => {
             if (completedRef.current || abandonFiredRef.current) return;
@@ -47,7 +56,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
             if (answersCountRef.current === 0) return;
             abandonFiredRef.current = true;
             const timeSpentSeconds = Math.round((Date.now() - quizStartTimeRef.current) / 1000);
-            trackQuizAbandon(answersCountRef.current, questions.length, timeSpentSeconds);
+            trackQuizAbandon(answersCountRef.current, questionsLengthRef.current, timeSpentSeconds);
         };
 
         window.addEventListener('pagehide', fireAbandonIfNeeded);
@@ -55,7 +64,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
             window.removeEventListener('pagehide', fireAbandonIfNeeded);
             fireAbandonIfNeeded();
         };
-    }, [questions.length]);
+    }, []);
 
     // 載入題目（優先從 Supabase，中文版例外則鎖定 V1）
     useEffect(() => {
