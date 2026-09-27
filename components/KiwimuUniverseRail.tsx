@@ -16,6 +16,12 @@ export interface KiwimuUniverseNavigationDetails {
   viewport_category: 'mobile' | 'tablet' | 'desktop' | 'unknown';
   login_status: KiwimuUniverseLoginStatus;
   surface: string;
+  // R5 canonical event param names (shared across the five-site outbound_click
+  // contract). Kept alongside `surface`/`target_site` rather than renaming
+  // them, so existing universe_nav_click history stays comparable.
+  link_name: string;
+  entry_surface: string;
+  destination_type: string;
   transport_type: 'beacon';
 }
 
@@ -34,11 +40,12 @@ const UNIVERSE_SITES: ReadonlyArray<{
   descriptor: string;
   href: string;
 }> = [
-  { id: 'kiwimu', label: 'MBTI', descriptor: '人格測驗', href: 'https://kiwimu.com/' },
-  { id: 'passport', label: 'Passport', descriptor: '會員護照', href: 'https://passport.kiwimu.com/' },
-  { id: 'map', label: 'Map', descriptor: '島嶼地圖', href: 'https://map.kiwimu.com/' },
-  { id: 'gacha', label: 'Gacha', descriptor: '遊戲中心', href: 'https://gacha.kiwimu.com/' },
-  { id: 'shop', label: 'Shop', descriptor: '甜點預訂', href: 'https://shop.kiwimu.com/' },
+  // R3: 站內跨站連結不用 UTM，帶單一 from=<來源站>_<位置>。
+  { id: 'kiwimu', label: 'MBTI', descriptor: '人格測驗', href: 'https://kiwimu.com/?from=mbti_universe_nav' },
+  { id: 'passport', label: 'Passport', descriptor: '會員護照', href: 'https://passport.kiwimu.com/?from=mbti_universe_nav' },
+  { id: 'map', label: 'Map', descriptor: '島嶼地圖', href: 'https://map.kiwimu.com/?from=mbti_universe_nav' },
+  { id: 'gacha', label: 'Gacha', descriptor: '遊戲中心', href: 'https://gacha.kiwimu.com/?from=mbti_universe_nav' },
+  { id: 'shop', label: 'Shop', descriptor: '甜點預訂', href: 'https://shop.kiwimu.com/?from=mbti_universe_nav' },
 ];
 
 export function createKiwimuUniverseNavigationDetails(
@@ -57,6 +64,8 @@ export function createKiwimuUniverseNavigationDetails(
         ? 'tablet'
         : 'desktop';
 
+  const targetSiteMeta = UNIVERSE_SITES.find((site) => site.id === targetSite);
+
   return {
     source_site: sourceSite,
     target_site: targetSite,
@@ -66,6 +75,9 @@ export function createKiwimuUniverseNavigationDetails(
     viewport_category: viewportCategory,
     login_status: loginStatus,
     surface,
+    link_name: targetSiteMeta?.label || targetSite,
+    entry_surface: surface,
+    destination_type: 'cross_site_nav',
     transport_type: 'beacon',
   };
 }

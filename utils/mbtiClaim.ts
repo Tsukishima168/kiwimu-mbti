@@ -65,7 +65,7 @@ export async function getOrCreatePassportClaimUrl(
   if (!code) {
     // fallback: 即使 claim code 建立失敗，也提供直接跳轉連結
     const passportBase = import.meta.env.VITE_PASSPORT_URL || 'https://kiwimu.com/passport';
-    return `${passportBase}/?mbti_type=${mbtiType}&variant=${variant}&auto_unlock=true&stamp=mbti_complete&from=mbti`;
+    return `${passportBase}/?mbti_type=${mbtiType}&variant=${variant}&auto_unlock=true&stamp=mbti_complete&from=mbti_claim_fallback`;
   }
 
   localStorage.setItem(key, code);

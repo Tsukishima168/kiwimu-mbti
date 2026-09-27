@@ -188,8 +188,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const fullResultType = `${resultData.id}-${identitySuffix}`;
   const exploreUrl = `/explore?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-explore&source=v1_result&mbti_type=${resultData.id}&variant=${identitySuffix}`;
   const v2ReportUrl = `/read/${fullResultType}?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-v2&utm_content=v1-result-v2&source=v1_result`;
+  // R3: 站內跨站連結不用 UTM，改用單一 from 參數；mbti 類型改由 kw_attr cookie（R4）攜帶。
   const passportUrl = usePendingEconomyClaimUrl(
-    `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-passport&mbti_type=${resultData.id}&variant=${identitySuffix}`,
+    `https://passport.kiwimu.com?from=mbti_result_passport`,
   );
   const anchor = SOUL_ANCHOR_MAP[resultData.id] || SOUL_ANCHOR_MAP["ISFP"];
   const isOgRenderPreview = typeof window !== 'undefined' && window.location.pathname.includes('/og-render');
@@ -1240,9 +1241,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   title: '訂購靈魂甜點',
                   subtitle: 'ORDER DESSERT',
                   description: '線上預訂你的專屬甜點，到店取貨享受美味',
-                  url: `https://map.kiwimu.com/menu?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-dessert&mbti=${fullResultType}`,
+                  url: `https://map.kiwimu.com/menu?from=mbti_result_dessert&mbti=${fullResultType}`,
                   external: true,
-                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { destination_type: 'order_menu', entry_surface: 'result_dessert_card', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com/menu?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-dessert&mbti=${fullResultType}` }),
+                  onClick: () => trackOutboundClick('DESSERT_BOOKING', 'navigation', { destination_type: 'order_menu', entry_surface: 'result_dessert_card', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com/menu?from=mbti_result_dessert&mbti=${fullResultType}` }),
                 },
                 {
                   id: 'moon-map',
@@ -1250,9 +1251,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   title: '月島導覽地圖',
                   subtitle: 'ISLAND MAP',
                   description: '探索 Moon Moon 品牌生態，發現完整的島嶼世界',
-                  url: `https://map.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-map&mbti=${fullResultType}`,
+                  url: `https://map.kiwimu.com?from=mbti_result_explore&mbti=${fullResultType}`,
                   external: true,
-                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { destination_type: 'map_explore', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-map&mbti=${fullResultType}` }),
+                  onClick: () => trackOutboundClick('MOON_MAP', 'navigation', { destination_type: 'map_explore', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: `https://map.kiwimu.com?from=mbti_result_explore&mbti=${fullResultType}` }),
                 },
               ].map((item) => (
                 <a

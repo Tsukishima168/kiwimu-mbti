@@ -6,7 +6,7 @@ import { QUESTIONS } from '../constants';
 import { loadQuestions } from '../utils/dataLoader';
 import { useProgressStorage } from '../hooks/useProgressStorage';
 import ResumeModal from './ResumeModal';
-import { trackQuizStart, trackQuizProgress, trackQuizComplete } from '../utils/analytics';
+import { trackQuizStart, trackQuizProgress, trackQuizComplete, trackQuizAbandon } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
 import { questionTranslations } from '../i18n/questionsTranslations';
 
@@ -27,6 +27,44 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
     const { hasProgress, saveProgress, loadProgress, clearProgress } = useProgressStorage();
+
+    // R5: quiz_abandon — fired at most once per quiz session, either when the
+    // page is being unloaded mid-quiz (pagehide) or when this component
+    // unmounts without having reached onComplete (e.g. SPA navigation away).
+    const quizStartTimeRef = React.useRef<number>(Date.now());
+    const completedRef = React.useRef(false);
+    const abandonFiredRef = React.useRef(false);
+    const answersCountRef = React.useRef(0);
+    const questionsLengthRef = React.useRef(questions.length);
+
+    useEffect(() => {
+        answersCountRef.current = answers.length;
+    }, [answers]);
+
+    useEffect(() => {
+        questionsLengthRef.current = questions.length;
+    }, [questions.length]);
+
+    // Registered once on mount ([] deps) — questions.length is read from a ref,
+    // not a dependency, so the async question-set load (loadQuestions() → a
+    // later setQuestions) does not re-run this effect and fire a false
+    // quiz_abandon via the cleanup path.
+    useEffect(() => {
+        const fireAbandonIfNeeded = () => {
+            if (completedRef.current || abandonFiredRef.current) return;
+            // No answers yet means the quiz never really started — skip the noise.
+            if (answersCountRef.current === 0) return;
+            abandonFiredRef.current = true;
+            const timeSpentSeconds = Math.round((Date.now() - quizStartTimeRef.current) / 1000);
+            trackQuizAbandon(answersCountRef.current, questionsLengthRef.current, timeSpentSeconds);
+        };
+
+        window.addEventListener('pagehide', fireAbandonIfNeeded);
+        return () => {
+            window.removeEventListener('pagehide', fireAbandonIfNeeded);
+            fireAbandonIfNeeded();
+        };
+    }, []);
 
     // 載入題目（優先從 Supabase，中文版例外則鎖定 V1）
     useEffect(() => {
@@ -150,6 +188,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 setIsAnimating(false);
             } else {
                 clearProgress(); // Clear progress when quiz is completed
+                completedRef.current = true; // Prevents a false quiz_abandon on unmount
                 onComplete(newAnswers);
             }
         }, 600);

@@ -342,11 +342,8 @@ export default function V2App({ user }: V2AppProps) {
   // component first renders, so a plain call would snapshot the pre-claim URL
   // and the CTA would drop economy_claim. Stays above the early returns below
   // so the hook call is unconditional.
-  const passportUrl = usePendingEconomyClaimUrl(
-    resultBundle
-      ? `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v2-footer-passport&mbti_type=${resultBundle.resultData.id}&variant=${variant}`
-      : 'https://passport.kiwimu.com',
-  );
+  // R3: 站內跨站連結不用 UTM，改用單一 from 參數；mbti 類型改由 kw_attr cookie（R4）攜帶。
+  const passportUrl = usePendingEconomyClaimUrl('https://passport.kiwimu.com?from=mbti_v2_footer_passport');
 
   useEffect(() => {
     if (!dessertType) {
