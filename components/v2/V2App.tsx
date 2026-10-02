@@ -614,11 +614,6 @@ export default function V2App({ user }: V2AppProps) {
       return;
     }
 
-    if (!IS_DEV && !IS_CHECKOUT_ENABLED) {
-      setReportMessage('完整報告目前仍在展示測試，正式解鎖開放後就能在這裡完成付款。');
-      return;
-    }
-
     setActiveChapter('ch-01');
 
     const sections = REPORT_CHAPTERS.map((chapter) => document.getElementById(chapter.id)).filter(
@@ -1107,7 +1102,7 @@ export default function V2App({ user }: V2AppProps) {
       {canReadReport ? <p className="ad-purchase-account-note">已購報告可從<a href="/read/library">我的報告</a>繼續閱讀。若購買時未登入，請在這台裝置登入後保存到帳號。</p> : null}
 
       {/* ── HERO ─────────────────────────────────────────────── */}
-      <header id="ch-01" className="ad-hero ad-reveal">
+      <header id="ch-01" className="atlas-report-hero ad-reveal">
         <div className="ad-hero-eyebrow">
           <span className="ad-hero-eyebrow-dot" />
           {familyMeta.familyLabel} · Kiwimu V2 深度報告
@@ -1176,7 +1171,7 @@ export default function V2App({ user }: V2AppProps) {
       </header>
 
       {/* ── 01: TAG WALL (FREE) ──────────────────────────────── */}
-      <div className="ad-section ad-reveal">
+      <div className="atlas-report-section ad-reveal">
         <p className="ad-section-kicker">01 · Tag Wall</p>
         <h2 className="ad-section-title">五個理解自己的切角</h2>
         <div className="ad-tag-grid">
@@ -1255,7 +1250,7 @@ export default function V2App({ user }: V2AppProps) {
       ) : (
         <>
         {/* ── 02: PROFESSIONAL INSIGHTS ───────────────────────── */}
-        <div id="ch-02" className="ad-section ad-reveal">
+        <div id="ch-02" className="atlas-report-section ad-reveal">
           <p className="ad-section-kicker">02 · Professional Insights</p>
           <h2 className="ad-section-title">保護自己的方式，也有它的代價</h2>
           <p className="ad-section-lead">A 與 T 描述兩種自我回應傾向。把它們放在一起讀，看看哪些做法替你省力，哪些也讓你付出代價。</p>
@@ -1317,7 +1312,7 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── 03: DIMENSION SPECTRUM ───────────────────────────── */}
-        <div id="ch-03" className="ad-section ad-reveal">
+        <div id="ch-03" className="atlas-report-section ad-reveal">
           <p className="ad-section-kicker">03 · Dimension Spectrum</p>
           <h2 className="ad-section-title">四種偏好怎麼出現</h2>
           <p className="ad-section-lead">四組偏好提供不同的觀察角度。百分比只表示本機這次作答的加權傾向，不代表能力、人口排名或診斷。</p>
@@ -1338,7 +1333,7 @@ export default function V2App({ user }: V2AppProps) {
 
         {/* ── 04: DIGITAL PERSONA ──────────────────────────────── */}
         {behaviorLogic.length > 0 ? (
-          <div id="ch-04" className="ad-section ad-reveal">
+          <div id="ch-04" className="atlas-report-section ad-reveal">
             <p className="ad-section-kicker">04 · Digital Persona</p>
             <h2 className="ad-section-title">它在生活裡的樣子</h2>
             <p className="ad-section-lead">以下是這個型別的敘事觀察。找一個你熟悉的場景對照，看看哪些反應像你，哪些需要換個說法。</p>
@@ -1360,7 +1355,7 @@ export default function V2App({ user }: V2AppProps) {
           </div>
         ) : null}
 
-        <section id="ch-05" className="ad-section ad-reveal">
+        <section id="ch-05" className="atlas-report-section ad-reveal">
           <p className="ad-section-kicker">05 · Small Practices</p>
           <h2 className="ad-section-title">把理解，放進一件小事裡。</h2>
           <p className="ad-section-lead">不用一次改變很多。挑一個有感的練習，試完再看看它是否適合你。</p>
@@ -1375,7 +1370,7 @@ export default function V2App({ user }: V2AppProps) {
         </section>
 
         {/* ── 06: CAREER × RELATIONSHIP ────────────────────────── */}
-        <div id="ch-06" className="ad-section ad-reveal">
+        <div id="ch-06" className="atlas-report-section ad-reveal">
           <p className="ad-section-kicker">06 · Career × Relationship</p>
           <h2 className="ad-section-title">工作裡的推進方式 × 關係裡的靠近方式</h2>
           <p className="ad-section-lead">工作與關係可能喚起不同的反應。分開讀這兩個場景，看看你在哪裡自在，又在哪裡需要多一點空間。</p>
@@ -1421,7 +1416,7 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── 07: SOUL REFLECTION ──────────────────────────────── */}
-        <div id="ch-07" className="ad-section ad-reveal">
+        <div id="ch-07" className="atlas-report-section ad-reveal">
           <p className="ad-section-kicker">07 · Taste Pairing</p>
           <h2 className="ad-section-title">{dessertName}</h2>
           <p className="ad-section-lead">甜點配對是 Kiwimu 的品牌敘事，不是心理測量結論。品項資料同步月島菜單；實際供應、規格與價格以菜單頁為準。</p>
@@ -1482,7 +1477,7 @@ export default function V2App({ user }: V2AppProps) {
         </div>
 
         {/* ── FOOTER ───────────────────────────────────────────── */}
-        <div className="ad-footer ad-reveal">
+        <div className="atlas-report-footer ad-reveal">
           <p className="ad-footer-title">讓這次閱讀，回到生活。</p>
           <p className="ad-footer-sub">{dessertName} · 這次敘事的味覺提案</p>
           <div className="ad-btn-row">
@@ -1512,7 +1507,7 @@ export default function V2App({ user }: V2AppProps) {
         </>
       )}
 
-      {reportMessage && canReadReport ? <p className="ad-feedback" role="status">{reportMessage}</p> : null}
+      {reportMessage && canReadReport ? <p className="atlas-report-feedback" role="status">{reportMessage}</p> : null}
 
       {/* ── DEV STRIP ────────────────────────────────────────── */}
       {IS_DEV ? (

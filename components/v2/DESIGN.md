@@ -220,14 +220,18 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 
 ## 7. 章節導覽規格（B1）
 
-章節定義在 `V2App.tsx` 的 `REPORT_CHAPTERS`（八章）。IntersectionObserver 監看
-八個 `id="ch-0x"` 錨點，`activeChapter` 隨捲動更新。
+章節定義在 `V2App.tsx` 的 `REPORT_CHAPTERS`（八章）。被動 scroll listener 依
+八個 `id="ch-0x"` 錨點的位置更新 `activeChapter`，不受公開 checkout 開關影響。
+
+報告主容器使用 `atlas-report-hero`、`atlas-report-section`、`atlas-report-footer`、
+`atlas-report-feedback`。避免通用 `ad-hero`／`ad-section` 等名稱與 Safari 內容封鎖器
+的隱藏規則碰撞，造成已購內容消失；子元件樣式沿用既有命名。
 
 **八章對映**（DOM 順序，單調不回跳）：
 
 | 章 | `REPORT_CHAPTERS` 標題 | 錨點區塊（`id`） | 併入同章的後續區塊 |
 |---|---|---|---|
-| ch-01 | 01 當下的你 | HERO（`header.ad-hero`：圖版 + 型別 + 引文） | Tag Wall（01） |
+| ch-01 | 01 當下的你 | HERO（`header.atlas-report-hero`：圖版 + 型別 + 引文） | Tag Wall（01） |
 | ch-02 | 02 你怎麼保護自己 | Professional Insights（02） | 狀態場景、A/T 對照 |
 | ch-03 | 03 偏好怎麼出現 | Dimension Spectrum（03） | — |
 | ch-04 | 04 生活裡的樣子 | Digital Persona（04） | 日常場景 |
