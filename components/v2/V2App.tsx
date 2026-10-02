@@ -416,7 +416,7 @@ export default function V2App({ user }: V2AppProps) {
         baseType,                     // 例 INTJ
         variantSummary?.title,
         // 商品鉤子
-        'Kiwimu', '月島甜點', '靈魂甜點', 'NT$149 MBTI 深度報告',
+        'Kiwimu', '月島甜點', '靈魂甜點', 'NT$49 MBTI 深度報告',
       ].filter(Boolean).join(','),
       robots: fullType && !hasQuery ? 'index,follow' : 'noindex,follow',
     });
@@ -996,7 +996,7 @@ export default function V2App({ user }: V2AppProps) {
       ? '解鎖我的完整報告'
       : IS_DEV
         ? 'DEV 階段暫不開放'
-        : 'NT$149 解鎖這份完整報告';
+        : 'NT$49 解鎖這份完整報告';
 
   // ─ Apple Dark helpers ─
   const DIM_NAMES: Record<string, string> = {

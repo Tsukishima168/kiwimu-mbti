@@ -63,7 +63,7 @@ function storedOrder(overrides: Record<string, unknown> = {}) {
     source: 'test',
     user_uid: null,
     status: 'requested',
-    amount: 149,
+    amount: 49,
     currency: 'TWD',
     line_transaction_id: 'line-tx-1',
     ...overrides,
