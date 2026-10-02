@@ -1,115 +1,54 @@
 # Email 發送整合說明
 
-本專案可透過 **Vercel Serverless API + 郵件服務** 發送 Email。瀏覽器無法直接發信（安全與垃圾信考量），需由後端或 API 代發。
+## 目前的兩個用途
 
----
+- 測驗結果信：`POST /api/send-email`，只寄給伺服器驗證過、具已驗證 Email 的 Supabase 登入帳號。標題與內容由伺服器產生。
+- V2 付款通知：由 confirmed 訂單觸發，提供報告與「我的報告」登入入口、金額及付款參考碼。寄送紀錄存於私有 `v2_payment_receipts`；失敗不會把成功付款改成失敗。
 
-## 一、做法概覽
+付款通知不包含可直接解鎖的訂單 proof。客戶須用購買時的同一個帳號登入查看報告。
 
-| 做法 | 說明 |
+## 上線必要設定
+
+在 Kiwimu Vercel Production 設定以下 server-only 變數：
+
+| 變數 | 用途 |
 |------|------|
-| **Vercel API + Resend**（推薦） | 在 `api/send-email.ts` 用 Resend 發信；設定簡單、免費額度夠用。 |
-| Vercel API + SendGrid / Mailgun | 同上，換成其他郵件 API；需自建對應 handler。 |
-| Firebase Cloud Functions | 用 Firebase 函數發信；若已用 Vercel API 可不必重複。 |
-| Supabase Edge Functions | 用 Supabase 函數發信；同上，擇一即可。 |
+| `RESEND_API_KEY` | 郵件服務憑證，只存 Secret 設定，不貼進文件、前端或 Git。 |
+| `EMAIL_FROM` | 已在 Resend 驗證網域的寄件人，例如 `Kiwimu <reports@你的網域>`。 |
 
-本文件與程式以 **Resend** 為例；換成其他服務時，只需改 API 路徑內的實作與環境變數。
+兩個變數均為必填，不自動退回 `onboarding@resend.dev`。
 
----
+V2 另須套用 `supabase/migrations/20261002100000_v2_payment_receipts.sql`。共用資料庫先核對 migration history，勿重跑舊 001–005。私有表僅供 service role 使用，瀏覽器不能讀取收件人或寄送紀錄。
 
-## 二、環境變數（Vercel）
+新付款建立前會檢查寄信設定與私有表是否可用；缺設定時不建立新訂單。公開 checkout 的兩個 gate 仍由付款文件管理，設定寄信不會自動開啟收費。
 
-在 **Vercel 專案 → Settings → Environment Variables** 新增：
+## 測驗結果 API
 
-| 變數 | 說明 | 取得方式 |
-|------|------|----------|
-| `RESEND_API_KEY` | Resend API Key | [Resend](https://resend.com) 註冊後，API Keys 頁面建立。 |
-| `EMAIL_FROM`（選填） | 寄件人顯示地址 | 例如 `MBTI Lab <noreply@你的網域>`；Resend 免費方案需用其測試網域時可先不設。 |
-
-Resend 免費方案：每月約 3,000 封、需驗證網域才能自訂寄件人；未驗證前可用 `onboarding@resend.dev` 當寄件人做測試。
-
----
-
-## 三、沒網域時的寄送與垃圾信說明
-
-目前**沒有自訂網域**（例如只用 `xxx.vercel.app`）時：
-
-| 項目 | 說明 |
-|------|------|
-| **能不能發** | 可以。Resend 未驗證網域時會用預設寄件人（如 `onboarding@resend.dev`），API 照常發信，不會被擋。 |
-| **容易被擋／進垃圾信** | 會。寄件人不是你的網域、信內連結是 Vercel 網址時，不少信箱會把信歸類為「不明來源」，較容易進垃圾信匣或被過濾。 |
-| **網站網址** | 網站用 `你的專案.vercel.app` 不影響發信；發信看的是 Resend 的寄件人與內容，不是網站網域。 |
-
-**建議**：
-
-- **現階段**：照樣用 Resend 預設寄件人上線，先確認流程與內容沒問題。
-- **提醒用戶**：在結果頁或信裡加一句「若沒收到信，請到垃圾信匣找找」。
-- **之後有網域**：在 Resend 驗證自訂網域，把 `EMAIL_FROM` 設成 `noreply@你的網域`，信內「回網站看完整結果」連結也會變成你的網域，到達率通常會改善。
-
----
-
-## 四、API 使用方式
-
-**端點**：`POST /api/send-email`
-
-**Request body（JSON）**：
+`POST /api/send-email` 必須帶同源 Origin 與 Supabase session 的 Bearer token。前端只傳：
 
 ```json
 {
-  "to": "user@example.com",
-  "subject": "你的靈魂甜點測驗結果",
-  "text": "純文字內容（選填）",
-  "html": "<p>HTML 內容（選填，與 text 擇一或同時傳）"
+  "mbtiType": "ESTJ",
+  "variant": "A"
 }
 ```
 
-**回應**：  
-- 成功：`200` + `{ "ok": true, "id": "..." }`  
-- 失敗：`4xx/5xx` + `{ "error": "錯誤訊息" }`
+伺服器以 `auth.getUser` 驗證登入，收件人取自已驗證的帳號 Email。前端傳入的 `to / subject / text / html` 不採用；舊的任意寄信契約已移除。
 
-**前端呼叫範例**：
+同一帳號、人格類型與 UTC 日期使用穩定的 Resend 去重鍵。前端 `sendResultEmail` 不阻塞測驗頁面；未登入則不呼叫發信 API。
 
-```ts
-const res = await fetch('/api/send-email', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    to: userEmail,
-    subject: '你的靈魂甜點 MBTI 結果',
-    html: `<p>你的類型：${mbtiType}...</p>`,
-  }),
-});
-```
+成功回 `200 { "ok": true }`。未登入回 401，非同源回 403，沒有已驗證 Email 回 422，服務未設定回 503，郵件服務失敗回 502。不回傳 provider 的錯誤內容或收件人。
 
----
+## V2 付款通知與重試
 
-## 五、安全與使用建議
+- confirm、status fallback、匿名舊單保存到帳號，都會嘗試寄付款通知。
+- 收件人只能來自訂單 owner 的已驗證 Email，前端不可指定收件人。
+- 原子 lease 避免同時寄送；已保存的 sent 狀態不再寄送。暫時失敗可從「我的報告」重試。
+- 不確定的寄送嘗試超過 23 小時會轉人工 review，以避免郵件服務去重期限外重複寄信。
+- `sent` 表示郵件服務已接受，不代表信件已送進收件匣。目前没有投遞 webhook 或背景重試排程。
 
-- **不要**從前端開放「任意收件人、任意內容」的發信，容易被濫用或當垃圾信發送端。
-- **建議**只允許「發給當前登入用戶的 email」或「固定用途」（例如：測驗結果寄給自己、驗證信、訂閱確認）。必要時在 API 內檢查：收件人是否為登入者 email，或 subject 限定為少數幾種類型。
-- **限流**：Vercel 有 invocation 限制；若擔心濫用，可再加 rate limit（例如同一 IP 或同一 user 每分鐘最多 N 封）。
-- **API Key**：`RESEND_API_KEY` 僅放在 Vercel 環境變數，不要寫進前端程式碼。
+## 驗證界線
 
----
+單元測試使用假的 fetch，不會發送真實郵件。正式啟用前需真人確認：已驗證帳號付款、其他裝置登入取回、收件匣收到通知，以及原付款裝置保存匿名舊單。
 
-## 六、常見情境
-
-| 情境 | 說明 |
-|------|------|
-| **測驗完成寄結果**（已實作） | **已登入且有 email** 的用戶完成測驗後，自動呼叫 `sendResultEmail()` → `/api/send-email`，寄送結果摘要與「回網站看完整結果」連結。實作：`utils/sendResultEmail.ts`、`App.tsx` 的 `handleQuizComplete`。 |
-| 訂閱／活動通知 | 用戶訂閱或報名活動時，發送確認信；內容由後端組好再呼叫 API。 |
-| 高級會員／月活動 | 每月活動開始、高級會員權益變更時，對符合條件的用戶發信（需後端或排程撈名單再呼叫 API）。 |
-
-以上情境皆由「你的後端或 API」決定收件人與內容，再呼叫同一支 `send-email` API 即可。
-
----
-
-## 七、替換成其他郵件服務
-
-若改用 **SendGrid**、**Mailgun**、**Postmark** 等：
-
-1. 在 `api/send-email.ts` 內改為該服務的 SDK 或 REST 呼叫。  
-2. 環境變數改為該服務的 API Key 或帳密。  
-3. Request body 可維持 `to / subject / text / html`，或依需求擴充。
-
-介面（端點與 body）維持不變，前端不需改動。
+程式接線、環境設定、郵件服務接受與收件匣投遞是不同驗收項目，不能以單元測試通過宣稱真人收信完成。
