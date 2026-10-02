@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AppUser } from '../../types';
 import V2Welcome from './V2Welcome';
+import V2AccountBar from './V2AccountBar';
+import { loginWithGoogle, useSupabaseAuth } from './useSupabaseAuth';
 import { getDimensionDescription, matchingRecordedResult, hasDimensionAnswers } from './reportReading';
 import type { V2VariantReport } from '../../data/v2VariantReports.generated';
 import {
@@ -297,6 +299,7 @@ const REPORT_CHAPTERS: ReportNavChapter[] = [
 ];
 
 export default function V2App({ user }: V2AppProps) {
+  const auth = useSupabaseAuth();
   const isLocalPreview = LOCAL_PREVIEW_HOSTS.has(window.location.hostname);
   const pathname = window.location.pathname;
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
@@ -462,10 +465,14 @@ export default function V2App({ user }: V2AppProps) {
       let verified = false;
       let reason = 'verify_failed';
       try {
+        const supabase = getAuthSupabaseClient();
+        const session = supabase ? (await supabase.auth.getSession()).data.session : null;
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
         const response = await fetch('/api/v2/verify-unlock', {
           method: 'POST',
           credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({ mbtiType: fullType, orderId: legacyOrderId || undefined }),
         });
         const payload = await response.json().catch(() => null);
@@ -587,7 +594,7 @@ export default function V2App({ user }: V2AppProps) {
     return () => {
       cancelled = true;
     };
-  }, [fullType, isLocalPreview]);
+  }, [fullType, isLocalPreview, auth.userId]);
 
   useEffect(() => {
     if (!fullType || entitlement.status === 'unlocked') {
@@ -694,6 +701,12 @@ export default function V2App({ user }: V2AppProps) {
   }, [fullType, canReadReport]);
 
   const handleCheckout = () => {
+    // Open login synchronously from the tap so mobile browsers allow it.
+    if (!IS_DEV && !auth.isLoggedIn) {
+      setReportMessage('先登入保存購買紀錄。登入完成後，再按付款即可。');
+      void loginWithGoogle({ onError: setReportMessage });
+      return;
+    }
     void (async () => {
       if (!fullType) {
         return;
@@ -737,9 +750,8 @@ export default function V2App({ user }: V2AppProps) {
         const { data: sessionData } = supabase
           ? await supabase.auth.getSession()
           : { data: { session: null } };
-        if (sessionData.session?.access_token) {
-          headers.Authorization = `Bearer ${sessionData.session.access_token}`;
-        }
+        if (!sessionData.session?.access_token) throw new Error('AUTH_REQUIRED');
+        headers.Authorization = `Bearer ${sessionData.session.access_token}`;
 
         const response = await fetch('/api/linepay/request', {
           method: 'POST',
@@ -756,10 +768,11 @@ export default function V2App({ user }: V2AppProps) {
           paymentUrl?: string;
           appPaymentUrl?: string;
           error?: string;
+          code?: string;
         };
 
         if (!response.ok || !result.ok || !result.paymentUrl) {
-          throw new Error(result.error || 'LINE Pay request failed');
+          throw new Error(result.code || result.error || 'LINE Pay request failed');
         }
 
         setCheckoutPaymentUrl(result.paymentUrl);
@@ -774,7 +787,11 @@ export default function V2App({ user }: V2AppProps) {
       } catch (error) {
         console.error('Failed to start LINE Pay checkout', error);
         setCheckoutStatus('idle');
-        setReportMessage('暫時無法開啟付款頁，請稍後再試。');
+        setReportMessage(error instanceof Error && error.message === 'VERIFIED_EMAIL_REQUIRED'
+          ? '請使用已驗證 Email 的帳號登入，才能購買及收到付款通知。'
+          : error instanceof Error && error.message === 'AUTH_REQUIRED'
+            ? '登入已失效，請重新登入後再付款。'
+            : '暫時無法開啟付款頁，請稍後再試。');
         trackAction('v2_checkout_error', {
           mbtiType: fullType,
           source,
@@ -996,7 +1013,7 @@ export default function V2App({ user }: V2AppProps) {
       ? '解鎖我的完整報告'
       : IS_DEV
         ? 'DEV 階段暫不開放'
-        : 'NT$49 解鎖這份完整報告';
+        : auth.isLoggedIn ? 'NT$49 解鎖這份完整報告' : '登入後以 NT$49 購買';
 
   // ─ Apple Dark helpers ─
   const DIM_NAMES: Record<string, string> = {
@@ -1086,6 +1103,8 @@ export default function V2App({ user }: V2AppProps) {
       </div>
 
       <div className="ad-page">
+      <V2AccountBar />
+      {canReadReport ? <p className="ad-purchase-account-note">已購報告可從<a href="/read/library">我的報告</a>繼續閱讀。若購買時未登入，請在這台裝置登入後保存到帳號。</p> : null}
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <header id="ch-01" className="ad-hero ad-reveal">
@@ -1217,13 +1236,14 @@ export default function V2App({ user }: V2AppProps) {
                 type="button"
                 className="ad-btn-primary ad-btn-center"
                 onClick={handleCheckout}
-                disabled={checkoutStatus === 'starting'}
+                disabled={checkoutStatus === 'starting' || (!IS_DEV && auth.isLoading)}
               >
                 {checkoutStatus === 'starting' ? '正在建立付款頁…' : unlockPrimaryLabel}
               </button>
             )
           ) : null}
           {reportMessage ? <p className="ad-paywall-note">{reportMessage}</p> : null}
+          {!isReportLoading && IS_CHECKOUT_ENABLED ? <p className="ad-paywall-note">購買後，這份報告會保存到你的登入帳號；付款通知會寄到該帳號的 Email。</p> : null}
           {IS_DEV && isLocalPreview ? (
             <div className="ad-mt-12">
               <button type="button" className="ad-btn-ghost ad-btn-center ad-btn-sm" onClick={handleResetPreview}>

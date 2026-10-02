@@ -31,6 +31,9 @@ async function hasOrderEntitlement(orderId: string, fullCode: string): Promise<b
   return Boolean(
     order
     && order.status === 'confirmed'
+    // Once saved to an account, the order is read through that account only.
+    // Anonymous legacy purchases retain their original browser proof access.
+    && order.user_uid == null
     && order.mbti_type.toUpperCase() === fullCode,
   );
 }

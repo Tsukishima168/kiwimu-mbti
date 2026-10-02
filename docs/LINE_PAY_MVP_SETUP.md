@@ -108,3 +108,15 @@ supabase/migrations/005_line_pay_orders_public.sql
 - 不要把 `LINE_PAY_CHANNEL_SECRET` 放進前端
 - 不要把金鑰 commit 進 git
 - 你剛剛貼過一次 secret，正式上線前一定要 rotate
+## 2026-10-02 帳號報告與付款通知
+
+- 新建單需驗證 Supabase bearer token、非匿名帳號及 `email_confirmed_at`；`user_uid` 只從 server 的 `auth.getUser()` 取得。前端傳的 user id 或收件人不採用。
+- `/read/library` 的「我的報告」以 `POST /api/v2/my-reports` 列出登入帳號的 confirmed 訂單。跨裝置閱讀以 bearer token + 指定 MBTI 訂單驗權，不依賴原付款裝置的 cookie。
+- 舊匿名訂單可在原裝置登入後，明確點選保存：`POST /api/v2/claim-report` 僅接受 HttpOnly 訂單 cookie，CAS 更新 `user_uid IS NULL AND status='confirmed'`。不可轉移已有 owner 的訂單。
+- 綁定帳號後，報告 API 不再接受該訂單的匿名 cookie 單獨解鎖；須以購買帳號登入。原匿名舊單在尚未保存前保留既有閱讀權限。
+- confirm、status fallback、匿名舊單保存都呼叫 server 付款通知服務。收件人取自 server 查詢到的、已驗證 Email，通知包含金額、可公開的付款參考碼、報告及書架連結；沒有 cookie/order proof 或繞過登入的連結。
+- **先套 migration** `supabase/migrations/20261002100000_v2_payment_receipts.sql`，新增 service-role-only 寄送表；不能開放前端直接讀寫。先核對遠端 migration history，勿把本 repo 舊 001–005 批次套到共用資料庫。
+- **再設定 Production** `RESEND_API_KEY` 與已驗證寄信網域的 `EMAIL_FROM`；本功能沒有測試寄件人的 fallback，也不因程式上線而打開公開結帳 gate。即使 checkout gate 被開啟，缺少寄信設定或寄送表不可讀時仍不建立新付款訂單（`NOTIFICATIONS_UNAVAILABLE`），避免在明知通知服務未接妥時收款。
+- 私有寄送表凍結收件人／寄件人與付款資訊，更新原子 lease 避免同時重寄；Resend 使用穩定 idempotency key。已記錄 sent 不再寄；不確定的寄送超過 23 小時轉 review，避免超過 provider 去重視窗後重寄。
+- 通知 API 最多等待 8 秒；錯誤不影響付款確認／報告權限。未送出的通知可從我的報告按「寄送付款通知」重試，重試至少間隔 5 分鐘；**沒有背景排程、自動投遞簽收或 email webhook**，`sent` 表示 provider 接受寄送，不能宣稱收件匣已收到。
+- 若需要人工協助，可用付款參考碼定位訂單；完整 order id 是舊匿名 bearer proof，不得寄進 Email、URL 或分析事件。

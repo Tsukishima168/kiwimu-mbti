@@ -13,11 +13,11 @@ import {
 } from '../../linePay.js';
 import { createLinePayOrder, updateLinePayOrder } from '../../linePayOrderStore.js';
 import {
-  getBearerToken,
   jsonBodySize,
   requestOriginMatchesHost,
 } from '../../economy/requestSecurity.js';
-import { getUserAdminDb } from '../../supabase/user-admin.js';
+import { getVerifiedV2User } from '../../v2Account.js';
+import { isV2PaymentReceiptReady } from '../../v2PaymentReceipt.js';
 
 function getOrigin(req: VercelRequest) {
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
@@ -55,21 +55,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ ok: false, error: 'Invalid mbtiType' });
   }
 
-  // Never trust a user id supplied by the browser. If the buyer is signed in,
-  // derive the id from the verified Supabase access token; anonymous checkout
-  // remains supported with a null user id and the high-entropy order proof.
-  let userUid: string | null = null;
-  const bearerToken = getBearerToken(req);
-  if (bearerToken) {
-    const admin = getUserAdminDb();
-    if (!admin) {
-      return res.status(503).json({ ok: false, error: 'Auth service unavailable' });
-    }
-    const { data: authData, error: authError } = await admin.auth.getUser(bearerToken);
-    if (authError || !authData.user) {
-      return res.status(401).json({ ok: false, error: 'Invalid session' });
-    }
-    userUid = authData.user.id;
+  // Every new purchase belongs to the verified account, never a browser id.
+  const identity = await getVerifiedV2User(req);
+  if (!identity.user) {
+    return res.status(identity.code === 'AUTH_UNAVAILABLE' ? 503 : 401)
+      .json({ ok: false, code: identity.code, error: 'Please sign in before purchasing' });
+  }
+  if (!identity.user.email || !identity.user.email_confirmed_at) {
+    return res.status(422).json({ ok: false, code: 'VERIFIED_EMAIL_REQUIRED', error: 'A verified email is required' });
+  }
+  const userUid = identity.user.id;
+  if (!await isV2PaymentReceiptReady()) {
+    return res.status(503).json({ ok: false, code: 'NOTIFICATIONS_UNAVAILABLE', error: 'Checkout is not ready yet' });
   }
 
   const orderId = buildV2LinePayOrderId(mbtiType);

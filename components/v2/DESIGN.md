@@ -5,7 +5,7 @@
 > 並回頭更新本文件。
 >
 > **Status**: 現行實作（live）。
-> **Last updated**: 2026-09-08（Quiet Atlas Narrative Edition）
+> **Last updated**: 2026-10-02（帳號報告與付款通知）
 >
 > 舊版 Apple Dark 規格保留在 `DESIGN.md.bak-20260905`，
 > 舊 CSS 保留在 `v2-dark.css.bak-20260905`。
@@ -15,7 +15,7 @@
 ## 0. Scope 聲明（邊界）
 
 - 本文件**只**規範 `components/v2/` 底下的 MBTI V2 閱讀流程：入口（`/read`）、
-  40 題測驗（`/read/quiz`）與 32 變體報告（`/read/:TYPE-VARIANT`）。核心為
+  40 題測驗（`/read/quiz`）、已購報告書架（`/read/library`）與 32 變體報告（`/read/:TYPE-VARIANT`）。核心為
   `V2Welcome.tsx`、`V2QuizFlow.tsx`、`V2App.tsx` 與 `v2-dark.css`。
 - 根目錄 `DESIGN.md`（Neo-Brutalist）規範 V1 與其他面；`components/v2/DESIGN.md`
   （本檔）規範 V2 報告面。**兩者互不覆蓋**。V2 面刻意採用 Quiet Atlas（深綠固定主題、
@@ -278,6 +278,11 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 ---
 
 ## 9. 互動狀態一致性
+
+- V2 入口、報告與「我的報告」沿用同一組 Quiet Atlas 字色、留白與按鈕；帳號導覽隨文件捲動，手機觸控目標至少 44px。
+- 「我的報告」桌機兩欄、手機單欄；品項、購買金額與日期分層呈現，付款紀錄預設收合，避免細節佔據閱讀入口。
+- 新購買必須先登入已驗證 Email 的帳號。介面明示報告會保存到該帳號、付款通知寄至該帳號的 Email；匿名舊單只在原付款裝置提供明確的「保存這份已購報告」按鈕。
+- 沒有已購報告、登入失效、讀取失敗與通知未寄出必須各有文字；寄信失敗不遮擋已付款的閱讀入口，不能以登入成功或通知送出替代付款權限核對。
 
 - 按鈕（`.ad-btn-primary` / `.ad-btn-ghost` / `.kiwimu-btn*`）與導覽 item 一律具備
   `:hover`、`:focus-visible`（訊號色 outline + offset）、`:active`（微位移/收斂光暈）。

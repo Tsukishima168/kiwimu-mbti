@@ -85,6 +85,25 @@ describe('POST /api/v2/report', () => {
     expect(state.body).toMatchObject({ code: 'ENTITLEMENT_REQUIRED' });
   });
 
+  it('opens the purchased report on a new device using only the authenticated account', async () => {
+    mocks.getUserAdminDb.mockReturnValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }) },
+    });
+    mocks.hasConfirmedLinePayOrderForUser.mockResolvedValue(true);
+    const { res, state } = response();
+    await handler(request({ headers: { host: 'kiwimu.com', origin: 'https://kiwimu.com', authorization: 'Bearer valid-token' } }), res);
+    expect(state.status).toBe(200);
+    expect(mocks.hasConfirmedLinePayOrderForUser).toHaveBeenCalledWith('user-1', 'ESTJ-A');
+    expect(mocks.getLinePayOrder).not.toHaveBeenCalled();
+  });
+
+  it('does not keep account-bound content open through a cookie after logout', async () => {
+    mocks.getLinePayOrder.mockResolvedValue({ order_id: ORDER_ID, mbti_type: 'ESTJ-A', status: 'confirmed', user_uid: 'user-1' });
+    const { res, state } = response();
+    await handler(request(), res);
+    expect(state.status).toBe(403);
+  });
+
   it('rejects a locally invented or legacy short order proof', async () => {
     const { res, state } = response();
     const legacyOrder = `V2-ESTJ-A-1788920000000-${'a'.repeat(8)}`;

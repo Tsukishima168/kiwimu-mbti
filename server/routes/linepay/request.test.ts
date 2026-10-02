@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   updateLinePayOrder: vi.fn(),
   requestLinePay: vi.fn(),
   getUserAdminDb: vi.fn(),
+  isV2PaymentReceiptReady: vi.fn(),
 }));
 
 vi.mock('../../linePay.js', () => ({
@@ -26,6 +27,7 @@ vi.mock('../../linePayOrderStore.js', () => ({
 vi.mock('../../supabase/user-admin.js', () => ({
   getUserAdminDb: mocks.getUserAdminDb,
 }));
+vi.mock('../../v2PaymentReceipt.js', () => ({ isV2PaymentReceiptReady: mocks.isV2PaymentReceiptReady }));
 
 import handler from './request';
 
@@ -70,6 +72,7 @@ describe('POST /api/linepay/request security', () => {
       },
     });
     mocks.getUserAdminDb.mockReturnValue(null);
+    mocks.isV2PaymentReceiptReady.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -86,18 +89,19 @@ describe('POST /api/linepay/request security', () => {
     expect(mocks.createLinePayOrder).not.toHaveBeenCalled();
   });
 
-  it('ignores a browser-supplied user id for anonymous checkout', async () => {
+  it('requires login and does not bind a browser-supplied user id', async () => {
     const { res, state } = response();
     await handler(request(), res);
 
-    expect(state.status).toBe(200);
-    expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({ userUid: null }));
-    expect(state.headers['Set-Cookie']).toContain('__Host-kiwimu-v2-pending-order=');
+    expect(state.status).toBe(401);
+    expect(state.body.code).toBe('AUTH_REQUIRED');
+    expect(mocks.createLinePayOrder).not.toHaveBeenCalled();
+    expect(mocks.requestLinePay).not.toHaveBeenCalled();
   });
 
   it('binds the order only to the user verified from the bearer token', async () => {
     mocks.getUserAdminDb.mockReturnValue({
-      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'verified-user' } }, error: null }) },
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'verified-user', email: 'buyer@example.com', email_confirmed_at: '2026-10-02T00:00:00Z' } }, error: null }) },
     });
     const { res, state } = response();
     await handler(request({
@@ -111,5 +115,29 @@ describe('POST /api/linepay/request security', () => {
 
     expect(state.status).toBe(200);
     expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({ userUid: 'verified-user' }));
+    expect(state.headers['Set-Cookie']).toContain('__Host-kiwimu-v2-pending-order=');
+  });
+
+  it('does not charge an account without a verified email', async () => {
+    mocks.getUserAdminDb.mockReturnValue({ auth: { getUser: vi.fn().mockResolvedValue({
+      data: { user: { id: 'verified-user', email: 'buyer@example.com', email_confirmed_at: null } }, error: null,
+    }) } });
+    const { res, state } = response();
+    await handler(request({ headers: { origin: 'https://kiwimu.com', host: 'kiwimu.com', authorization: 'Bearer token' } }), res);
+    expect(state.status).toBe(422);
+    expect(mocks.requestLinePay).not.toHaveBeenCalled();
+  });
+
+  it('does not charge before notification credentials and the delivery store are ready', async () => {
+    mocks.getUserAdminDb.mockReturnValue({ auth: { getUser: vi.fn().mockResolvedValue({
+      data: { user: { id: 'buyer', email: 'buyer@example.com', email_confirmed_at: '2026-10-01T00:00:00Z' } }, error: null,
+    }) } });
+    mocks.isV2PaymentReceiptReady.mockResolvedValue(false);
+    const { res, state } = response();
+    await handler(request({ headers: { origin: 'https://kiwimu.com', host: 'kiwimu.com', authorization: 'Bearer token' } }), res);
+    expect(state.status).toBe(503);
+    expect(state.body.code).toBe('NOTIFICATIONS_UNAVAILABLE');
+    expect(mocks.requestLinePay).not.toHaveBeenCalled();
+    expect(mocks.createLinePayOrder).not.toHaveBeenCalled();
   });
 });

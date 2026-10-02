@@ -5,6 +5,7 @@ import {
   V2_LINE_PAY_ORDER_PATTERN,
 } from '../../linePay.js';
 import { jsonBodySize, requestOriginMatchesHost } from '../../economy/requestSecurity.js';
+import { getVerifiedV2User } from '../../v2Account.js';
 
 /**
  * POST /api/v2/verify-unlock { mbtiType }
@@ -56,6 +57,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     || order.mbti_type.toUpperCase() !== mbtiType
   ) {
     return res.status(403).json({ ok: false, code: 'NOT_CONFIRMED' });
+  }
+
+  if (order.user_uid) {
+    const identity = await getVerifiedV2User(req);
+    if (!identity.user || identity.user.id !== order.user_uid) {
+      return res.status(403).json({ ok: false, code: 'ACCOUNT_REQUIRED' });
+    }
   }
 
   return res.status(200).json({

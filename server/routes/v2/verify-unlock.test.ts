@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const mocks = vi.hoisted(() => ({ getLinePayOrder: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getLinePayOrder: vi.fn(), getVerifiedV2User: vi.fn() }));
 vi.mock('../../linePayOrderStore.js', () => ({
   getLinePayOrder: mocks.getLinePayOrder,
 }));
+vi.mock('../../v2Account.js', () => ({ getVerifiedV2User: mocks.getVerifiedV2User }));
 
 import handler from './verify-unlock';
 
@@ -34,7 +35,7 @@ function response() {
 }
 
 describe('POST /api/v2/verify-unlock', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => { vi.clearAllMocks(); mocks.getVerifiedV2User.mockResolvedValue({ code: 'AUTH_REQUIRED' }); });
 
   it('confirms only a paid order for the requested report type', async () => {
     mocks.getLinePayOrder.mockResolvedValue({
@@ -67,5 +68,22 @@ describe('POST /api/v2/verify-unlock', () => {
 
     expect(state.status).toBe(403);
     expect(state.body).toMatchObject({ code: 'NOT_CONFIRMED' });
+  });
+
+  it('requires the original account for an account-bound paid order', async () => {
+    mocks.getLinePayOrder.mockResolvedValue({ order_id: ORDER_ID, mbti_type: 'INFJ-T', status: 'confirmed', user_uid: 'account-a' });
+    mocks.getVerifiedV2User.mockResolvedValue({ user: { id: 'account-b' } });
+    const { res, state } = response();
+    await handler(request({ mbtiType: 'INFJ-T' }, `__Host-kiwimu-v2-order=${ORDER_ID}`), res);
+    expect(state.status).toBe(403);
+    expect(state.body).toMatchObject({ code: 'ACCOUNT_REQUIRED' });
+  });
+
+  it('confirms an account-bound order only for its verified owner', async () => {
+    mocks.getLinePayOrder.mockResolvedValue({ order_id: ORDER_ID, mbti_type: 'INFJ-T', status: 'confirmed', user_uid: 'account-a' });
+    mocks.getVerifiedV2User.mockResolvedValue({ user: { id: 'account-a' } });
+    const { res, state } = response();
+    await handler(request({ mbtiType: 'INFJ-T' }, `__Host-kiwimu-v2-order=${ORDER_ID}`), res);
+    expect(state.status).toBe(200);
   });
 });
