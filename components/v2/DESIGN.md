@@ -227,6 +227,9 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 `atlas-report-feedback`。避免通用 `ad-hero`／`ad-section` 等名稱與 Safari 內容封鎖器
 的隱藏規則碰撞，造成已購內容消失；子元件樣式沿用既有命名。
 
+章節預設可見，不依賴 IntersectionObserver 加上 `is-visible` 才能閱讀。
+進場動畫只做輕微明暗與位移，背景分頁未觸發動畫時仍可讀；reduced-motion 關閉動畫。
+
 **八章對映**（DOM 順序，單調不回跳）：
 
 | 章 | `REPORT_CHAPTERS` 標題 | 錨點區塊（`id`） | 併入同章的後續區塊 |
