@@ -3,11 +3,13 @@ import { V2_TAIWAN_QUESTIONS } from '../../data/v2TaiwanQuestions.generated';
 import { getSceneAsset } from '../../data/kiwimuVisualAssets';
 import KiwimuScenePlate from '../visuals/KiwimuScenePlate';
 import KiwimuAtlasWall from '../visuals/KiwimuAtlasWall';
+import V2AccountBar from './V2AccountBar';
 
 export default function V2Welcome({ onStart, knownType }: { onStart?: () => void; knownType?: string | null }) {
   const scene = getSceneAsset(knownType || 'INFP-A');
   return (
     <main className="v2-surface ad-welcome">
+      <V2AccountBar />
       <div className="ad-welcome-masthead"><span>KIWIMU / QUIET ATLAS</span><span>自我探索圖鑑 · VOL. 02</span></div>
       <div className="ad-welcome-layout">
         <section className="ad-welcome-copy">

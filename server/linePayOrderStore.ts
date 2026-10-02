@@ -200,6 +200,49 @@ export async function hasConfirmedLinePayOrderForUser(
   return false;
 }
 
+export async function listConfirmedLinePayOrdersForUser(
+  userId: string,
+): Promise<LinePayOrderRecord[] | undefined> {
+  const db = getUserAdminDb();
+  if (!db) return undefined;
+  const orders = new Map<string, LinePayOrderRecord>();
+  for (const schema of LINE_PAY_ORDER_SCHEMAS) {
+    const { data, error } = await linePayOrders(db, schema)
+      .select('order_id,mbti_type,user_uid,status,amount,currency,confirmed_at,created_at')
+      .eq('user_uid', userId)
+      .eq('status', 'confirmed')
+      .order('confirmed_at', { ascending: false })
+      .limit(100);
+    // A missing legacy schema is expected; failure of the current store is not.
+    if (error) {
+      if (schema === 'public') return undefined;
+      continue;
+    }
+    for (const order of data || []) if (!orders.has(order.order_id)) orders.set(order.order_id, order);
+  }
+  return [...orders.values()].sort((a, b) =>
+    (b.confirmed_at || b.created_at).localeCompare(a.confirmed_at || a.created_at));
+}
+
+export async function claimAnonymousLinePayOrder(orderId: string, userId: string): Promise<boolean> {
+  const db = getUserAdminDb();
+  if (!db) return false;
+  for (const schema of LINE_PAY_ORDER_SCHEMAS) {
+    const { data, error } = await linePayOrders(db, schema)
+      .update({ user_uid: userId, updated_at: new Date().toISOString() })
+      .eq('order_id', orderId)
+      .eq('status', 'confirmed')
+      .is('user_uid', null)
+      .select('order_id')
+      .maybeSingle();
+    if (data && !error) return true;
+    if (error && schema === 'public') return false;
+  }
+  // An idempotent retry may read the existing owner, but never replace one.
+  const current = await getLinePayOrder(orderId);
+  return current?.status === 'confirmed' && current.user_uid === userId;
+}
+
 export async function updateLinePayOrder(
   orderId: string,
   input: UpdateLinePayOrderInput,

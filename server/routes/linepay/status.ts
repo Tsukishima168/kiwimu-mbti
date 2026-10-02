@@ -12,6 +12,7 @@ import {
   updateLinePayOrder,
 } from '../../linePayOrderStore.js';
 import { fulfillLinePayOrder, persistV2UnlockForUser } from '../../linePayFulfillment.js';
+import { sendV2PaymentReceipt } from '../../v2PaymentReceipt.js';
 import {
   jsonBodySize,
   requestOriginMatchesHost,
@@ -97,6 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const source = storedOrder.source || 'linepay';
 
   if (storedOrder.status === 'confirmed') {
+    await sendV2PaymentReceipt(orderId);
     setConfirmedCookies(res, orderId);
     return res.status(200).json({
       ok: true,
@@ -172,6 +174,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       await persistV2UnlockForUser(storedOrder.user_uid);
+      await sendV2PaymentReceipt(orderId);
       setConfirmedCookies(res, orderId);
       return res.status(200).json({
         ok: true,

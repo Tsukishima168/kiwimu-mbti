@@ -6,12 +6,14 @@ export interface SupabaseAuthState {
   isLoggedIn: boolean;
   isLoading: boolean;
   email: string | null;
+  userId: string | null;
 }
 
 export function useSupabaseAuth(): SupabaseAuthState {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = getAuthSupabaseClient();
@@ -21,12 +23,16 @@ export function useSupabaseAuth(): SupabaseAuthState {
     }
 
     const applySession = (session: Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']) => {
-      setIsLoggedIn(session !== null);
+      setIsLoggedIn(Boolean(session && !session.user.is_anonymous));
       setEmail(session?.user?.email ?? null);
+      setUserId(session && !session.user.is_anonymous ? session.user.id : null);
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       applySession(session);
+      setIsLoading(false);
+    }).catch(() => {
+      applySession(null);
       setIsLoading(false);
     });
 
@@ -40,6 +46,9 @@ export function useSupabaseAuth(): SupabaseAuthState {
       void supabase.auth.getSession().then(({ data: { session } }) => {
         applySession(session);
         setIsLoading(false);
+      }).catch(() => {
+        applySession(null);
+        setIsLoading(false);
       });
     };
     window.addEventListener(PASSPORT_AUTH_COMPLETE_EVENT, handlePassportAuthComplete);
@@ -50,7 +59,7 @@ export function useSupabaseAuth(): SupabaseAuthState {
     };
   }, []);
 
-  return { isLoggedIn, isLoading, email };
+  return { isLoggedIn, isLoading, email, userId };
 }
 
 export async function loginWithGoogle(options: Pick<PassportLoginUiOptions, 'onError'> = {}): Promise<void> {

@@ -73,6 +73,7 @@ const StateTest = lazy(() => import('./pages/StateTest'));
 const Today = lazy(() => import('./pages/Today'));
 const ResultLegacyDump = lazy(() => import('./components/ResultLegacyDump'));
 const V2App = lazy(() => import('./components/v2/V2App'));
+const V2ReportLibrary = lazy(() => import('./components/v2/V2ReportLibrary'));
 const V2QuizFlow = lazy(() => import('./components/v2/V2QuizFlow'));
 const AnswersHub = lazy(() => import('./pages/AnswersHub'));
 const AnswerArticle = lazy(() => import('./pages/AnswerArticle'));
@@ -946,7 +947,7 @@ const App: React.FC = () => {
     const normalizedV2Path = normalizeV2Pathname(_path);
     return (
       <Suspense fallback={<RouteFallback />}>
-        {normalizedV2Path === '/read/quiz' ? <V2QuizFlow user={user} /> : <div className="v2-app"><V2App user={user} /></div>}
+        {normalizedV2Path === '/read/library' ? <V2ReportLibrary /> : normalizedV2Path === '/read/quiz' ? <V2QuizFlow user={user} /> : <div className="v2-app"><V2App user={user} /></div>}
       </Suspense>
     );
   }

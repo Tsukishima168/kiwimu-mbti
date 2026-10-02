@@ -11,6 +11,7 @@ import {
   updateLinePayOrder,
 } from './linePayOrderStore.js';
 import { getUserAdminDb } from './supabase/user-admin.js';
+import { sendV2PaymentReceipt } from './v2PaymentReceipt.js';
 
 export type LinePayFulfillmentOutcome =
   | {
@@ -87,6 +88,7 @@ export async function fulfillLinePayOrder({
     }
 
     if (storedOrder.status === 'confirmed') {
+      await sendV2PaymentReceipt(orderId);
       return { ok: true, orderId, mbtiType, source };
     }
 
@@ -158,6 +160,7 @@ export async function fulfillLinePayOrder({
     }
 
     await persistV2UnlockForUser(userUid);
+    await sendV2PaymentReceipt(orderId);
 
     return { ok: true, orderId, mbtiType, source };
   } catch (error) {
