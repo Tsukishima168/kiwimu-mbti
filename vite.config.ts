@@ -49,6 +49,9 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          // 付款與登入 callback 必須由 server 處理 redirect／HttpOnly cookie，
+          // 不能被離線 app shell 攔截成 React 404。
+          navigateFallbackDenylist: [/^\/api(?:\/|\?|$)/],
           // App shell 的 HTML 與所有必要 JS/CSS 一起預快取；index.html 會
           // 直接載入 vendor chunk，漏掉它會讓已安裝 PWA 在離線時白屏。
           globPatterns: ['**/*.{js,css,html}'],
