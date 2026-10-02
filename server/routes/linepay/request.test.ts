@@ -17,7 +17,7 @@ vi.mock('../../linePay.js', () => ({
   isLinePaySuccessCode: (code: string) => code === '0000',
   requestLinePay: mocks.requestLinePay,
   V2_REPORT_CURRENCY: 'TWD',
-  V2_REPORT_PRICE_TWD: 149,
+  V2_REPORT_PRICE_TWD: 49,
 }));
 vi.mock('../../linePayOrderStore.js', () => ({
   createLinePayOrder: mocks.createLinePayOrder,

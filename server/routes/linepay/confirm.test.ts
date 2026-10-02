@@ -16,7 +16,7 @@ vi.mock('../../linePay.js', () => ({
   parseMbtiTypeFromOrderId: () => 'ESTJ-A',
   requestLinePay: mocks.requestLinePay,
   V2_REPORT_CURRENCY: 'TWD',
-  V2_REPORT_PRICE_TWD: 149,
+  V2_REPORT_PRICE_TWD: 49,
 }));
 vi.mock('../../linePayOrderStore.js', () => ({
   getLinePayOrder: mocks.getLinePayOrder,
@@ -70,7 +70,7 @@ describe('GET /api/linepay/confirm security', () => {
         source: 'test',
         user_uid: null,
         status: 'requested',
-        amount: 149,
+        amount: 49,
         currency: 'TWD',
         line_transaction_id: 'line-tx-1',
       })
@@ -95,7 +95,7 @@ describe('GET /api/linepay/confirm security', () => {
       source: 'test',
       user_uid: null,
       status: 'confirmed',
-      amount: 149,
+      amount: 49,
       currency: 'TWD',
       line_transaction_id: 'line-tx-1',
     });
@@ -118,7 +118,7 @@ describe('GET /api/linepay/confirm security', () => {
       source: 'test',
       user_uid: null,
       status: 'cancelled',
-      amount: 149,
+      amount: 49,
       currency: 'TWD',
       line_transaction_id: 'line-tx-1',
     });

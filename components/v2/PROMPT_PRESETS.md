@@ -19,7 +19,7 @@
 前提：
 - V1 已有 login unlock 與 archive / test runs 基礎
 - V2 第一版已公開上架
-- NT$149 賣的是「完整 V2 MBTI 深度報告」
+- NT$49 賣的是「完整 V2 MBTI 深度報告」
 - MBTI 是入口，不是結論
 - 報告是深度 MBTI 報告，不是心理學課本
 
@@ -67,7 +67,7 @@
 前提：
 - V1 已有 login unlock 與 archive / test runs 基礎
 - V2 第一版已公開上架
-- NT$149 賣的是「完整 V2 MBTI 深度報告」
+- NT$49 賣的是「完整 V2 MBTI 深度報告」
 - Paywall 出現在 Layer 3 Protective Pattern 前半與後半之間
 - 使用者此刻剛讀完「命中感」段落，情緒是「對，這在說我」
 
@@ -114,7 +114,7 @@
 前提：
 - V1 已有 login unlock 與 archive / test runs 基礎
 - V2 第一版已公開上架
-- NT$149 賣的是「完整 V2 MBTI 深度報告」
+- NT$49 賣的是「完整 V2 MBTI 深度報告」
 - 同一個頁面要同時服務「第一次測 V2 的人」與「90 天內回來的人」
 - 第一次體驗賣深度，第二次體驗賣變化
 - 主六層架構不動
