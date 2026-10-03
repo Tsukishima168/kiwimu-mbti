@@ -21,6 +21,14 @@ function collectNodes<T extends ts.Node>(predicate: (node: ts.Node) => node is T
 const cosmeticBlockerClasses = new Set(['ad-hero', 'ad-section', 'ad-footer', 'ad-feedback']);
 
 describe('V2 report browser compatibility', () => {
+  it('stops the visible state-name pulse when the reader requests reduced motion', () => {
+    const css = readFileSync(new URL('./v2-dark.css', import.meta.url), 'utf8');
+    const media = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'));
+    const firstAnimationRule = media.slice(0, media.indexOf('}') + 1);
+    expect(firstAnimationRule).toContain('.ad-hero-statename-dot');
+    expect(firstAnimationRule).toMatch(/animation:\s*none\s*!important/);
+  });
+
   it('keeps report content out of confirmed cosmetic ad-block selectors', () => {
     const classes = collectNodes(ts.isJsxAttribute)
       .filter((attribute) => attribute.name.getText(ast) === 'className')

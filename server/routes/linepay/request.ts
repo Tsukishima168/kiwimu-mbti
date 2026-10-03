@@ -51,7 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const mbtiType = typeof rawMbtiType === 'string' ? rawMbtiType.trim().toUpperCase() : '';
   const source = typeof rawSource === 'string' ? rawSource.trim().slice(0, 80) || 'direct' : 'direct';
 
-  if (!/^[A-Z]{4}-[AT]$/.test(mbtiType)) {
+  if (!/^[EI][NS][TF][JP]-[AT]$/.test(mbtiType)) {
     return res.status(400).json({ ok: false, error: 'Invalid mbtiType' });
   }
 

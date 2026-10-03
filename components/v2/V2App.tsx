@@ -4,7 +4,7 @@ import V2Welcome from './V2Welcome';
 import V2AccountBar from './V2AccountBar';
 import { loginWithGoogle, useSupabaseAuth } from './useSupabaseAuth';
 import { getDimensionDescription, matchingRecordedResult, hasDimensionAnswers } from './reportReading';
-import type { V2VariantReport } from '../../data/v2VariantReports.generated';
+import { requestPaidReport, reportAccessFailure, type PaidReportBundle } from './reportAccess';
 import {
   getV2VariantSummary,
   type V2VariantSummary,
@@ -70,10 +70,6 @@ type ReportFamilyKey = 'analysts' | 'diplomats' | 'sentinels' | 'explorers';
 type VariantCode = 'A' | 'T';
 type DessertLoadStatus = 'idle' | 'loading' | 'ready' | 'unavailable';
 type CheckoutStatus = 'idle' | 'starting' | 'pending' | 'checking';
-type PaidReportBundle = {
-  report: V2VariantReport;
-  oppositeReport: V2VariantReport | null;
-};
 type PercentageKey = 'E' | 'I' | 'S' | 'N' | 'T' | 'F' | 'J' | 'P' | 'A' | 'Turbulent';
 
 type SpectrumRow = {
@@ -306,8 +302,11 @@ export default function V2App({ user }: V2AppProps) {
   const hasQuery = window.location.search.length > 1;
   const routeTarget = useMemo(() => parseV2RouteTarget(pathname, params), [params, pathname]);
   const [entitlement, setEntitlementState] = useState<V2Entitlement>(() => readCachedV2Entitlement());
-  const [paidReports, setPaidReports] = useState<PaidReportBundle | null>(null);
-  const [reportAccessStatus, setReportAccessStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle');
+  const [paidReports, setPaidReports] = useState<(PaidReportBundle & { ownerId: string | null }) | null>(null);
+  const [reportAccess, setReportAccess] = useState<{
+    status: 'loading' | 'granted' | 'denied' | 'error'; ownerId: string | null; fullType: string | null; message: string;
+  } | null>(null);
+  const [reportRefresh, setReportRefresh] = useState(0);
   const [reportMessage, setReportMessage] = useState('');
   const [checkoutStatus, setCheckoutStatus] = useState<CheckoutStatus>('idle');
   const [checkoutPaymentUrl, setCheckoutPaymentUrl] = useState('');
@@ -316,9 +315,6 @@ export default function V2App({ user }: V2AppProps) {
   const [dessertContract, setDessertContract] = useState<UnifiedDessertContract | null>(null);
   const [dessertLoadStatus, setDessertLoadStatus] = useState<DessertLoadStatus>('idle');
   const source = params.get('source') || 'direct';
-  const canReadReport = Boolean(paidReports?.report);
-  const isUnlocked = canReadReport;
-  const isReportLoading = reportAccessStatus === 'loading';
 
   const recordedBundle = useMemo(() => {
     const v2 = getLastV2PrototypeResult();
@@ -333,6 +329,11 @@ export default function V2App({ user }: V2AppProps) {
 
   const variant = routeTarget?.variant || (resultBundle ? getVariant(resultBundle.scores) : 'A');
   const fullType = routeTarget?.fullType || (resultBundle ? `${resultBundle.resultData.id}-${variant}` : null);
+  const currentPaidReports = paidReports?.ownerId === auth.userId && paidReports?.report.fullCode === fullType ? paidReports : null;
+  const currentAccess = reportAccess?.ownerId === auth.userId && reportAccess?.fullType === fullType ? reportAccess : null;
+  const canReadReport = Boolean(currentPaidReports?.report);
+  const isUnlocked = canReadReport;
+  const isReportLoading = auth.isLoading || !currentAccess || currentAccess.status === 'loading';
   const variantSummary = useMemo(
     () => (fullType ? getV2VariantSummary(fullType) : null),
     [fullType],
@@ -514,14 +515,22 @@ export default function V2App({ user }: V2AppProps) {
   }, [fullType, params, source]);
 
   useEffect(() => {
+    setReportMessage('');
+    setCheckoutPaymentUrl('');
+    setCheckoutStatus('idle');
+  }, [auth.userId]);
+
+  useEffect(() => {
     if (!fullType) {
       setPaidReports(null);
       return;
     }
+    if (auth.isLoading) return;
 
     let cancelled = false;
+    const ownerId = auth.userId;
     setPaidReports(null);
-    setReportAccessStatus('loading');
+    setReportAccess({ status: 'loading', ownerId, fullType, message: '' });
 
     const loadPaidReports = async () => {
       if (IS_DEV && isLocalPreview) {
@@ -533,8 +542,9 @@ export default function V2App({ user }: V2AppProps) {
         setPaidReports({
           report,
           oppositeReport: module.getV2VariantReport(oppositeCode),
+          ownerId,
         });
-        setReportAccessStatus('granted');
+        setReportAccess({ status: 'granted', ownerId, fullType, message: '' });
         return;
       }
 
@@ -555,20 +565,11 @@ export default function V2App({ user }: V2AppProps) {
         headers['X-V2-Order-Id'] = legacyOrderId;
       }
 
-      const response = await fetch('/api/v2/report', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers,
-        body: JSON.stringify({ mbtiType: fullType }),
-      });
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload?.ok || payload?.data?.report?.fullCode !== fullType) {
-        throw new Error(typeof payload?.code === 'string' ? payload.code : 'REPORT_ACCESS_FAILED');
-      }
+      const payload = await requestPaidReport(fullType, headers);
 
       if (cancelled) return;
-      setPaidReports(payload.data as PaidReportBundle);
-      setReportAccessStatus('granted');
+      setPaidReports({ ...payload, ownerId });
+      setReportAccess({ status: 'granted', ownerId, fullType, message: '' });
       const unlocked = unlockV2Purchase('server-verified', fullType);
       setEntitlementState(unlocked);
       clearLegacyV2OrderId();
@@ -577,24 +578,19 @@ export default function V2App({ user }: V2AppProps) {
 
     void loadPaidReports().catch((error) => {
       if (cancelled) return;
-      if (!(error instanceof Error) || error.message !== 'ENTITLEMENT_REQUIRED') {
-        console.error('Failed to load V2 paid report', error);
-      }
+      const failure = reportAccessFailure(error);
       setPaidReports(null);
-      setReportAccessStatus('denied');
-      if (!isLocalPreview) {
+      setReportAccess({ ...failure, ownerId, fullType });
+      if (!isLocalPreview && failure.status === 'denied') {
         clearV2Entitlement();
         setEntitlementState({ status: 'locked' });
-        if (entitlement.status === 'unlocked' || params.get('unlock') === 'success') {
-          setReportMessage('無法驗證完整報告權限，請重新登入或從付款完成頁返回。');
-        }
       }
     });
 
     return () => {
       cancelled = true;
     };
-  }, [fullType, isLocalPreview, auth.userId]);
+  }, [fullType, isLocalPreview, auth.userId, auth.isLoading, reportRefresh]);
 
   useEffect(() => {
     if (!fullType || entitlement.status === 'unlocked') {
@@ -910,13 +906,13 @@ export default function V2App({ user }: V2AppProps) {
   const familyMeta = FAMILY_META[variantSummary.familyKey as ReportFamilyKey];
   const currentVariant = variant as VariantCode;
   const prototypeCopy = buildPrototypeCopy(currentVariant, variantSummary, resultData);
-  const variantReport = paidReports?.report ?? null;
+  const variantReport = currentPaidReports?.report ?? null;
   // 狀態層：草案裡的「當前狀態命名」。MBTI 是入口座標，狀態才是此刻的讀數。
   // 兩者並置——32 型仍是主標與分享單位，狀態升到同一層而不是取代它。
   const stateInfo = variantReport?.state ?? variantSummary?.state ?? null;
   const stateTruth = variantReport?.state?.truth ?? '';
   const oppositeVariant = currentVariant === 'A' ? 'T' : 'A';
-  const oppositeVariantReport = paidReports?.oppositeReport ?? null;
+  const oppositeVariantReport = currentPaidReports?.oppositeReport ?? null;
   const dimensionBullets = variantReport?.dimension.bullets ?? [];
   const spectrumRows = buildSpectrumRows(resultData.id, variant as VariantCode, scores, dimensionBullets);
   const previewTags = variantReport?.tags ?? variantSummary?.tags ?? [];
@@ -1197,16 +1193,19 @@ export default function V2App({ user }: V2AppProps) {
       {/* ── PAYWALL GATE ─────────────────────────────────────── */}
       {!canReadReport ? (
         <div className="ad-paywall-box ad-reveal">
-          <p className="ad-paywall-eyebrow">⬡ {isReportLoading ? 'Verifying' : 'Premium'}</p>
+          <p className="ad-paywall-eyebrow">⬡ {isReportLoading ? 'Verifying' : currentAccess?.status === 'error' ? 'Try again' : 'Premium'}</p>
           <h2 className="ad-paywall-title">
-            {isReportLoading ? '正在驗證並載入完整報告' : IS_CHECKOUT_ENABLED ? '解鎖這份完整 V2 報告' : '完整報告即將開放'}
+            {isReportLoading ? '正在驗證並載入完整報告'
+              : currentAccess?.status === 'error' ? '完整報告暫時無法載入'
+                : currentAccess?.status === 'denied' ? '請確認報告的購買帳號'
+                  : IS_CHECKOUT_ENABLED ? '解鎖這份完整 V2 報告' : '完整報告即將開放'}
           </h2>
           <p className="ad-paywall-sub">
             {isReportLoading
               ? '請稍候，通過權限確認後會自動展開。'
               : 'Section 02 – 08 · 職涯 × 關係 · 靈魂甜點 · 帶走的字'}
           </p>
-          {!isReportLoading && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
+          {!isReportLoading && currentAccess?.status !== 'error' && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
             checkoutPaymentUrl ? (
               <div className="ad-paywall-actions">
                 <a
@@ -1237,7 +1236,15 @@ export default function V2App({ user }: V2AppProps) {
               </button>
             )
           ) : null}
-          {reportMessage ? <p className="ad-paywall-note">{reportMessage}</p> : null}
+          {!isReportLoading && (currentAccess?.status === 'error' || currentAccess?.status === 'denied') ? (
+            <div className="ad-paywall-actions">
+              {!auth.isLoggedIn && currentAccess.status === 'denied' ? <button type="button" className="ad-btn-primary ad-btn-center" onClick={() => { setReportMessage(''); void loginWithGoogle({ onError: setReportMessage }); }}>登入購買時的帳號 ↗</button> : null}
+              <button type="button" className="ad-btn-ghost ad-btn-center" onClick={() => setReportRefresh(value => value + 1)}>重新載入報告</button>
+              <a className="ad-btn-ghost ad-btn-center" href="/read/library">查看我的報告 ↗</a>
+            </div>
+          ) : null}
+          {currentAccess?.message ? <p className="ad-paywall-note" role="status">{currentAccess.message}</p> : null}
+          {reportMessage ? <p className="ad-paywall-note" role="status">{reportMessage}</p> : null}
           {!isReportLoading && IS_CHECKOUT_ENABLED ? <p className="ad-paywall-note">購買後，這份報告會保存到你的登入帳號；付款通知會寄到該帳號的 Email。</p> : null}
           {IS_DEV && isLocalPreview ? (
             <div className="ad-mt-12">

@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../../linePay.js', () => ({
   buildAppBaseUrl: () => 'https://kiwimu.com',
   buildLinePayApiPath: () => '/v3/payments/request',
-  buildV2LinePayOrderId: () => `V2-ESTJ-A-1788920000000-${'a'.repeat(32)}`,
+  buildV2LinePayOrderId: (mbtiType: string) => `V2-${mbtiType}-1788920000000-${'a'.repeat(32)}`,
   buildV2PendingOrderCookie: (orderId: string) => `__Host-kiwimu-v2-pending-order=${orderId}; HttpOnly; Secure`,
   getLinePayConfig: () => ({}),
   isLinePaySuccessCode: (code: string) => code === '0000',
@@ -55,6 +55,19 @@ function response() {
   return { res, state };
 }
 
+function verifiedPurchaseRequest(mbtiType: unknown) {
+  mocks.getUserAdminDb.mockReturnValue({
+    auth: { getUser: vi.fn().mockResolvedValue({
+      data: { user: { id: 'verified-user', email: 'buyer@example.com', email_confirmed_at: '2026-10-02T00:00:00Z' } },
+      error: null,
+    }) },
+  });
+  return request({
+    headers: { origin: 'https://kiwimu.com', host: 'kiwimu.com', authorization: 'Bearer valid-token' },
+    body: { mbtiType, source: 'test' },
+  });
+}
+
 describe('POST /api/linepay/request security', () => {
   const originalGate = process.env.V2_CHECKOUT_ENABLED;
 
@@ -78,6 +91,53 @@ describe('POST /api/linepay/request security', () => {
   afterEach(() => {
     if (originalGate === undefined) delete process.env.V2_CHECKOUT_ENABLED;
     else process.env.V2_CHECKOUT_ENABLED = originalGate;
+  });
+
+  it.each([
+    'AAAA-A', 'ASTJ-A', 'EATJ-A', 'ESAJ-A', 'ESTA-A', 'ESTJ-X',
+    'ESTJ', 'ESTJ-AA', 'ESTJ-A-extra', '', null, undefined, 123, ['ESTJ-A'],
+  ])('rejects an unsupported report type %j before any checkout side effect', async (mbtiType) => {
+    const { res, state } = response();
+    await handler(verifiedPurchaseRequest(mbtiType), res);
+
+    expect(state.status).toBe(400);
+    expect(state.body).toEqual({ ok: false, error: 'Invalid mbtiType' });
+    expect(mocks.getUserAdminDb).not.toHaveBeenCalled();
+    expect(mocks.isV2PaymentReceiptReady).not.toHaveBeenCalled();
+    expect(mocks.createLinePayOrder).not.toHaveBeenCalled();
+    expect(mocks.updateLinePayOrder).not.toHaveBeenCalled();
+    expect(mocks.requestLinePay).not.toHaveBeenCalled();
+    expect(state.headers['Set-Cookie']).toBeUndefined();
+  });
+
+  it.each([
+    'ISTJ', 'ISFJ', 'INFJ', 'INTJ', 'ISTP', 'ISFP', 'INFP', 'INTP',
+    'ESTP', 'ESFP', 'ENFP', 'ENTP', 'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ',
+  ].flatMap(type => [`${type}-A`, `${type}-T`]))('creates a payment session for supported report %s', async (mbtiType) => {
+    const { res, state } = response();
+    await handler(verifiedPurchaseRequest(mbtiType), res);
+
+    expect(state.status).toBe(200);
+    expect(mocks.createLinePayOrder).toHaveBeenCalledOnce();
+    expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({
+      mbtiType, userUid: 'verified-user', amount: 49, currency: 'TWD',
+    }));
+    expect(mocks.requestLinePay).toHaveBeenCalledOnce();
+    expect(mocks.requestLinePay).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        orderId: `V2-${mbtiType}-1788920000000-${'a'.repeat(32)}`,
+        amount: 49, currency: 'TWD',
+      }),
+    }));
+    expect(state.headers['Set-Cookie']).toContain(`V2-${mbtiType}-`);
+  });
+
+  it('normalizes case and surrounding whitespace for a supported report type', async () => {
+    const { res, state } = response();
+    await handler(verifiedPurchaseRequest('  intj-t  '), res);
+
+    expect(state.status).toBe(200);
+    expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({ mbtiType: 'INTJ-T' }));
   });
 
   it('keeps checkout closed unless the server gate is explicitly enabled', async () => {
