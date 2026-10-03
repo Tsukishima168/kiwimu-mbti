@@ -86,57 +86,65 @@ export async function createDiscordLinkState(state: DiscordLinkState): Promise<v
 
 export async function getDiscordLinkState(state: string): Promise<DiscordLinkState | null> {
   const db = getUserAdminDb();
-  if (!db) return null;
+  if (!db) throw new Error('DISCORD_STORE_UNAVAILABLE');
 
   const { data, error } = await db
     .from('discord_link_states')
     .select('state, discord_user_id, guild_id, expires_at, used, created_at, used_at, app_uid')
     .eq('state', state)
-    .single();
+    .maybeSingle();
 
-  if (error || !data) {
-    if (error) console.error('[discord-data] getDiscordLinkState error:', error.message);
-    return null;
-  }
+  if (error) throw new Error('DISCORD_STORE_UNAVAILABLE');
+  if (!data) return null;
 
   return mapDiscordLinkStateRow(data as Record<string, unknown>);
 }
 
-export async function markDiscordLinkStateUsed(state: string, appUid: string): Promise<void> {
+export async function markDiscordLinkStateUsed(state: string, appUid: string): Promise<boolean> {
   const db = getUserAdminDb();
-  if (!db) return;
+  if (!db) throw new Error('DISCORD_STORE_UNAVAILABLE');
 
-  const { error } = await db
+  const now = new Date().toISOString();
+  const { data, error } = await db
     .from('discord_link_states')
     .update({
       used: true,
-      used_at: new Date().toISOString(),
+      used_at: now,
       app_uid: appUid,
     })
-    .eq('state', state);
+    .eq('state', state)
+    .eq('used', false)
+    .gt('expires_at', now)
+    .select('state')
+    .maybeSingle();
 
-  if (error) {
-    console.error('[discord-data] markDiscordLinkStateUsed error:', error.message);
-  }
+  if (error) throw new Error('DISCORD_STORE_UNAVAILABLE');
+  return data?.state === state;
 }
 
-export async function upsertDiscordLink(record: DiscordLinkRecord): Promise<void> {
+export async function upsertDiscordLink(record: DiscordLinkRecord): Promise<boolean> {
   const db = getUserAdminDb();
-  if (!db) return;
+  if (!db) throw new Error('DISCORD_STORE_UNAVAILABLE');
 
-  const { error } = await db.from('discord_links').upsert({
-    link_id: buildDiscordLinkId(record.guildId, record.discordUserId),
+  const linkId = buildDiscordLinkId(record.guildId, record.discordUserId);
+  // Insert protects an existing Discord owner across different valid states.
+  // A duplicate is idempotent only for the same app account; never overwrite.
+  const { error } = await db.from('discord_links').insert({
+    link_id: linkId,
     discord_user_id: record.discordUserId,
     guild_id: record.guildId,
     app_uid: record.appUid,
     email: record.email ?? null,
     display_name: record.displayName ?? null,
     linked_at: new Date(record.linkedAt).toISOString(),
-  }, { onConflict: 'link_id' });
+  });
 
-  if (error) {
-    console.error('[discord-data] upsertDiscordLink error:', error.message);
-  }
+  if (!error) return true;
+  if (error.code !== '23505') throw new Error('DISCORD_STORE_UNAVAILABLE');
+  const { data: existing, error: readError } = await db.from('discord_links')
+    .select('app_uid').eq('link_id', linkId).maybeSingle();
+  if (readError) throw new Error('DISCORD_STORE_UNAVAILABLE');
+  return existing?.app_uid === record.appUid;
 }
 
 export async function getDiscordLink(

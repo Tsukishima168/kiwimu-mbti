@@ -1,5 +1,6 @@
 import type { AppUser } from '../types';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { getAuthSupabaseClient } from '../utils/supabaseAuthBridge';
 
 type Props = {
   user: AppUser | null;
@@ -9,7 +10,7 @@ type Props = {
 export default function DiscordLinkGate({ user, onLogin }: Props) {
   // Read discord_link_state from URL, or from sessionStorage as fallback
   // (sessionStorage is set by handleLogin before OAuth redirect so state survives /callback)
-  const [state] = useState<string | null>(() => {
+  const [state, setState] = useState<string | null>(() => {
     const urlState = new URLSearchParams(window.location.search).get('discord_link_state');
     if (urlState) return urlState;
     const ssState = sessionStorage.getItem('discord_link_state');
@@ -22,59 +23,72 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
 
   const [status, setStatus] = useState<'idle' | 'linking' | 'linked' | 'error'>('idle');
   const [message, setMessage] = useState<string>('');
+  const pendingRequest = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!state) return;
+    setStatus('idle');
+    setMessage(!user || user.isAnonymous ? '請先登入以完成 Discord 綁定。' : '請確認將目前登入的網站帳號綁定至這個 Discord 請求。');
+    return () => { pendingRequest.current?.abort(); };
+  }, [state, user?.uid, user?.isAnonymous]);
 
-    const run = async () => {
-      if (!user || user.isAnonymous) {
-        setStatus('idle');
-        setMessage('請先登入以完成 Discord 綁定。');
-        return;
+  const completeLink = async () => {
+    if (!state || !user || user.isAnonymous) return;
+    pendingRequest.current?.abort();
+    const controller = new AbortController();
+    pendingRequest.current = controller;
+    try {
+      setStatus('linking');
+      setMessage('正在完成綁定…');
+
+      const client = getAuthSupabaseClient();
+      if (!client) throw new Error('請重新登入後再試。');
+      const { data, error } = await client.auth.getSession();
+      if (controller.signal.aborted) return;
+      const session = data.session;
+      if (error || !session?.access_token || session.user.is_anonymous || session.user.id !== user.uid) throw new Error('請重新登入後再試。');
+      const res = await fetch('/api/discord/link/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ state }),
+        signal: controller.signal,
+      });
+
+      if (controller.signal.aborted) return;
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload?.error || `HTTP ${res.status}`);
       }
 
-      try {
-        setStatus('linking');
-        setMessage('正在完成綁定…');
+      setStatus('linked');
+      setMessage('綁定成功！你可以回到 Discord 使用 /result 查看你的結果。');
 
-        const res = await fetch('/api/discord/link/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            state,
-            appUid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-          }),
-        });
+      // Remove query param to avoid re-post on refresh.
+      const url = new URL(window.location.href);
+      url.searchParams.delete('discord_link_state');
+      window.history.replaceState({}, '', url.toString());
+    } catch (e: any) {
+      if (controller.signal.aborted) return;
+      setStatus('error');
+      setMessage(`綁定失敗：${e?.message || 'unknown error'}`);
+    }
+  };
 
-        if (!res.ok) {
-          const payload = await res.json().catch(() => ({}));
-          throw new Error(payload?.error || `HTTP ${res.status}`);
-        }
-
-        setStatus('linked');
-        setMessage('綁定成功！你可以回到 Discord 使用 /result 查看你的結果。');
-
-        // Remove query param to avoid re-post on refresh.
-        const url = new URL(window.location.href);
-        url.searchParams.delete('discord_link_state');
-        window.history.replaceState({}, '', url.toString());
-      } catch (e: any) {
-        setStatus('error');
-        setMessage(`綁定失敗：${e?.message || 'unknown error'}`);
-      }
-    };
-
-    run();
-  }, [state, user]);
+  const dismissLink = () => {
+    pendingRequest.current?.abort();
+    try { sessionStorage.removeItem('discord_link_state'); } catch { /* Storage can be unavailable in private webviews. */ }
+    const url = new URL(window.location.href);
+    url.searchParams.delete('discord_link_state');
+    window.history.replaceState({}, '', url.toString());
+    setState(null);
+  };
 
   if (!state) return null;
 
   return (
     <div className="fixed inset-0 z-[500] bg-black/60 flex items-center justify-center p-6">
       <div className="bg-white w-full max-w-lg border border-gray-200 shadow-2xl p-8 text-center">
-        <p className="text-[10px] font-mono tracking-[0.5em] uppercase text-gray-400 font-bold mb-6">
+        <p className="text-[12px] font-mono tracking-[0.5em] uppercase text-gray-400 font-bold mb-6">
           DISCORD LINK
         </p>
         <h2 className="text-2xl md:text-3xl font-serif font-bold text-kiwi-dark mb-4">
@@ -83,6 +97,23 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
         <p className="text-sm md:text-base text-gray-600 font-serif leading-relaxed mb-8">
           {message || '請在此完成帳號綁定。'}
         </p>
+
+        {user && !user.isAnonymous && status === 'idle' && (
+          <>
+            <p className="text-sm text-gray-600 mb-6">只有你剛在 Discord 使用 /link 取得這個連結時才確認；若不是你開啟的綁定請求，請關閉此頁。</p>
+            <button onClick={() => { void completeLink(); }} className="px-10 py-4 border-2 border-kiwi-dark text-kiwi-dark hover:bg-kiwi-dark hover:text-white transition-colors font-mono text-xs tracking-widest uppercase font-bold">
+              確認綁定目前帳號
+            </button>
+          </>
+        )}
+
+        {status === 'error' && <p className="text-sm text-gray-600 mb-6">請在 Discord 重新使用 /link 取得新連結後再試；若已綁定其他帳號，請先使用 /unlink。</p>}
+
+        {status !== 'linked' && (
+          <button onClick={dismissLink} className="block mx-auto mt-6 px-6 py-3 border border-gray-300 text-gray-600 hover:border-kiwi-dark hover:text-kiwi-dark transition-colors font-mono text-xs tracking-widest uppercase font-bold">
+            關閉，返回網站
+          </button>
+        )}
 
         {(!user || user.isAnonymous) && (
           <button
@@ -95,13 +126,7 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
 
         {status === 'linked' && (
           <button
-            onClick={() => {
-              // close overlay
-              const url = new URL(window.location.href);
-              url.searchParams.delete('discord_link_state');
-              window.history.replaceState({}, '', url.toString());
-              window.location.reload();
-            }}
+            onClick={dismissLink}
             className="px-10 py-4 border border-gray-300 text-gray-600 hover:border-kiwi-dark hover:text-kiwi-dark transition-colors font-mono text-xs tracking-widest uppercase font-bold"
           >
             返回網站

@@ -86,4 +86,22 @@ describe('POST /api/v2/verify-unlock', () => {
     await handler(request({ mbtiType: 'INFJ-T' }, `__Host-kiwimu-v2-order=${ORDER_ID}`), res);
     expect(state.status).toBe(200);
   });
+
+  it('keeps unavailable account verification retryable without granting an entitlement', async () => {
+    mocks.getLinePayOrder.mockResolvedValue({ order_id: ORDER_ID, mbti_type: 'INFJ-T', status: 'confirmed', user_uid: 'account-a' });
+    mocks.getVerifiedV2User.mockResolvedValue({ code: 'AUTH_UNAVAILABLE' });
+    const { res, state } = response();
+    await handler(request({ mbtiType: 'INFJ-T' }, `__Host-kiwimu-v2-order=${ORDER_ID}`), res);
+    expect(state.status).toBe(503);
+    expect(state.body).toEqual({ ok: false, code: 'AUTH_UNAVAILABLE' });
+  });
+
+  it('keeps an invalid session denied for an account-bound order', async () => {
+    mocks.getLinePayOrder.mockResolvedValue({ order_id: ORDER_ID, mbti_type: 'INFJ-T', status: 'confirmed', user_uid: 'account-a' });
+    mocks.getVerifiedV2User.mockResolvedValue({ code: 'AUTH_REQUIRED' });
+    const { res, state } = response();
+    await handler(request({ mbtiType: 'INFJ-T' }, `__Host-kiwimu-v2-order=${ORDER_ID}`), res);
+    expect(state.status).toBe(403);
+    expect(state.body).toEqual({ ok: false, code: 'ACCOUNT_REQUIRED' });
+  });
 });

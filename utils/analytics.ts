@@ -1,5 +1,6 @@
 // Complete Analytics Tracking System for KIWIMU MBTI Lab
 // Integrates with GA4 via global gtag() loaded in index.html
+import { V2_REPORT_CURRENCY, V2_REPORT_PRICE_TWD } from '../shared/v2Product';
 
 // gtag.js 由 index.html 全域載入，此處只做型別宣告
 declare function gtag(command: string, ...args: unknown[]): void;
@@ -473,8 +474,8 @@ export const trackV2PaywallView = (mbtiType: string, source: string) => {
             item_id: `v2_report_${mbtiType}`,
             item_name: `V2 深度靈魂報告 — ${mbtiType}`,
             item_category: 'deep_report',
-            price: 149,
-            currency: 'TWD',
+            price: V2_REPORT_PRICE_TWD,
+            currency: V2_REPORT_CURRENCY,
         }],
         mbti_type: mbtiType,
         source,
@@ -482,42 +483,31 @@ export const trackV2PaywallView = (mbtiType: string, source: string) => {
 };
 
 /**
- * Track V2 checkout start (user clicks unlock CTA → map.kiwimu.com)
+ * Track V2 checkout start. Payment URLs must never enter analytics.
  * GA4 standard: begin_checkout
  */
-export const trackV2CheckoutStart = (mbtiType: string, source: string, checkoutUrl: string) => {
+export const trackV2CheckoutStart = (mbtiType: string, source: string, _checkoutUrl: string) => {
     gtagSafe('event', 'begin_checkout', withSiteId({
-        currency: 'TWD',
-        value: 149,
+        currency: V2_REPORT_CURRENCY,
+        value: V2_REPORT_PRICE_TWD,
         items: [{
             item_id: `v2_report_${mbtiType}`,
             item_name: `V2 深度靈魂報告 — ${mbtiType}`,
             item_category: 'deep_report',
-            price: 149,
+            price: V2_REPORT_PRICE_TWD,
             quantity: 1,
         }],
         mbti_type: mbtiType,
         source,
-        checkout_url: checkoutUrl,
     }));
 };
 
 /**
- * Track V2 unlock success (entitlement granted, paywall cleared)
- * GA4 standard: purchase
+ * Reading an unlocked report is not proof of a new purchase. Restored access,
+ * free previews and historical purchases must not inflate revenue.
  */
 export const trackV2Unlocked = (mbtiType: string, unlockType: string, source: string) => {
-    gtagSafe('event', 'purchase', withSiteId({
-        currency: 'TWD',
-        value: unlockType === 'query-preview' ? 0 : 149,
-        transaction_id: `v2_${mbtiType}_${Date.now()}`,
-        items: [{
-            item_id: `v2_report_${mbtiType}`,
-            item_name: `V2 深度靈魂報告 — ${mbtiType}`,
-            item_category: 'deep_report',
-            price: 149,
-            quantity: 1,
-        }],
+    gtagSafe('event', 'v2_report_unlocked', withSiteId({
         mbti_type: mbtiType,
         unlock_type: unlockType,
         source,

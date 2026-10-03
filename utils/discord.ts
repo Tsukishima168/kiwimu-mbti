@@ -1,4 +1,4 @@
-import { getResultData } from '../constants';
+import { getAuthSupabaseClient } from './supabaseAuthBridge';
 
 export interface DiscordNotificationMetadata {
     funnel: 'v1' | 'v1_5';
@@ -20,38 +20,26 @@ export const sendDiscordNotification = async (
     metadata?: DiscordNotificationMetadata
 ) => {
     try {
-        // 獲取人格數據
-        const personalityData = getResultData(resultType, suffix);
-        const personalityName = metadata?.personalityNameOverride || personalityData.title;
-
-        // 發送請求到 API
+        const client = getAuthSupabaseClient();
+        if (!client) return;
+        const { data, error } = await client.auth.getSession();
+        const session = data.session;
+        // Free anonymous quizzes still complete; only account sessions notify.
+        if (error || !session?.access_token || session.user.is_anonymous || (userId && session.user.id !== userId)) return;
         const response = await fetch('/api/notify-discord', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
             body: JSON.stringify({
                 resultType: `${resultType}-${suffix}`,
-                personalityName,
-                locale, // 傳遞 locale
-                userId,  // 傳遞用戶 ID（用於 Firestore 分析）
-                metadata: {
-                    ...metadata,
-                    userId: userId ?? metadata?.userId,
-                }
+                locale,
+                metadata: { funnel: metadata?.funnel },
             })
         });
 
-        const data = await response.json();
-
         if (!response.ok) {
-            console.warn(`Discord API error: ${response.statusText}`, data);
-        } else {
-            console.log('[DISCORD] ✅ Notification sent:', {
-                locale,
-                resultType: `${resultType}-${suffix}`,
-                messageId: data.messageId
-            });
+            console.warn('Discord notification failed:', response.status);
         }
-    } catch (e) {
-        console.warn('Error sending Discord notification:', e);
+    } catch {
+        console.warn('Discord notification failed');
     }
 };

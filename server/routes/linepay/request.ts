@@ -18,6 +18,7 @@ import {
 } from '../../economy/requestSecurity.js';
 import { getVerifiedV2User } from '../../v2Account.js';
 import { isV2PaymentReceiptReady } from '../../v2PaymentReceipt.js';
+import { isV2MerchantNotificationReady } from '../../v2MerchantNotification.js';
 
 function getOrigin(req: VercelRequest) {
   const proto = (req.headers['x-forwarded-proto'] as string) || 'https';
@@ -65,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(422).json({ ok: false, code: 'VERIFIED_EMAIL_REQUIRED', error: 'A verified email is required' });
   }
   const userUid = identity.user.id;
-  if (!await isV2PaymentReceiptReady()) {
+  if (!await isV2PaymentReceiptReady() || !await isV2MerchantNotificationReady()) {
     return res.status(503).json({ ok: false, code: 'NOTIFICATIONS_UNAVAILABLE', error: 'Checkout is not ready yet' });
   }
 
