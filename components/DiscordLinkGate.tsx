@@ -111,7 +111,7 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
 
         {status !== 'linked' && (
           <button onClick={dismissLink} className="block mx-auto mt-6 px-6 py-3 border border-gray-300 text-gray-600 hover:border-kiwi-dark hover:text-kiwi-dark transition-colors font-mono text-xs tracking-widest uppercase font-bold">
-            取消綁定，返回網站
+            關閉，返回網站
           </button>
         )}
 
