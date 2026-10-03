@@ -188,7 +188,8 @@ export function toAppUser(u: SupabaseUser): AppUser {
 export async function signOutSupabase(): Promise<void> {
   const supabase = getAuthSupabaseClient();
   if (!supabase) return;
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }
 
 // ── Site event tracking ───────────────────────────────────────────────────────

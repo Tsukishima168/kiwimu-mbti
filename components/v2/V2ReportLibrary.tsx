@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getAuthSupabaseClient } from '../../utils/supabaseAuthBridge';
 import { applyRuntimeSeo } from '../../utils/seo';
 import { getV2VariantSummary } from '../../data/v2VariantSummaries.generated';
@@ -6,6 +6,7 @@ import { getSceneAsset } from '../../data/kiwimuVisualAssets';
 import KiwimuVisual from '../visuals/KiwimuVisual';
 import V2AccountBar from './V2AccountBar';
 import { loginWithGoogle, useSupabaseAuth } from './useSupabaseAuth';
+import { paymentReceiptMessage, type ReceiptStatus } from './paymentReceiptStatus';
 import './v2-tailwind.css';
 import './v2.css';
 import './v2-dark.css';
@@ -16,24 +17,28 @@ type PurchasedReport = {
   currency: string;
   purchasedAt: string | null;
   reference: string;
-  receiptStatus: 'pending' | 'sending' | 'sent' | 'failed' | 'review';
+  receiptStatus: ReceiptStatus;
 };
 type LibraryData = {
   reports: PurchasedReport[];
   claimableReport: { mbtiType: string; amount: number; currency: string } | null;
 };
 
-async function accountRequest(operation: string, body: object = {}) {
+class AccountRequestError extends Error {
+  constructor(public status: number, code: string) { super(code); }
+}
+
+async function accountRequest(operation: string, body: object = {}, expectedOwnerId?: string) {
   const supabase = getAuthSupabaseClient();
   const session = supabase ? (await supabase.auth.getSession()).data.session : null;
-  if (!session?.access_token) throw new Error('AUTH_REQUIRED');
+  if (!session?.access_token || (expectedOwnerId && session.user.id !== expectedOwnerId)) throw new AccountRequestError(401, 'AUTH_REQUIRED');
   const response = await fetch(`/api/v2/${operation}`, {
     method: 'POST', credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
     body: JSON.stringify(body),
   });
   const payload = await response.json().catch(() => null);
-  if (!response.ok || !payload?.ok) throw new Error(payload?.code || 'REQUEST_FAILED');
+  if (!response.ok || !payload?.ok) throw new AccountRequestError(response.status, payload?.code || 'REQUEST_FAILED');
   return payload.data;
 }
 
@@ -42,7 +47,8 @@ function requestMessage(error: unknown): string {
   if (code === 'AUTH_REQUIRED') return '登入已失效，請重新登入後查看。';
   if (code === 'VERIFIED_EMAIL_REQUIRED') return '請使用已驗證 Email 的帳號登入，才能保存報告及收到通知信。';
   if (code === 'ALREADY_LINKED' || code === 'CLAIM_CONFLICT') return '這份報告已保存到另一個帳號，請使用原帳號登入。';
-  return '暫時無法讀取，請稍後再試。你的付款紀錄會保留。';
+  if (code === 'NO_PURCHASE_PROOF') return '請在原付款瀏覽器保存這份報告。原付款不需要重付。';
+  return '暫時無法完成，請稍後再試。你的付款紀錄會保留。';
 }
 
 export default function V2ReportLibrary() {
@@ -51,45 +57,102 @@ export default function V2ReportLibrary() {
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(0);
   const [busy, setBusy] = useState('');
-  const [message, setMessage] = useState('');
+  const ownerRef = useRef(auth.userId);
+  ownerRef.current = auth.userId;
+  const [feedback, setFeedback] = useState<{ ownerId: string | null; text: string } | null>(null);
+  const [loadError, setLoadError] = useState<{ ownerId: string; text: string } | null>(null);
+  const [receiptRetryAt, setReceiptRetryAt] = useState<Record<string, number>>({});
+  const [receiptClock, setReceiptClock] = useState(() => Date.now());
+  const message = feedback?.ownerId === auth.userId ? feedback.text : '';
+  const setMessage = (text: string) => setFeedback({ ownerId: ownerRef.current, text });
+
+  useEffect(() => {
+    setFeedback(null);
+    setLoadError(null);
+    setBusy('');
+    setReceiptRetryAt({});
+  }, [auth.userId]);
+
+  useEffect(() => {
+    const now = Date.now();
+    const nextRetry = Math.min(...Object.values(receiptRetryAt).filter(time => time > now));
+    if (!Number.isFinite(nextRetry)) return;
+    const timer = window.setTimeout(() => setReceiptClock(Date.now()), nextRetry - now);
+    return () => window.clearTimeout(timer);
+  }, [receiptRetryAt, receiptClock]);
 
   useEffect(() => {
     applyRuntimeSeo({ title: '我的已購報告｜Kiwimu', description: '登入後查看保存在帳號中的 Kiwimu 深度報告與付款紀錄。', canonical: 'https://kiwimu.com/read/library', robots: 'noindex,nofollow' });
   }, []);
 
   useEffect(() => {
-    setData(null);
-    if (!auth.userId) return;
+    setData(previous => previous?.ownerId === auth.userId ? previous : null);
+    setLoadError(null);
+    if (!auth.userId) { setLoading(false); return; }
     let cancelled = false;
     const ownerId = auth.userId;
     setLoading(true);
-    void accountRequest('my-reports').then(payload => {
-      if (!cancelled) setData({ ...payload, ownerId });
-    }).catch(error => { if (!cancelled) setMessage(requestMessage(error)); })
+    void accountRequest('my-reports', {}, ownerId).then(payload => {
+      if (cancelled) return;
+      setData({ ...payload, ownerId });
+      setReceiptClock(Date.now());
+      setReceiptRetryAt(previous => {
+        const next = { ...previous };
+        for (const report of payload.reports as PurchasedReport[]) {
+          if ((report.receiptStatus === 'sending' || report.receiptStatus === 'failed') && next[report.reference] === undefined) {
+            next[report.reference] = Date.now() + 5 * 60 * 1000;
+          }
+        }
+        return next;
+      });
+    }).catch(error => {
+      if (cancelled) return;
+      if (error instanceof AccountRequestError && (error.status === 401 || error.status === 403)) setData(null);
+      setLoadError({ ownerId, text: requestMessage(error) });
+    })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [auth.userId, refresh]);
 
   const library = data?.ownerId === auth.userId ? data : null;
+  const handleActionError = (error: unknown, ownerId: string) => {
+    if (ownerRef.current !== ownerId) return;
+    if (error instanceof AccountRequestError && (error.status === 401 || error.status === 403)) {
+      setData(null);
+      setLoadError({ ownerId, text: requestMessage(error) });
+    } else {
+      setMessage(requestMessage(error));
+    }
+  };
   const handleClaim = async () => {
+    const ownerId = auth.userId;
+    if (!ownerId || busy) return;
     setBusy('claim'); setMessage('');
     try {
-      await accountRequest('claim-report');
+      await accountRequest('claim-report', {}, ownerId);
+      if (ownerRef.current !== ownerId) return;
       setMessage('報告已保存到這個帳號。下次登入，就能在這裡繼續閱讀。');
       setRefresh(value => value + 1);
-    } catch (error) { setMessage(requestMessage(error)); }
-    finally { setBusy(''); }
+    } catch (error) { handleActionError(error, ownerId); }
+    finally { if (ownerRef.current === ownerId) setBusy(''); }
   };
   const handleReceipt = async (reference: string) => {
+    const ownerId = auth.userId;
+    if (!ownerId || busy || Date.now() < (receiptRetryAt[reference] || 0)) return;
     setBusy(reference); setMessage('');
     try {
-      const result = await accountRequest('receipt', { reference });
-      setMessage(result.receiptStatus === 'sent'
-        ? '付款通知已送出，請查看信箱或垃圾郵件。'
-        : '付款紀錄已保存，通知信尚未寄出。你仍可直接打開報告閱讀。');
+      const result = await accountRequest('receipt', { reference }, ownerId);
+      if (ownerRef.current !== ownerId) return;
+      setMessage(paymentReceiptMessage(result.receiptStatus));
+      if (result.receiptStatus === 'sending' || result.receiptStatus === 'failed') {
+        setReceiptRetryAt(previous => ({ ...previous, [reference]: Date.now() + 5 * 60 * 1000 }));
+      }
+      setData(previous => previous?.ownerId === ownerId ? {
+        ...previous, reports: previous.reports.map(report => report.reference === reference ? { ...report, receiptStatus: result.receiptStatus } : report),
+      } : previous);
       setRefresh(value => value + 1);
-    } catch (error) { setMessage(requestMessage(error)); }
-    finally { setBusy(''); }
+    } catch (error) { handleActionError(error, ownerId); }
+    finally { if (ownerRef.current === ownerId) setBusy(''); }
   };
 
   return (
@@ -104,7 +167,7 @@ export default function V2ReportLibrary() {
         <section className="ad-library-empty">
           <h2>登入，找回你的已購報告。</h2>
           <p>請使用購買時的帳號。若先前未登入就付款，請在原付款裝置登入，再把報告保存到帳號。</p>
-          <button type="button" className="ad-btn-primary" onClick={() => { void loginWithGoogle({ onError: setMessage }); }}>登入查看我的報告 ↗</button>
+          <button type="button" className="ad-btn-primary" onClick={() => { setMessage(''); void loginWithGoogle({ onError: setMessage }); }}>登入查看我的報告 ↗</button>
         </section>
       ) : (
         <>
@@ -117,7 +180,7 @@ export default function V2ReportLibrary() {
             <p>請先確認上方帳號正確；保存後會歸屬這個帳號，付款通知也會寄到這個帳號的 Email。</p>
             <button type="button" className="ad-btn-primary" disabled={Boolean(busy)} onClick={handleClaim}>{busy === 'claim' ? '正在保存…' : '保存這份已購報告'}</button>
           </section> : null}
-          {library?.reports.length === 0 ? <section className="ad-library-empty">
+          {!loading && !loadError && !library?.claimableReport && library?.reports.length === 0 ? <section className="ad-library-empty">
             <h2>這個帳號還沒有已購報告。</h2>
             <p>如果你已經付款，請確認是否用了另一個帳號。匿名付款的舊報告，需在原付款裝置登入保存。</p>
             <a className="ad-btn-ghost" href="/read">返回圖鑑入口 ↗</a>
@@ -135,14 +198,15 @@ export default function V2ReportLibrary() {
                   <a className="ad-btn-primary" href={`/read/${report.mbtiType}`}>繼續閱讀 ↗</a>
                   <details className="ad-library-receipt"><summary>查看付款紀錄</summary>
                     <p>付款紀錄 <span>{report.reference}</span></p>
-                    <p>{report.receiptStatus === 'sent' ? '付款通知已送出，請查看信箱或垃圾郵件。' : '付款已確認，通知信尚未寄出；報告可正常閱讀。'}</p>
-                    {report.receiptStatus !== 'sent' && report.receiptStatus !== 'review' ? <button type="button" className="ad-btn-ghost" disabled={Boolean(busy)} onClick={() => { void handleReceipt(report.reference); }}>{busy === report.reference ? '正在處理…' : '寄送付款通知'}</button> : null}
+                    <p>{paymentReceiptMessage(report.receiptStatus)}</p>
+                    {report.receiptStatus !== 'sent' && report.receiptStatus !== 'review' ? <button type="button" className="ad-btn-ghost" disabled={Boolean(busy) || receiptClock < (receiptRetryAt[report.reference] || 0)} onClick={() => { void handleReceipt(report.reference); }}>{busy === report.reference ? '正在處理…' : receiptClock < (receiptRetryAt[report.reference] || 0) ? '稍後可再次處理' : report.receiptStatus === 'sending' ? '重新確認通知狀態' : '寄送付款通知'}</button> : null}
                   </details>
                 </div>
               </article>;
             })}
           </div>
-          {!loading && !library ? <button type="button" className="ad-btn-ghost" onClick={() => setRefresh(value => value + 1)}>重新讀取</button> : null}
+          {loadError?.ownerId === auth.userId ? <p className="ad-library-message" role="status">{loadError.text}</p> : null}
+          {!loading && (!library || loadError?.ownerId === auth.userId) ? <button type="button" className="ad-btn-ghost" onClick={() => setRefresh(value => value + 1)}>重新讀取</button> : null}
         </>
       )}
       {message ? <p className="ad-library-message" role="status">{message}</p> : null}

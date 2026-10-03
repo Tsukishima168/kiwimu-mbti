@@ -5,15 +5,24 @@ import { signOutSupabase } from '../../utils/supabaseAuthBridge';
 export default function V2AccountBar() {
   const auth = useSupabaseAuth();
   const [message, setMessage] = useState('');
+  const [signingOut, setSigningOut] = useState(false);
+  const handleSignOut = async () => {
+    setMessage('');
+    setSigningOut(true);
+    try { await signOutSupabase(); }
+    catch {
+      setMessage('無法確認所有裝置均已登出。請查看目前登入狀態；其他裝置可能仍維持登入。');
+    } finally { setSigningOut(false); }
+  };
   return (
     <nav className="ad-account-bar" aria-label="報告帳號">
       <a href="/read" className="ad-account-home">KIWIMU / QUIET ATLAS</a>
       <div className="ad-account-actions">
         <a href="/read/library">我的報告 <span aria-hidden="true">↗</span></a>
         {!auth.isLoggedIn ? <button type="button" disabled={auth.isLoading}
-          onClick={() => { void loginWithGoogle({ onError: setMessage }); }}>
+          onClick={() => { setMessage(''); void loginWithGoogle({ onError: setMessage }); }}>
           {auth.isLoading ? '確認帳號…' : '登入'}
-        </button> : <button type="button" onClick={() => { void signOutSupabase().catch(() => setMessage('暫時無法登出，請再試一次。')); }}>登出</button>}
+        </button> : <button type="button" disabled={signingOut} onClick={() => { void handleSignOut(); }}>{signingOut ? '正在登出…' : '登出'}</button>}
       </div>
       {message ? <p role="status" className="ad-account-message">{message}</p> : null}
     </nav>

@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { getV2VariantReport } from '../../../data/v2VariantReports.generated.js';
 import { readV2OrderIdCookie, V2_LINE_PAY_ORDER_PATTERN } from '../../linePay.js';
 import { getBearerToken, jsonBodySize, requestOriginMatchesHost } from '../../economy/requestSecurity.js';
@@ -15,19 +16,21 @@ function readHeader(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] || '' : value || '';
 }
 
-async function hasUserEntitlement(token: string, fullCode: string): Promise<boolean> {
+async function hasUserEntitlement(token: string, fullCode: string): Promise<boolean | undefined> {
   const admin = getUserAdminDb();
-  if (!admin) return false;
+  if (!admin) return undefined;
 
   const { data: authData, error: authError } = await admin.auth.getUser(token);
+  if (isAuthRetryableFetchError(authError) || (authError?.status && authError.status >= 500)) return undefined;
   if (authError || !authData.user) return false;
 
-  return (await hasConfirmedLinePayOrderForUser(authData.user.id, fullCode)) === true;
+  return hasConfirmedLinePayOrderForUser(authData.user.id, fullCode);
 }
 
-async function hasOrderEntitlement(orderId: string, fullCode: string): Promise<boolean> {
+async function hasOrderEntitlement(orderId: string, fullCode: string): Promise<boolean | undefined> {
   if (!V2_LINE_PAY_ORDER_PATTERN.test(orderId)) return false;
   const order = await getLinePayOrder(orderId);
+  if (order === undefined) return undefined;
   return Boolean(
     order
     && order.status === 'confirmed'
@@ -69,9 +72,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const profileAuthorized = bearerToken
     ? await hasUserEntitlement(bearerToken, fullCode)
     : false;
+  if (profileAuthorized === undefined) {
+    return res.status(503).json({ ok: false, code: 'STORE_UNAVAILABLE' });
+  }
   const orderAuthorized = profileAuthorized
     ? false
     : await hasOrderEntitlement(orderId, fullCode);
+  if (orderAuthorized === undefined) {
+    return res.status(503).json({ ok: false, code: 'STORE_UNAVAILABLE' });
+  }
   const authorized = profileAuthorized || orderAuthorized;
 
   if (!authorized) {
