@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(), getLinePayOrder: vi.fn(), listOrders: vi.fn(), claimOrder: vi.fn(),
@@ -148,6 +149,41 @@ describe('payment receipt retry', () => {
 });
 
 describe.each([['list', myReports], ['claim', claimReport], ['receipt', receiptHandler]] as const)('%s account endpoint boundaries', (_name, handler) => {
+  it.each([
+    { label: 'auth network failure', error: new AuthRetryableFetchError('network failure', 0) },
+    { label: 'auth service unavailable', error: new AuthRetryableFetchError('unavailable', 503) },
+    { label: 'auth API server failure', error: new AuthApiError('server failure', 500, undefined) },
+  ])('keeps $label retryable instead of reporting a missing session', async ({ error }) => {
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error });
+    const { response, state } = res();
+    await handler(req(), response);
+    expect(state.status).toBe(503);
+    expect(state.body).toEqual({ ok: false, code: 'AUTH_UNAVAILABLE' });
+    expect(mocks.listOrders).not.toHaveBeenCalled();
+    expect(mocks.getLinePayOrder).not.toHaveBeenCalled();
+    expect(mocks.claimOrder).not.toHaveBeenCalled();
+    expect(mocks.sendReceipt).not.toHaveBeenCalled();
+  });
+  it('keeps an invalid token denied instead of treating it as a service failure', async () => {
+    mocks.getUser.mockResolvedValue({ data: { user: null }, error: new AuthApiError('invalid token', 401, undefined) });
+    const { response, state } = res();
+    await handler(req(), response);
+    expect(state.status).toBe(401);
+    expect(state.body).toEqual({ ok: false, code: 'AUTH_REQUIRED' });
+    expect(mocks.listOrders).not.toHaveBeenCalled();
+    expect(mocks.claimOrder).not.toHaveBeenCalled();
+    expect(mocks.sendReceipt).not.toHaveBeenCalled();
+  });
+  it('keeps a thrown auth failure retryable without looking up protected records', async () => {
+    mocks.getUser.mockRejectedValue(new Error('connection lost'));
+    const { response, state } = res();
+    await handler(req(), response);
+    expect(state.status).toBe(503);
+    expect(state.body).toEqual({ ok: false, code: 'AUTH_UNAVAILABLE' });
+    expect(mocks.listOrders).not.toHaveBeenCalled();
+    expect(mocks.claimOrder).not.toHaveBeenCalled();
+    expect(mocks.sendReceipt).not.toHaveBeenCalled();
+  });
   it('requires a valid session, not a mirror cookie', async () => {
     const { response, state } = res();
     await handler(req({ headers: { host: 'kiwimu.com', origin: 'https://kiwimu.com', cookie: 'kiwimu_uid=account-a' } }), response);

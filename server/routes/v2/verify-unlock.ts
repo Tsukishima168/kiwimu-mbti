@@ -61,6 +61,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (order.user_uid) {
     const identity = await getVerifiedV2User(req);
+    if (identity.code === 'AUTH_UNAVAILABLE') {
+      return res.status(503).json({ ok: false, code: 'AUTH_UNAVAILABLE' });
+    }
     if (!identity.user || identity.user.id !== order.user_uid) {
       return res.status(403).json({ ok: false, code: 'ACCOUNT_REQUIRED' });
     }
