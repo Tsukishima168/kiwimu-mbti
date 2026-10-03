@@ -11,7 +11,7 @@ import {
   updateLinePayOrder,
 } from './linePayOrderStore.js';
 import { getUserAdminDb } from './supabase/user-admin.js';
-import { sendV2PaymentReceipt } from './v2PaymentReceipt.js';
+import { notifyV2Payment } from './v2PaymentNotifications.js';
 
 export type LinePayFulfillmentOutcome =
   | {
@@ -52,6 +52,13 @@ export async function persistV2UnlockForUser(userUid?: string | null) {
   }
 }
 
+async function readConcurrentConfirmation(orderId: string): Promise<LinePayFulfillmentOutcome | null> {
+  const order = await getLinePayOrder(orderId);
+  if (order?.status !== 'confirmed') return null;
+  await notifyV2Payment(orderId);
+  return { ok: true, orderId, mbtiType: order.mbti_type, source: order.source || 'linepay' };
+}
+
 export async function fulfillLinePayOrder({
   orderId,
   transactionId,
@@ -88,7 +95,7 @@ export async function fulfillLinePayOrder({
     }
 
     if (storedOrder.status === 'confirmed') {
-      await sendV2PaymentReceipt(orderId);
+      await notifyV2Payment(orderId);
       return { ok: true, orderId, mbtiType, source };
     }
 
@@ -129,6 +136,10 @@ export async function fulfillLinePayOrder({
         confirm_response: result as unknown as Record<string, unknown>,
         last_error: result.returnMessage || 'LINE Pay confirm failed',
       }, { expectedStatuses: ['created', 'requested', 'request_failed', 'confirm_failed'] });
+      // Another callback may have confirmed this order while this provider
+      // request was rejected. Only persisted payment truth can win the race.
+      const concurrentConfirmation = await readConcurrentConfirmation(orderId);
+      if (concurrentConfirmation) return concurrentConfirmation;
       console.error('[LINE PAY] confirm failed', result);
       return { ok: false, orderId, mbtiType, reason: 'confirm_failed' };
     }
@@ -160,7 +171,7 @@ export async function fulfillLinePayOrder({
     }
 
     await persistV2UnlockForUser(userUid);
-    await sendV2PaymentReceipt(orderId);
+    await notifyV2Payment(orderId);
 
     return { ok: true, orderId, mbtiType, source };
   } catch (error) {
@@ -170,6 +181,8 @@ export async function fulfillLinePayOrder({
       line_transaction_id: transactionId || null,
       last_error: error instanceof Error ? error.message : 'LINE Pay confirm error',
     }, { expectedStatuses: ['created', 'requested', 'request_failed', 'confirm_failed'] });
+    const concurrentConfirmation = await readConcurrentConfirmation(orderId);
+    if (concurrentConfirmation) return concurrentConfirmation;
     return {
       ok: false,
       orderId,

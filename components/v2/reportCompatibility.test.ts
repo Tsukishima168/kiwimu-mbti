@@ -1,18 +1,20 @@
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { matchingRecordedResult } from './reportReading';
 
 const source = readFileSync(new URL('./V2App.tsx', import.meta.url), 'utf8');
 const ast = ts.createSourceFile('V2App.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 
-function collectNodes<T extends ts.Node>(predicate: (node: ts.Node) => node is T): T[] {
+function collectNodes<T extends ts.Node>(predicate: (node: ts.Node) => node is T, sourceAst = ast): T[] {
   const matches: T[] = [];
   function visit(node: ts.Node) {
     if (predicate(node)) matches.push(node);
     ts.forEachChild(node, visit);
   }
-  visit(ast);
+  visit(sourceAst);
   return matches;
 }
 
@@ -21,6 +23,47 @@ function collectNodes<T extends ts.Node>(predicate: (node: ts.Node) => node is T
 const cosmeticBlockerClasses = new Set(['ad-hero', 'ad-section', 'ad-footer', 'ad-feedback']);
 
 describe('V2 report browser compatibility', () => {
+  it('returns to the atlas entry instead of reopening a saved V1 report', () => {
+    const recorded = collectNodes(ts.isVariableDeclaration).find(node => node.name.getText(ast) === 'recordedBundle')!;
+    const initializer = recorded.initializer as ts.CallExpression;
+    const code = ts.transpileModule(`(${initializer.arguments[0].getText(ast)})()`, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+    }).outputText;
+    const fixture = {
+      source: 'direct', routeTarget: null,
+      getLastV1Result: () => ({ resultData: { id: 'ESTJ' }, scores: { A: 8, Turbulent: 0 } }),
+      getLastV2PrototypeResult: () => null, matchingRecordedResult,
+    };
+    expect(runInNewContext(code, fixture)).toBeNull();
+    const explicitReport = runInNewContext(code, { ...fixture, routeTarget: { fullType: 'ESTJ-A' } });
+    expect(explicitReport.resultData.id).toBe('ESTJ');
+    expect(runInNewContext(code, { ...fixture, routeTarget: { fullType: 'INFP-T' } })).toBeNull();
+  });
+
+  it('gives the quiz entry account bar its V2 layout and touch-target scope', () => {
+    const quizSource = readFileSync(new URL('./V2QuizFlow.tsx', import.meta.url), 'utf8');
+    const quizAst = ts.createSourceFile('V2QuizFlow.tsx', quizSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const entry = collectNodes(ts.isIfStatement, quizAst).find(node => node.expression.getText(quizAst) === '!started')!;
+    const code = ts.transpileModule(`(() => { ${entry.getText(quizAst)} })()`, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React },
+    }).outputText;
+    const welcome = () => null;
+    const result = runInNewContext(code, { React, started: false, V2Welcome: welcome, handleStart: vi.fn() });
+    expect((result.props.className || '').split(/\s+/)).toContain('v2-app');
+    expect(result.props.children.type).toBe(welcome);
+  });
+
+  it('keeps the previous type as an entry hint without entering the report', () => {
+    const entry = collectNodes(ts.isIfStatement).find(node => node.expression.getText(ast) === '!resultBundle || !fullType')!;
+    const code = ts.transpileModule(`(() => { ${entry.getText(ast)} })()`, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React },
+    }).outputText;
+    const welcome = () => null;
+    const result = runInNewContext(code, { React, resultBundle: null, fullType: null, knownType: 'ESTJ-A', V2Welcome: welcome });
+    expect(result.type).toBe(welcome);
+    expect(result.props.knownType).toBe('ESTJ-A');
+  });
+
   it('stops the visible state-name pulse when the reader requests reduced motion', () => {
     const css = readFileSync(new URL('./v2-dark.css', import.meta.url), 'utf8');
     const media = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'));

@@ -32,7 +32,7 @@ Kiwimu combines MBTI-style personality exploration with Moon Island Dessert expe
   - Use this for people who want the deeper report path.
 
 - `https://kiwimu.com/read/{TYPE}-{A|T}`
-  - Public V2 deep report pages (free preview + NT$149 paid unlock).
+  - Public V2 deep report pages with a free preview. Listed unlock price: NT$99; public checkout is currently closed.
   - AI assistants may summarize the free preview copy, public headings, and public metadata.
   - Do not represent locked or paid sections as public full text.
 
@@ -79,7 +79,7 @@ If a URL contains credentials, tokens, order IDs, user IDs, or session identifie
   - Best for sharing and low-friction re-entry.
 
 - V2 deep report: `https://kiwimu.com/read/quiz` and `https://kiwimu.com/read/{TYPE}-{A|T}`
-  - Live since 2026-04-23. Free preview chapters plus paid unlock at NT$149.
+  - Preview live since 2026-04-23. Listed unlock price: NT$99; public checkout is currently closed. Existing purchases remain readable.
   - Public preview may be cited; paid sections must not be treated as public.
 
 - Passport: `https://passport.kiwimu.com`

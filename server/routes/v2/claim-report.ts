@@ -3,7 +3,7 @@ import { jsonBodySize, requestOriginMatchesHost } from '../../economy/requestSec
 import { getVerifiedV2User } from '../../v2Account.js';
 import { readV2OrderIdCookie } from '../../linePay.js';
 import { claimAnonymousLinePayOrder, getLinePayOrder } from '../../linePayOrderStore.js';
-import { sendV2PaymentReceipt } from '../../v2PaymentReceipt.js';
+import { notifyV2Payment } from '../../v2PaymentNotifications.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'private, no-store, max-age=0');
@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!order || order.status !== 'confirmed') return res.status(403).json({ ok: false, code: 'NOT_CONFIRMED' });
     if (order.user_uid && order.user_uid !== identity.user.id) return res.status(409).json({ ok: false, code: 'ALREADY_LINKED' });
     if (!await claimAnonymousLinePayOrder(orderId, identity.user.id)) return res.status(409).json({ ok: false, code: 'CLAIM_CONFLICT' });
-    const receiptStatus = await sendV2PaymentReceipt(orderId);
+    const receiptStatus = await notifyV2Payment(orderId);
     return res.status(200).json({ ok: true, data: { mbtiType: order.mbti_type, receiptStatus } });
   } catch {
     return res.status(503).json({ ok: false, code: 'STORE_UNAVAILABLE' });

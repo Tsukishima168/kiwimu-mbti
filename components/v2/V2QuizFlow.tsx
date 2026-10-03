@@ -202,7 +202,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
     setCurrentIndex(prev => Math.max(prev - 1, 0));
   };
 
-  if (!started) return <V2Welcome onStart={handleStart} />;
+  if (!started) return <div className="v2-app"><V2Welcome onStart={handleStart} /></div>;
 
   const resolvingPanel = (
     <div className="v2-surface ad-resolving">

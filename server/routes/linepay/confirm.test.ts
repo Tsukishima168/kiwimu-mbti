@@ -16,7 +16,7 @@ vi.mock('../../linePay.js', () => ({
   parseMbtiTypeFromOrderId: () => 'ESTJ-A',
   requestLinePay: mocks.requestLinePay,
   V2_REPORT_CURRENCY: 'TWD',
-  V2_REPORT_PRICE_TWD: 49,
+  V2_REPORT_PRICE_TWD: 99,
 }));
 vi.mock('../../linePayOrderStore.js', () => ({
   getLinePayOrder: mocks.getLinePayOrder,
@@ -49,7 +49,7 @@ function response() {
 
 describe('GET /api/linepay/confirm security', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.requestLinePay.mockResolvedValue({ returnCode: '0000', returnMessage: 'Success' });
   });
 
@@ -128,5 +128,64 @@ describe('GET /api/linepay/confirm security', () => {
     expect(state.location).toBe('https://kiwimu.com/read/ESTJ-A?checkout=cancelled');
     expect(state.headers['Set-Cookie']).toContain('Max-Age=0');
     expect(mocks.requestLinePay).not.toHaveBeenCalled();
+  });
+
+  it('reports both concurrent confirmations as successful once the original 49 TWD order is confirmed', async () => {
+    let storedOrder = {
+      order_id: ORDER_ID, mbti_type: 'ESTJ-A', source: 'test', user_uid: null,
+      status: 'requested', amount: 49, currency: 'TWD', line_transaction_id: 'line-tx-1',
+    };
+    mocks.getLinePayOrder.mockImplementation(async () => ({ ...storedOrder }));
+    mocks.updateLinePayOrder.mockImplementation(async (_id, patch, options) => {
+      if (!options.expectedStatuses.includes(storedOrder.status)) return false;
+      storedOrder = { ...storedOrder, ...patch };
+      return true;
+    });
+    mocks.requestLinePay
+      .mockResolvedValueOnce({ returnCode: '0000', returnMessage: 'Success' })
+      .mockResolvedValueOnce({ returnCode: 'TEST_DUPLICATE', returnMessage: 'Concurrent request rejected' });
+    const first = response();
+    const second = response();
+    await Promise.all([handler(request(), first.res), handler(request(), second.res)]);
+
+    expect(storedOrder.status).toBe('confirmed');
+    for (const result of [first, second]) {
+      expect(result.state.location).toBe('https://kiwimu.com/read/ESTJ-A?unlock=success&source=test');
+      expect(result.state.headers['Set-Cookie']).toEqual([
+        expect.stringContaining('HttpOnly'), expect.stringContaining('Max-Age=0'),
+      ]);
+    }
+    expect(mocks.requestLinePay).toHaveBeenCalledTimes(2);
+    for (const [options] of mocks.requestLinePay.mock.calls) expect(options.data).toEqual({ amount: 49, currency: 'TWD' });
+  });
+
+  it.each(['requested', undefined])('does not trust a duplicate provider result when the latest order is %s', async status => {
+    mocks.getLinePayOrder.mockResolvedValueOnce({
+      order_id: ORDER_ID, mbti_type: 'ESTJ-A', source: 'test', user_uid: null,
+      status: 'requested', amount: 49, currency: 'TWD', line_transaction_id: 'line-tx-1',
+    }).mockResolvedValueOnce(status ? { status } : undefined);
+    mocks.updateLinePayOrder.mockResolvedValue(false);
+    mocks.requestLinePay.mockResolvedValue({ returnCode: 'TEST_DUPLICATE', returnMessage: 'Concurrent request rejected' });
+    const { res, state } = response();
+    await handler(request(), res);
+
+    expect(state.location).toContain('reason=confirm_failed');
+    expect(state.headers['Set-Cookie']).toBeUndefined();
+  });
+
+  it('keeps a concurrently confirmed order successful after the provider request throws', async () => {
+    mocks.getLinePayOrder.mockResolvedValueOnce({
+      order_id: ORDER_ID, mbti_type: 'ESTJ-A', source: 'test', user_uid: null,
+      status: 'requested', amount: 49, currency: 'TWD', line_transaction_id: 'line-tx-1',
+    }).mockResolvedValueOnce({ status: 'confirmed', mbti_type: 'ESTJ-A', source: 'test' });
+    mocks.updateLinePayOrder.mockResolvedValue(false);
+    mocks.requestLinePay.mockRejectedValue(new Error('connection lost'));
+    const { res, state } = response();
+    await handler(request(), res);
+
+    expect(state.location).toBe('https://kiwimu.com/read/ESTJ-A?unlock=success&source=test');
+    expect(state.headers['Set-Cookie']).toEqual([
+      expect.stringContaining('HttpOnly'), expect.stringContaining('Max-Age=0'),
+    ]);
   });
 });

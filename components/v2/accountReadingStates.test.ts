@@ -21,12 +21,112 @@ const claim = library.nodes.filter(ts.isVariableDeclaration).find(node => node.n
 const actionError = library.nodes.filter(ts.isVariableDeclaration).find(node => node.name.getText(library.ast) === 'handleActionError')!;
 const accountClass = library.nodes.filter(ts.isClassDeclaration).find(node => node.name?.text === 'AccountRequestError')!;
 const accountFunction = library.nodes.filter(ts.isFunctionDeclaration).find(node => node.name?.text === 'accountRequest')!;
+const reportApp = parse('./V2App.tsx');
+const checkout = reportApp.nodes.filter(ts.isVariableDeclaration).find(node => node.name.getText(reportApp.ast) === 'handleCheckout')!;
+const checkPayment = reportApp.nodes.filter(ts.isVariableDeclaration).find(node => node.name.getText(reportApp.ast) === 'handleCheckPaymentStatus')!;
 const report = { mbtiType: 'ESTJ-A', receiptStatus: 'pending', reference: 'KW-FIXTURE' };
 const settle = () => new Promise(resolve => setImmediate(resolve));
+
+function checkoutFixture(name: 'checkout' | 'status' = 'checkout') {
+  const context = {
+    IS_DEV: false, isLocalPreview: false, auth: { isLoggedIn: true, userId: 'account-a' },
+    fullType: 'ESTJ-A', source: 'fixture',
+    checkoutContextRef: { current: { ownerId: 'account-a' as string | null, fullType: 'ESTJ-A' } },
+    checkoutRequestRef: { current: 0 },
+    getAuthSupabaseClient: () => ({ auth: { getSession: async () => ({ data: { session: { access_token: 'fixture-a', user: { id: 'account-a' } } } }) } }),
+    fetch: vi.fn(), trackAction: vi.fn(), trackV2CheckoutStart: vi.fn(), loginWithGoogle: vi.fn(),
+    setCheckoutStatus: vi.fn(), setCheckoutPaymentUrl: vi.fn(), setReportMessage: vi.fn(),
+    window: { open: vi.fn(), location: { assign: vi.fn() } }, console,
+  };
+  const declaration = name === 'checkout' ? checkout : checkPayment;
+  const run = runInNewContext(compile(`(${declaration.initializer!.getText(reportApp.ast)})`), context) as () => void;
+  return { context, run };
+}
 
 afterEach(() => vi.useRealTimers());
 
 describe('account reading states', () => {
+  it('keeps the payment link for a successful checkout by the current owner', async () => {
+    const { context, run } = checkoutFixture();
+    context.fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, paymentUrl: 'https://fixture.invalid/current-owner-order' }) });
+    run();
+    await settle();
+    expect(context.fetch).toHaveBeenCalledWith('/api/linepay/request', expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: 'Bearer fixture-a' }),
+    }));
+    expect(context.setCheckoutPaymentUrl).toHaveBeenLastCalledWith('https://fixture.invalid/current-owner-order');
+    expect(context.setCheckoutStatus).toHaveBeenLastCalledWith('pending');
+    expect(context.window.open).toHaveBeenCalledOnce();
+  });
+
+  it('redirects a confirmed payment for the current owner', async () => {
+    const { context, run } = checkoutFixture('status');
+    context.fetch.mockResolvedValue({ ok: true, json: async () => ({ ok: true, data: { mbtiType: 'ESTJ-A', redirectUrl: '/read/ESTJ-A?unlock=success' } }) });
+    run();
+    await settle();
+    expect(context.fetch).toHaveBeenCalledWith('/api/linepay/status', expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: 'Bearer fixture-a' }),
+    }));
+    expect(context.window.location.assign).toHaveBeenCalledWith('/read/ESTJ-A?unlock=success');
+  });
+
+  it('does not create a payment when the session owner changed during lookup', async () => {
+    const { context, run } = checkoutFixture();
+    context.getAuthSupabaseClient = () => ({ auth: { getSession: async () => ({ data: { session: { access_token: 'fixture-b', user: { id: 'account-b' } } } }) } });
+    run();
+    await settle();
+    expect(context.fetch).not.toHaveBeenCalled();
+    expect(context.window.open).not.toHaveBeenCalled();
+  });
+
+  it('ignores a delayed checkout response after the account changes', async () => {
+    const { context, run } = checkoutFixture();
+    let complete!: (value: unknown) => void;
+    context.fetch.mockReturnValue(new Promise(resolve => { complete = resolve; }));
+    run();
+    await settle();
+    expect(context.fetch).toHaveBeenCalledOnce();
+    context.checkoutContextRef.current.ownerId = 'account-b';
+    context.setCheckoutPaymentUrl.mockClear();
+    context.setCheckoutStatus.mockClear();
+    context.setReportMessage.mockClear();
+    complete({ ok: true, json: async () => ({ ok: true, paymentUrl: 'https://fixture.invalid/account-a-order' }) });
+    await settle();
+    expect(context.setCheckoutPaymentUrl).not.toHaveBeenCalled();
+    expect(context.setCheckoutStatus).not.toHaveBeenCalled();
+    expect(context.setReportMessage).not.toHaveBeenCalled();
+    expect(context.window.open).not.toHaveBeenCalled();
+  });
+
+  it('does not redirect a new account from a delayed payment status response', async () => {
+    const { context, run } = checkoutFixture('status');
+    let complete!: (value: unknown) => void;
+    context.fetch.mockReturnValue(new Promise(resolve => { complete = resolve; }));
+    run();
+    await settle();
+    context.checkoutContextRef.current.ownerId = 'account-b';
+    context.setReportMessage.mockClear();
+    complete({ ok: true, json: async () => ({ ok: true, data: { mbtiType: 'ESTJ-A', redirectUrl: '/read/ESTJ-A?unlock=success' } }) });
+    await settle();
+    expect(context.window.location.assign).not.toHaveBeenCalled();
+    expect(context.setReportMessage).not.toHaveBeenCalled();
+  });
+
+  it('ignores a delayed checkout error after logout', async () => {
+    const { context, run } = checkoutFixture();
+    let reject!: (error: Error) => void;
+    context.fetch.mockReturnValue(new Promise((_resolve, fail) => { reject = fail; }));
+    run();
+    await settle();
+    context.checkoutContextRef.current.ownerId = null;
+    context.setCheckoutStatus.mockClear();
+    context.setReportMessage.mockClear();
+    reject(new Error('fixture offline'));
+    await settle();
+    expect(context.setCheckoutStatus).not.toHaveBeenCalled();
+    expect(context.setReportMessage).not.toHaveBeenCalled();
+  });
+
   it.each([401, 403])('clears protected library data when an action receives %i', status => {
     class FixtureError extends Error { constructor(public status: number) { super('AUTH_REQUIRED'); } }
     const setData = vi.fn();

@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { V2_REPORT_PRICE_TWD } from '../../shared/v2Product';
 import type { AppUser } from '../../types';
 import V2Welcome from './V2Welcome';
 import V2AccountBar from './V2AccountBar';
@@ -316,11 +317,16 @@ export default function V2App({ user }: V2AppProps) {
   const [dessertLoadStatus, setDessertLoadStatus] = useState<DessertLoadStatus>('idle');
   const source = params.get('source') || 'direct';
 
+  const knownType = useMemo(() => {
+    const previous = getLastV2PrototypeResult() || getLastV1Result();
+    return previous ? `${previous.resultData.id}-${getVariant(previous.scores)}` : null;
+  }, []);
   const recordedBundle = useMemo(() => {
+    if (!routeTarget) return null;
     const v2 = getLastV2PrototypeResult();
     const v1 = getLastV1Result();
-    return routeTarget ? matchingRecordedResult(routeTarget.fullType, [v2, v1]) : (source === 'v2_quiz' ? v2 || v1 : v1);
-  }, [routeTarget, source]);
+    return matchingRecordedResult(routeTarget.fullType, [v2, v1]);
+  }, [routeTarget]);
   const resultBundle = useMemo(() => recordedBundle || (routeTarget ? {
     resultData: getResultData(routeTarget.type, routeTarget.variant),
     // A shared type page has no personal scores. Its spectrum stays qualitative.
@@ -329,6 +335,9 @@ export default function V2App({ user }: V2AppProps) {
 
   const variant = routeTarget?.variant || (resultBundle ? getVariant(resultBundle.scores) : 'A');
   const fullType = routeTarget?.fullType || (resultBundle ? `${resultBundle.resultData.id}-${variant}` : null);
+  const checkoutContextRef = useRef({ ownerId: auth.userId, fullType });
+  checkoutContextRef.current = { ownerId: auth.userId, fullType };
+  const checkoutRequestRef = useRef(0);
   const currentPaidReports = paidReports?.ownerId === auth.userId && paidReports?.report.fullCode === fullType ? paidReports : null;
   const currentAccess = reportAccess?.ownerId === auth.userId && reportAccess?.fullType === fullType ? reportAccess : null;
   const canReadReport = Boolean(currentPaidReports?.report);
@@ -420,7 +429,7 @@ export default function V2App({ user }: V2AppProps) {
         baseType,                     // 例 INTJ
         variantSummary?.title,
         // 商品鉤子
-        'Kiwimu', '月島甜點', '靈魂甜點', 'NT$49 MBTI 深度報告',
+        'Kiwimu', '月島甜點', '靈魂甜點', `NT$${V2_REPORT_PRICE_TWD} MBTI 深度報告`,
       ].filter(Boolean).join(','),
       robots: fullType && !hasQuery ? 'index,follow' : 'noindex,follow',
     });
@@ -515,10 +524,11 @@ export default function V2App({ user }: V2AppProps) {
   }, [fullType, params, source]);
 
   useEffect(() => {
+    checkoutRequestRef.current += 1;
     setReportMessage('');
     setCheckoutPaymentUrl('');
     setCheckoutStatus('idle');
-  }, [auth.userId]);
+  }, [auth.userId, fullType]);
 
   useEffect(() => {
     if (!fullType) {
@@ -698,6 +708,11 @@ export default function V2App({ user }: V2AppProps) {
       void loginWithGoogle({ onError: setReportMessage });
       return;
     }
+    const ownerId = auth.userId;
+    const requestId = ++checkoutRequestRef.current;
+    const isCurrentRequest = () => checkoutRequestRef.current === requestId
+      && checkoutContextRef.current.ownerId === ownerId
+      && checkoutContextRef.current.fullType === fullType;
     void (async () => {
       if (!fullType) {
         return;
@@ -741,7 +756,8 @@ export default function V2App({ user }: V2AppProps) {
         const { data: sessionData } = supabase
           ? await supabase.auth.getSession()
           : { data: { session: null } };
-        if (!sessionData.session?.access_token) throw new Error('AUTH_REQUIRED');
+        if (!isCurrentRequest()) return;
+        if (!sessionData.session?.access_token || sessionData.session.user.id !== ownerId) throw new Error('AUTH_REQUIRED');
         headers.Authorization = `Bearer ${sessionData.session.access_token}`;
 
         const response = await fetch('/api/linepay/request', {
@@ -761,6 +777,7 @@ export default function V2App({ user }: V2AppProps) {
           error?: string;
           code?: string;
         };
+        if (!isCurrentRequest()) return;
 
         if (!response.ok || !result.ok || !result.paymentUrl) {
           throw new Error(result.code || result.error || 'LINE Pay request failed');
@@ -776,6 +793,7 @@ export default function V2App({ user }: V2AppProps) {
             : '付款頁已建立。若瀏覽器沒有開新分頁，請按下方「重新開啟 LINE Pay 付款頁」。',
         );
       } catch (error) {
+        if (!isCurrentRequest()) return;
         console.error('Failed to start LINE Pay checkout', error);
         setCheckoutStatus('idle');
         setReportMessage(error instanceof Error && error.message === 'VERIFIED_EMAIL_REQUIRED'
@@ -793,16 +811,25 @@ export default function V2App({ user }: V2AppProps) {
   };
 
   const handleCheckPaymentStatus = () => {
+    const ownerId = auth.userId;
+    const requestId = ++checkoutRequestRef.current;
+    const isCurrentRequest = () => checkoutRequestRef.current === requestId
+      && checkoutContextRef.current.ownerId === ownerId
+      && checkoutContextRef.current.fullType === fullType;
     void (async () => {
-      if (!fullType) return;
+      if (!fullType || !ownerId) return;
 
       try {
         setCheckoutStatus('checking');
         setReportMessage('正在向 LINE Pay 確認付款狀態。');
+        const supabase = getAuthSupabaseClient();
+        const session = supabase ? (await supabase.auth.getSession()).data.session : null;
+        if (!isCurrentRequest()) return;
+        if (!session?.access_token || session.user.id !== ownerId) throw new Error('AUTH_REQUIRED');
         const response = await fetch('/api/linepay/status', {
           method: 'POST',
           credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
           body: JSON.stringify({ mbtiType: fullType }),
         });
         const payload = await response.json().catch(() => null) as {
@@ -813,6 +840,7 @@ export default function V2App({ user }: V2AppProps) {
             redirectUrl?: string;
           };
         } | null;
+        if (!isCurrentRequest()) return;
 
         if (response.ok && payload?.ok && payload.data?.redirectUrl) {
           setReportMessage('付款已確認，正在載入完整報告。');
@@ -842,9 +870,12 @@ export default function V2App({ user }: V2AppProps) {
         }
         setReportMessage(messageByCode[code] || `目前尚未完成解鎖確認（${code}）。`);
       } catch (error) {
+        if (!isCurrentRequest()) return;
         console.error('Failed to check LINE Pay status', error);
         setCheckoutStatus('pending');
-        setReportMessage('暫時無法確認付款狀態，請稍後再試。');
+        setReportMessage(error instanceof Error && error.message === 'AUTH_REQUIRED'
+          ? '登入已失效，請重新登入購買時的帳號，再檢查原付款。'
+          : '暫時無法確認付款狀態，請稍後再試。');
       }
     })();
   };
@@ -882,7 +913,7 @@ export default function V2App({ user }: V2AppProps) {
   };
 
   if (!resultBundle || !fullType) {
-    return <V2Welcome />;
+    return <V2Welcome knownType={knownType} />;
   }
 
   if (!variantSummary) {
@@ -1004,7 +1035,7 @@ export default function V2App({ user }: V2AppProps) {
       ? '解鎖我的完整報告'
       : IS_DEV
         ? 'DEV 階段暫不開放'
-        : auth.isLoggedIn ? 'NT$49 解鎖這份完整報告' : '登入後以 NT$49 購買';
+        : auth.isLoggedIn ? `NT$${V2_REPORT_PRICE_TWD} 解鎖這份完整報告` : `登入後以 NT$${V2_REPORT_PRICE_TWD} 購買`;
 
   // ─ Apple Dark helpers ─
   const DIM_NAMES: Record<string, string> = {
@@ -1205,6 +1236,7 @@ export default function V2App({ user }: V2AppProps) {
               ? '請稍候，通過權限確認後會自動展開。'
               : 'Section 02 – 08 · 職涯 × 關係 · 靈魂甜點 · 帶走的字'}
           </p>
+          {!isReportLoading ? <p className="ad-paywall-note">NT${V2_REPORT_PRICE_TWD} · 單次解鎖 · 保存到購買帳號</p> : null}
           {!isReportLoading && currentAccess?.status !== 'error' && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
             checkoutPaymentUrl ? (
               <div className="ad-paywall-actions">

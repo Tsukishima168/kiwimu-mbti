@@ -16,7 +16,7 @@
 - **Who it's for:** 台灣 YZ 世代（18-28 歲），MBTI 作為身份認同語言
 - **Space:** 人格測驗 × IP 角色品牌 × 自我探索內容
 - **V1.5 type:** 快速測驗 + 社群分享卡（5 題，免費）
-- **V2 type:** 付費深度報告（40 題，NT$149）
+- **V2 type:** 付費深度報告（40 題，NT$99）
 
 ---
 
@@ -126,7 +126,7 @@ label:   11px    / 600 / JetBrains Mono / letter-spacing 0.25em / uppercase
 | 背景 | `--color-paper` | `--color-paper` |
 | 強調色 | `--color-acid`（題目頁用 ink 底反白） | `--color-acid`（CTA、解鎖、badge）|
 | 結果呈現 | 型別 + 金句 + 分享卡（簡化）| 13 區塊深報告（付費解鎖）|
-| 付費 | 免費 | NT$149 一次性 |
+| 付費 | 免費 | NT$99 一次性 |
 | 角色 | 題目選完後角色文字反應 | Kiwimu 轉場文案（5 段）|
 
 ---

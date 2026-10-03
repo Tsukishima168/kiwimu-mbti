@@ -7,9 +7,11 @@ const mocks = vi.hoisted(() => ({
   requestLinePay: vi.fn(),
   getUserAdminDb: vi.fn(),
   isV2PaymentReceiptReady: vi.fn(),
+  isV2MerchantNotificationReady: vi.fn(),
 }));
 
-vi.mock('../../linePay.js', () => ({
+vi.mock('../../linePay.js', async importOriginal => ({
+  ...await importOriginal<typeof import('../../linePay.js')>(),
   buildAppBaseUrl: () => 'https://kiwimu.com',
   buildLinePayApiPath: () => '/v3/payments/request',
   buildV2LinePayOrderId: (mbtiType: string) => `V2-${mbtiType}-1788920000000-${'a'.repeat(32)}`,
@@ -17,8 +19,6 @@ vi.mock('../../linePay.js', () => ({
   getLinePayConfig: () => ({}),
   isLinePaySuccessCode: (code: string) => code === '0000',
   requestLinePay: mocks.requestLinePay,
-  V2_REPORT_CURRENCY: 'TWD',
-  V2_REPORT_PRICE_TWD: 49,
 }));
 vi.mock('../../linePayOrderStore.js', () => ({
   createLinePayOrder: mocks.createLinePayOrder,
@@ -28,6 +28,7 @@ vi.mock('../../supabase/user-admin.js', () => ({
   getUserAdminDb: mocks.getUserAdminDb,
 }));
 vi.mock('../../v2PaymentReceipt.js', () => ({ isV2PaymentReceiptReady: mocks.isV2PaymentReceiptReady }));
+vi.mock('../../v2MerchantNotification.js', () => ({ isV2MerchantNotificationReady: mocks.isV2MerchantNotificationReady }));
 
 import handler from './request';
 
@@ -86,6 +87,7 @@ describe('POST /api/linepay/request security', () => {
     });
     mocks.getUserAdminDb.mockReturnValue(null);
     mocks.isV2PaymentReceiptReady.mockResolvedValue(true);
+    mocks.isV2MerchantNotificationReady.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -120,13 +122,17 @@ describe('POST /api/linepay/request security', () => {
     expect(state.status).toBe(200);
     expect(mocks.createLinePayOrder).toHaveBeenCalledOnce();
     expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({
-      mbtiType, userUid: 'verified-user', amount: 49, currency: 'TWD',
+      mbtiType, userUid: 'verified-user', amount: 99, currency: 'TWD',
     }));
     expect(mocks.requestLinePay).toHaveBeenCalledOnce();
     expect(mocks.requestLinePay).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         orderId: `V2-${mbtiType}-1788920000000-${'a'.repeat(32)}`,
-        amount: 49, currency: 'TWD',
+        amount: 99, currency: 'TWD',
+        packages: [expect.objectContaining({
+          amount: 99,
+          products: [expect.objectContaining({ price: 99, quantity: 1 })],
+        })],
       }),
     }));
     expect(state.headers['Set-Cookie']).toContain(`V2-${mbtiType}-`);
@@ -138,6 +144,16 @@ describe('POST /api/linepay/request security', () => {
 
     expect(state.status).toBe(200);
     expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({ mbtiType: 'INTJ-T' }));
+  });
+
+  it('does not create an order while merchant notifications are unavailable', async () => {
+    mocks.isV2MerchantNotificationReady.mockResolvedValue(false);
+    const { res, state } = response();
+    await handler(verifiedPurchaseRequest('ESTJ-A'), res);
+    expect(state.status).toBe(503);
+    expect(state.body.code).toBe('NOTIFICATIONS_UNAVAILABLE');
+    expect(mocks.createLinePayOrder).not.toHaveBeenCalled();
+    expect(mocks.requestLinePay).not.toHaveBeenCalled();
   });
 
   it('keeps checkout closed unless the server gate is explicitly enabled', async () => {

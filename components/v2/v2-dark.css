@@ -2613,9 +2613,9 @@
 /* Account and purchased-report shelf follow the report's Quiet Atlas tokens. */
 .v2-app.ad-library-shell { min-height:100svh; background:var(--bg-0); color:var(--t1); font-family:var(--f-body); }
 .v2-app .ad-account-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; width:100%; margin:0 0 28px; font-family:var(--f-mono); font-size:12px; letter-spacing:.06em; }
-.v2-app .ad-account-home { color:var(--t2); text-decoration:none; }
+.v2-app .ad-account-home { display:inline-flex; align-items:center; min-height:44px; color:var(--t2); text-decoration:none; }
 .v2-app .ad-account-actions { display:flex; align-items:center; gap:18px; }
-.v2-app .ad-account-actions a, .v2-app .ad-account-actions button { display:inline-flex; align-items:center; gap:6px; min-height:44px; color:var(--t1); text-decoration:none; }
+.v2-app .ad-account-actions a, .v2-app .ad-account-actions button { display:inline-flex; align-items:center; gap:6px; min-width:44px; min-height:44px; justify-content:center; color:var(--t1); text-decoration:none; }
 .v2-app .ad-account-actions button { border:0; background:none; font:inherit; cursor:pointer; padding:0; }
 .v2-app .ad-account-actions :focus-visible { outline:2px solid var(--signal); outline-offset:4px; border-radius:4px; }
 .v2-app .ad-account-signed-in { color:var(--t2); }
