@@ -3,6 +3,7 @@ import type { AppUser } from '../types';
 import { trackButtonClick } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
+import { V2_REPORT_PRICE_TWD } from '../shared/v2Product';
 
 interface IntroProps {
   onStart: () => void;
@@ -13,7 +14,13 @@ interface IntroProps {
 }
 
 const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, onLogout }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const entry = {
+    zh: { choose: '選擇你的探索方式', v1: 'V1｜經典人格', v1Detail: '40 題・測驗與結果免費', v1Start: '開始 V1', v2: 'V2｜敘事探索', v2Detail: '40 個生活情境・第 01 章免費', v2Price: `完整報告 NT$${V2_REPORT_PRICE_TWD}・單次解鎖`, v2Start: '開始 V2', quick: '想先輕鬆看看？V1.5 五題狀態探索', note: '依此刻的感受回答，讓結果成為理解自己的起點。' },
+    en: { choose: 'Choose your exploration', v1: 'V1 | Classic personality', v1Detail: '40 questions · Free quiz and results', v1Start: 'Start V1', v2: 'V2 | Narrative exploration', v2Detail: '40 everyday situations · Chapter 01 free', v2Price: `Full report NT$${V2_REPORT_PRICE_TWD} · One-time unlock`, v2Start: 'Start V2', quick: 'A lighter start? V1.5: five questions about today', note: 'Answer from how you feel today. Let the result start a conversation with yourself.' },
+    ja: { choose: '自分に合う入口を選ぶ', v1: 'V1｜いつもの人格', v1Detail: '40問・診断と結果は無料', v1Start: 'V1を始める', v2: 'V2｜日常の物語', v2Detail: '40の日常場面・第01章は無料', v2Price: `完全版 NT$${V2_REPORT_PRICE_TWD}・1回の購入で解放`, v2Start: 'V2を始める', quick: 'まずは気軽に：V1.5、今の気持ちを5問で', note: '今の気持ちで答えて、自分を理解するきっかけに。' },
+    ko: { choose: '나에게 맞는 탐색 선택', v1: 'V1｜기본 성격', v1Detail: '40문항 · 테스트와 결과 무료', v1Start: 'V1 시작', v2: 'V2｜이야기 탐색', v2Detail: '40가지 일상 상황 · 01장 무료', v2Price: `전체 보고서 NT$${V2_REPORT_PRICE_TWD} · 한 번 결제`, v2Start: 'V2 시작', quick: '가볍게 시작하기: V1.5 오늘의 상태 5문항', note: '지금의 마음으로 답하고, 나를 이해하는 출발점으로 삼아 보세요.' },
+  }[language];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 fade-in relative overflow-hidden">
@@ -109,7 +116,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
 
         {/* 圓形動畫容器 */}
         <div
-          className="ku-orbit-frame w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden mb-12 relative group cursor-pointer bg-gray-100"
+          className="ku-orbit-frame w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden mt-16 mb-6 relative group cursor-pointer bg-gray-100"
           onClick={() => { trackButtonClick('進入_圓形', 'intro_main'); onStart(); }}
         >
           <img
@@ -125,23 +132,34 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
 
         <p className="ku-site-kicker mb-5">01 / Personality lab</p>
 
-        <h1 className="text-3xl md:text-4xl font-serif font-bold tracking-[0.08em] text-kiwi-dark mb-4">
+        <h1 className="text-3xl md:text-4xl font-serif font-bold tracking-[0.04em] md:tracking-[0.08em] text-balance text-kiwi-dark mb-4">
           {t('kiwimu_universe')}
         </h1>
 
         <p className="text-xs font-mono text-gray-500 mb-2 tracking-[0.3em] uppercase">
           {t('discover_inner_self')}
         </p>
-        <p className="text-sm font-serif text-gray-400 mb-12 italic leading-relaxed px-4">
+        <p className="text-sm font-serif text-gray-400 mb-6 italic leading-relaxed px-4">
           {t('soft_understanding')}
         </p>
 
-        <button
-          onClick={() => { trackButtonClick('Start_開始旅程', 'intro_main'); onStart(); }}
-          className="ku-primary-action px-12 py-4 tracking-[0.2em] text-sm uppercase"
-        >
-          {t('start_journey')}
-        </button>
+        <nav className="ku-quiz-entry" aria-label={entry.choose}>
+          <p className="ku-quiz-entry__heading">{entry.choose}</p>
+          <div className="ku-quiz-entry__choices">
+            <button className="ku-quiz-entry__choice" onClick={() => { trackButtonClick('V1_經典人格', 'intro_version'); onStart(); }}>
+              <strong>{entry.v1}</strong>
+              <span>{entry.v1Detail}</span>
+              <span className="ku-quiz-entry__cta">{entry.v1Start} ↗</span>
+            </button>
+            <a className="ku-quiz-entry__choice ku-quiz-entry__choice--v2" href="/read?from=mbti_version_entry" onClick={() => trackButtonClick('V2_敘事探索', 'intro_version')}>
+              <strong>{entry.v2}</strong>
+              <span>{entry.v2Detail}</span>
+              <span>{entry.v2Price}</span>
+              <span className="ku-quiz-entry__cta">{entry.v2Start} ↗</span>
+            </a>
+          </div>
+          <a className="ku-quiz-entry__quick" href="/explore?from=mbti_version_entry">{entry.quick} ↗</a>
+        </nav>
 
         {(!user || user.isAnonymous) && (
           <button
@@ -152,22 +170,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
           </button>
         )}
 
-        {/* Social Proof - Gentle & Minimal */}
-        <div className="mt-10 space-y-2 opacity-70 hover:opacity-100 transition-opacity">
-          <p className="text-xs text-gray-500 tracking-wider font-serif">
-            {t('tested_users').split('<count>')[0]}<span className="font-semibold text-gray-700">10,000+</span>{t('tested_users').split('<count>')[1]}
-          </p>
-          <div className="flex items-center justify-center gap-2">
-            <div className="flex gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <svg key={i} className="w-2.5 h-2.5 fill-current text-yellow-400" viewBox="0 0 20 20">
-                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                </svg>
-              ))}
-            </div>
-            <span className="text-xs font-mono text-gray-400">4.9/5.0</span>
-          </div>
-        </div>
+        <p className="mt-6 max-w-sm text-sm leading-relaxed text-gray-600">{entry.note}</p>
       </div>
     </div>
   );
