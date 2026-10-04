@@ -285,7 +285,8 @@ const App: React.FC = () => {
   const [showTestPanel, setShowTestPanel] = useState(false);
   const lastSessionRestoreUidRef = React.useRef<string | null>(null);
 
-  const { saveCompletedTest, saveToCloud } = useCloudSync(user);
+  const shouldSyncV1 = ROOT_PATHS.has(window.location.pathname) || isV1Pathname(window.location.pathname);
+  const { saveCompletedTest, saveToCloud } = useCloudSync(shouldSyncV1 && !user?.isAnonymous ? user : null);
 
   const showLoginError = (message: string) => {
     setShowSaveToast({ show: true, success: false, message });
@@ -711,15 +712,21 @@ const App: React.FC = () => {
     setStage('loading');
 
     // Save to cloud in background - don't block UI
-    if (user) {
+    if (user && !user.isAnonymous) {
       saveCompletedTest(type, variant, scores)
-        .then(() => {
-          setShowSaveToast({ show: true, success: true, message: '你的靈魂甜點配方已封存於 Kiwimu 宇宙 ✦' });
-          setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 3500);
+        .then(runId => {
+          setShowSaveToast({
+            show: true,
+            success: Boolean(runId),
+            message: runId
+              ? '你的靈魂甜點配方已封存於 Kiwimu 宇宙 ✦'
+              : '結果已暫存在此裝置，雲端尚未保存；請稍後再試。',
+          });
+          setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), runId ? 3500 : 4500);
         })
         .catch(err => {
           console.error('Failed to save test results:', err);
-          setShowSaveToast({ show: true, success: false, message: '配方暫存於此裝置，入籍宇宙後可永久封存 🌙' });
+          setShowSaveToast({ show: true, success: false, message: '結果已暫存在此裝置，雲端尚未保存；請稍後再試。' });
           setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4500);
         });
 
