@@ -1237,6 +1237,7 @@ export default function V2App({ user }: V2AppProps) {
               : 'Section 02 – 08 · 職涯 × 關係 · 靈魂甜點 · 帶走的字'}
           </p>
           {!isReportLoading ? <p className="ad-paywall-note">NT${V2_REPORT_PRICE_TWD} · 單次解鎖 · 保存到購買帳號</p> : null}
+          {!isReportLoading && !IS_CHECKOUT_ENABLED ? <p className="ad-paywall-note">目前尚未開放新購買。已購報告請使用購買時的帳號，從「我的報告」繼續閱讀。</p> : null}
           {!isReportLoading && currentAccess?.status !== 'error' && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
             checkoutPaymentUrl ? (
               <div className="ad-paywall-actions">
