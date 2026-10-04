@@ -121,6 +121,43 @@ describe('V2 report reading integrity', () => {
     expect(getDimensionDescription('T', bullets, true)).toBe('identity-copy');
   });
 
+  it.each(Object.values(V2_VARIANT_REPORTS))('reads all five preference descriptions in $fullCode', (report) => {
+    [...report.type].forEach((code, index) => {
+      const description = getDimensionDescription(code, report.dimension.bullets);
+      expect(description.trim(), `${report.fullCode}: ${code}`).toBeTruthy();
+      expect(description).toBe(report.dimension.bullets[index].body);
+    });
+    const identity = getDimensionDescription(report.variant, report.dimension.bullets, true);
+    expect(identity.trim(), `${report.fullCode}: identity`).toBeTruthy();
+    expect(identity).toBe(report.dimension.bullets[4].body);
+  });
+
+  it('handles full-width punctuation, spacing and the S label alias without confusing Thinking and identity', () => {
+    const bullets = [
+      { label: ' A / T （自我認同） ', body: 'shared-identity' },
+      { label: 'T（謹慎型 Identity 層）', body: 'turbulent' },
+      { label: ' T （ 思考 ） ', body: 'thinking' },
+      { label: 'S（感知）', body: 'sensing' },
+      { label: 'P (感知)', body: 'perceiving' },
+      { label: 'A（自信型）', body: 'assertive' },
+    ];
+    expect(getDimensionDescription('T', bullets)).toBe('thinking');
+    expect(getDimensionDescription('T', bullets, true)).toBe('turbulent');
+    expect(getDimensionDescription('A', bullets, true)).toBe('assertive');
+    expect(getDimensionDescription('S', bullets)).toBe('sensing');
+    expect(getDimensionDescription('P', bullets)).toBe('perceiving');
+    expect(getDimensionDescription('S', [{ label: 'S (實感)', body: 'alternate-sensing' }])).toBe('alternate-sensing');
+    expect(getDimensionDescription('T', bullets.slice(0, 1), true)).toBe('shared-identity');
+    expect(getDimensionDescription('T', bullets.slice(0, 2))).toBe('');
+    expect(getDimensionDescription('X', bullets, true)).toBe('');
+  });
+
+  it.each(['X', '', 'constructor', '__proto__', 'toString'])('rejects unknown code %s without using inherited object properties', (code) => {
+    const bullets = [{ label: 'A / T (自我認同)', body: 'identity-copy' }];
+    expect(getDimensionDescription(code, bullets)).toBe('');
+    expect(getDimensionDescription(code, bullets, true)).toBe('');
+  });
+
   it('shows percentages only when answers exist for that dimension', () => {
     expect(hasDimensionAnswers(emptyScores, 'E', 'I')).toBe(false);
     expect(hasDimensionAnswers({ ...emptyScores, E: 1 }, 'E', 'I')).toBe(true);
