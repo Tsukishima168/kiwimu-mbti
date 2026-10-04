@@ -99,12 +99,40 @@ export const trackQuizAbandon = (
         total_questions: totalQuestions,
         progress_percentage: Math.round((questionNumber / totalQuestions) * 100),
         time_spent_seconds: timeSpent,
-        // Fired from pagehide, right as the page unloads — beacon transport
-        // ensures gtag doesn't lose the hit to the navigation/unload.
+        // Fired from pagehide / visibilitychange(hidden), right as the page goes
+        // away — beacon transport ensures gtag doesn't lose the hit.
         transport_type: 'beacon' as const,
     };
 
     gtagSafe('event', 'quiz_abandon', withSiteId(eventData));
+};
+
+/**
+ * Once-per-attempt guard around trackQuizAbandon. `fire()` is safe to call from
+ * pagehide, visibilitychange(hidden) and unmount cleanup: it never fires after
+ * completion, before any answer, or more than once. Returns true if it sent.
+ */
+export const createQuizAbandonGuard = (deps: {
+    isCompleted: () => boolean;
+    getAnsweredCount: () => number;
+    getTotalQuestions: () => number;
+    getStartTime: () => number;
+    now?: () => number;
+}) => {
+    let fired = false;
+    const now = deps.now ?? Date.now;
+    return {
+        fire: (): boolean => {
+            if (fired || deps.isCompleted()) return false;
+            // No answers yet means the quiz never really started — skip the noise.
+            const answered = deps.getAnsweredCount();
+            if (answered === 0) return false;
+            fired = true;
+            const timeSpentSeconds = Math.round((now() - deps.getStartTime()) / 1000);
+            trackQuizAbandon(answered, deps.getTotalQuestions(), timeSpentSeconds);
+            return true;
+        },
+    };
 };
 
 /**
@@ -378,18 +406,73 @@ export const trackLoginFailure = (
 };
 
 /**
- * Track user signup
+ * Track user signup (GA4 recommended event `sign_up`).
+ * Deliberately sends no raw Supabase user id as an event parameter.
  */
 export const trackUserSignup = (
-    method: 'google' | 'email',
-    userId: string
+    method: 'google' | 'email'
 ) => {
     const eventData = {
-        signup_method: method,
-        user_id: userId,
+        method,
+        source_site: SITE_ID,
     };
 
     gtagSafe('event', 'sign_up', withSiteId(eventData));
+};
+
+/** An account counts as "brand new" when it was created within this window of the sign-in. */
+export const NEW_ACCOUNT_WINDOW_MS = 120_000;
+
+const SIGNUP_SENT_KEY_PREFIX = 'kiwimu_ga_signup_sent:';
+const signupSentInMemory = new Set<string>();
+
+/**
+ * Pure helper: is this sign-in the one that created the account?
+ * Compares `created_at` with `last_sign_in_at` (fallback: now when missing/unparseable).
+ */
+export const isNewlyCreatedAccount = (
+    createdAt: string | null | undefined,
+    lastSignInAt: string | null | undefined,
+    nowMs: number = Date.now(),
+    windowMs: number = NEW_ACCOUNT_WINDOW_MS
+): boolean => {
+    const created = createdAt ? Date.parse(createdAt) : NaN;
+    if (!Number.isFinite(created)) return false;
+    const lastSignIn = lastSignInAt ? Date.parse(lastSignInAt) : NaN;
+    const reference = Number.isFinite(lastSignIn) ? lastSignIn : nowMs;
+    return Math.abs(reference - created) <= windowMs;
+};
+
+/**
+ * Send `sign_up` once per user, only for brand-new accounts. Guarded by a
+ * localStorage key (plus an in-memory set when storage is unavailable) so
+ * reloads / repeated SIGNED_IN events do not resend. Returns true if sent.
+ */
+export const trackUserSignupIfNew = (
+    user: { id?: string | null; created_at?: string | null; last_sign_in_at?: string | null },
+    method: 'google' | 'email' = 'google',
+    nowMs: number = Date.now()
+): boolean => {
+    if (!user?.id) return false;
+    if (!isNewlyCreatedAccount(user.created_at, user.last_sign_in_at, nowMs)) return false;
+
+    const key = `${SIGNUP_SENT_KEY_PREFIX}${user.id}`;
+    if (signupSentInMemory.has(key)) return false;
+    try {
+        if (typeof localStorage !== 'undefined') {
+            if (localStorage.getItem(key)) {
+                signupSentInMemory.add(key);
+                return false;
+            }
+            localStorage.setItem(key, String(nowMs));
+        }
+    } catch {
+        // Storage blocked (private mode etc.): fall back to the in-memory guard.
+    }
+    signupSentInMemory.add(key);
+
+    trackUserSignup(method);
+    return true;
 };
 
 /**
@@ -599,6 +682,9 @@ export default {
     trackLoginCallback,
     trackLoginFailure,
     trackUserSignup,
+    trackUserSignupIfNew,
+    isNewlyCreatedAccount,
+    createQuizAbandonGuard,
     trackProfileUpdate,
     trackPageView,
     trackScreenEngagement,

@@ -14,7 +14,7 @@ import Login from './components/Login';
 import LoginCallback from './components/LoginCallback';
 import UserMenu from './components/UserMenu';
 import ProfileSetupModal from './components/ProfileSetupModal';
-import { trackLoginCallback, trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin, trackLoginGateOpened, trackLoginSuccess, trackArchiveGateOpened, trackArchiveView, getSessionId } from './utils/analytics';
+import { trackLoginCallback, trackPageView, trackScreenEngagement, trackQuizComplete, trackUserLogin, trackUserSignupIfNew, trackLoginGateOpened, trackLoginSuccess, trackArchiveGateOpened, trackArchiveView, getSessionId } from './utils/analytics';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
 const FooterLinks = () => {
@@ -548,6 +548,8 @@ const App: React.FC = () => {
         const appUser = toAppUser(session.user);
         const provider = session.user.app_metadata?.provider || 'google';
         trackUserLogin('google', appUser.uid);
+        // G1: first sign-in of a brand-new account → GA4 sign_up (once per user).
+        trackUserSignupIfNew(session.user, 'google');
         trackLoginCallback('success', 'google', {
           provider,
           path: window.location.pathname,
