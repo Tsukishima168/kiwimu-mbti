@@ -4,6 +4,7 @@ import { getSceneAsset } from '../../data/kiwimuVisualAssets';
 import KiwimuScenePlate from '../visuals/KiwimuScenePlate';
 import KiwimuAtlasWall from '../visuals/KiwimuAtlasWall';
 import V2AccountBar from './V2AccountBar';
+import { V2_REPORT_PRICE_TWD } from '../../shared/v2Product';
 
 export default function V2Welcome({ onStart, knownType }: { onStart?: () => void; knownType?: string | null }) {
   const scene = getSceneAsset(knownType || 'INFP-A');
@@ -26,7 +27,8 @@ export default function V2Welcome({ onStart, knownType }: { onStart?: () => void
             {onStart ? <button className="ad-btn-primary" type="button" onClick={onStart}>開始 40 題探索 <span aria-hidden="true">↗</span></button> : <a className="ad-btn-primary" href="/read/quiz">開始 40 題探索 <span aria-hidden="true">↗</span></a>}
             <a className="ad-btn-ghost" href={onStart ? '/read' : '/explore'}>{onStart ? '返回圖鑑入口' : '先做快速探索'}</a>
           </div>
-          <p className="ad-welcome-note">選比較接近你的反應就好，兩個選項都沒有高下。完成後可免費試讀；完整報告仍在整理中。</p>
+          <p className="ad-welcome-note">測驗與第 01 章試讀免費；完整 V2 報告 NT${V2_REPORT_PRICE_TWD}，單次解鎖。</p>
+          {import.meta.env.VITE_V2_CHECKOUT_ENABLED !== 'true' ? <p className="ad-welcome-note">目前尚未開放新購買。已購報告可從「我的報告」繼續閱讀。</p> : null}
         </section>
         <aside className="ad-welcome-art" aria-label="Kiwimu 敘事圖鑑選頁">
           {scene ? <KiwimuScenePlate asset={scene} priority indexLabel="圖鑑選頁" /> : null}
