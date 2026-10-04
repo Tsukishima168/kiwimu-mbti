@@ -26,7 +26,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     const [questions, setQuestions] = useState<Question[]>(QUESTIONS); // 預設使用 constants
     const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
-    const { hasProgress, saveProgress, loadProgress, clearProgress } = useProgressStorage();
+    const { saveProgress, loadProgress, clearProgress } = useProgressStorage();
 
     // R5: quiz_abandon — fired at most once per quiz session, either when the
     // page is being unloaded mid-quiz (pagehide) or when this component
@@ -110,18 +110,14 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
         const campaignId = urlParams.get('campaign') || urlParams.get('utm_campaign');
         trackQuizStart(source || undefined, campaignId || undefined);
 
-        if (hasProgress) {
-            const saved = loadProgress();
-            // Only show resume modal if user has answered at least 10 questions (25% progress)
-            if (saved && saved.answers.length >= 10) {
-                setShowResumeModal(true);
-            } else if (saved) {
-                // Silently restore progress without modal if less than 10 questions
-                setAnswers(saved.answers);
-                setCurrentIndex(saved.currentIndex);
-            }
+        const saved = loadProgress();
+        if (saved) {
+            setAnswers(saved.answers);
+            setCurrentIndex(saved.currentIndex);
+            // Ask before resuming a longer session; show its actual saved count.
+            setShowResumeModal(saved.answers.length >= 10);
         }
-    }, []);
+    }, [loadProgress]);
 
     // Image Preloading Logic - Enhanced to preload 2 images ahead
     useEffect(() => {
