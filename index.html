@@ -237,6 +237,8 @@
   <!-- Google Analytics (GA4) - 與 Firebase measurementId 同資源 -->
   <!-- R1: 只在正式 *.kiwimu.com 網域載入/送資料，localhost 與 *.vercel.app 預覽一律不載入 gtag -->
   <script type="module">
+    import { resolveEntryFrom } from '/utils/attribution';
+
     const hostname = window.location.hostname;
     const isProdKiwimuHost = hostname === 'kiwimu.com' || hostname.endsWith('.kiwimu.com');
 
@@ -253,7 +255,13 @@
       window.dataLayer = window.dataLayer || [];
       window.gtag = function() { dataLayer.push(arguments); };
       window.gtag('js', new Date());
-      window.gtag('config', gaId);
+      // entry_from：這次著陸的站內入口（網址 from，或 30 分鐘內的 kw_attr.from）；沒有就不帶。
+      const entryFrom = resolveEntryFrom();
+      if (entryFrom) {
+        window.gtag('config', gaId, { entry_from: entryFrom });
+      } else {
+        window.gtag('config', gaId);
+      }
     }
   </script>
 
