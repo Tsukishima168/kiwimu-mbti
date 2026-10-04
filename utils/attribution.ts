@@ -8,7 +8,8 @@
 // This repo (kiwimu-com) is a WRITER only: it captures external UTM first-touch,
 // the most recent `from` (internal cross-site entry), and the quiz result mbti
 // code. Reading/consuming the cookie for order attribution happens downstream
-// (map/shop repos) — not implemented here.
+// (map/shop repos) — not implemented here. The one read here is
+// resolveEntryFrom(): the GA4 `entry_from` landing parameter (index.html).
 
 const COOKIE_NAME = 'kw_attr';
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
@@ -142,6 +143,40 @@ export function captureAttributionFromUrl(search: string = typeof window !== 'un
   }
 
   if (changed) persistAttribution(next);
+}
+
+/**
+ * GA4 `entry_from` freshness window: a cookie-sourced `from` is only trusted
+ * for a landing that happens < 30 minutes after it was written.
+ */
+export const ENTRY_FROM_WINDOW_MS = 30 * 60 * 1000;
+
+/**
+ * Resolves the GA4 `entry_from` event parameter for THIS landing (read-only —
+ * never writes the cookie). Must be called before the URL is cleaned:
+ *  1. URL query has `from` → that value (must match ^[a-z0-9_]{1,64}$ after the
+ *     64-char cap; a malformed value yields undefined and does NOT fall back to
+ *     the cookie, since this landing did carry a from= link).
+ *  2. Otherwise kw_attr.from, only if kw_attr.from_ts is < 30 minutes old.
+ *  3. Otherwise undefined (omit the parameter).
+ * Never throws.
+ */
+export function resolveEntryFrom(
+  search: string = typeof window !== 'undefined' ? window.location.search : '',
+  now: number = Date.now(),
+): string | undefined {
+  try {
+    const urlFrom = new URLSearchParams(search).get('from');
+    if (urlFrom) return sanitizeFromValue(urlFrom);
+
+    const { from, from_ts: fromTs } = readAttribution();
+    if (typeof from !== 'string' || typeof fromTs !== 'number' || !Number.isFinite(fromTs)) return undefined;
+    const age = now - fromTs;
+    if (age < 0 || age >= ENTRY_FROM_WINDOW_MS) return undefined;
+    return sanitizeFromValue(from);
+  } catch {
+    return undefined;
+  }
 }
 
 /**
