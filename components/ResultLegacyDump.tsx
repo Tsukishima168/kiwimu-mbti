@@ -678,7 +678,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
 
             {/* 3. COGNITIVE SPECTRUM - 優化手機版顯示 */}
-            <div className="py-12 md:py-20 border-b border-gray-100">
+            {!isSharedView && <div className="py-12 md:py-20 border-b border-gray-100">
               <h3 className="text-center text-2xl md:text-3xl font-serif font-bold mb-12 md:mb-20 tracking-[0.08em] uppercase text-kiwi-dark">Cognitive Spectrum <br className="md:hidden" /> 認知光譜</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 md:gap-x-20 gap-y-12 md:gap-y-20">
                 <SpectrumBar leftLabel="EXTROVERT (E)" rightLabel="INTROVERT (I)" leftScore={percentages.E} rightScore={percentages.I} leftDesc="在領導與開拓中獲取能量。" rightDesc="在深度反思中沈澱力量。" />
@@ -689,7 +689,8 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   <SpectrumBar leftLabel="ASSERTIVE (A)" rightLabel="TURBULENT (T)" leftScore={percentages.A} rightScore={percentages.Turbulent} leftDesc="自信穩定，心理韌性強。" rightDesc="精益求精，對環境高度敏感。" />
                 </div>
               </div>
-            </div>
+            </div>}
+            {isSharedView && <p className="py-8 text-sm leading-relaxed text-gray-600 border-b border-gray-100">這是型別介紹；分享頁不包含個人作答分數。</p>}
 
             {/* 4. IDENTITY ANALYSIS (維度解析盒) - 響應式重構 */}
             <div className="py-16 md:py-24 border-b border-gray-100">

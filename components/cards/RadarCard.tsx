@@ -26,11 +26,11 @@ const SpectrumBar = ({ leftLabel, rightLabel, leftScore, rightScore, leftDesc, r
 export const RadarCard: React.FC<CardProps> = ({ resultData, percentages, t }) => {
     // Create radar chart data dynamically from actual percentages
     const chartData = [
-        { subject: t('dim_ei_label')?.split(' ')[0] || '外向', A: percentages.E || 50, fullMark: 100 },
-        { subject: t('dim_sn_label')?.split(' ')[0] || '實務', A: percentages.S || 50, fullMark: 100 },
-        { subject: t('dim_tf_label')?.split(' ')[0] || '邏輯', A: percentages.T || 50, fullMark: 100 },
-        { subject: t('dim_jp_label')?.split(' ')[0] || '計畫', A: percentages.J || 50, fullMark: 100 },
-        { subject: t('dim_at_label')?.split(' ')[0] || '自信', A: percentages.A || 50, fullMark: 100 }
+        { subject: t('dim_ei_label')?.split(' ')[0] || '外向', A: percentages.E ?? 50, fullMark: 100 },
+        { subject: t('dim_sn_label')?.split(' ')[0] || '實務', A: percentages.S ?? 50, fullMark: 100 },
+        { subject: t('dim_tf_label')?.split(' ')[0] || '邏輯', A: percentages.T ?? 50, fullMark: 100 },
+        { subject: t('dim_jp_label')?.split(' ')[0] || '計畫', A: percentages.J ?? 50, fullMark: 100 },
+        { subject: t('dim_at_label')?.split(' ')[0] || '自信', A: percentages.A ?? 50, fullMark: 100 }
     ];
 
     return (

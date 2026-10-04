@@ -4,9 +4,10 @@ import { MBTI_BG_COLORS } from '../../constants';
 
 interface IdentityCardProps extends CardProps {
     langKey?: 'zh' | 'en' | 'ja' | 'ko';
+    isSharedView?: boolean;
 }
 
-export const IdentityCard: React.FC<IdentityCardProps> = ({ resultData, identitySuffix, identityLabel, t, i18nContent, displayKeywords, langKey = 'zh' }) => {
+export const IdentityCard: React.FC<IdentityCardProps> = ({ resultData, identitySuffix, identityLabel, t, i18nContent, displayKeywords, langKey = 'zh', isSharedView = false }) => {
     const needsLooseLeading = langKey === 'ja' || langKey === 'ko';
     return (
         <div className="w-full h-full flex flex-col bg-white overflow-hidden pb-16">
@@ -18,6 +19,13 @@ export const IdentityCard: React.FC<IdentityCardProps> = ({ resultData, identity
                     </h1>
                     <h2 className={`text-xl md:text-2xl font-light text-black font-serif italic ${langKey === 'en' ? 'tracking-[0.1em]' : langKey === 'ja' || langKey === 'ko' ? 'tracking-normal' : 'tracking-[0.2em]'}`}>{i18nContent.title}</h2>
                 </div>
+
+                {isSharedView && <p className="px-6 pb-4 text-sm leading-relaxed text-gray-600 text-center">{({
+                    zh: '這是型別介紹；分享頁不包含個人作答分數。',
+                    en: 'This is a type introduction. Personal answer scores are not shared.',
+                    ja: 'タイプの紹介です。個人の回答スコアは共有されません。',
+                    ko: '유형 소개 페이지입니다. 개인 응답 점수는 공유되지 않습니다.',
+                })[langKey]}</p>}
 
                 {/* Character Image */}
                 <div

@@ -200,7 +200,7 @@ export const saveTestRunToSupabase = async (
         finished_at: run.finishedAt ? new Date(run.finishedAt as number).toISOString() : new Date().toISOString(),
         share_id: shareId,
         share_url: shareUrl,
-        is_public: true,
+        is_public: false,
       });
 
     if (runError) {
@@ -400,7 +400,7 @@ export const getTestRunsFromSupabase = async (uid: string): Promise<TestRun[]> =
       finishedAt: new Date(row.finished_at as string).getTime() || 0,
       shareId: (row.share_id as string | null) ?? undefined,
       shareUrl: (row.share_url as string | null) ?? undefined,
-      isPublic: (row.is_public as boolean | null) ?? true,
+      isPublic: (row.is_public as boolean | null) ?? false,
     }));
   } catch (err) {
     console.error('[Supabase] getTestRunsFromSupabase exception:', err);
@@ -436,7 +436,7 @@ export const getLatestTestRunFromSupabase = async (uid: string): Promise<TestRun
       finishedAt: new Date(row.finished_at as string).getTime() || 0,
       shareId: (row.share_id as string | null) ?? undefined,
       shareUrl: (row.share_url as string | null) ?? undefined,
-      isPublic: (row.is_public as boolean | null) ?? true,
+      isPublic: (row.is_public as boolean | null) ?? false,
     };
   } catch (err) {
     console.error('[Supabase] getLatestTestRunFromSupabase exception:', err);
@@ -481,7 +481,7 @@ export const getSharedTestResultFromSupabase = async (shareId: string): Promise<
       finishedAt: new Date(row.finished_at as string).getTime() || 0,
       shareId: (row.share_id as string | null) ?? undefined,
       shareUrl: (row.share_url as string | null) ?? undefined,
-      isPublic: (row.is_public as boolean | null) ?? true,
+      isPublic: (row.is_public as boolean | null) ?? false,
     };
   } catch (err) {
     console.error('[Supabase] getSharedTestResultFromSupabase exception:', err);

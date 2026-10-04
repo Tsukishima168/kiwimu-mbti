@@ -24,6 +24,7 @@ interface ResultCardFlowProps {
     onOpenConsultant: () => void;
     onViewArchive?: () => void;
     isArchiveMode?: boolean;
+    isSharedView?: boolean;
     user?: AppUser | null;
     onLogin?: (options?: PassportLoginUiOptions) => void;
     onLogout?: () => void;
@@ -35,6 +36,7 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
     user,
     onLogin,
     isArchiveMode = false,
+    isSharedView = false,
     onViewArchive
 }) => {
     const [activeIndex, setActiveIndex] = useState(0);
@@ -131,8 +133,9 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
     const cards = [
         { id: 'identity', component: IdentityCard },
         { id: 'dessert', component: DessertCard },
-        { id: 'radar', component: RadarCard },
     ];
+
+    if (!isSharedView) cards.push({ id: 'radar', component: RadarCard });
 
     const showRegistrationGate = !user && !hasSkippedGate && !isArchiveMode;
 
@@ -173,6 +176,7 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
         onLogin,
         onSkipRegistration: () => setHasSkippedGate(true),
         isArchiveMode,
+        isSharedView,
         anchor,
         displayHook,
         displayStrengths,
