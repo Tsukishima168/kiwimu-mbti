@@ -86,19 +86,24 @@ export const trackQuizProgress = (
     gtagSafe('event', 'quiz_progress', withSiteId(eventData));
 };
 
+export type QuizAbandonTrigger = 'pagehide' | 'hidden' | 'unmount';
+
 /**
- * Track quiz abandonment
+ * Track quiz abandonment. `trigger` tells reports how it was detected, so users
+ * who merely switched apps (hidden) and later finished can be separated out.
  */
 export const trackQuizAbandon = (
     questionNumber: number,
     totalQuestions: number,
-    timeSpent: number
+    timeSpent: number,
+    trigger: QuizAbandonTrigger
 ) => {
     const eventData = {
         abandoned_at_question: questionNumber,
         total_questions: totalQuestions,
         progress_percentage: Math.round((questionNumber / totalQuestions) * 100),
         time_spent_seconds: timeSpent,
+        trigger,
         // Fired from pagehide / visibilitychange(hidden), right as the page goes
         // away — beacon transport ensures gtag doesn't lose the hit.
         transport_type: 'beacon' as const,
@@ -108,9 +113,11 @@ export const trackQuizAbandon = (
 };
 
 /**
- * Once-per-attempt guard around trackQuizAbandon. `fire()` is safe to call from
- * pagehide, visibilitychange(hidden) and unmount cleanup: it never fires after
- * completion, before any answer, or more than once. Returns true if it sent.
+ * Once-per-attempt guard around trackQuizAbandon. `fire(trigger)` is safe to call
+ * from pagehide, visibilitychange(hidden) and unmount cleanup: it never fires after
+ * completion, before any answer, once every question is answered (the short window
+ * before onComplete), or more than once per attempt. `reset()` starts a new attempt
+ * (quiz restart). Returns true if it sent.
  */
 export const createQuizAbandonGuard = (deps: {
     isCompleted: () => boolean;
@@ -122,16 +129,45 @@ export const createQuizAbandonGuard = (deps: {
     let fired = false;
     const now = deps.now ?? Date.now;
     return {
-        fire: (): boolean => {
+        fire: (trigger: QuizAbandonTrigger): boolean => {
             if (fired || deps.isCompleted()) return false;
             // No answers yet means the quiz never really started — skip the noise.
             const answered = deps.getAnsweredCount();
             if (answered === 0) return false;
+            // Everything answered: the user is finishing, not abandoning.
+            const total = deps.getTotalQuestions();
+            if (total > 0 && answered >= total) return false;
             fired = true;
             const timeSpentSeconds = Math.round((now() - deps.getStartTime()) / 1000);
-            trackQuizAbandon(answered, deps.getTotalQuestions(), timeSpentSeconds);
+            trackQuizAbandon(answered, total, timeSpentSeconds, trigger);
             return true;
         },
+        reset: () => {
+            fired = false;
+        },
+    };
+};
+
+/**
+ * Wires the guard to page lifecycle events: window `pagehide` and document
+ * `visibilitychange` (hidden — mobile app switches often skip pagehide). The
+ * returned cleanup removes both listeners and fires one last 'unmount' check.
+ */
+export const registerQuizAbandonListeners = (
+    guard: { fire: (trigger: QuizAbandonTrigger) => boolean },
+    win: Pick<Window, 'addEventListener' | 'removeEventListener'>,
+    doc: Pick<Document, 'addEventListener' | 'removeEventListener'> & { readonly visibilityState: string }
+): (() => void) => {
+    const onPageHide = () => { guard.fire('pagehide'); };
+    const onVisibilityChange = () => {
+        if (doc.visibilityState === 'hidden') guard.fire('hidden');
+    };
+    win.addEventListener('pagehide', onPageHide);
+    doc.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+        win.removeEventListener('pagehide', onPageHide);
+        doc.removeEventListener('visibilitychange', onVisibilityChange);
+        guard.fire('unmount');
     };
 };
 
@@ -406,8 +442,10 @@ export const trackLoginFailure = (
 };
 
 /**
- * Track user signup (GA4 recommended event `sign_up`).
- * Deliberately sends no raw Supabase user id as an event parameter.
+ * GA4 `sign_up` payload helper. NOT called anywhere in kiwimu-com on purpose:
+ * passport already sends `sign_up {method, source_site}` to the same GA4 ID, so
+ * firing it here too would double count. Kept (without a raw user id) only so a
+ * future caller does not reintroduce the user_id parameter.
  */
 export const trackUserSignup = (
     method: 'google' | 'email'
@@ -418,61 +456,6 @@ export const trackUserSignup = (
     };
 
     gtagSafe('event', 'sign_up', withSiteId(eventData));
-};
-
-/** An account counts as "brand new" when it was created within this window of the sign-in. */
-export const NEW_ACCOUNT_WINDOW_MS = 120_000;
-
-const SIGNUP_SENT_KEY_PREFIX = 'kiwimu_ga_signup_sent:';
-const signupSentInMemory = new Set<string>();
-
-/**
- * Pure helper: is this sign-in the one that created the account?
- * Compares `created_at` with `last_sign_in_at` (fallback: now when missing/unparseable).
- */
-export const isNewlyCreatedAccount = (
-    createdAt: string | null | undefined,
-    lastSignInAt: string | null | undefined,
-    nowMs: number = Date.now(),
-    windowMs: number = NEW_ACCOUNT_WINDOW_MS
-): boolean => {
-    const created = createdAt ? Date.parse(createdAt) : NaN;
-    if (!Number.isFinite(created)) return false;
-    const lastSignIn = lastSignInAt ? Date.parse(lastSignInAt) : NaN;
-    const reference = Number.isFinite(lastSignIn) ? lastSignIn : nowMs;
-    return Math.abs(reference - created) <= windowMs;
-};
-
-/**
- * Send `sign_up` once per user, only for brand-new accounts. Guarded by a
- * localStorage key (plus an in-memory set when storage is unavailable) so
- * reloads / repeated SIGNED_IN events do not resend. Returns true if sent.
- */
-export const trackUserSignupIfNew = (
-    user: { id?: string | null; created_at?: string | null; last_sign_in_at?: string | null },
-    method: 'google' | 'email' = 'google',
-    nowMs: number = Date.now()
-): boolean => {
-    if (!user?.id) return false;
-    if (!isNewlyCreatedAccount(user.created_at, user.last_sign_in_at, nowMs)) return false;
-
-    const key = `${SIGNUP_SENT_KEY_PREFIX}${user.id}`;
-    if (signupSentInMemory.has(key)) return false;
-    try {
-        if (typeof localStorage !== 'undefined') {
-            if (localStorage.getItem(key)) {
-                signupSentInMemory.add(key);
-                return false;
-            }
-            localStorage.setItem(key, String(nowMs));
-        }
-    } catch {
-        // Storage blocked (private mode etc.): fall back to the in-memory guard.
-    }
-    signupSentInMemory.add(key);
-
-    trackUserSignup(method);
-    return true;
 };
 
 /**
@@ -682,9 +665,8 @@ export default {
     trackLoginCallback,
     trackLoginFailure,
     trackUserSignup,
-    trackUserSignupIfNew,
-    isNewlyCreatedAccount,
     createQuizAbandonGuard,
+    registerQuizAbandonListeners,
     trackProfileUpdate,
     trackPageView,
     trackScreenEngagement,

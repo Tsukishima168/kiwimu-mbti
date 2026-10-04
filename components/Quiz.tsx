@@ -6,7 +6,7 @@ import { QUESTIONS } from '../constants';
 import { loadQuestions } from '../utils/dataLoader';
 import { useProgressStorage } from '../hooks/useProgressStorage';
 import ResumeModal from './ResumeModal';
-import { trackQuizStart, trackQuizProgress, trackQuizComplete, createQuizAbandonGuard } from '../utils/analytics';
+import { trackQuizStart, trackQuizProgress, trackQuizComplete, createQuizAbandonGuard, registerQuizAbandonListeners } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
 import { questionTranslations } from '../i18n/questionsTranslations';
 
@@ -36,6 +36,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     const quizStartTimeRef = React.useRef<number>(Date.now());
     const completedRef = React.useRef(false);
     const answersCountRef = React.useRef(0);
+    const abandonGuardRef = React.useRef<ReturnType<typeof createQuizAbandonGuard> | null>(null);
     const questionsLengthRef = React.useRef(questions.length);
 
     useEffect(() => {
@@ -57,17 +58,11 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
             getTotalQuestions: () => questionsLengthRef.current,
             getStartTime: () => quizStartTimeRef.current,
         });
-        const fireAbandonIfNeeded = () => { guard.fire(); };
-        const onVisibilityChange = () => {
-            if (document.visibilityState === 'hidden') fireAbandonIfNeeded();
-        };
-
-        window.addEventListener('pagehide', fireAbandonIfNeeded);
-        document.addEventListener('visibilitychange', onVisibilityChange);
+        abandonGuardRef.current = guard;
+        const cleanup = registerQuizAbandonListeners(guard, window, document);
         return () => {
-            window.removeEventListener('pagehide', fireAbandonIfNeeded);
-            document.removeEventListener('visibilitychange', onVisibilityChange);
-            fireAbandonIfNeeded();
+            cleanup();
+            abandonGuardRef.current = null;
         };
     }, []);
 
@@ -171,6 +166,11 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
         setAnswers([]);
         setCurrentIndex(0);
         setShowResumeModal(false);
+        // New attempt: re-arm quiz_abandon and restart its timer.
+        abandonGuardRef.current?.reset();
+        answersCountRef.current = 0;
+        quizStartTimeRef.current = Date.now();
+        completedRef.current = false;
     };
 
     const handleOptionSelect = (option: Option) => {
