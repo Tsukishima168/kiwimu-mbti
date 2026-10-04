@@ -2,7 +2,7 @@
 // AUTO-GENERATED PUBLIC PREVIEW DATA. DO NOT EDIT DIRECTLY.
 // This file intentionally excludes paid report chapters.
 // Source: /Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/Kiwimu_MBTI_Lab_內容庫/2026_V2_報告_32變體草案庫
-// Generated at: 2026-09-09T03:03:09.373Z
+// Generated at: 2026-10-04T02:51:09.356Z
 // Run: node scripts/generate-v2-variant-reports.mjs
 
 export type V2VariantSummary = {
@@ -213,7 +213,7 @@ export const V2_VARIANT_SUMMARIES: Record<string, V2VariantSummary> = {
       "label": "低頻穩定的指揮核心",
       "body": "在一個人人都在講「去中心化」和「慢慢來」的時代，你是那個已經把甘特圖畫到第三季、還在等其他人跟上的人。你的穩定不是麻木，是一種「我已經把可能發生的壞事算進去了，所以我不怕」的深層自信。別人看起來你不為所動，其實你早就動過了，只是在別人開始之前就已經處理完了。"
     },
-    "soulQuote": "我沒有在不在乎，我只是已經算過了，所以不需要再驚慌。",
+    "soulQuote": "我在乎這件事，也已經想過下一步，所以現在可以先穩住。",
     "tags": [
       {
         "label": "鋼鐵指揮核心 (Steel Command Core)",
