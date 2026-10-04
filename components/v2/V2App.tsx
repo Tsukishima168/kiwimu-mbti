@@ -399,10 +399,10 @@ export default function V2App({ user }: V2AppProps) {
     const baseType = resultBundle?.resultData.id;
     const title = fullType && variantSummary
       ? `${fullType} MBTI 深度報告｜${variantSummary.title}｜Kiwimu × 月島甜點`
-      : '免費 MBTI 深度報告｜Kiwimu MBTI V2';
+      : '免費 MBTI 測驗與報告試讀｜Kiwimu MBTI V2';
     const description = fullType && variantSummary && resultBundle
-      ? `${fullType} 深度 MBTI 報告：${variantSummary.title}。從 16 型 × A/T 變體解讀你的靈魂甜點、職涯傾向與情緒敘事。提供免費試讀，完整報告仍在整理中。`
-      : 'Kiwimu V2 敘事探索：40 道生活情境，讀懂 A/T 傾向、日常反應、關係與小練習。完成後可免費試讀。';
+      ? `${fullType} 深度 MBTI 報告：${variantSummary.title}。從 16 型 × A/T 變體解讀你的靈魂甜點、職涯傾向與情緒敘事。第 01 章免費試讀，完整報告 NT$${V2_REPORT_PRICE_TWD}，單次解鎖。${IS_CHECKOUT_ENABLED ? '' : '目前尚未開放新購買。'}`
+      : `Kiwimu V2 敘事探索：40 道生活情境，讀懂 A/T 傾向、日常反應、關係與小練習。測驗與第 01 章試讀免費；完整報告 NT$${V2_REPORT_PRICE_TWD}，單次解鎖。${IS_CHECKOUT_ENABLED ? '' : '目前尚未開放新購買。'}`;
     // 分享圖優先用該 A/T 變體的場景圖；JPEG 版是給 LINE 等對 WebP 支援不穩的爬蟲。
     const ogScene = getSceneAsset(fullType);
     const image = ogScene
@@ -1229,7 +1229,7 @@ export default function V2App({ user }: V2AppProps) {
             {isReportLoading ? '正在驗證並載入完整報告'
               : currentAccess?.status === 'error' ? '完整報告暫時無法載入'
                 : currentAccess?.status === 'denied' ? '請確認報告的購買帳號'
-                  : IS_CHECKOUT_ENABLED ? '解鎖這份完整 V2 報告' : '完整報告即將開放'}
+                  : IS_CHECKOUT_ENABLED ? '解鎖這份完整 V2 報告' : '完整報告尚未開放新購買'}
           </h2>
           <p className="ad-paywall-sub">
             {isReportLoading
