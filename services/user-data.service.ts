@@ -157,7 +157,8 @@ export const saveTestRun = async (
   const finishedAt = run.finishedAt || Date.now();
   const runId = generateRunId();
   const shareId = generateShareId();
-  const shareUrl = `https://kiwimu.com/r/${shareId}`;
+  // Share the public type page; account identity and raw answers stay private.
+  const shareUrl = `https://kiwimu.com/?r=${run.resultType}-${run.suffix}&from=v1_archive`;
   const normalizedRun: Omit<TestRun, 'id'> = { ...run, finishedAt };
 
   const ok = await saveTestRunToSupabase(runId, normalizedRun, shareId, shareUrl);
