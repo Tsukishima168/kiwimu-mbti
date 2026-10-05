@@ -358,7 +358,7 @@ export default function V2App({ user }: V2AppProps) {
   // and the CTA would drop economy_claim. Stays above the early returns below
   // so the hook call is unconditional.
   // R3: 站內跨站連結不用 UTM，改用單一 from 參數；mbti 類型改由 kw_attr cookie（R4）攜帶。
-  const passportUrl = usePendingEconomyClaimUrl('https://passport.kiwimu.com?from=mbti_v2_footer_passport');
+  const passportUrl = usePendingEconomyClaimUrl('https://passport.kiwimu.com/?screen=passport&tab=hub&from=mbti_v2_footer_passport');
 
   useEffect(() => {
     if (!dessertType) {
@@ -1552,7 +1552,7 @@ export default function V2App({ user }: V2AppProps) {
               className="ad-btn-ghost"
               onClick={() => trackButtonClick('v2_footer_to_passport', 'v2_footer', passportUrl)}
             >
-              開啟 Passport
+              回護照看今日任務
             </a>
           </div>
         </div>

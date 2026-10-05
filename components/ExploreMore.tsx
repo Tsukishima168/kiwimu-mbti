@@ -36,16 +36,16 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
     {
       id: 'passport',
       number: '02',
-      title: passportClaimUrl ? '領取護照印章' : '甜點護照測驗',
-      subtitle: passportClaimUrl ? 'PASSPORT STAMP' : 'PASSPORT QUIZ',
+      title: passportClaimUrl ? '回護照查看測驗紀錄' : '回護照看今日任務',
+      subtitle: 'MEMBER PASSPORT',
       description: passportClaimUrl
-        ? '完成 MBTI 後可直接領取護照印章'
-        : '趣味測驗找到你的專屬角色貼紙與幸運甜點',
+        ? '帶著這次測驗回到護照，查看紀錄與下一個任務'
+        : '在家先做線上任務，到店再繼續定位與 QR 集章',
       url: passportUrl,
       onClick: () =>
         trackOutboundClick('PASSPORT', 'navigation', {
           entry_surface: 'explore_more',
-          destination_type: passportClaimUrl ? 'passport_claim' : 'passport_quiz',
+          destination_type: passportClaimUrl ? 'passport_claim' : 'member_hub',
           claim_ready: Boolean(passportClaimUrl),
           url: passportUrl,
         })
