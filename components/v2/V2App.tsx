@@ -6,6 +6,7 @@ import V2AccountBar from './V2AccountBar';
 import { loginWithGoogle, useSupabaseAuth } from './useSupabaseAuth';
 import { getDimensionDescription, matchingRecordedResult, hasDimensionAnswers } from './reportReading';
 import { requestPaidReport, reportAccessFailure, type PaidReportBundle } from './reportAccess';
+import { readBookmark, saveBookmark } from './readingBookmark';
 import {
   getV2VariantSummary,
   type V2VariantSummary,
@@ -312,6 +313,7 @@ export default function V2App({ user }: V2AppProps) {
   const [checkoutStatus, setCheckoutStatus] = useState<CheckoutStatus>('idle');
   const [checkoutPaymentUrl, setCheckoutPaymentUrl] = useState('');
   const [activeChapter, setActiveChapter] = useState('ch-01');
+  const [resumeChapter, setResumeChapter] = useState<string | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [dessertContract, setDessertContract] = useState<UnifiedDessertContract | null>(null);
   const [dessertLoadStatus, setDessertLoadStatus] = useState<DessertLoadStatus>('idle');
@@ -621,12 +623,14 @@ export default function V2App({ user }: V2AppProps) {
     }
 
     setActiveChapter('ch-01');
+    let savedChapter = canReadReport && auth.userId ? readBookmark(auth.userId, fullType) : null;
+    setResumeChapter(savedChapter);
 
     const sections = REPORT_CHAPTERS.map((chapter) => document.getElementById(chapter.id)).filter(
       (node): node is HTMLElement => Boolean(node),
     );
 
-    const updateActiveChapter = () => {
+    const updateActiveChapter = (event?: Event) => {
       // A fixed reading line is more stable than intersectionRatio for long mobile
       // chapters: the previous section can occupy more viewport area even after the
       // next heading has reached the reader. Eight geometry reads are small enough to
@@ -640,6 +644,10 @@ export default function V2App({ user }: V2AppProps) {
 
       if (current) {
         setActiveChapter(current.id);
+        if (event && canReadReport && auth.userId && savedChapter !== current.id) {
+          saveBookmark(auth.userId, fullType, current.id);
+          savedChapter = current.id;
+        }
       }
     };
 
@@ -649,7 +657,7 @@ export default function V2App({ user }: V2AppProps) {
     return () => {
       window.removeEventListener('scroll', updateActiveChapter);
     };
-  }, [fullType, canReadReport]);
+  }, [fullType, canReadReport, auth.userId]);
 
   useEffect(() => {
     const updateProgress = () => {
@@ -1126,6 +1134,10 @@ export default function V2App({ user }: V2AppProps) {
 
       <div className="ad-page">
       <V2AccountBar />
+      {canReadReport && resumeChapter && resumeChapter !== 'ch-01' ? <aside className="ad-reading-resume" aria-label="上次閱讀位置">
+        <p>這台裝置上次讀到 <strong>{REPORT_CHAPTERS.find(chapter => chapter.id === resumeChapter)?.label}</strong></p>
+        <button className="ad-btn-ghost" type="button" onClick={() => { handleChapterNav(resumeChapter); setResumeChapter(null); }}>接著讀 <span aria-hidden="true">↗</span></button>
+      </aside> : null}
       {canReadReport ? <p className="ad-purchase-account-note">已購報告可從<a href="/read/library">我的報告</a>繼續閱讀。若購買時未登入，請在這台裝置登入後保存到帳號。</p> : null}
 
       {/* ── HERO ─────────────────────────────────────────────── */}

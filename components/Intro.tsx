@@ -34,20 +34,20 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
       {!user || user.isAnonymous ? (
         <button
           onClick={() => { trackButtonClick('登入', 'intro_header'); onLogin(); }}
-          className="absolute top-6 right-6 px-6 py-2 border border-kiwi-dark text-kiwi-dark hover:bg-kiwi-dark hover:text-white transition-all duration-300 font-bold text-sm z-50"
+          className="absolute top-6 right-6 min-h-11 px-6 py-2 border border-kiwi-dark text-kiwi-dark hover:bg-kiwi-dark hover:text-white transition-all duration-300 font-bold text-sm z-50"
         >
           {t('login')}
         </button>
       ) : (
-        <div className="absolute top-6 right-6 z-50 group">
-          <button className="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all">
-            <span className="text-sm font-medium">{user.displayName || user.email}</span>
+        <details className="absolute top-6 right-6 z-50 ku-account-menu">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all">
+            <span className="max-w-28 truncate text-sm font-medium">{user.displayName || user.email}</span>
             <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
-          </button>
-          {/* Dropdown Menu */}
-          <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+          </summary>
+          {/* Native details also opens with touch and keyboard. */}
+          <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 ">
             {/* User Info Header */}
             <div className="px-4 py-3 border-b border-gray-100">
               <p className="text-xs text-gray-500">{t('logged_in')}</p>
@@ -104,7 +104,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
               </button>
             )}
           </div>
-        </div>
+        </details>
       )}
 
       {/* 裝飾性背景文字 */}
@@ -159,6 +159,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
             </a>
           </div>
           <a className="ku-quiz-entry__quick" href="/explore?from=mbti_version_entry">{entry.quick} ↗</a>
+          <a className="ku-quiz-entry__quick" href="/read/library">{{ zh: '我的已購報告', en: 'My purchased reports', ja: '購入済みレポート', ko: '구매한 보고서' }[language]} ↗</a>
         </nav>
 
         {(!user || user.isAnonymous) && (

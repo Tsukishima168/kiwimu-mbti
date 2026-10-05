@@ -105,7 +105,7 @@
 .ku-universe-rail__meta {
   color: rgba(247, 247, 242, 0.55);
   font-family: var(--ku-font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -178,7 +178,7 @@
   align-self: center;
   color: rgba(247, 247, 242, 0.3);
   font-family: var(--ku-font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
 }
@@ -195,7 +195,7 @@
 .ku-universe-rail__descriptor {
   align-self: start;
   color: rgba(247, 247, 242, 0.55);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.1;
 }
@@ -285,20 +285,15 @@
 
 @media (max-width: 40rem) {
   :root {
-    --ku-rail-height: calc(4.75rem + 1px);
+    --ku-rail-height: calc(3rem + 1px);
   }
 
   .ku-universe-rail__inner {
-    display: block;
+    display: flex;
   }
 
   .ku-universe-rail__identity {
-    min-width: 0;
-    min-height: 2rem;
-    justify-content: space-between;
-    padding: 0 var(--ku-space-3);
-    border-right: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: none;
   }
 
   .ku-universe-rail__wordmark {
@@ -316,31 +311,34 @@
   }
 
   .ku-universe-rail__nav {
-    scroll-snap-type: x proximity;
+    overflow-x: visible;
   }
 
   .ku-universe-rail__link {
-    flex-basis: 6.9rem;
+    flex: 1 1 0;
+    min-width: 0;
+    grid-template-columns: 1fr;
     grid-template-rows: 1fr;
     align-items: center;
-    min-height: 2.75rem;
-    padding-block: 0.35rem;
-    scroll-snap-align: start;
+    min-height: 3rem;
+    padding: 0.35rem 0.15rem;
+    text-align: center;
   }
 
   .ku-universe-rail__index {
-    grid-row: 1;
-    font-size: 0.6875rem;
+    display: none;
   }
 
   .ku-universe-rail__label {
-    align-self: center;
-    font-size: 0.75rem;
-    line-height: 1.2;
+    display: none;
   }
 
   .ku-universe-rail__descriptor {
-    display: none;
+    display: block;
+    align-self: center;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    white-space: nowrap;
   }
 }
 
@@ -382,3 +380,6 @@
 .ku-quiz-entry__choice:focus-visible, .ku-quiz-entry__quick:focus-visible { outline: 3px solid var(--ku-ink); outline-offset: 4px; }
 .ku-quiz-entry__quick { display: inline-flex; align-items: center; min-height: 2.75rem; margin-top: 0.75rem; padding: 0.5rem 0; color: var(--ku-ink); font-size: 0.8125rem; line-height: 1.6; text-underline-offset: 3px; }
 @media (max-width: 30rem) { .ku-quiz-entry__choices { grid-template-columns: 1fr; } }
+
+.ku-account-menu summary::-webkit-details-marker { display:none; }
+.ku-account-menu summary:focus-visible { outline:2px solid var(--ku-ink); outline-offset:4px; }

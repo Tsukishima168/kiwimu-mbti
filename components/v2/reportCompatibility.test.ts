@@ -108,6 +108,7 @@ describe('V2 report browser compatibility', () => {
     }).outputText;
     const cleanup = runInNewContext(code, {
       fullType: 'ESTJ-A', IS_DEV: false, IS_CHECKOUT_ENABLED: false,
+      canReadReport: true, auth: { userId: null }, setResumeChapter: vi.fn(), readBookmark: vi.fn(), saveBookmark: vi.fn(),
       REPORT_CHAPTERS: chapterIds.map((id) => ({ id })),
       document: { getElementById: (id: string) => nodes.find((node) => node.id === id) },
       window: {
