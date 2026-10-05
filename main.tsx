@@ -6,6 +6,8 @@ import { trackEvent } from './utils/crossSiteTracking';
 import { getAuthSupabaseClient } from './utils/supabaseAuthBridge';
 import './styles/tailwind.css';
 import './styles/kiwimu-universe.css';
+import PwaUpdateNotice from './components/PwaUpdateNotice';
+import { startPwaUpdateMonitor } from './utils/pwaUpdates';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,6 +15,7 @@ if (!rootElement) {
 }
 
 const isOgRenderRoute = window.location.pathname.includes('/og-render');
+if (!isOgRenderRoute) startPwaUpdateMonitor();
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
@@ -25,5 +28,6 @@ root.render(
       />
     )}
     <App />
+    {!isOgRenderRoute && <PwaUpdateNotice />}
   </React.StrictMode>
 );

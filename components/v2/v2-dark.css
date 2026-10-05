@@ -2649,3 +2649,11 @@
   .v2-app .ad-library-card-copy, .v2-app .ad-library-empty, .v2-app .ad-library-claim { padding:22px; }
   .v2-app .ad-library .ad-btn-primary, .v2-app .ad-library .ad-btn-ghost { width:100%; justify-content:center; }
 }
+
+/* Explicit resume keeps the reader in control of chapter navigation. */
+.v2-app .ad-reading-resume { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; margin:0 0 24px; border:1px solid var(--b1); border-radius:var(--r-md); background:var(--bg-2); }
+.v2-app .ad-reading-resume p { margin:0; font-size:14px; line-height:1.8; color:var(--t2); }
+.v2-app .ad-reading-resume strong { color:var(--t1); font-weight:500; }
+.v2-app .ad-reading-resume button { margin:0; }
+.v2-app .ad-account-identity { flex-basis:100%; margin:0; color:var(--t2); font-size:12px; line-height:1.7; letter-spacing:0; }
+@media (max-width:560px) { .v2-app .ad-account-bar { gap:8px; } .v2-app .ad-account-actions { gap:12px; } .v2-app .ad-account-home { letter-spacing:0; } }

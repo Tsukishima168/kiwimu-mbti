@@ -15,7 +15,8 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       react(),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
+        injectRegister: false,
         includeAssets: ['kiwimu_favicon.png', 'robots.txt', 'sitemap.xml'],
         manifest: {
           name: 'Kiwimu MBTI 人格測驗',
