@@ -203,10 +203,10 @@ export function buildMoonMapLink(mbtiType: string, entrySurface: string = 'resul
 }
 
 /**
- * 護照測驗連結（交叉導流）
+ * 會員護照首頁連結（交叉導流，不自動發章）
  */
 export function buildPassportLink(entrySurface: string = 'explore_passport'): string {
-  return buildInternalKiwimuLink('PASSPORT', entrySurface);
+  return buildInternalKiwimuLink('PASSPORT', entrySurface, { screen: 'passport', tab: 'hub' });
 }
 
 /**

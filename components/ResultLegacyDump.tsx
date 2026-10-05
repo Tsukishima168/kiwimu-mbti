@@ -186,11 +186,11 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   const identitySuffix = resultAT;
   const identityChinese = resultAT === 'A' ? '堅定型' : '動盪型';
   const fullResultType = `${resultData.id}-${identitySuffix}`;
-  const exploreUrl = `/explore?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=v1-result-explore&source=v1_result&mbti_type=${resultData.id}&variant=${identitySuffix}`;
-  const v2ReportUrl = `/read/${fullResultType}?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-v2&utm_content=v1-result-v2&source=v1_result`;
+  const exploreUrl = `/explore?from=mbti_result_explore&source=v1_result&mbti_type=${resultData.id}&variant=${identitySuffix}`;
+  const v2ReportUrl = `/read/${fullResultType}?from=mbti_result_v2&source=v1_result`;
   // R3: 站內跨站連結不用 UTM，改用單一 from 參數；mbti 類型改由 kw_attr cookie（R4）攜帶。
   const passportUrl = usePendingEconomyClaimUrl(
-    `https://passport.kiwimu.com?from=mbti_result_passport`,
+    `https://passport.kiwimu.com/?screen=passport&tab=hub&from=mbti_result_passport`,
   );
   const anchor = SOUL_ANCHOR_MAP[resultData.id] || SOUL_ANCHOR_MAP["ISFP"];
   const isOgRenderPreview = typeof window !== 'undefined' && window.location.pathname.includes('/og-render');
@@ -1229,9 +1229,9 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 {
                   id: 'passport',
                   number: '03',
-                  title: '領取護照印章',
-                  subtitle: 'PASSPORT STAMP',
-                  description: '完成 MBTI 後可直接領取護照印章，保存你的身分與回訪紀錄',
+                  title: '回護照看今日任務',
+                  subtitle: 'MEMBER PASSPORT',
+                  description: '在家先做線上任務，到店再繼續集章；下次從護照查看紀錄',
                   url: passportUrl,
                   external: true,
                   onClick: () => trackOutboundClick('PASSPORT', 'navigation', { destination_type: 'passport', entry_surface: 'result_explore_more', section: 'zh-result-cta', mbti_type: resultData.id, url: passportUrl }),

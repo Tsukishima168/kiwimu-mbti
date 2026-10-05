@@ -56,8 +56,8 @@ const VARIANT_LABELS: Record<Language, Record<'A' | 'T', string>> = {
 export default function ExploreResult({ language, mbtiType, suffix, personality, quizVersion, resultCopy, onRetest }: Props) {
   const fullType = `${mbtiType}-${suffix}`;
   const stateAsset = getStateAsset(personality.stateGroup);
-  const v2ReportUrl = `/read/${fullType}?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-v2&utm_content=explore-result-v2&source=v15_result`;
-  const passportUrl = `https://passport.kiwimu.com?utm_source=mbti-lab&utm_medium=result-cta&utm_campaign=2026-q2-kiwimu-routing&utm_content=explore-result-passport&mbti_type=${mbtiType}&variant=${suffix}`;
+  const v2ReportUrl = `/read/${fullType}?from=mbti_explore_result&source=v15_result`;
+  const passportUrl = 'https://passport.kiwimu.com/?screen=passport&tab=hub&from=mbti_explore_result';
   const [copied, setCopied] = useState(false);
   const shareUrl = new URL('/explore', window.location.origin);
   shareUrl.searchParams.set('v', quizVersion.toLowerCase());
@@ -180,7 +180,7 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
             讀取 {fullType} V2 深度報告
           </a>
           <a href={passportUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackButtonClick('explore_result_to_passport', 'explore_result', passportUrl)} style={{ display: 'block', padding: '14px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
-            保存到 Kiwimu Passport
+            回護照看今日任務
           </a>
           <a href="https://store.line.me/stickershop/product/33314326/zh-Hant" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '14px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const, opacity: 0.6 }}>
             {resultCopy.stickerButton}
