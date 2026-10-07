@@ -3,6 +3,7 @@ import { openPassportLogin } from '../utils/authStorage';
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackLoginAttempt, trackLoginFailure } from '../utils/analytics';
 import { trackAction } from '../utils/userDataCollector';
+import { loginFailureMessage } from '../utils/loginFailureMessage';
 
 interface LoginProps {
     isUnlockMode?: boolean;
@@ -23,7 +24,7 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
             flow_stage: sessionStorage.getItem('flow_stage') || 'unknown',
         };
         const handleLoginError = (message: string) => {
-            setError(message);
+            setError(loginFailureMessage(message));
             trackLoginFailure('google', message || 'unknown_error', loginContext);
             trackAction('login_failure', {
                 provider: 'google',

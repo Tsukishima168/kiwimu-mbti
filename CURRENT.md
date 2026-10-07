@@ -1,6 +1,25 @@
 # Kiwimu / MBTI Current
 
-Last updated: 2026-07-16
+## 2026-10-07｜主對話收尾｜本機驗證完成，待獨立簽收與上線核定
+
+- ✅ 菜單卡「月島菜單真相源」改為「月島菜單資訊」，同時保留現行菜單品名與供應來源說明。`components/v2/V2App.tsx:1499`。
+- ✅ 未知付款狀態文字加Object.hasOwn白名單，`__proto__`／constructor／toString不會被當成可顯示訊息；付款狀態、token驗證／request／金額99／unlock gate不變。`components/v2/V2App.tsx:879`。
+- ✅ 最終typecheck／build、58actual-source mock斷言通過；本機DEV ISFP-A四種寬度8章導覽皆在、無溢出／可見破圖／內部標籤。這是既有DEV bypass，非真人付費證明。
+- 📌 自我更正：原43斷言漏掉prototype鍵，補案例先重現message非字串，再修白名單重驗58；首輪DOM仍有「真相源」，再次實際掃頁後補修。LOCAL DEBUG只在DEV，未改MBTI設計／CSS。
+- ⚠️ 最終patch尚未獨立簽收（審查員額度限制）；LINE LIFF兩個production key均未列於只讀環境清單，不猜ID／alias或修改設定。未付款、登入、寄信或通知。
+- 📌 最終交付索引與hash：/Users/pensoair/.codex/visualizations/2026/10/07/kiwimu-public-copy-repair/mbti/final-manifest.json；原作者證據保留為歷史，新的final-manifest才是送審版本。未部署；合併上線需Penso同意。
+
+
+Last updated: 2026-10-07
+
+## Public copy repair · 2026-10-07
+
+- Canonical `main` / `origin/main`: `c8d37d91fc71bc0890eccc0b955e8aa690a99f42`; original untracked API work and duplicate files preserved. Candidate lives in isolated branch `codex/mbti-public-copy-repair-20261007`, with no commit, push, merge, or deployment in this pass.
+- Login, OAuth callback, V2 login feedback, Discord link failure, and unknown payment-status feedback now show customer recovery copy. Original auth telemetry and payment/Discord diagnostics retain technical details; error codes, status transitions, access gates, and request bodies are unchanged. The menu failure message no longer mentions unpublished drafts.
+- Author checks passed: typecheck, production build, 8 existing test files / 111 tests, 43 source-display guards, and diff check. Guards use mocked provider responses and make no real login, payment, Discord, email, or database mutation. Independent review and browser verification are pending with the coordinating agent.
+- Read-only production LIFF environment inventory found neither `VITE_LINE_LIFF_ID` nor `VITE_LIFF_ID`; an alias bug was not verified. No LIFF ID was invented and no environment setting changed. Real LINE sharing remains an external configuration/acceptance item.
+- Current operational handoff: `/Users/pensoair/Obsidian-Vaults/Penso-SSOT/07_專案工坊/Subdomain_kiwimu.com/_HANDOFF/CURRENT.md`. Evidence and frozen delivery index: `/Users/pensoair/.codex/visualizations/2026/10/07/kiwimu-public-copy-repair/mbti/`.
+- Self-correction: the July sections below are historical snapshots; their earlier branch, design, and product-status statements do not override Git or the October SSOT handoff. This pass changes public copy only and excludes all MBTI design work.
 
 ## Economy v2 adapter · 2026-07-16
 
