@@ -1,5 +1,6 @@
 import { getPendingEconomyClaimId } from './economyClaims';
 import { UUID_PATTERN } from '../shared/economy';
+import { isKnownLoginFailureMessage, loginFailureMessage } from './loginFailureMessage';
 
 const SHARED_COOKIE_DOMAIN = '.kiwimu.com';
 const COOKIE_CHUNK_PREFIX = 'chunks:';
@@ -26,6 +27,11 @@ export interface PassportSsoMessage {
   status: 'success' | 'error';
   redirectTo?: string;
   message?: string;
+  /**
+   * Raw provider/broker text kept for logging and analytics only. Never render it:
+   * `message` is the display-safe copy that openPassportLogin hands to onError.
+   */
+  diagnostic?: string;
 }
 
 export interface OpenPassportLoginOptions extends PassportLoginUrlOptions {
@@ -219,6 +225,19 @@ function buildPopupFeatures(): string {
   ].join(',');
 }
 
+// Passport may forward a raw OAuth error_description. Every onError consumer gets
+// display-safe copy in `message`; the original text only survives in `diagnostic`.
+export function maskPassportErrorDetail(detail: PassportSsoMessage): PassportSsoMessage {
+  const raw = typeof detail.message === 'string' && detail.message ? detail.message : undefined;
+  if (raw && !isKnownLoginFailureMessage(raw)) {
+    console.warn('Passport login failed; provider message withheld from UI:', raw);
+  }
+  const masked: PassportSsoMessage = { ...detail, message: loginFailureMessage(raw) };
+  if (raw) masked.diagnostic = raw;
+  else delete masked.diagnostic;
+  return masked;
+}
+
 export function openPassportLogin(options: OpenPassportLoginOptions = {}): boolean {
   if (typeof window === 'undefined') {
     return false;
@@ -245,7 +264,7 @@ export function openPassportLogin(options: OpenPassportLoginOptions = {}): boole
       redirectTo: fallbackUrl,
       message: '登入視窗無法開啟，正在改用整頁登入…',
     };
-    options.onError?.(blockedDetail);
+    options.onError?.(maskPassportErrorDetail(blockedDetail));
     // Popup blocked by the browser: fall back to a full-page redirect so the
     // user can still complete login, instead of leaving them on an error toast.
     window.location.href = fallbackUrl;
@@ -277,7 +296,7 @@ export function openPassportLogin(options: OpenPassportLoginOptions = {}): boole
       window.dispatchEvent(new CustomEvent(PASSPORT_AUTH_COMPLETE_EVENT, { detail }));
       options.onComplete?.(detail);
     } else {
-      options.onError?.(detail);
+      options.onError?.(maskPassportErrorDetail(detail));
     }
   };
 
@@ -286,11 +305,11 @@ export function openPassportLogin(options: OpenPassportLoginOptions = {}): boole
     if (popup.closed && !settled) {
       settled = true;
       cleanup();
-      options.onError?.({
+      options.onError?.(maskPassportErrorDetail({
         type: PASSPORT_SSO_MESSAGE_TYPE,
         status: 'error',
         message: '登入視窗已關閉，請再試一次。',
-      });
+      }));
     }
   }, 500);
   popup.focus();
