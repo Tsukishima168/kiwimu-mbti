@@ -69,8 +69,11 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
       window.history.replaceState({}, '', url.toString());
     } catch (e: any) {
       if (controller.signal.aborted) return;
+      console.error('Failed to complete Discord account link', e);
       setStatus('error');
-      setMessage(`綁定失敗：${e?.message || 'unknown error'}`);
+      setMessage(e?.message === '請重新登入後再試。'
+        ? '請重新登入後再試。'
+        : '暫時無法完成 Discord 綁定，請稍後再試。');
     }
   };
 

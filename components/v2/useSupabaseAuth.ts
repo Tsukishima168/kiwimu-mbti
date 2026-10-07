@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAuthSupabaseClient } from '../../utils/supabaseAuthBridge';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT, type PassportLoginUiOptions } from '../../utils/authStorage';
+import { loginFailureMessage } from '../../utils/loginFailureMessage';
 
 export interface SupabaseAuthState {
   isLoggedIn: boolean;
@@ -66,7 +67,7 @@ export async function loginWithGoogle(options: Pick<PassportLoginUiOptions, 'onE
   openPassportLogin({
     intent: 'v2_login',
     onError: (detail) => {
-      options.onError?.(detail.message || '登入視窗已關閉，請再試一次。');
+      options.onError?.(loginFailureMessage(detail.message));
     },
   });
 }

@@ -876,7 +876,9 @@ export default function V2App({ user }: V2AppProps) {
         } else {
           setCheckoutStatus('pending');
         }
-        setReportMessage(messageByCode[code] || `目前尚未完成解鎖確認（${code}）。`);
+        const displayMessage = Object.hasOwn(messageByCode, code) ? messageByCode[code] : '';
+        if (!displayMessage) console.warn('LINE Pay unlock status was not confirmed', { code, status: response.status });
+        setReportMessage(displayMessage || '暫時無法確認解鎖狀態，請稍後再按一次「檢查解鎖」。');
       } catch (error) {
         if (!isCurrentRequest()) return;
         console.error('Failed to check LINE Pay status', error);
@@ -1010,7 +1012,7 @@ export default function V2App({ user }: V2AppProps) {
         ? '這份配對會隨季節檔期調整，目前沒有固定商品介紹。'
         : dessertContract
           ? '月島菜單目前沒有提供固定商品介紹。'
-          : '目前無法同步月島菜單；為避免顯示過期品項，先不使用草稿中的商品名稱與照片。');
+          : '目前無法讀取月島菜單，請前往菜單頁確認甜點資訊。');
   const dessertNarrative = dessertNameFromContract === cleanText(editorialDessert.name)
     ? cleanText(editorialDessert.visualLogic)
     : '';
@@ -1494,7 +1496,7 @@ export default function V2App({ user }: V2AppProps) {
                   {dessertDescription}
                 </p>
                 <div className="ad-pairing-card">
-                  <div className="ad-pairing-label">月島菜單真相源</div>
+                  <div className="ad-pairing-label">月島菜單資訊</div>
                   <div className="ad-pairing-body">{dessertSourceSummary}</div>
                 </div>
                 {dessertNarrative ? (

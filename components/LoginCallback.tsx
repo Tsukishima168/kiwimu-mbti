@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getAuthSupabaseClient, restoreAuthSessionFromUrl } from '../utils/supabaseAuthBridge';
 import { trackLoginCallback, trackLoginFailure } from '../utils/analytics';
 import { trackAction } from '../utils/userDataCollector';
+import { loginFailureMessage } from '../utils/loginFailureMessage';
 
 /**
  * Supabase OAuth callback handler.
@@ -14,7 +15,7 @@ const LoginCallback: React.FC = () => {
     useEffect(() => {
         const supabase = getAuthSupabaseClient();
         if (!supabase) {
-            setError('Auth client not available');
+            setError(loginFailureMessage());
             return;
         }
 
@@ -34,7 +35,7 @@ const LoginCallback: React.FC = () => {
                 path: window.location.pathname,
                 error: message,
             });
-            setError(message);
+            setError(loginFailureMessage(message));
         };
 
         const finalize = async () => {
