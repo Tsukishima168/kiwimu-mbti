@@ -865,6 +865,7 @@ export default function V2App({ user }: V2AppProps) {
         const code = payload?.code || 'UNKNOWN';
         const messageByCode: Record<string, string> = {
           NO_PENDING_ORDER: '找不到這次付款的待確認訂單，請重新產生付款 QR。',
+          ORDER_NOT_FOUND: '找不到這次付款的訂單，請重新產生付款 QR。',
           PAYMENT_CANCELLED: 'LINE Pay 回報這筆付款已取消，請重新產生付款 QR。',
           PAYMENT_FAILED: 'LINE Pay 回報這筆付款失敗，請重新產生付款 QR。',
           ORDER_TYPE_MISMATCH: '這筆付款和目前報告型別不同，請回到正確的報告頁重新付款。',
