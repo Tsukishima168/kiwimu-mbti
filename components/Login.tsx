@@ -23,12 +23,14 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
             is_unlock_mode: isUnlockMode,
             flow_stage: sessionStorage.getItem('flow_stage') || 'unknown',
         };
-        const handleLoginError = (message: string) => {
+        // `message` is what the user sees; `diagnostic` (raw provider text) is for analytics only.
+        const handleLoginError = (message: string, diagnostic: string = message) => {
+            const reason = diagnostic || 'unknown_error';
             setError(loginFailureMessage(message));
-            trackLoginFailure('google', message || 'unknown_error', loginContext);
+            trackLoginFailure('google', reason, loginContext);
             trackAction('login_failure', {
                 provider: 'google',
-                reason: message || 'unknown_error',
+                reason,
                 ...loginContext,
             });
         };
@@ -41,7 +43,7 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
             });
             openPassportLogin({
                 intent: isUnlockMode ? 'unlock_report' : 'login',
-                onError: (detail) => handleLoginError(detail.message || '登入失敗，請再試一次。'),
+                onError: (detail) => handleLoginError(detail.message || '登入失敗，請再試一次。', detail.diagnostic ?? detail.message),
             });
         } catch (err: any) {
             handleLoginError(err.message || 'unknown_error');

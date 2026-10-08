@@ -130,6 +130,29 @@ describe('Discord link caller account session', () => {
     fixture.cleanup?.();
   });
 
+  it.each([
+    ['a missing auth client', { getAuthSupabaseClient: () => null }],
+    ['a mismatched session', { getAuthSupabaseClient: () => ({ auth: { getSession: async () => ({ data: { session: { access_token: 'other-token', user: { id: 'other-account' } } }, error: null }) } }) }],
+  ])('tells the user to sign in again for %s without leaking an internal marker', async (_name, overrides) => {
+    const fixture = runEffect(overrides);
+    fixture.confirm();
+    await settle();
+    expect(fixture.fetch).not.toHaveBeenCalled();
+    expect(fixture.setStatus).toHaveBeenLastCalledWith('error');
+    expect(fixture.setMessage).toHaveBeenLastCalledWith('請重新登入後再試。');
+    fixture.cleanup?.();
+  });
+
+  it('shows generic copy, not the server error text, when the link request fails', async () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: false, status: 400, json: async () => ({ error: 'Invalid state' }) });
+    const fixture = runEffect({ fetch });
+    fixture.confirm();
+    await settle();
+    expect(fixture.setStatus).toHaveBeenLastCalledWith('error');
+    expect(fixture.setMessage).toHaveBeenLastCalledWith('暫時無法完成 Discord 綁定，請稍後再試。');
+    fixture.cleanup?.();
+  });
+
   it('does not post a delayed session after the current account changes', async () => {
     let resolve!: (value: typeof session) => void;
     const pending = new Promise<typeof session>(done => { resolve = done; });

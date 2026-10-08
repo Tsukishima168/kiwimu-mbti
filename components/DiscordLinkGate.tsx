@@ -42,11 +42,11 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
       setMessage('正在完成綁定…');
 
       const client = getAuthSupabaseClient();
-      if (!client) throw new Error('請重新登入後再試。');
+      if (!client) throw new Error('AUTH_REQUIRED');
       const { data, error } = await client.auth.getSession();
       if (controller.signal.aborted) return;
       const session = data.session;
-      if (error || !session?.access_token || session.user.is_anonymous || session.user.id !== user.uid) throw new Error('請重新登入後再試。');
+      if (error || !session?.access_token || session.user.is_anonymous || session.user.id !== user.uid) throw new Error('AUTH_REQUIRED');
       const res = await fetch('/api/discord/link/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
@@ -71,7 +71,7 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
       if (controller.signal.aborted) return;
       console.error('Failed to complete Discord account link', e);
       setStatus('error');
-      setMessage(e?.message === '請重新登入後再試。'
+      setMessage(e?.message === 'AUTH_REQUIRED'
         ? '請重新登入後再試。'
         : '暫時無法完成 Discord 綁定，請稍後再試。');
     }
