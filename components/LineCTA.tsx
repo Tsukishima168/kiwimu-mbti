@@ -1,7 +1,6 @@
 import React from 'react';
 import { trackLineCTA } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
-import { EXTERNAL_LINKS } from '../utils/utmTracking';
 
 interface LineCTAProps {
     className?: string;
@@ -10,7 +9,7 @@ interface LineCTAProps {
 }
 
 // LINE official account URL
-const LINE_ADD_FRIEND_URL = EXTERNAL_LINKS.LINE_OA.baseUrl;
+const LINE_ADD_FRIEND_URL = 'https://line.me/R/ti/p/@kiwimu';
 
 export const LineCTA: React.FC<LineCTAProps> = ({
     className = '',
