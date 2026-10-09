@@ -96,6 +96,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
   }, []);
   useEffect(() => {
     if (started && chapterBreak === null && !isResolving && !handoffPath) {
+      answering.current = false;
       questionHeading.current?.focus({ preventScroll: true });
     }
   }, [started, currentIndex, chapterBreak, isResolving, handoffPath]);
@@ -239,6 +240,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
 
   const handlePrevious = () => {
     if (currentIndex === 0 || answering.current || isAnimating || isResolving) return;
+    answering.current = true;
     const previousAnswers = answers.slice(0, -1);
     setAnswers(previousAnswers);
     setDraftSaved(saveQuizDraft(previousAnswers));

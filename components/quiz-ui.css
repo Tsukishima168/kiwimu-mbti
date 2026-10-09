@@ -7,6 +7,7 @@
 }
 .classic-intro :is(button, a, summary, select),
 .classic-quiz button, .quiz-resume button { touch-action: manipulation; }
+.classic-intro .ku-quiz-entry__quick { display: flex; margin-top: .25rem; }
 .classic-quiz h2 { scroll-margin-top: calc(var(--ku-rail-height, 0px) + 100px); }
 .classic-quiz-option[aria-pressed='true'] { border-color: #121212; background: #fff; }
 .classic-quiz-option:disabled:not([aria-pressed='true']) { opacity: .55; }
