@@ -4,7 +4,7 @@
    ─────────────────────────────────────────────────────────────────────────── */
 
 /* ─── Fonts ───
-   Single @import for all of V2 lives in v2.css (loaded before this file). */
+   V2 fonts load independently in index.html; blocked fonts use the existing fallbacks. */
 
 /* ─── Design Tokens ─── */
 :root {
