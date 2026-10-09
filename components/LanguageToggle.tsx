@@ -25,7 +25,8 @@ const LanguageToggle: React.FC = () => {
             <select
                 value={language}
                 onChange={handleChange}
-                className="appearance-none bg-white/80 hover:bg-white border border-gray-200 hover:border-kiwi-dark text-gray-700 text-xs font-mono font-bold py-1.5 pl-8 pr-7 rounded-full shadow-sm hover:shadow-md transition-all focus:outline-none focus:ring-1 focus:ring-kiwi-dark cursor-pointer tracking-wider"
+                name="language"
+                className="appearance-none min-h-11 bg-white/80 hover:bg-white border border-gray-200 hover:border-kiwi-dark text-gray-700 text-sm font-mono font-bold py-2 pl-8 pr-7 rounded-full shadow-sm hover:shadow-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kiwi-dark cursor-pointer tracking-wide"
                 aria-label="Select Language"
             >
                 {LANG_OPTIONS.map((opt) => (

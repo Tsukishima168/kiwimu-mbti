@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import './quiz-ui.css';
 
 interface LoadingProps {
   onFinished: () => void;
@@ -25,13 +26,13 @@ const Loading: React.FC<LoadingProps> = ({ onFinished }) => {
   }, [onFinished]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg">
+    <div className="classic-loading flex flex-col items-center justify-center min-h-screen bg-kiwi-bg" role="status" aria-live="polite">
       <div className="w-64">
         <div className="flex justify-between text-xs font-mono tracking-widest text-kiwi-dark mb-2">
           <span>{t('loading_processing')}</span>
-          <span>{progress}%</span>
+          <span aria-hidden="true">{progress}%</span>
         </div>
-        <div className="h-[2px] bg-gray-200 w-full overflow-hidden">
+        <div className="h-[2px] bg-gray-200 w-full overflow-hidden" aria-hidden="true">
           <div
             className="h-full bg-kiwi-dark transition-all duration-75 ease-linear"
             style={{ width: `${progress}%` }}
@@ -39,7 +40,7 @@ const Loading: React.FC<LoadingProps> = ({ onFinished }) => {
         </div>
       </div>
       <div className="mt-10 px-6 text-center">
-        <p className="text-[10px] md:text-xs text-gray-400 tracking-[0.3em] animate-pulse uppercase leading-loose">
+        <p className="text-sm text-gray-600 tracking-wide leading-loose">
           {t('loading_analyzing')}<br />
           <span className="mt-2 block">{t('loading_analyzing_sub')}</span>
         </p>

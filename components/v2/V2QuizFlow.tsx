@@ -18,6 +18,8 @@ const V2App = lazy(() => import('./V2App'));
 import { KIWIMU_CAMPAIGN_ASSETS, getSceneAsset } from '../../data/kiwimuVisualAssets';
 import KiwimuVisual from '../visuals/KiwimuVisual';
 import V2Welcome from './V2Welcome';
+import { clearQuizDraft, loadQuizDraft, saveQuizDraft } from './quizDraft';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 import './v2-tailwind.css';
 import './v2.css';
 import './v2-dark.css';
@@ -31,6 +33,13 @@ interface V2QuizFlowProps {
 }
 
 export default function V2QuizFlow({ user }: V2QuizFlowProps) {
+  const [draft, setDraft] = useState(loadQuizDraft);
+  const [draftSaved, setDraftSaved] = useState(true);
+  const reducedMotion = useReducedMotion();
+  const answerTimer = React.useRef<number | null>(null);
+  const answering = React.useRef(false);
+  const questionHeading = React.useRef<HTMLHeadingElement>(null);
+  const active = React.useRef(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [started, setStarted] = useState(false);
@@ -81,6 +90,16 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
     return () => window.clearTimeout(timer);
   }, [chapterBreak]);
 
+  useEffect(() => {
+    active.current = true;
+    return () => { active.current = false; if (answerTimer.current !== null) window.clearTimeout(answerTimer.current); };
+  }, []);
+  useEffect(() => {
+    if (started && chapterBreak === null && !isResolving && !handoffPath) {
+      questionHeading.current?.focus({ preventScroll: true });
+    }
+  }, [started, currentIndex, chapterBreak, isResolving, handoffPath]);
+
   React.useEffect(() => {
     const normalizedPath = normalizeV2Pathname(window.location.pathname);
     if (normalizedPath !== window.location.pathname) {
@@ -109,9 +128,22 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
   }, [quizPath]);
 
   const handleStart = () => {
+    clearQuizDraft();
+    setDraft(null);
+    setAnswers([]);
+    setCurrentIndex(0);
     setStarted(true);
     void prepareMbtiAttempt('v2-tw-40');
     trackAction('v2_quiz_flow_start', { quizId: 'v2-tw-40' });
+  };
+
+  const handleResume = () => {
+    if (!draft) return;
+    setAnswers(draft.answers);
+    setCurrentIndex(draft.currentIndex);
+    setStarted(true);
+    void prepareMbtiAttempt('v2-tw-40');
+    trackAction('v2_quiz_flow_resume', { answeredCount: draft.answers.length });
   };
 
   // Warm the report chunk while the last questions are being answered so the
@@ -139,6 +171,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
       const { type, scores } = calculateResults(nextAnswers, QUESTIONS);
       const variant = getVariant(scores);
       const resultData = await loadResultData(type, variant) || getResultData(type, variant);
+      if (!active.current) return;
       setLastV2PrototypeResult({ resultData, scores });
       trackAction('v2_quiz_flow_complete', {
         mbtiType: type,
@@ -150,6 +183,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
         questionBank: QUESTIONS,
         quizVersion: 'v2-tw-40',
       });
+      clearQuizDraft();
       // Hand off in-place instead of reloading the page. A full navigation here
       // threw away ~1.65MB of already-parsed JS and put a blank frame between
       // the resolving panel and the report, right at the emotional payoff.
@@ -157,15 +191,19 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
       window.history.pushState({}, '', reportPath);
       setHandoffPath(reportPath);
     } catch (err) {
+      if (!active.current) return;
       console.error('V2QuizFlow: failed to resolve result', err);
       setAnswers(nextAnswers.slice(0, -1));
+      setSelectedOption(null);
+      answering.current = false;
       setIsResolving(false);
       setErrorMessage('剛才的結果未能儲存。請再選一次最後一題，重新整理結果。');
     }
   };
 
   const handleOptionSelect = (optionIndex: 0 | 1) => {
-    if (!question || isAnimating || isResolving) return;
+    if (!question || answering.current || isAnimating || isResolving) return;
+    answering.current = true;
     setSelectedOption(optionIndex);
     setIsAnimating(true);
     const selected: Option = {
@@ -174,13 +212,15 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
     };
     const nextAnswers = [...answers, selected];
     setAnswers(nextAnswers);
+    setDraftSaved(saveQuizDraft(nextAnswers));
     trackAction('v2_quiz_flow_answer', {
       questionId: question.questionId,
       index: currentIndex,
       dimension: question.dimension,
       choice: optionIndex === 0 ? 'A' : 'B',
     });
-    window.setTimeout(() => {
+    answerTimer.current = window.setTimeout(() => {
+      answerTimer.current = null;
       if (nextAnswers.length === totalQuestions) {
         setIsAnimating(false);
         void finishQuiz(nextAnswers);
@@ -189,23 +229,27 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
       const nextIndex = currentIndex + 1;
       const nextChapter = Math.min(QUIZ_CHAPTER_COUNT, Math.floor(nextIndex / questionsPerChapter) + 1);
       // 跨到新章節就插一次過場：40 題純作答太長，這是節奏點
-      if (nextChapter !== currentChapter) setChapterBreak(nextChapter);
+      if (nextChapter !== currentChapter && !reducedMotion) setChapterBreak(nextChapter);
       setSelectedOption(null);
       setCurrentIndex(nextIndex);
       setIsAnimating(false);
-    }, 250);
+      answering.current = false;
+    }, reducedMotion ? 0 : 250);
   };
 
   const handlePrevious = () => {
-    if (currentIndex === 0 || isAnimating || isResolving) return;
-    setAnswers(prev => prev.slice(0, -1));
+    if (currentIndex === 0 || answering.current || isAnimating || isResolving) return;
+    const previousAnswers = answers.slice(0, -1);
+    setAnswers(previousAnswers);
+    setDraftSaved(saveQuizDraft(previousAnswers));
+    setSelectedOption(null);
     setCurrentIndex(prev => Math.max(prev - 1, 0));
   };
 
-  if (!started) return <div className="v2-app"><V2Welcome onStart={handleStart} /></div>;
+  if (!started) return <div className="v2-app"><V2Welcome onStart={handleStart} resumeCount={draft?.currentIndex} onResume={handleResume} /></div>;
 
   const resolvingPanel = (
-    <div className="v2-surface ad-resolving">
+    <div className="v2-surface ad-resolving" role="status" aria-live="polite">
         <div className="ad-resolving-panel">
           <div className="ad-resolving-dots">
             <span className="ad-resolving-dot" />
@@ -245,7 +289,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
         tabIndex={0}
         onClick={() => setChapterBreak(null)}
         onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') setChapterBreak(null);
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setChapterBreak(null); }
         }}
         aria-label={`狀態顯影 ${chapterBreak} / ${QUIZ_CHAPTER_COUNT}`}
       >
@@ -273,7 +317,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
   return (
     <div className="v2-surface ad-quiz-screen">
       {/* Marquee */}
-      <div className="marquee-container ad-marquee-fixed">
+      <div className="marquee-container ad-marquee-fixed" aria-hidden="true">
         <div className="marquee-track">
           <span className="marquee-text">{MARQUEE.repeat(4)}</span>
           <span className="marquee-text">{MARQUEE.repeat(4)}</span>
@@ -321,7 +365,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
               </span>
             </span>
           </div>
-          <div className="ad-chapter-track" aria-hidden="true">
+          <div className="ad-chapter-track" role="progressbar" aria-label="作答進度" aria-valuemin={0} aria-valuemax={totalQuestions} aria-valuenow={answers.length}>
             <span className="ad-chapter-fill" style={{ width: `${chapterProgress}%` }} />
           </div>
           <div className="ad-chapter-dots" aria-hidden="true">
@@ -341,7 +385,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
 
         {/* Question */}
         <div className="ad-question-wrap">
-          <h2 aria-live="polite" aria-atomic="true" className={`ad-question-text${isAnimating ? ' is-fading' : ''}`}>
+          <h2 ref={questionHeading} tabIndex={-1} className={`ad-question-text${isAnimating ? ' is-fading' : ''}`}>
             {question.text}
           </h2>
           <p className="ad-question-hint">兩個都像你時，選最近更常出現的反應。</p>
@@ -378,6 +422,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
           </button>
           <p className="ad-quiz-helper">已完成 {answers.length} / {totalQuestions} 題</p>
         </div>
+        {!draftSaved ? <p className="ad-quiz-error" role="status">這個瀏覽器無法保存進度，請保留此分頁直到完成。</p> : null}
       </section>
     </div>
   );

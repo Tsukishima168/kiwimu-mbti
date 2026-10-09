@@ -1,0 +1,43 @@
+/* V1 helpers stay scoped; the shared Universe rail keeps its own identity. */
+.classic-intro :is(button, a, summary, select):focus-visible,
+.classic-quiz :is(button, a):focus-visible,
+.quiz-resume button:focus-visible {
+  outline: 2px solid #121212;
+  outline-offset: 4px;
+}
+.classic-intro :is(button, a, summary, select),
+.classic-quiz button, .quiz-resume button { touch-action: manipulation; }
+.classic-quiz h2 { scroll-margin-top: calc(var(--ku-rail-height, 0px) + 100px); }
+.classic-quiz-option[aria-pressed='true'] { border-color: #121212; background: #fff; }
+.classic-quiz-option:disabled:not([aria-pressed='true']) { opacity: .55; }
+.quiz-resume {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(28rem, calc(100% - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 2rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #e5e7eb;
+  border-radius: 2px;
+  background: #fff;
+  color: #121212;
+  box-shadow: 0 20px 50px #0003;
+}
+.quiz-resume::backdrop { background: #0009; backdrop-filter: blur(4px); }
+.quiz-resume-actions { display: flex; gap: 1rem; }
+@media (max-width: 480px) {
+  .classic-quiz .classic-quiz-image { margin-bottom: 1.5rem; }
+  .classic-quiz-question > div:nth-child(2) { margin-bottom: 1.75rem; }
+  .classic-quiz-option { padding: 1.25rem 1.75rem; min-height: 5rem; }
+  .quiz-resume { padding: 1.5rem; }
+  .quiz-resume-actions { flex-direction: column; gap: .75rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .classic-intro *, .classic-quiz *, .quiz-resume *, .classic-loading * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

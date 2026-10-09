@@ -17,15 +17,17 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     useEffect(() => {
         // Load language preference from localStorage
-        const savedLang = localStorage.getItem('kiwimu_language') as Language;
-        if (savedLang === 'zh' || savedLang === 'en' || savedLang === 'ja' || savedLang === 'ko') {
-            setLanguageState(savedLang);
-        }
+        try {
+            const savedLang = localStorage.getItem('kiwimu_language') as Language;
+            if (savedLang === 'zh' || savedLang === 'en' || savedLang === 'ja' || savedLang === 'ko') setLanguageState(savedLang);
+        } catch { /* Keep the default language when browser storage is blocked. */ }
     }, []);
+
+    useEffect(() => { document.documentElement.lang = { zh: 'zh-TW', en: 'en', ja: 'ja', ko: 'ko' }[language]; }, [language]);
 
     const setLanguage = (lang: Language) => {
         setLanguageState(lang);
-        localStorage.setItem('kiwimu_language', lang);
+        try { localStorage.setItem('kiwimu_language', lang); } catch { /* The current page still changes language. */ }
     };
 
     const t = (key: TranslationKey): string => {

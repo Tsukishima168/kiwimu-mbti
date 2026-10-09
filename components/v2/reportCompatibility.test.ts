@@ -48,7 +48,7 @@ describe('V2 report browser compatibility', () => {
       compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.React },
     }).outputText;
     const welcome = () => null;
-    const result = runInNewContext(code, { React, started: false, V2Welcome: welcome, handleStart: vi.fn() });
+    const result = runInNewContext(code, { React, started: false, V2Welcome: welcome, handleStart: vi.fn(), handleResume: vi.fn(), draft: null });
     expect((result.props.className || '').split(/\s+/)).toContain('v2-app');
     expect(result.props.children.type).toBe(welcome);
   });
