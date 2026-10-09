@@ -132,6 +132,11 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks(id) {
+            // Keep LIFF's storage-reading module evaluation out of the initial
+            // React vendor chunk so guarded dynamic imports remain effective.
+            if (id.includes('/node_modules/@line/liff/') || id.includes('/node_modules/@liff/')) {
+              return 'line-sdk';
+            }
             if (id.includes('node_modules')) {
               return 'vendor';
             }
