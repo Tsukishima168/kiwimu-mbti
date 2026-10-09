@@ -68,7 +68,7 @@ const MENU_DATA = {
 };
 
 const LINE_STICKER_SHOP_URL = 'https://store.line.me/stickershop/product/33314326/zh-Hant';
-const V2_NOTIFY_URL = 'https://lin.ee/r19wTnY';
+const V2_NOTIFY_URL = 'https://line.me/R/ti/p/@kiwimu';
 const KOFI_URL = 'https://ko-fi.com/kiwimu';
 
 /* IG Story dimension label map — 3 trait pillars per MBTI type */
@@ -1314,7 +1314,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 </h3>
                 <p className="mt-4 text-sm md:text-base leading-relaxed text-white/70">
                   V2 在 V1 基礎上加入 A / T 變體分流、心理原型層、關係與職場語境，寫成一份更完整的深度報告。<br />
-                  你現在可以先看公開 teaser，付費章節會保留在 V2 報告裡。
+                  第 01 章免費試讀；完整報告 NT$99，購買後可在「我的報告」回看。
                 </p>
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
                   <a
@@ -1345,7 +1345,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   className="mt-5 text-white/40"
                   style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
                 >
-                  V2 會保留公開 teaser 與付費章節邊界；個人化內容不會放進公開搜尋。
+                  你可以先試讀，再決定是否解鎖完整報告。
                 </p>
               </div>
             </div>
