@@ -10,9 +10,8 @@ interface StoredPendingClaim {
 }
 
 function readPendingClaim(): StoredPendingClaim | null {
-  if (typeof sessionStorage === 'undefined') return null;
-
   try {
+    if (typeof sessionStorage === 'undefined') return null;
     const raw = sessionStorage.getItem(PENDING_CLAIM_STORAGE_KEY);
     if (!raw) return null;
 
@@ -45,7 +44,6 @@ function readPendingClaim(): StoredPendingClaim | null {
 
 export function rememberPendingEconomyClaim(claimId: string, expiresAt: string): boolean {
   if (
-    typeof sessionStorage === 'undefined' ||
     !UUID_PATTERN.test(claimId) ||
     !Number.isFinite(Date.parse(expiresAt)) ||
     Date.parse(expiresAt) <= Date.now()
@@ -54,6 +52,7 @@ export function rememberPendingEconomyClaim(claimId: string, expiresAt: string):
   }
 
   try {
+    if (typeof sessionStorage === 'undefined') return false;
     sessionStorage.setItem(
       PENDING_CLAIM_STORAGE_KEY,
       JSON.stringify({ claimId, expiresAt } satisfies StoredPendingClaim),

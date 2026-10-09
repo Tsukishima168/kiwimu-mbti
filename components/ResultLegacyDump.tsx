@@ -1,4 +1,5 @@
 
+import { sessionCache } from '../utils/sessionCache';
 import React, { useRef, useState, useEffect } from 'react';
 import type { AppUser } from '../types';
 import { MbtiResultData, Score } from '../types';
@@ -222,14 +223,14 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   }, [identitySuffix, isArchiveMode, isLocked, isSharedView, resultData.id, user]);
 
   const triggerFullReportLogin = (entryPoint: 'locked_section' | 'floating_banner') => {
-    sessionStorage.setItem('post_login_destination', 'result');
-    sessionStorage.setItem('result_unlock_entry_point', entryPoint);
+    sessionCache.setItem('post_login_destination', 'result');
+    sessionCache.setItem('result_unlock_entry_point', entryPoint);
     setUnlockEntryPoint(entryPoint);
   };
 
   const confirmFullReportLogin = () => {
     if (unlockEntryPoint) {
-      sessionStorage.setItem('result_unlock_entry_point', unlockEntryPoint);
+      sessionCache.setItem('result_unlock_entry_point', unlockEntryPoint);
     }
     trackButtonClick('confirm_passport_login', 'result_unlock_modal');
     onLogin?.({
@@ -590,7 +591,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
             </div>
             <div className="px-6 py-6">
               <p className="font-serif text-sm leading-7 text-gray-600">
-                這份 {fullResultType} 報告已暫存在目前裝置。登入會短暫開啟 Passport，完成後自動回到這個結果頁，不會要求你重新測驗。
+                這份 {fullResultType} 報告目前留在此頁。登入後可以保存至帳號；請保留此頁，直到確認登入完成。
               </p>
               <div className="mt-6 grid gap-3">
                 <button

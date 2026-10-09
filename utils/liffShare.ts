@@ -1,4 +1,6 @@
-import liff from '@line/liff';
+// LIFF may read sessionStorage while its module is evaluated. Load this
+// optional share integration inside a guarded action so it cannot blank the site.
+const loadLiff = async () => (await import('@line/liff')).default;
 
 const liffId = import.meta.env.VITE_LINE_LIFF_ID;
 
@@ -8,11 +10,12 @@ export const initLiff = async () => {
         return false;
     }
     try {
+        const liff = await loadLiff();
         await liff.init({ liffId });
         console.log('LIFF initialized successfully.');
         return true;
-    } catch (err) {
-        console.error('LIFF initialization failed', err);
+    } catch {
+        console.warn('LIFF initialization unavailable in this browser.');
         return false;
     }
 };
@@ -24,18 +27,6 @@ export const initLiff = async () => {
  * @returns {Promise<boolean>} - True if shared successfully, false otherwise.
  */
 export const shareResultToLine = async (mbtiType: string, dessertTitle: string): Promise<boolean> => {
-    if (!liff.isLoggedIn()) {
-        // For shareTargetPicker to work in external browser, user might need to login,
-        // but usually this is used inside the LINE in-app browser where login is automatic.
-        console.warn("LIFF is not logged in. shareTargetPicker may fail if not in LINE app.");
-    }
-
-    if (!liff.isApiAvailable('shareTargetPicker')) {
-        console.warn('shareTargetPicker is not available in this environment.');
-        // Fallback could be handled by the caller, e.g. copying a link
-        return false;
-    }
-
     // R7: mbti.kiwimu.com does not resolve (no DNS record) — link to the real,
     // existing kiwimu.com route instead. `from` lets the landing site's
     // kw_attr cookie (R4) record that this visit came from a LINE share.
@@ -113,6 +104,19 @@ export const shareResultToLine = async (mbtiType: string, dessertTitle: string):
     };
 
     try {
+        const liff = await loadLiff();
+        if (!liff.isLoggedIn()) {
+            // For shareTargetPicker to work in external browser, user might need to login,
+            // but usually this is used inside the LINE in-app browser where login is automatic.
+            console.warn("LIFF is not logged in. shareTargetPicker may fail if not in LINE app.");
+        }
+
+        if (!liff.isApiAvailable('shareTargetPicker')) {
+            console.warn('shareTargetPicker is not available in this environment.');
+            // Fallback could be handled by the caller, e.g. copying a link
+            return false;
+        }
+
         const res = await liff.shareTargetPicker([flexMessage]);
         if (res) {
             console.log('Flex message sent successfully');
@@ -121,8 +125,8 @@ export const shareResultToLine = async (mbtiType: string, dessertTitle: string):
             console.log('User cancelled share target picker');
             return false;
         }
-    } catch (error) {
-        console.error('Error sharing target picker', error);
+    } catch {
+        console.warn('LINE sharing unavailable in this browser.');
         return false;
     }
 };

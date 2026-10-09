@@ -13,11 +13,13 @@ export default function DiscordLinkGate({ user, onLogin }: Props) {
   const [state, setState] = useState<string | null>(() => {
     const urlState = new URLSearchParams(window.location.search).get('discord_link_state');
     if (urlState) return urlState;
-    const ssState = sessionStorage.getItem('discord_link_state');
-    if (ssState) {
-      sessionStorage.removeItem('discord_link_state');
-      return ssState;
-    }
+    try {
+      const ssState = sessionStorage.getItem('discord_link_state');
+      if (ssState) {
+        sessionStorage.removeItem('discord_link_state');
+        return ssState;
+      }
+    } catch { /* A blocked cache must not prevent the rest of the site from opening. */ }
     return null;
   });
 

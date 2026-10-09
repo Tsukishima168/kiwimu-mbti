@@ -1,3 +1,4 @@
+import { sessionCache } from './sessionCache';
 // Complete Analytics Tracking System for KIWIMU MBTI Lab
 // Integrates with GA4 via global gtag() loaded in index.html
 import { V2_REPORT_CURRENCY, V2_REPORT_PRICE_TWD } from '../shared/v2Product';
@@ -39,12 +40,12 @@ export const getSessionId = (): string => {
 
     // Try to get from sessionStorage
     if (typeof window !== 'undefined') {
-        sessionId = sessionStorage.getItem('analytics_session_id');
+        sessionId = sessionCache.getItem('analytics_session_id');
 
         if (!sessionId) {
             // Generate new session ID
             sessionId = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-            sessionStorage.setItem('analytics_session_id', sessionId);
+            sessionCache.setItem('analytics_session_id', sessionId);
         }
     }
 

@@ -1,5 +1,6 @@
 // Deployment trigger: 2026-01-27-moon-island
 import React, { Suspense, lazy, useState, useEffect } from 'react';
+import { sessionCache } from './utils/sessionCache';
 import { AppUser, Option, MbtiResultData, Score } from './types';
 import { getAuthSupabaseClient, restoreAuthSessionFromUrl, toAppUser, signOutSupabase, trackSsoEvent } from './utils/supabaseAuthBridge';
 import { useCloudSync } from './hooks/useCloudSync';
@@ -429,12 +430,12 @@ const App: React.FC = () => {
 
     if (!supabase) {
       // No auth client — restore any saved quiz result and proceed
-      const savedResult = sessionStorage.getItem('last_quiz_result');
-      const savedScores = sessionStorage.getItem('last_quiz_scores');
+      const savedResult = sessionCache.getItem('last_quiz_result');
+      const savedScores = sessionCache.getItem('last_quiz_scores');
       if (savedResult && savedScores) {
         setResultData(JSON.parse(savedResult));
         setScores(JSON.parse(savedScores));
-        const currentStage = sessionStorage.getItem('flow_stage');
+        const currentStage = sessionCache.getItem('flow_stage');
         if (currentStage) setStage(currentStage as Stage);
       }
       applyRouteFromLocation(Boolean(savedResult));
@@ -445,7 +446,7 @@ const App: React.FC = () => {
     const handleSession = (supabaseUser: import('@supabase/supabase-js').User | null) => {
       const pathname = window.location.pathname;
       const isV1Route = isV1Pathname(pathname);
-      const postLoginDestination = sessionStorage.getItem(POST_LOGIN_DESTINATION_KEY) as PostLoginDestination | null;
+      const postLoginDestination = sessionCache.getItem(POST_LOGIN_DESTINATION_KEY) as PostLoginDestination | null;
 
       if (supabaseUser) {
         const appUser = toAppUser(supabaseUser);
@@ -459,9 +460,9 @@ const App: React.FC = () => {
         lastSessionRestoreUidRef.current = null;
       }
 
-      const savedResult = sessionStorage.getItem('last_quiz_result');
-      const savedScores = sessionStorage.getItem('last_quiz_scores');
-      const currentStage = sessionStorage.getItem('flow_stage');
+      const savedResult = sessionCache.getItem('last_quiz_result');
+      const savedScores = sessionCache.getItem('last_quiz_scores');
+      const currentStage = sessionCache.getItem('flow_stage');
       const isResultRoute = pathname === '/quiz/result';
       const isArchiveRoute = pathname === '/quiz/archive';
 
@@ -469,8 +470,8 @@ const App: React.FC = () => {
       // so applyRouteFromLocation can't overwrite stage back to 'callback'.
       // Also handles Discord-only flow (no quiz result).
       if (currentStage === 'login' && supabaseUser) {
-        sessionStorage.removeItem('flow_stage');
-        sessionStorage.removeItem(POST_LOGIN_DESTINATION_KEY);
+        sessionCache.removeItem('flow_stage');
+        sessionCache.removeItem(POST_LOGIN_DESTINATION_KEY);
         if (postLoginDestination === 'archive') {
           replaceRoute(getPostLoginPath('archive'));
           setStage('archive');
@@ -498,8 +499,8 @@ const App: React.FC = () => {
 
       // Archive/login CTA can intentionally restore the last result view after OAuth.
       if (currentStage === 'result' && supabaseUser && savedResult && savedScores) {
-        sessionStorage.removeItem('flow_stage');
-        sessionStorage.removeItem(POST_LOGIN_DESTINATION_KEY);
+        sessionCache.removeItem('flow_stage');
+        sessionCache.removeItem(POST_LOGIN_DESTINATION_KEY);
         setResultData(JSON.parse(savedResult));
         setScores(JSON.parse(savedScores));
         replaceRoute(getPostLoginPath('result'));
@@ -544,14 +545,14 @@ const App: React.FC = () => {
     // Listen for auth changes (login / logout / token refresh)
     // P2 Fix: fire login analytics on fresh OAuth return (flow_stage=login present)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.user && sessionStorage.getItem('flow_stage') === 'login') {
+      if (event === 'SIGNED_IN' && session?.user && sessionCache.getItem('flow_stage') === 'login') {
         const appUser = toAppUser(session.user);
         const provider = session.user.app_metadata?.provider || 'google';
         trackUserLogin('google', appUser.uid);
         trackLoginCallback('success', 'google', {
           provider,
           path: window.location.pathname,
-          previous_stage: sessionStorage.getItem('flow_stage') || 'unknown',
+          previous_stage: sessionCache.getItem('flow_stage') || 'unknown',
         });
         trackMarketingEvent(MARKETING_EVENTS.LOGIN);
         trackAction('login', { provider });
@@ -561,9 +562,9 @@ const App: React.FC = () => {
           sessionId: getSession(),
         });
         trackLoginSuccess({
-          from_stage: sessionStorage.getItem('login_origin_stage') || 'unknown',
-          restore_destination: sessionStorage.getItem(POST_LOGIN_DESTINATION_KEY) || 'intro',
-          had_result_before_login: Boolean(sessionStorage.getItem('last_quiz_result')),
+          from_stage: sessionCache.getItem('login_origin_stage') || 'unknown',
+          restore_destination: sessionCache.getItem(POST_LOGIN_DESTINATION_KEY) || 'intro',
+          had_result_before_login: Boolean(sessionCache.getItem('last_quiz_result')),
           provider,
           session_id: getSessionId(),
         });
@@ -661,8 +662,9 @@ const App: React.FC = () => {
 
     setScores(scores);
     setResultData(data);
-    sessionStorage.setItem('last_quiz_result', JSON.stringify(data));
-    sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+    const resultCached = sessionCache.setItem('last_quiz_result', JSON.stringify(data));
+    const scoresCached = sessionCache.setItem('last_quiz_scores', JSON.stringify(scores));
+    const localResultSaved = resultCached && scoresCached;
 
     // Track Completion (現有的 GA4)
     trackQuizComplete(type, 0, user?.uid || undefined);
@@ -711,6 +713,11 @@ const App: React.FC = () => {
 
     setStage('loading');
 
+    if (!localResultSaved) {
+      setShowSaveToast({ show: true, success: false, message: '瀏覽器無法暫存這次結果。請先保留此頁，重新整理可能無法找回。' });
+      setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4500);
+    }
+
     // Save to cloud in background - don't block UI
     if (user && !user.isAnonymous) {
       saveCompletedTest(type, variant, scores)
@@ -720,13 +727,13 @@ const App: React.FC = () => {
             success: Boolean(runId),
             message: runId
               ? '你的靈魂甜點配方已封存於 Kiwimu 宇宙 ✦'
-              : '結果已暫存在此裝置，雲端尚未保存；請稍後再試。',
+              : localResultSaved ? '結果已暫存在此裝置，雲端尚未保存；請稍後再試。' : '結果目前只留在此頁，雲端尚未保存；重新整理前請稍後再試。',
           });
           setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), runId ? 3500 : 4500);
         })
         .catch(err => {
           console.error('Failed to save test results:', err);
-          setShowSaveToast({ show: true, success: false, message: '結果已暫存在此裝置，雲端尚未保存；請稍後再試。' });
+          setShowSaveToast({ show: true, success: false, message: localResultSaved ? '結果已暫存在此裝置，雲端尚未保存；請稍後再試。' : '結果目前只留在此頁，雲端尚未保存；重新整理前請稍後再試。' });
           setTimeout(() => setShowSaveToast({ show: false, success: true, message: '' }), 4500);
         });
 
@@ -778,9 +785,9 @@ const App: React.FC = () => {
 
     setResultData(null);
     setScores(null);
-    sessionStorage.removeItem('last_quiz_result');
-    sessionStorage.removeItem('last_quiz_scores');
-    sessionStorage.removeItem('flow_stage');
+    sessionCache.removeItem('last_quiz_result');
+    sessionCache.removeItem('last_quiz_scores');
+    sessionCache.removeItem('flow_stage');
 
     if (!isV1Pathname(window.location.pathname)) {
       window.history.pushState({}, '', '/quiz');
@@ -791,21 +798,21 @@ const App: React.FC = () => {
 
   const handleLogin = (options: LoginOptions = {}) => {
     // Always mark flow_stage so handleSession can return to correct stage after OAuth
-    sessionStorage.setItem('login_origin_stage', stage);
-    sessionStorage.setItem('flow_stage', 'login');
+    sessionCache.setItem('login_origin_stage', stage);
+    sessionCache.setItem('flow_stage', 'login');
     const shouldRestoreResult = Boolean(resultData && scores && !isSharedView);
-    sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, shouldRestoreResult ? 'result' : 'intro');
+    sessionCache.setItem(POST_LOGIN_DESTINATION_KEY, shouldRestoreResult ? 'result' : 'intro');
     if (shouldRestoreResult && resultData && scores) {
-      sessionStorage.setItem('last_quiz_result', JSON.stringify(resultData));
-      sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+      sessionCache.setItem('last_quiz_result', JSON.stringify(resultData));
+      sessionCache.setItem('last_quiz_scores', JSON.stringify(scores));
     } else {
-      sessionStorage.removeItem('last_quiz_result');
-      sessionStorage.removeItem('last_quiz_scores');
+      sessionCache.removeItem('last_quiz_result');
+      sessionCache.removeItem('last_quiz_scores');
     }
     // Preserve discord_link_state across OAuth redirect (URL is lost after /callback)
     const discordState = new URLSearchParams(window.location.search).get('discord_link_state');
     if (discordState) {
-      sessionStorage.setItem('discord_link_state', discordState);
+      sessionCache.setItem('discord_link_state', discordState);
     }
     trackAction('login_gate_opened', {
       path: window.location.pathname,
@@ -842,9 +849,9 @@ const App: React.FC = () => {
     try {
       await signOutSupabase();
       setUser(null);
-      sessionStorage.removeItem('flow_stage');
-      sessionStorage.removeItem('login_origin_stage');
-      sessionStorage.removeItem(POST_LOGIN_DESTINATION_KEY);
+      sessionCache.removeItem('flow_stage');
+      sessionCache.removeItem('login_origin_stage');
+      sessionCache.removeItem(POST_LOGIN_DESTINATION_KEY);
       if (stage !== 'result') {
         replaceRoute('/');
         setStage(isV1Pathname(window.location.pathname) || ROOT_PATHS.has(window.location.pathname) ? 'intro' : 'state-test');
@@ -865,12 +872,12 @@ const App: React.FC = () => {
         session_id: getSessionId(),
         mbti_type: resultData?.id,
       });
-      sessionStorage.setItem('flow_stage', 'login');
-      sessionStorage.setItem('login_origin_stage', stage);
-      sessionStorage.setItem(POST_LOGIN_DESTINATION_KEY, 'archive');
+      sessionCache.setItem('flow_stage', 'login');
+      sessionCache.setItem('login_origin_stage', stage);
+      sessionCache.setItem(POST_LOGIN_DESTINATION_KEY, 'archive');
       if (resultData && scores) {
-        sessionStorage.setItem('last_quiz_result', JSON.stringify(resultData));
-        sessionStorage.setItem('last_quiz_scores', JSON.stringify(scores));
+        sessionCache.setItem('last_quiz_result', JSON.stringify(resultData));
+        sessionCache.setItem('last_quiz_scores', JSON.stringify(scores));
       }
       openPassportLogin({
         intent: 'archive',

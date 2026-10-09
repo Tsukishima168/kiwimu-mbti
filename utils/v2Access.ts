@@ -108,8 +108,8 @@ export function clearV2Entitlement() {
 }
 
 export function readLegacyV2OrderId(): string {
-  if (typeof sessionStorage === 'undefined') return '';
   try {
+    if (typeof sessionStorage === 'undefined') return '';
     const orderId = sessionStorage.getItem(LEGACY_V2_ORDER_KEY) || '';
     return V2_ORDER_ID_PATTERN.test(orderId) ? orderId : '';
   } catch {
@@ -118,8 +118,8 @@ export function readLegacyV2OrderId(): string {
 }
 
 export function clearLegacyV2OrderId() {
-  if (typeof sessionStorage === 'undefined') return;
   try {
+    if (typeof sessionStorage === 'undefined') return;
     sessionStorage.removeItem(LEGACY_V2_ORDER_KEY);
   } catch {
     // Compatibility cleanup is best effort in restricted webviews.
