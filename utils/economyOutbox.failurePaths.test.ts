@@ -2,6 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { QUESTIONS } from '../constants';
 import type { Option } from '../types';
 
+vi.mock('./discord', () => ({ queueQuizCompletionNotification: () => {}, installQuizNotificationRetry: () => () => {} }));
+
 vi.mock('./supabaseAuthBridge', () => ({
   getAuthSupabaseClient: () => null,
 }));
