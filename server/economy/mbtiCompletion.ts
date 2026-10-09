@@ -47,7 +47,7 @@ function isQuizVersion(value: unknown): value is MbtiQuizVersion {
   return value === 'v1-40' || value === 'v2-tw-40';
 }
 
-function calculateResult(
+export function calculateMbtiResult(
   questionBank: readonly ServerQuestion[],
   answerIndices: readonly AnswerIndex[],
 ): { resultType: string; variant: 'A' | 'T' } {
@@ -107,7 +107,7 @@ export function parseMbtiCompletion(value: unknown): ParsedMbtiCompletion | null
   }
 
   const normalizedIndices = answerIndices as AnswerIndex[];
-  const { resultType, variant } = calculateResult(questionBank, normalizedIndices);
+  const { resultType, variant } = calculateMbtiResult(questionBank, normalizedIndices);
   const answersSha256 = createHash('sha256')
     .update(`${quizVersion}:${normalizedIndices.join('')}`)
     .digest('hex');

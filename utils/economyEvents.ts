@@ -7,6 +7,8 @@ import {
 } from '../shared/economy';
 import { getAuthSupabaseClient } from './supabaseAuthBridge';
 import { rememberPendingEconomyClaim } from './economyClaims';
+import { installQuizNotificationRetry, queueQuizCompletionNotification } from './discord';
+import type { QuizNotificationLocale } from '../shared/quizNotification';
 
 type AnswerIndex = 0 | 1;
 
@@ -443,6 +445,18 @@ export function queueMbtiCompleted(input: ReportMbtiCompletedInput): string | nu
   const answerIndices = encodeAnswerIndices(input.answers, input.questionBank);
   if (!answerIndices) return null;
 
+  // Independent of points rollout, login, and storage availability.
+  let notificationLocale: QuizNotificationLocale = 'zh';
+  if (input.quizVersion === 'v1-40') {
+    try {
+      const saved = getStorage()?.getItem('kiwimu_language');
+      if (saved === 'en' || saved === 'ja' || saved === 'ko') notificationLocale = saved;
+    } catch { /* Language storage may be unavailable. */ }
+  }
+  queueQuizCompletionNotification({
+    funnel: input.quizVersion === 'v2-tw-40' ? 'v2' : 'v1', locale: notificationLocale, answerIndices,
+  }, completionId);
+
   const attempt = readAttempt(input.quizVersion);
   const entry: MbtiEconomyOutboxEntry = {
     completionId,
@@ -472,6 +486,7 @@ export async function reportMbtiCompleted(
 
 export function installMbtiEconomyOutboxRetry(): () => void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return () => undefined;
+  const stopNotifications = installQuizNotificationRetry();
   const flush = () => void flushMbtiEconomyOutbox();
   const onVisibility = () => {
     if (document.visibilityState === 'visible') flush();
@@ -481,6 +496,7 @@ export function installMbtiEconomyOutboxRetry(): () => void {
   document.addEventListener('visibilitychange', onVisibility);
   flush();
   return () => {
+    stopNotifications();
     window.removeEventListener('online', flush);
     window.removeEventListener('focus', flush);
     document.removeEventListener('visibilitychange', onVisibility);

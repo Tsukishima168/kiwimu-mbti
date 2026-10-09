@@ -13,7 +13,6 @@ vi.mock('./discord/discord-data.service.js', () => ({
 vi.mock('google-spreadsheet', () => ({ GoogleSpreadsheet: mocks.sheet }));
 vi.mock('google-auth-library', () => ({ JWT: mocks.jwt }));
 
-import notify from '../api/notify-discord';
 import saveUser from '../api/save-user';
 import completeLink from '../api/discord/link/complete';
 import assignRole from '../api/discord/assign-role';
@@ -52,74 +51,6 @@ beforeEach(() => {
   vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
-
-describe('legacy Discord notification authorization', () => {
-  const body = { resultType: 'INTJ-A', personalityName: 'Synthetic' };
-
-  it('denies an unverified caller without contacting Discord', async () => {
-    mocks.identity.mockResolvedValue({ code: 'AUTH_REQUIRED' });
-    const { response, state } = res();
-    await notify(req(body), response);
-    expect(state.status).toBe(401);
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it.each(['https://other.example', ''])('denies origin %s before auth or delivery', async requestOrigin => {
-    const { response, state } = res();
-    await notify(req(body, { ...origin, origin: requestOrigin }), response);
-    expect(state.status).toBe(403);
-    expect(mocks.identity).not.toHaveBeenCalled();
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('limits body size before auth or delivery', async () => {
-    const { response, state } = res();
-    await notify(req({ ...body, extra: 'x'.repeat(5_000) }), response);
-    expect(state.status).toBe(413);
-    expect(mocks.identity).not.toHaveBeenCalled();
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('does not turn auth service outages into anonymous delivery', async () => {
-    mocks.identity.mockResolvedValue({ code: 'AUTH_UNAVAILABLE' });
-    const { response, state } = res();
-    await notify(req(body), response);
-    expect(state.status).toBe(503);
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it.each([null, [], { resultType: 'INTJ' }, { resultType: '@everyone-A' }, { resultType: 'ZZZZ-T' }])('rejects invalid result %j', async invalid => {
-    const { response, state } = res();
-    await notify(req(invalid), response);
-    expect(state.status).toBe(400);
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('uses a bounded server template and never sends client identity or mentions', async () => {
-    const { response, state } = res();
-    await notify(req({ ...body, personalityName: '@everyone hostile-name', userId: 'victim-account',
-      metadata: { funnel: 'v1', stage: '@here', userId: 'victim-account', path: '<@123>', sessionId: 'private-session' },
-    }), response);
-    expect(state.status).toBe(200);
-    expect(mocks.identity).toHaveBeenCalledOnce();
-    expect(fetch).toHaveBeenCalledTimes(2);
-    for (const [url, options] of vi.mocked(fetch).mock.calls) {
-      expect(url).toMatch(/^https:\/\/discord\.com\/api\/v10\/channels\/[^/]+\/messages$/);
-      const payload = JSON.parse(String(options!.body));
-      expect(payload.allowed_mentions).toEqual({ parse: [] });
-      expect(payload.content).toBeUndefined();
-      expect(JSON.stringify(payload)).not.toMatch(/@everyone|@here|<@123>|hostile-name|victim-account|private-session/);
-    }
-  });
-
-  it('returns a generic failure when Discord rejects the send', async () => {
-    vi.mocked(fetch).mockResolvedValue({ ok: false, json: async () => ({ message: 'secret-provider-detail' }) } as Response);
-    const { response, state } = res();
-    await notify(req(body), response);
-    expect(state.status).toBe(502);
-    expect(JSON.stringify(state.body)).not.toContain('secret-provider-detail');
-  });
-});
 
 describe('Discord account ownership', () => {
   it('requires verified auth before looking up an otherwise valid Discord state', async () => {

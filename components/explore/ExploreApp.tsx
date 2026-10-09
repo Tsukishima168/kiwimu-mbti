@@ -17,8 +17,8 @@ import {
 } from '../../data/questions-explore';
 import { Language, useLanguage } from '../../contexts/LanguageContext';
 import { exploreTranslations } from '../../i18n/exploreTranslations';
-import { sendDiscordNotification } from '../../utils/discord';
-import { getSession, trackAction } from '../../utils/userDataCollector';
+import { queueQuizCompletionNotification } from '../../utils/discord';
+import { trackAction } from '../../utils/userDataCollector';
 import { trackPageView, trackScreenEngagement } from '../../utils/analytics';
 import { applyRuntimeSeo } from '../../utils/seo';
 import { KIWIMU_CAMPAIGN_ASSETS } from '../../data/kiwimuVisualAssets';
@@ -175,15 +175,10 @@ export default function ExploreApp() {
     });
     const personality = explorePersonalities[r.mbtiType];
     if (personality) {
-      void sendDiscordNotification(r.mbtiType, r.suffix, activeLanguage, undefined, {
-        funnel: 'v1_5',
-        personalityNameOverride: `${localePack.personalities[r.mbtiType as keyof typeof localePack.personalities].state}（5題快測 Quiz-${quizVersion} / ${source}）`,
-        stage: 'result',
-        source,
-        quizVersion,
-        path: window.location.pathname,
-        sessionId: getSession(),
-        isLoggedIn: false,
+      const answerIndices = quiz.questions.map(question =>
+        question.options.findIndex(option => option.value === answers[question.id]));
+      if (answerIndices.every(index => index === 0 || index === 1)) queueQuizCompletionNotification({
+        funnel: 'v1_5', locale: activeLanguage, answerIndices: answerIndices as (0 | 1)[],
       });
     }
   };
