@@ -123,6 +123,9 @@ try {
       await page.getByRole('button', { name: '更新頁面', exact: true }).waitFor();
       await page.getByRole('button', { name: '更新頁面', exact: true }).click();
       await page.waitForFunction(() => document.querySelector('meta[name="qa-build-version"]')?.content === '2');
+      // The callback assertion navigates this tab; make it foreground first.
+      // Background-tab navigation can stall in local Chrome after SW activation.
+      await other.bringToFront();
       const response = await other.goto(server.url + '/api/linepay/confirm?qa=local-only');
       assert.equal(response.status(), 503);
       assert.equal((await response.json()).code, 'QA_MOCK_ONLY');
