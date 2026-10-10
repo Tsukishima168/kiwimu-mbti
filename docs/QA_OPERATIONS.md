@@ -17,6 +17,7 @@ npm run build
 npm run verify:pwa-navigation
 npx playwright install chromium
 npm run verify:accessibility
+npm run verify:v2-experience
 npm run verify:pwa-lifecycle
 ```
 
@@ -27,6 +28,12 @@ npm run verify:pwa-lifecycle
 PWA 先測前一版至候選版的明確接受／V2 draft 保留，再測候選版之間更新：三種作答畫面延後更新、另一分頁啟用 worker 不重載作答分頁、完成後才允許接受、付款 callback 不被 SPA shell 攔截。已開啟的舊版分頁要重新載入後才會取得新的作答保護；舊版更新提示仍請使用「稍後」。
 
 GitHub 的成功 check 本身不會阻擋 merge。若要禁止略過，店主需將 `MBTI regression / regression` 設為 main 的 required check；這輪不修改 repo rules。
+
+## V2 完整作答與甜點照片
+
+`npm run verify:v2-experience` 以 390px 手機、1280px 桌機、320px 文字200%與橫向視窗走完各40題。檢查連按不重複提交、上一題、手機刷新續答、草稿完成清除、跨段不跳全屏、長題無內部捲軸、慢菜單不阻斷出結果、一次本機通知含40個選項。
+
+照片檢核須確認 img 實際存在且解碼成功；「可見破圖0」不能證明有照片。另外驗菜單503、停滯請求、圖片404及無照片契約的重新載入，再走32個報告型別。共39個瀏覽器案例。菜單与照片、付費權益均為測試資料，不代表真人付款、正式菜單事實或通知已送達；公開菜單与照片需另做唯讀檢查。V2照片仍依現行菜單，不回退到可能不同品項的歷史圖片。
 
 ## 商家私有通知摘要（需先部署與設定）
 

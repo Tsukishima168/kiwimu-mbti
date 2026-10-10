@@ -36,13 +36,17 @@ export function buildUnifiedDessertEndpoint(
   return endpoint;
 }
 
-export async function loadUnifiedDessertContract(type: string): Promise<UnifiedDessertContract | null> {
+export async function loadUnifiedDessertContract(type: string, refresh = false): Promise<UnifiedDessertContract | null> {
   const normalizedType = type.trim().toUpperCase();
-  if (dessertCache.has(normalizedType)) return dessertCache.get(normalizedType)!;
+  if (!refresh && dessertCache.has(normalizedType)) return dessertCache.get(normalizedType)!;
+  const controller = new AbortController();
+  // The proxy times out its upstream after five seconds. Do not leave the
+  // report's photo panel waiting indefinitely if the browser request stalls.
+  const timeout = setTimeout(() => controller.abort(), 8000);
   try {
     const endpoint = buildUnifiedDessertEndpoint(normalizedType);
 
-    const response = await fetch(endpoint.toString());
+    const response = await fetch(endpoint.toString(), { signal: controller.signal });
     if (!response.ok) {
       return null;
     }
@@ -59,6 +63,8 @@ export async function loadUnifiedDessertContract(type: string): Promise<UnifiedD
   } catch (error) {
     console.warn('Failed to load unified dessert contract:', error);
     return null;
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

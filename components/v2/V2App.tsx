@@ -3,6 +3,7 @@ import { V2_REPORT_PRICE_TWD } from '../../shared/v2Product';
 import type { AppUser } from '../../types';
 import V2Welcome from './V2Welcome';
 import V2AccountBar from './V2AccountBar';
+import DessertPhoto from './DessertPhoto';
 import { loginWithGoogle, useSupabaseAuth } from './useSupabaseAuth';
 import { getDimensionDescription, matchingRecordedResult, hasDimensionAnswers } from './reportReading';
 import { requestPaidReport, reportAccessFailure, type PaidReportBundle } from './reportAccess';
@@ -317,6 +318,7 @@ export default function V2App({ user }: V2AppProps) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [dessertContract, setDessertContract] = useState<UnifiedDessertContract | null>(null);
   const [dessertLoadStatus, setDessertLoadStatus] = useState<DessertLoadStatus>('idle');
+  const [dessertRefresh, setDessertRefresh] = useState(0);
   const source = params.get('source') || 'direct';
 
   const knownType = useMemo(() => {
@@ -371,7 +373,7 @@ export default function V2App({ user }: V2AppProps) {
     setDessertContract(null);
     setDessertLoadStatus('loading');
 
-    void loadUnifiedDessertContract(dessertType).then((contract) => {
+    void loadUnifiedDessertContract(dessertType, dessertRefresh > 0).then((contract) => {
       if (cancelled) return;
       setDessertContract(contract);
       setDessertLoadStatus(contract ? 'ready' : 'unavailable');
@@ -380,7 +382,7 @@ export default function V2App({ user }: V2AppProps) {
     return () => {
       cancelled = true;
     };
-  }, [dessertType]);
+  }, [dessertType, dessertRefresh]);
 
   useEffect(() => {
     const normalizedPath = normalizeV2Pathname(window.location.pathname);
@@ -1481,21 +1483,14 @@ export default function V2App({ user }: V2AppProps) {
           <div className="ad-grid-2">
             <div>
               <div className="ad-card ad-dessert-card ad-mb-8">
-                {dessertImageUrl ? (
-                  <figure className="ad-dessert-visual">
-                    <img
-                      src={dessertImageUrl}
-                      className="ad-dessert-image"
-                      alt={`${dessertName}，月島菜單品項`}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <figcaption className="ad-dessert-caption">
-                      <span className="ad-dessert-caption-code">Menu Pairing · {fullType}</span>
-                      <span className="ad-dessert-caption-name">{dessertName}</span>
-                    </figcaption>
-                  </figure>
-                ) : null}
+                <DessertPhoto
+                  src={dessertImageUrl}
+                  name={dessertName}
+                  fullType={fullType}
+                  loading={dessertLoadStatus === 'loading'}
+                  unavailable={dessertLoadStatus === 'unavailable'}
+                  onRetry={() => setDessertRefresh(attempt => attempt + 1)}
+                />
                 <p className="ad-body-15 ad-mb-12">
                   {dessertDescription}
                 </p>
