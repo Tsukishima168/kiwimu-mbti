@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 // Check the built import graph rather than the source's import syntax:
 // manual chunking can pull an optional SDK back into an eager vendor bundle.
-const dist = path.resolve('dist');
+const dist = path.resolve(process.argv[2] || 'dist');
 const html = readFileSync(path.join(dist, 'index.html'), 'utf8');
 const entries = [...html.matchAll(/<script\b[^>]*type="module"[^>]*src="([^"]+)"/g)]
   .map((match) => path.join(dist, match[1].replace(/^\//, '')));
