@@ -14,6 +14,28 @@ export default defineConfig(({ mode }) => {
     plugins: [
       tailwindcss(),
       react(),
+      {
+        name: 'guard-liff-lazy-loading',
+        apply: 'build',
+        generateBundle(_options, bundle) {
+          // Check the emitted graph in every build, including configured auth.
+          // Manual vendor groups can otherwise pull shared SDK exports eagerly.
+          const visited = new Set<string>();
+          const visit = (fileName: string) => {
+            if (visited.has(fileName)) return;
+            visited.add(fileName);
+            const chunk = bundle[fileName];
+            if (!chunk || chunk.type !== 'chunk') return;
+            if (chunk.code.includes('LIFF_STORE:')) {
+              this.error(`LINE SDK must remain lazy: ${fileName}`);
+            }
+            chunk.imports.forEach(visit);
+          };
+          Object.values(bundle).forEach((chunk) => {
+            if (chunk.type === 'chunk' && chunk.isEntry) visit(chunk.fileName);
+          });
+        },
+      },
       VitePWA({
         registerType: 'prompt',
         injectRegister: false,
@@ -129,20 +151,6 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       chunkSizeWarningLimit: 1000,
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            // Keep LIFF's storage-reading module evaluation out of the initial
-            // React vendor chunk so guarded dynamic imports remain effective.
-            if (id.includes('/node_modules/@line/liff/') || id.includes('/node_modules/@liff/')) {
-              return 'line-sdk';
-            }
-            if (id.includes('node_modules')) {
-              return 'vendor';
-            }
-          }
-        }
-      }
     },
     resolve: {
       alias: {
