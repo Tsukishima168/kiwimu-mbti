@@ -1,3 +1,4 @@
+import { sessionCache } from '../utils/sessionCache';
 import React, { useState } from 'react';
 import { openPassportLogin } from '../utils/authStorage';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -21,7 +22,7 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
         const loginContext = {
             path: window.location.pathname,
             is_unlock_mode: isUnlockMode,
-            flow_stage: sessionStorage.getItem('flow_stage') || 'unknown',
+            flow_stage: sessionCache.getItem('flow_stage') || 'unknown',
         };
         // `message` is what the user sees; `diagnostic` (raw provider text) is for analytics only.
         const handleLoginError = (message: string, diagnostic: string = message) => {

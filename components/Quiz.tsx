@@ -9,6 +9,8 @@ import ResumeModal from './ResumeModal';
 import { trackQuizStart, trackQuizProgress, trackQuizComplete, createQuizAbandonGuard, registerQuizAbandonListeners } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
 import { questionTranslations } from '../i18n/questionsTranslations';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import './quiz-ui.css';
 
 interface QuizProps {
     user: AppUser | null;
@@ -23,6 +25,12 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     const [isAnimating, setIsAnimating] = useState(false);
     const [showResumeModal, setShowResumeModal] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageFailed, setImageFailed] = useState(false);
+    const [selectedValue, setSelectedValue] = useState<Option['value'] | null>(null);
+    const reducedMotion = useReducedMotion();
+    const answerTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const answering = React.useRef(false);
+    const headingRef = React.useRef<HTMLHeadingElement>(null);
     const [questions, setQuestions] = useState<Question[]>(QUESTIONS); // 預設使用 constants
     const [questionsLoaded, setQuestionsLoaded] = useState(false);
 
@@ -86,11 +94,15 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     }, [language]);
 
     const currentQuestion: Question | undefined = questions[currentIndex];
-    const progress = questionsLoaded && currentQuestion ? ((currentIndex + 1) / questions.length) * 100 : 0;
+    const progress = questionsLoaded && currentQuestion ? (answers.length / questions.length) * 100 : 0;
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
     const rawV15Result = urlParams?.get('v15_result') || '';
     const v15Result = /^[A-Z]{4}-[AT]$/.test(rawV15Result) ? rawV15Result : null;
     const shouldShowV15Banner = urlParams?.get('source') === 'v15_quiz' && Boolean(v15Result);
+    useEffect(() => () => { if (answerTimer.current !== null) clearTimeout(answerTimer.current); }, []);
+    useEffect(() => {
+        if (questionsLoaded && !showResumeModal) headingRef.current?.focus({ preventScroll: true });
+    }, [currentIndex, questionsLoaded, showResumeModal]);
 
     const getQuestionText = (q: Question) => {
         if (language === 'zh') return q.text;
@@ -122,6 +134,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     // Image Preloading Logic - Enhanced to preload 2 images ahead
     useEffect(() => {
         setImageLoaded(false);
+        setImageFailed(false);
         const imagesToPreload = [
             QUESTIONS[currentIndex]?.imageUrl,
             QUESTIONS[currentIndex + 1]?.imageUrl,
@@ -149,7 +162,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
 
     // 隨機洗牌邏輯
     const shuffledOptions = useMemo(() => {
-        return [...currentQuestion.options].sort(() => Math.random() - 0.5);
+        return [...(currentQuestion?.options ?? [])].sort(() => Math.random() - 0.5);
     }, [currentQuestion]);
 
     const handleResume = () => {
@@ -174,7 +187,9 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
     };
 
     const handleOptionSelect = (option: Option) => {
-        if (isAnimating) return;
+        if (answering.current || isAnimating || showResumeModal) return;
+        answering.current = true;
+        setSelectedValue(option.value);
         setIsAnimating(true);
 
         const newAnswers = [...answers, option];
@@ -183,20 +198,23 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
         // Track progress
         trackQuizProgress(currentIndex + 1, questions.length);
 
-        setTimeout(() => {
+        answerTimer.current = setTimeout(() => {
+            answerTimer.current = null;
             if (currentIndex < questions.length - 1) {
                 setCurrentIndex(prev => prev + 1);
                 setIsAnimating(false);
+                setSelectedValue(null);
+                answering.current = false;
             } else {
                 clearProgress(); // Clear progress when quiz is completed
                 completedRef.current = true; // Prevents a false quiz_abandon on unmount
                 onComplete(newAnswers);
             }
-        }, 600);
+        }, reducedMotion ? 0 : 600);
     };
 
     const handlePrevious = () => {
-        if (currentIndex === 0 || isAnimating) return;
+        if (currentIndex === 0 || answering.current || isAnimating) return;
         setCurrentIndex(prev => prev - 1);
         setAnswers(prev => {
             const newAnswers = [...prev];
@@ -215,7 +233,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 />
             )}
 
-            <div className="flex flex-col min-h-screen bg-kiwi-bg">
+            <div className="classic-quiz flex flex-col min-h-screen bg-kiwi-bg">
                 {/* Header */}
                 <div className="fixed top-[var(--ku-rail-height)] left-0 right-0 z-50 bg-kiwi-bg/95 backdrop-blur-sm">
                     <div className="max-w-3xl mx-auto px-6 h-20 flex items-end justify-between pb-4">
@@ -226,7 +244,8 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                             {currentIndex > 0 && (
                                 <button
                                     onClick={handlePrevious}
-                                    className="text-xs text-gray-400 hover:text-kiwi-dark transition-colors tracking-wider uppercase"
+                                    disabled={isAnimating}
+                                    className="min-h-11 px-2 text-sm text-gray-600 hover:text-kiwi-dark transition-colors tracking-wide uppercase disabled:opacity-40"
                                 >
                                     ← {t('quiz_previous')}
                                 </button>
@@ -236,9 +255,9 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                             {questionsLoaded && currentQuestion ? `${currentIndex + 1} / ${questions.length}` : t('quiz_loading')}
                         </span>
                     </div>
-                    <div className="h-[1px] bg-gray-100 w-full">
+                    <div className="h-[2px] bg-gray-100 w-full" role="progressbar" aria-label={t('resume_progress').replace('{current}', String(answers.length)).replace('{total}', String(questions.length))} aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={answers.length}>
                         <div
-                            className="h-full bg-kiwi-dark transition-all duration-500 ease-out"
+                            className="h-full bg-kiwi-dark transition-[width] duration-500 ease-out"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
@@ -249,39 +268,42 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                     <div className="max-w-2xl mx-auto w-full">
                         {shouldShowV15Banner && (
                             <div className="mb-8 border border-kiwi-dark bg-white px-5 py-4 shadow-sm">
-                                <p className="text-[10px] font-mono font-bold uppercase tracking-[0.22em] text-gray-400">
+                                <p className="text-xs font-mono font-bold uppercase tracking-wide text-gray-600">
                                     V1.5 初判結果
                                 </p>
                                 <p className="mt-2 text-sm text-gray-700 leading-relaxed">
-                                    你剛剛偏向 <span className="font-mono font-bold text-kiwi-dark">{v15Result}</span>。V2 進化版即將公布，先完成 V1 純 MBTI 免費版，之後型別資料可以帶進 V2。
+                                    你剛剛的快速探索偏向 <span className="font-mono font-bold text-kiwi-dark">{v15Result}</span>。接下來是 V1 的 40 題免費測驗；結果也會提供 V2 敘事報告的入口。
                                 </p>
                             </div>
                         )}
                         {!questionsLoaded || !currentQuestion ? (
-                            <div className="text-center py-20">
+                            <div className="text-center py-20" role="status">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kiwi-dark mx-auto mb-4"></div>
                                 <p className="text-gray-500">{t('quiz_loading_questions')}</p>
                             </div>
                         ) : (
-                            <div className={`transition-all duration-500 transform ${isAnimating ? 'opacity-0 translate-y-[-10px]' : 'opacity-100 translate-y-0'}`}>
+                            <div className="classic-quiz-question" aria-busy={isAnimating}>
 
                                 {/* Atmospheric Image Block */}
-                                <div className="w-full aspect-[21/9] mb-10 relative overflow-hidden bg-gray-100">
+                                {!imageFailed ? <div className="classic-quiz-image w-full aspect-[21/9] mb-10 relative overflow-hidden bg-gray-100" aria-hidden="true">
                                     {!imageLoaded && (
                                         <div className="absolute inset-0 bg-gray-200 animate-pulse" />
                                     )}
                                     <img
                                         src={currentQuestion.imageUrl}
-                                        alt="Atmosphere"
+                                        alt=""
+                                        width={840}
+                                        height={360}
                                         onLoad={() => setImageLoaded(true)}
+                                        onError={() => setImageFailed(true)}
                                         className={`w-full h-full object-cover grayscale opacity-90 transition-all duration-500 ease-out hover:scale-105 ${imageLoaded ? 'opacity-90' : 'opacity-0'}`}
                                     />
                                     <div className="absolute inset-0 border border-black/5 pointer-events-none"></div>
-                                </div>
+                                </div> : null}
 
                                 {/* Text Area */}
                                 <div className="mb-12 md:mb-16">
-                                    <h2 className="text-xl md:text-3xl font-serif font-medium text-kiwi-dark text-center leading-relaxed tracking-wide">
+                                    <h2 ref={headingRef} tabIndex={-1} className="text-xl md:text-3xl font-serif font-medium text-kiwi-dark text-center leading-relaxed tracking-wide">
                                         {getQuestionText(currentQuestion)}
                                     </h2>
                                 </div>
@@ -291,10 +313,13 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                                     {shuffledOptions.map((option, idx) => (
                                         <button
                                             key={idx}
+                                            type="button"
+                                            disabled={isAnimating}
+                                            aria-pressed={selectedValue === option.value}
                                             onClick={() => handleOptionSelect(option)}
-                                            className="group relative w-full p-6 md:p-8 text-center border border-gray-200 hover:border-kiwi-dark hover:bg-white transition-all duration-300 active:scale-[0.99] hover:scale-[1.01] hover:shadow-xl bg-white/50"
+                                            className="classic-quiz-option group relative w-full p-6 md:p-8 text-center border border-gray-200 hover:border-kiwi-dark hover:bg-white transition-colors duration-200 bg-white/50"
                                         >
-                                            <span className="absolute top-4 left-4 text-[10px] font-mono text-gray-300 group-hover:text-kiwi-dark transition-colors uppercase tracking-widest">
+                                            <span aria-hidden="true" className="absolute top-4 left-4 text-xs font-mono text-gray-500 group-hover:text-kiwi-dark transition-colors uppercase tracking-wide">
                                                 {String.fromCharCode(65 + idx)}
                                             </span>
                                             <span className="block text-base md:text-lg text-gray-700 font-light leading-relaxed group-hover:text-black group-hover:font-normal transition-all">

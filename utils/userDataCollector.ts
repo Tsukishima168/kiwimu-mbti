@@ -46,6 +46,22 @@ export interface UserAction {
 let currentSession: string | null = null;
 let sessionStartTime: number | null = null;
 let userActions: UserAction[] = [];
+let memorySession: Record<string, any> | null = null;
+
+function readSessionData(): Record<string, any> {
+  if (memorySession) return memorySession;
+  try {
+    const saved = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
+    memorySession = saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+  } catch { memorySession = {}; }
+  return memorySession!;
+}
+
+function writeSessionData(data: Record<string, any>): void {
+  memorySession = data;
+  try { localStorage.setItem('kiwimu_session', JSON.stringify(data)); }
+  catch { /* Optional analytics must never interrupt the customer flow. */ }
+}
 
 export function initSession() {
   // 生成 Session ID
@@ -67,7 +83,7 @@ export function initSession() {
   };
 
   // 儲存到 localStorage
-  localStorage.setItem('kiwimu_session', JSON.stringify(sessionData));
+  writeSessionData(sessionData);
 
   console.log('📊 Session 已初始化:', currentSession);
   return currentSession;
@@ -93,9 +109,9 @@ export function trackAction(action: string, metadata?: any) {
   userActions.push(actionData);
 
   // 同步到 localStorage（防止重新整理遺失）
-  const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
+  const sessionData = readSessionData();
   sessionData.actions = userActions;
-  localStorage.setItem('kiwimu_session', JSON.stringify(sessionData));
+  writeSessionData(sessionData);
 
   console.log('📝 行為記錄:', action, metadata);
 }
@@ -138,7 +154,7 @@ export function detectDevice() {
 // ============================================
 export async function saveUserBehavior(uid: string, mbtiType?: string, variant?: string) {
   try {
-    const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
+    const sessionData = readSessionData();
     const device = detectDevice();
 
     const behaviorData: Partial<UserBehaviorData> = {
@@ -172,7 +188,7 @@ export async function saveUserBehavior(uid: string, mbtiType?: string, variant?:
 // ============================================
 async function updateUserStats(uid: string, mbtiType?: string, variant?: string) {
   try {
-    const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
+    const sessionData = readSessionData();
     await upsertUserStats(uid, mbtiType, variant, sessionData.utmSource);
   } catch (error) {
     console.error('❌ 更新用戶統計失敗:', error);
@@ -183,7 +199,7 @@ async function updateUserStats(uid: string, mbtiType?: string, variant?: string)
 // 匯出用戶資料（用於分析）
 // ============================================
 export function exportUserData() {
-  const sessionData = JSON.parse(localStorage.getItem('kiwimu_session') || '{}');
+  const sessionData = readSessionData();
   const device = detectDevice();
 
   return {

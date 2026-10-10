@@ -4,6 +4,9 @@ import { trackButtonClick } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
 import { V2_REPORT_PRICE_TWD } from '../shared/v2Product';
+import { useReducedMotion } from '../hooks/useReducedMotion';
+import { KIWIMU_CAMPAIGN_ASSETS } from '../data/kiwimuVisualAssets';
+import './quiz-ui.css';
 
 interface IntroProps {
   onStart: () => void;
@@ -15,6 +18,7 @@ interface IntroProps {
 
 const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, onLogout }) => {
   const { t, language } = useLanguage();
+  const reducedMotion = useReducedMotion();
   const entry = {
     zh: { choose: '選擇你的探索方式', v1: 'V1｜經典人格', v1Detail: '40 題・測驗與結果免費', v1Start: '開始 V1', v2: 'V2｜敘事探索', v2Detail: '40 個生活情境・第 01 章免費', v2Price: `完整報告 NT$${V2_REPORT_PRICE_TWD}・單次解鎖`, v2Start: '開始 V2', quick: '想先輕鬆看看？V1.5 五題狀態探索', note: '依此刻的感受回答，讓結果成為理解自己的起點。' },
     en: { choose: 'Choose your exploration', v1: 'V1 | Classic personality', v1Detail: '40 questions · Free quiz and results', v1Start: 'Start V1', v2: 'V2 | Narrative exploration', v2Detail: '40 everyday situations · Chapter 01 free', v2Price: `Full report NT$${V2_REPORT_PRICE_TWD} · One-time unlock`, v2Start: 'Start V2', quick: 'A lighter start? V1.5: five questions about today', note: 'Answer from how you feel today. Let the result start a conversation with yourself.' },
@@ -23,7 +27,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
   }[language];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 fade-in relative overflow-hidden">
+    <div className="classic-intro flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 fade-in relative overflow-hidden">
 
       {/* Language Toggle in top-left corner */}
       <div className="absolute top-6 left-6 z-50">
@@ -77,24 +81,9 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
                     </svg>
                     <span>{t('my_archive')}</span>
                   </div>
-                  <span className="px-2 py-0.5 bg-kiwi-dark text-white text-xs rounded-full font-mono">0</span>
                 </div>
               </button>
             )}
-            {/* Settings Shortcut */}
-            <button
-              onClick={() => { trackButtonClick('設定', 'intro_dropdown'); if (onViewArchive) onViewArchive(); }}
-              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 flex items-center gap-3"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M12 1v6m0 6v6" />
-                <path d="m4.93 4.93 4.24 4.24m5.66 5.66 4.24 4.24" />
-                <path d="M1 12h6m6 0h6" />
-                <path d="m4.93 19.07 4.24-4.24m5.66-5.66 4.24-4.24" />
-              </svg>
-              <span>{t('settings')}</span>
-            </button>
             {onLogout && (
               <button
                 onClick={() => { trackButtonClick('登出', 'intro_dropdown'); onLogout(); }}
@@ -115,20 +104,24 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
       <div className="flex flex-col items-center z-10 max-w-md w-full text-center">
 
         {/* 圓形動畫容器 */}
-        <div
+        <button
+          type="button"
+          aria-label={entry.v1Start}
           className="ku-orbit-frame w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden mt-16 mb-6 relative group cursor-pointer bg-gray-100"
           onClick={() => { trackButtonClick('進入_圓形', 'intro_main'); onStart(); }}
         >
           <img
-            src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif"
-            alt="KIWIMU Intro"
+            src={reducedMotion ? KIWIMU_CAMPAIGN_ASSETS.landingHero.src : 'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif'}
+            alt=""
+            width={256}
+            height={256}
             className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
             loading="eager"
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
             <span className="text-white font-display text-xl tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300">{t('enter')}</span>
           </div>
-        </div>
+        </button>
 
         <p className="ku-site-kicker mb-5">01 / Personality lab</p>
 
@@ -165,7 +158,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
         {(!user || user.isAnonymous) && (
           <button
             onClick={() => { trackButtonClick('登入_誘因', 'intro_main'); onLogin(); }}
-            className="mt-4 text-xs font-serif text-kiwi-dark underline decoration-kiwi-dark/30 hover:decoration-kiwi-dark opacity-80 hover:opacity-100 transition-all"
+            className="mt-4 min-h-11 text-sm font-serif text-kiwi-dark underline decoration-kiwi-dark/30 hover:decoration-kiwi-dark opacity-80 hover:opacity-100 transition-colors"
           >
             {t('login_prompt')}
           </button>

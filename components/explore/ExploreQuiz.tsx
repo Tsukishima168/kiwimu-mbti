@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { ExploreQuiz as ExploreQuizType, ExploreOption } from '../../data/questions-explore';
 import { Language } from '../../contexts/LanguageContext';
 import { KIWIMU_CAMPAIGN_ASSETS } from '../../data/kiwimuVisualAssets';
@@ -22,6 +23,12 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
   const [answers, setAnswers]       = useState<Record<string, string>>({});
   const [selected, setSelected]     = useState<string | null>(null);
   const [showVisual, setShowVisual] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const answering = useRef(false);
+  const answerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reducedMotion = useReducedMotion();
+  useEffect(() => () => { if (answerTimer.current !== null) clearTimeout(answerTimer.current); }, []);
+  useEffect(() => { headingRef.current?.focus({ preventScroll: true }); }, [currentIdx]);
 
   const question = quiz.questions[currentIdx];
   const total    = quiz.questions.length;
@@ -36,10 +43,12 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
           : "'Inter', sans-serif";
 
   const handleSelect = (option: ExploreOption) => {
-    if (selected) return;
+    if (answering.current || selected) return;
+    answering.current = true;
     setSelected(option.value);
     setShowVisual(true);
-    setTimeout(() => {
+    answerTimer.current = setTimeout(() => {
+      answerTimer.current = null;
       const newAnswers = { ...answers, [question.id]: option.value };
       if (isLast) {
         onComplete(newAnswers);
@@ -48,12 +57,13 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
         setCurrentIdx(i => i + 1);
         setSelected(null);
         setShowVisual(false);
+        answering.current = false;
       }
-    }, 900);
+    }, reducedMotion ? 0 : 900);
   };
 
   return (
-    <div style={{ minHeight: '100svh', position: 'relative', overflow: 'hidden', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+    <div className="explore-quiz" style={{ minHeight: '100svh', position: 'relative', overflow: 'hidden', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
 
       {/* 模糊背景圖 */}
       <div style={{
@@ -74,7 +84,7 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
 
         {/* Header */}
         <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div role="progressbar" aria-label="Quiz progress" aria-valuemin={0} aria-valuemax={total} aria-valuenow={currentIdx} style={{ display: 'flex', gap: 6 }}>
             {quiz.questions.map((_, i) => (
               <div key={i} style={{
                 width:        i < currentIdx ? 20 : 8,
@@ -82,7 +92,7 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
                 borderRadius: 4,
                 background:   i < currentIdx ? tk.ink : i === currentIdx ? tk.acid : 'transparent',
                 border:       `1.5px solid ${i === currentIdx ? tk.acid : tk.ink}`,
-                transition:   'all 0.3s ease',
+                transition:   'width 0.3s ease, background-color 0.3s ease',
               }} />
             ))}
           </div>
@@ -102,7 +112,7 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
           margin:         '0 auto',
           width:          '100%',
         }}>
-          <h2 style={{ fontSize: 'clamp(18px, 4vw, 24px)', fontWeight: 700, color: tk.ink, lineHeight: 1.5, marginBottom: 32 }}>
+          <h2 ref={headingRef} tabIndex={-1} style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, color: tk.ink, lineHeight: 1.6, marginBottom: 32 }}>
             {question.text}
           </h2>
 
@@ -113,6 +123,8 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
               return (
                 <button
                   key={i}
+                  type="button"
+                  aria-pressed={isChosen}
                   onClick={() => handleSelect(option)}
                   disabled={!!selected}
                   style={{
@@ -128,16 +140,16 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
                     boxShadow:   isChosen ? 'none' : '4px 4px 0 rgba(26,26,26,0.08)',
                     transform:   isChosen ? 'translate(4px,4px)' : 'none',
                     opacity:     isOther ? 0.3 : 1,
-                    transition:  'all 0.15s ease',
+                    transition:  'transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease',
                     width:       '100%',
                     backdropFilter: 'blur(8px)',
                     WebkitBackdropFilter: 'blur(8px)',
                   }}
                 >
-                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, fontWeight: 700, color: isChosen ? tk.ink : tk.muted, letterSpacing: '0.1em', flexShrink: 0, marginTop: 2 }}>
+                  <span aria-hidden="true" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, fontWeight: 700, color: isChosen ? tk.ink : '#595952', letterSpacing: '0.1em', flexShrink: 0, marginTop: 2 }}>
                     {i === 0 ? 'A' : 'B'}
                   </span>
-                  <span style={{ fontSize: 14, lineHeight: 1.6, color: tk.ink, fontFamily: bodyFontFamily }}>
+                  <span style={{ fontSize: 16, lineHeight: 1.7, color: tk.ink, fontFamily: bodyFontFamily }}>
                     {option.text}
                   </span>
                 </button>
@@ -176,7 +188,11 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
       <style>{`
         @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
         @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
-        button:focus-visible { outline: 2px solid ${tk.acid}; outline-offset: 2px; }
+        .explore-quiz button:focus-visible { outline: 2px solid ${tk.ink}; outline-offset: 4px; }
+        .explore-quiz button { touch-action: manipulation; }
+        @media (prefers-reduced-motion: reduce) {
+          .explore-quiz * { animation: none !important; transition: none !important; }
+        }
       `}</style>
     </div>
   );

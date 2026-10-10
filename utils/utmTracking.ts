@@ -71,7 +71,7 @@ export const EXTERNAL_LINKS: Record<string, ExternalLink> = {
   // LINE Official Account
   LINE_OA: {
     name: 'LINE 官方帳號',
-    baseUrl: 'https://lin.ee/r19wTnY',
+    baseUrl: 'https://line.me/R/ti/p/@kiwimu',
     defaultSource: 'mbti-lab'
   },
 

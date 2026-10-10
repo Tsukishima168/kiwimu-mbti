@@ -6,7 +6,9 @@ import KiwimuAtlasWall from '../visuals/KiwimuAtlasWall';
 import V2AccountBar from './V2AccountBar';
 import { V2_REPORT_PRICE_TWD } from '../../shared/v2Product';
 
-export default function V2Welcome({ onStart, knownType }: { onStart?: () => void; knownType?: string | null }) {
+export default function V2Welcome({ onStart, knownType, resumeCount, onResume }: {
+  onStart?: () => void; knownType?: string | null; resumeCount?: number; onResume?: () => void;
+}) {
   const scene = getSceneAsset(knownType || 'INFP-A');
   return (
     <main className="v2-surface ad-welcome">
@@ -23,11 +25,16 @@ export default function V2Welcome({ onStart, knownType }: { onStart?: () => void
             <div><dt>你的步調</dt><dd className="ad-welcome-pace">慢慢來</dd></div>
           </dl>
           {knownType ? <p className="ad-welcome-known">上次的入口座標 <strong>{knownType}</strong> · 也可以重新探索。</p> : null}
+          {resumeCount && onResume ? <aside className="atlas-quiz-resume" aria-label="接續未完成的測驗">
+            <p>已完成 <strong>{resumeCount} / {V2_TAIWAN_QUESTIONS.length} 題</strong>。可以從上次停下的地方接著回答。</p>
+            <button className="ad-btn-primary" type="button" onClick={onResume}>接著答第 {resumeCount + 1} 題 <span aria-hidden="true">↗</span></button>
+          </aside> : null}
           <div className="ad-btn-row">
-            {onStart ? <button className="ad-btn-primary" type="button" onClick={onStart}>開始 40 題探索 <span aria-hidden="true">↗</span></button> : <a className="ad-btn-primary" href="/read/quiz">開始 40 題探索 <span aria-hidden="true">↗</span></a>}
+            {onStart ? <button className={resumeCount ? 'ad-btn-ghost' : 'ad-btn-primary'} type="button" onClick={onStart}>{resumeCount ? '重新開始 40 題' : '開始 40 題探索'} <span aria-hidden="true">↗</span></button> : <a className="ad-btn-primary" href="/read/quiz">開始 40 題探索 <span aria-hidden="true">↗</span></a>}
             <a className="ad-btn-ghost" href={onStart ? '/read' : '/explore'}>{onStart ? '返回圖鑑入口' : '先做快速探索'}</a>
           </div>
           <p className="ad-welcome-note">測驗與第 01 章試讀免費；完整 V2 報告 NT${V2_REPORT_PRICE_TWD}，單次解鎖。</p>
+          {onStart ? <p className="ad-welcome-note">作答進度暫存在這個分頁，24 小時內可重新整理後續答，不會同步到帳號或其他裝置。</p> : null}
           {import.meta.env.VITE_V2_CHECKOUT_ENABLED !== 'true' ? <p className="ad-welcome-note">目前尚未開放新購買。已購報告可從「我的報告」繼續閱讀。</p> : null}
         </section>
         <aside className="ad-welcome-art" aria-label="Kiwimu 敘事圖鑑選頁">

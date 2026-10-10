@@ -1,5 +1,5 @@
 import React from 'react';
-import { buildDessertOrderLink, buildMoonMapLink, buildPassportLink, trackOutboundClick } from '../utils/utmTracking';
+import { buildDessertOrderLink, buildMoonMapLink, buildPassportLink, EXTERNAL_LINKS, trackOutboundClick } from '../utils/utmTracking';
 import { usePendingEconomyClaimUrl } from '../hooks/usePendingEconomyClaimUrl';
 
 interface ExploreMoreProps {
@@ -138,7 +138,7 @@ export const ExploreMore: React.FC<ExploreMoreProps> = ({ mbtiType, variant, pas
         </p>
         <div className="flex items-center justify-center gap-6">
           <a
-            href="https://lin.ee/r19wTnY"
+            href={EXTERNAL_LINKS.LINE_OA.baseUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[10px] md:text-[11px] font-mono text-gray-600 hover:text-kiwi-dark tracking-wider uppercase font-bold transition-colors underline underline-offset-4"

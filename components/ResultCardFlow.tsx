@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { v1ReportCopy } from '../i18n/v1Report.generated';
 import { trackResultView } from '../utils/analytics';
 import { shareResultToLine } from '../utils/liffShare';
+import { shareWithFeedback } from '../utils/shareFeedback';
 import type { PassportLoginUiOptions } from '../utils/authStorage';
 
 import { IdentityCard } from './cards/IdentityCard';
@@ -41,6 +42,9 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
 }) => {
     const [activeIndex, setActiveIndex] = useState(0);
     const [hasSkippedGate, setHasSkippedGate] = useState(false);
+    const [shareMessage, setShareMessage] = useState('');
+    const [shareBusy, setShareBusy] = useState(false);
+    const [manualShare, setManualShare] = useState(false);
 
     const percentages = calculatePercentages(rawScores);
     const resultAT: 'A' | 'T' = percentages.A >= percentages.Turbulent ? 'A' : 'T';
@@ -112,20 +116,19 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
 
     // Handle Native Web Share API
     const handleNativeShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: t('share_title')?.replace('{id}', resultData.id).replace('{suffix}', identitySuffix).replace('{title}', i18nContent.title) || `我是 ${resultData.id}-${identitySuffix}，${i18nContent.title}｜Kiwimu MBTI`,
-                    text: t('share_text')?.replace('{dessert}', anchor.name) || `我的靈魂甜點是 ${anchor.name}！來看看你的 Kiwimu 檔案吧`,
-                    url: `https://kiwimu.com/` // Replace with user-specific share link URL if available later
-                });
-            } catch (err) {
-                console.warn('Share rejected or failed:', err);
-            }
-        } else {
-            // Fallback behavior if needed (e.g. copy link to clipboard)
-            navigator.clipboard.writeText(`https://kiwimu.com/`);
-            alert(t('share_alert') || '已複製連結');
+        if (shareBusy) return;
+        setShareBusy(true); setShareMessage(''); setManualShare(false);
+        const outcome = await shareWithFeedback({
+            title: t('share_title').replace('{id}', resultData.id).replace('{suffix}', identitySuffix).replace('{title}', i18nContent.title),
+            text: t('share_text').replace('{dessert}', anchor.name),
+            url: 'https://kiwimu.com/',
+        });
+        setShareBusy(false);
+        if (outcome === 'cancelled') return;
+        if (outcome === 'copied') setShareMessage(t('share_alert'));
+        if (outcome === 'failed') {
+            setManualShare(true);
+            setShareMessage({ zh: '無法自動分享，請複製連結。', en: 'Sharing is unavailable. Copy the link below.', ja: '共有できませんでした。下のリンクをコピーしてください。', ko: '공유할 수 없습니다. 아래 링크를 복사해 주세요.' }[language]);
         }
     };
 
@@ -198,14 +201,17 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
                 <div className="absolute top-4 right-4 z-[60] flex gap-2">
                     <button
                         onClick={handleLineShare}
-                        className="w-10 h-10 rounded-full bg-[#06C755] flex items-center justify-center shadow hover:opacity-90 text-white transition-opacity"
+                        aria-label="Share to LINE"
+                        className="w-11 h-11 rounded-full bg-[#087A35] flex items-center justify-center shadow hover:opacity-90 text-white transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kiwi-dark"
                         title="Share to LINE"
                     >
                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
                     </button>
                     <button
                         onClick={handleNativeShare}
-                        className="w-10 h-10 rounded-full bg-white/50 backdrop-blur-md flex items-center justify-center shadow hover:bg-white text-kiwi-dark transition-colors"
+                        disabled={shareBusy}
+                        aria-label={t('share_title').replace('{id}', resultData.id).replace('{suffix}', identitySuffix).replace('{title}', i18nContent.title)}
+                        className="w-11 h-11 rounded-full bg-white/50 backdrop-blur-md flex items-center justify-center shadow hover:bg-white text-kiwi-dark transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kiwi-dark"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                     </button>
@@ -213,12 +219,18 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
                     {isArchiveMode && onViewArchive && (
                         <button
                             onClick={onViewArchive}
-                            className="w-10 h-10 rounded-full bg-white/50 backdrop-blur-md flex items-center justify-center shadow hover:bg-white text-kiwi-dark transition-colors"
+                            aria-label={t('my_archive')}
+                            className="w-11 h-11 rounded-full bg-white/50 backdrop-blur-md flex items-center justify-center shadow hover:bg-white text-kiwi-dark transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kiwi-dark"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     )}
                 </div>
+
+                {shareMessage ? <div role="status" className="absolute top-20 left-4 right-4 z-[60] bg-white border border-kiwi-dark p-4 text-sm leading-relaxed text-kiwi-dark">
+                    <p>{shareMessage}</p>
+                    {manualShare ? <a href="https://kiwimu.com/" className="underline break-all">https://kiwimu.com/</a> : null}
+                </div> : null}
 
                 {/* Stories Progress Bar */}
                 <div className="absolute top-0 left-0 right-0 z-50 px-2 py-3 flex gap-1 pointer-events-none mix-blend-difference">
