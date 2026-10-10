@@ -83,4 +83,22 @@ describe('PWA update consent', () => {
     await api.acceptPwaUpdate();
     expect(window.location.reload).toHaveBeenCalledTimes(1);
   });
+  it('keeps answers if a quiz starts while worker activation is pending', async () => {
+    const active = vi.fn().mockReturnValue(null);
+    vi.stubGlobal('document', { querySelector: active });
+    const api = await import('./pwaUpdates'); api.startPwaUpdateMonitor();
+    const target = worker('installing');
+    mock.options.onRegisteredSW('/sw.js', { installing: target }); mock.options.onNeedRefresh();
+    const pending = api.acceptPwaUpdate();
+    expect(api.getPwaUpdateState()).toBe('updating');
+    active.mockReturnValue({});
+    target.state = 'installed'; target.dispatchEvent(new Event('statechange'));
+    target.state = 'activated'; target.dispatchEvent(new Event('statechange'));
+    await pending;
+    expect(window.location.reload).not.toHaveBeenCalled();
+    expect(api.getPwaUpdateState()).toBe('available');
+    active.mockReturnValue(null);
+    await api.acceptPwaUpdate();
+    expect(window.location.reload).toHaveBeenCalledTimes(1);
+  });
 });

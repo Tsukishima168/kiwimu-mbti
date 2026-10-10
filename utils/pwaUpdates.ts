@@ -48,6 +48,13 @@ export async function acceptPwaUpdate() {
     const target = registration?.waiting || registration?.installing || registration?.active;
     if (!target) throw new Error('UPDATE_UNAVAILABLE');
     await waitForActivation(target, updateWorker);
+    // Activation is asynchronous. A quiz may begin while the worker installs;
+    // keep that document intact and offer acceptance again after completion.
+    if (hasActiveQuiz()) {
+      accepted = false;
+      publish('available');
+      return;
+    }
     window.location.reload();
   } catch {
     accepted = false;
