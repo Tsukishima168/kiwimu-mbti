@@ -11,21 +11,14 @@ type DessertPhotoProps = {
 
 export default function DessertPhoto({ src, name, fullType, loading, unavailable, onRetry }: DessertPhotoProps) {
   const [failed, setFailed] = useState(false);
-  const [imageAttempt, setImageAttempt] = useState(0);
   useEffect(() => { setFailed(false); }, [src]);
-
-  const retry = () => {
-    setFailed(false);
-    setImageAttempt(attempt => attempt + 1);
-    onRetry();
-  };
 
   return (
     <figure className={`ad-dessert-visual${!src || failed ? ' is-placeholder' : ''}`}>
       {src && !failed ? (
         <>
           <img
-            key={`${src}:${imageAttempt}`}
+            key={src}
             src={src}
             className="ad-dessert-image"
             alt={`${name}，月島菜單品項`}
@@ -42,7 +35,7 @@ export default function DessertPhoto({ src, name, fullType, loading, unavailable
         <div className="ad-dessert-photo-status" aria-live="polite" aria-busy={loading}>
           <p>{loading ? '正在載入月島甜點照片…' : failed ? '甜點照片暫時載入不了。' : unavailable ? '目前無法載入月島菜單與照片。' : '這款甜點目前沒有菜單照片。'}</p>
           <p className="ad-dessert-photo-note">{loading ? '你可以先繼續閱讀，照片會在這裡顯示。' : '實際品項與供應資訊，請以月島菜單為準。'}</p>
-          {!loading ? <button type="button" className="ad-btn-ghost" onClick={retry}>重新載入照片</button> : null}
+          {!loading ? <button type="button" className="ad-btn-ghost" onClick={onRetry}>重新載入照片</button> : null}
         </div>
       )}
     </figure>

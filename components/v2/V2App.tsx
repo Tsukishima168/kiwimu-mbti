@@ -1489,7 +1489,11 @@ export default function V2App({ user }: V2AppProps) {
                   fullType={fullType}
                   loading={dessertLoadStatus === 'loading'}
                   unavailable={dessertLoadStatus === 'unavailable'}
-                  onRetry={() => setDessertRefresh(attempt => attempt + 1)}
+                  onRetry={() => {
+                    setDessertContract(null);
+                    setDessertLoadStatus('loading');
+                    setDessertRefresh(attempt => attempt + 1);
+                  }}
                 />
                 <p className="ad-body-15 ad-mb-12">
                   {dessertDescription}

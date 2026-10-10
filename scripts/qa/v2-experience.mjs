@@ -31,7 +31,7 @@ const contexts = [];
 async function fixture(options = {}) {
   const t = await context(browser, server.url, options);
   contexts.push(t);
-  let mode = 'ready', menuRequests = 0, imageRequests = 0, notifications = 0;
+  let mode = 'ready', menuDelay = 0, menuRequests = 0, imageRequests = 0, notifications = 0;
   const payloadCounts = [];
   await t.ctx.route('**/api/v2/report', async route => {
     const code = route.request().postDataJSON().mbtiType;
@@ -44,6 +44,7 @@ async function fixture(options = {}) {
     if (mode === 'error') return route.fulfill({ status: 503, json: { success: false } });
     const data = menu(type);
     if (mode === 'no-photo') data.data.image_url = null;
+    if (menuDelay) await new Promise(resolve => setTimeout(resolve, menuDelay));
     await route.fulfill({ json: data });
   });
   await t.ctx.route(photoUrl, async route => {
@@ -56,11 +57,13 @@ async function fixture(options = {}) {
     payloadCounts.push(data.answerIndices?.length ?? 0);
     await route.fulfill({ json: { ok: true } });
   });
-  return { ...t, setMode(value) { mode = value; }, stats: () => ({ menuRequests, imageRequests, notifications, payloadCounts }) };
+  return { ...t, setMode(value) { mode = value; }, setMenuDelay(value) { menuDelay = value; }, stats: () => ({ menuRequests, imageRequests, notifications, payloadCounts }) };
 }
 async function assertPhoto(page) {
   const photo = page.locator('.ad-dessert-image');
-  await photo.scrollIntoViewIfNeeded();
+  // The persistent figure survives loading -> ready transitions; the img
+  // exists only once the refreshed source has been accepted.
+  await page.locator('.ad-dessert-visual').scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const img = document.querySelector('.ad-dessert-image');
     return img?.complete && img.naturalWidth > 0;
@@ -133,9 +136,16 @@ try {
     await page.locator('.ad-dessert-visual').scrollIntoViewIfNeeded();
     await page.getByRole('button', { name: '重新載入照片', exact: true }).waitFor();
     t.setMode('ready');
+    t.setMenuDelay(600);
+    const refreshed = page.waitForResponse(response => response.url().includes('/api/mbti-dessert?') && response.status() === 200);
     await page.getByRole('button', { name: '重新載入照片', exact: true }).click();
+    await page.locator('.ad-dessert-photo-status[aria-busy="true"]').waitFor();
+    assert.equal(await page.locator('.ad-dessert-image').count(), 0, 'Retry must not briefly recreate the failed old photo');
+    assert.equal(t.stats().imageRequests, failure === 'image-error' ? 1 : 0);
+    await refreshed;
     await assertPhoto(page);
     const requests = t.stats();
+    assert.equal(requests.imageRequests, failure === 'image-error' ? 2 : 1, 'Exactly one image load per accepted menu response');
     assert.equal(requests.menuRequests, 2, 'Retry refreshes source, even for cached/no-photo contracts');
     assert.equal(t.errors.length, 0);
     console.log(`PASS photo-${failure}-recovery`);
