@@ -84,7 +84,7 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
 
         {/* Header */}
         <div style={{ padding: '20px 24px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div role="progressbar" aria-label="Quiz progress" aria-valuemin={0} aria-valuemax={total} aria-valuenow={currentIdx} style={{ display: 'flex', gap: 6 }}>
+          <div role="progressbar" aria-label={{ zh: '作答進度', en: 'Quiz progress', ja: '回答の進捗', ko: '응답 진행 상황' }[language]} aria-valuemin={0} aria-valuemax={total} aria-valuenow={currentIdx} style={{ display: 'flex', gap: 6 }}>
             {quiz.questions.map((_, i) => (
               <div key={i} style={{
                 width:        i < currentIdx ? 20 : 8,

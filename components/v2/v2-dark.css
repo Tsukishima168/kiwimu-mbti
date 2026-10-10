@@ -901,7 +901,7 @@
   background: var(--sep);
   flex-shrink: 0;
 }
-.ad-tag-info { display: flex; flex-direction: column; gap: 2px; }
+.ad-tag-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
 .ad-tag-zh {
   font-family: var(--f-display);
   font-size: 14px;

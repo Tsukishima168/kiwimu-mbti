@@ -916,6 +916,9 @@ export default function V2App({ user }: V2AppProps) {
       document.getElementById(chapterId) ?? document.querySelector<HTMLElement>('.ad-paywall-box');
 
     if (target) {
+      const heading = target.querySelector<HTMLElement>('h1, h2') ?? target;
+      heading.tabIndex = -1;
+      heading.focus({ preventScroll: true });
       target.scrollIntoView({ behavior, block: 'start' });
       if (document.getElementById(chapterId)) {
         setActiveChapter(chapterId);

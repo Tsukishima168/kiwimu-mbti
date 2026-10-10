@@ -4,6 +4,7 @@ import verifyUnlockHandler from '../../server/routes/v2/verify-unlock.js';
 import myReportsHandler from '../../server/routes/v2/my-reports.js';
 import claimReportHandler from '../../server/routes/v2/claim-report.js';
 import receiptHandler from '../../server/routes/v2/receipt.js';
+import notificationHealthHandler from '../../server/routes/v2/notification-health.js';
 
 export default function handler(request: VercelRequest, response: VercelResponse) {
   const routeValue = request.query.operation;
@@ -14,6 +15,7 @@ export default function handler(request: VercelRequest, response: VercelResponse
   if (route === 'my-reports') return myReportsHandler(request, response);
   if (route === 'claim-report') return claimReportHandler(request, response);
   if (route === 'receipt') return receiptHandler(request, response);
+  if (route === 'notification-health') return notificationHealthHandler(request, response);
 
   return response.status(404).json({ ok: false, code: 'NOT_FOUND' });
 }
