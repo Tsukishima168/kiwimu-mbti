@@ -62,3 +62,6 @@ MBTI-Lab-V1.5-TEST/
 __pycache__/
 *.pyc
 .tmp/
+.qa-results/
+playwright-report/
+test-results/

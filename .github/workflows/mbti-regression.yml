@@ -1,0 +1,49 @@
+name: MBTI regression
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: mbti-regression-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VITE_MOON_ISLAND_SUPABASE_URL: https://example.invalid
+      VITE_MOON_ISLAND_SUPABASE_ANON_KEY: qa-noncredential-placeholder
+      VITE_SUPABASE_USER_URL: ''
+      VITE_SUPABASE_USER_ANON_KEY: ''
+      VITE_LINE_LIFF_ID: ''
+      GEMINI_API_KEY: ''
+      QA_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD' }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run verify:build-matrix
+      - run: npm run build
+      - run: npm run verify:pwa-navigation
+      - run: npx playwright install --with-deps chromium
+      - run: npm run verify:accessibility
+      - run: npm run verify:pwa-lifecycle
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        if: always()
+        with:
+          name: mbti-browser-evidence
+          # Keep full report screenshots local; public artifacts contain counts
+          # and assertions only, never the paid report's rendered prose.
+          path: .qa-results/**/results.json
+          retention-days: 7

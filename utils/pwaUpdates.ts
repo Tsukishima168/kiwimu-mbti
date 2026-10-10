@@ -14,6 +14,11 @@ function publish(next: UpdateState) {
 }
 
 export const getPwaUpdateState = () => state;
+export function hasActiveQuiz(): boolean {
+  return typeof document !== 'undefined' && Boolean(document.querySelector(
+    '.classic-quiz, .explore-quiz, .ad-quiz-screen, .ad-chapter-break, .ad-resolving',
+  ));
+}
 export function subscribePwaUpdates(listener: () => void) {
   listeners.add(listener);
   return () => { listeners.delete(listener); };
@@ -34,7 +39,9 @@ export function startPwaUpdateMonitor() {
 }
 
 export async function acceptPwaUpdate() {
-  if (!updateWorker || state === 'updating') return;
+  // V1.5 and restricted-storage sessions cannot restore answers after a reload.
+  // Check here as well as in the button: a quiz may start after the notice renders.
+  if (!updateWorker || state === 'updating' || hasActiveQuiz()) return;
   accepted = true;
   publish('updating');
   try {
