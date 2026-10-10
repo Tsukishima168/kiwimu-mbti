@@ -46,4 +46,6 @@ jobs:
           # Keep full report screenshots local; public artifacts contain counts
           # and assertions only, never the paid report's rendered prose.
           path: .qa-results/**/results.json
+          include-hidden-files: true
+          if-no-files-found: error
           retention-days: 7
