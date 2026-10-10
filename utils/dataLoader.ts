@@ -7,6 +7,7 @@ import {
 export type { UnifiedDessertContract } from '../shared/dessertContract';
 
 const dessertCache = new Map<string, UnifiedDessertContract>();
+let dessertRefreshSequence = 0;
 
 const SHOP_MENU_MBTI_ENDPOINT = 'https://shop.kiwimu.com/api/menu/mbti';
 
@@ -45,8 +46,16 @@ export async function loadUnifiedDessertContract(type: string, refresh = false):
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
     const endpoint = buildUnifiedDessertEndpoint(normalizedType);
+    if (refresh) {
+      // The production proxy has a shared CDN cache. Refresh must use a new
+      // cache key as well as bypassing the browser and in-memory caches.
+      endpoint.searchParams.set('_refresh', `${Date.now().toString(36)}-${++dessertRefreshSequence}`);
+    }
 
-    const response = await fetch(endpoint.toString(), { signal: controller.signal });
+    const response = await fetch(endpoint.toString(), {
+      signal: controller.signal,
+      cache: refresh ? 'no-store' : 'default',
+    });
     if (!response.ok) {
       return null;
     }

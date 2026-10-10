@@ -128,13 +128,19 @@ try {
     results.push({ case: name, answered: 40, menuDoesNotBlockResult: true, photoRecovery: true, errors: t.errors, ...t.stats() });
   }
   for (const failure of ['error', 'image-error', 'no-photo']) {
-    const t = await fixture(), page = await t.ctx.newPage();
+    const t = await fixture(failure === 'error' ? { viewport: { width: 320, height: 568 } } : {}), page = await t.ctx.newPage();
     t.setMode(failure);
     await page.goto(server.url + '/read/ESTJ-A');
     await page.locator('#ch-07').waitFor();
+    if (failure === 'error') await text200(page);
     // Lazy photos need to enter view before their failure can appear.
     await page.locator('.ad-dessert-visual').scrollIntoViewIfNeeded();
     await page.getByRole('button', { name: '重新載入照片', exact: true }).waitFor();
+    const buttonInsideFrame = await page.locator('.ad-dessert-photo-status button').evaluate(button => {
+      const frame = button.closest('figure').getBoundingClientRect(), control = button.getBoundingClientRect();
+      return control.top >= frame.top && control.bottom <= frame.bottom && control.left >= frame.left && control.right <= frame.right;
+    });
+    assert.equal(buttonInsideFrame, true, 'Photo retry must not be clipped, including 200% text');
     t.setMode('ready');
     t.setMenuDelay(600);
     const refreshed = page.waitForResponse(response => response.url().includes('/api/mbti-dessert?') && response.status() === 200);
@@ -143,6 +149,7 @@ try {
     assert.equal(await page.locator('.ad-dessert-image').count(), 0, 'Retry must not briefly recreate the failed old photo');
     assert.equal(t.stats().imageRequests, failure === 'image-error' ? 1 : 0);
     await refreshed;
+    assert.ok(new URL(refreshed.url()).searchParams.get('_refresh'), 'Refresh bypasses the shared CDN cache key');
     await assertPhoto(page);
     const requests = t.stats();
     assert.equal(requests.imageRequests, failure === 'image-error' ? 2 : 1, 'Exactly one image load per accepted menu response');

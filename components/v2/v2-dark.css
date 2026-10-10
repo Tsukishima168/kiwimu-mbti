@@ -2156,7 +2156,7 @@
 }
 .ad-question-text { scroll-margin-top: calc(var(--ku-rail-height, 0px) + 20px); }
 .ad-option-help { color: var(--t3); font-size: 12px; line-height: 1.7; margin: 0 0 16px; }
-.ad-dessert-visual.is-placeholder { display: grid; place-items: center; }
+.ad-dessert-visual.is-placeholder { display: grid; place-items: center; aspect-ratio: auto; min-height: 220px; overflow: visible; }
 .ad-dessert-visual.is-placeholder::after { display: none; }
 .ad-dessert-photo-status { padding: 32px 24px; text-align: center; color: var(--t1); font-size: 16px; line-height: 1.8; }
 .ad-dessert-photo-note { color: var(--t2); font-size: 14px; margin: 8px 0 20px; }

@@ -53,6 +53,12 @@ describe('menu loading recovery', () => {
     expect((await loadUnifiedDessertContract('estj'))?.image_url).toBe(data.image_url);
     expect((await loadUnifiedDessertContract('ESTJ', true))?.image_url).toBe(updated.image_url);
     expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(new URL(fetcher.mock.calls[0][0]).searchParams.has('_refresh')).toBe(false);
+    expect(new URL(fetcher.mock.calls[1][0]).searchParams.get('_refresh')).toBeTruthy();
+    expect(fetcher.mock.calls[1][1]).toMatchObject({ cache: 'no-store' });
+    fetcher.mockResolvedValueOnce(Response.json({ success: true, data: updated }));
+    await loadUnifiedDessertContract('ESTJ', true);
+    expect(fetcher.mock.calls[2][0]).not.toBe(fetcher.mock.calls[1][0]);
   });
 
   it('stalled requests stop loading after eight seconds and remain retryable', async () => {
