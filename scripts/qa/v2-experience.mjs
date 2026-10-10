@@ -148,8 +148,8 @@ try {
     await page.locator('.ad-dessert-photo-status[aria-busy="true"]').waitFor();
     assert.equal(await page.locator('.ad-dessert-image').count(), 0, 'Retry must not briefly recreate the failed old photo');
     assert.equal(t.stats().imageRequests, failure === 'image-error' ? 1 : 0);
-    await refreshed;
-    assert.ok(new URL(refreshed.url()).searchParams.get('_refresh'), 'Refresh bypasses the shared CDN cache key');
+    const refreshedResponse = await refreshed;
+    assert.ok(new URL(refreshedResponse.url()).searchParams.get('_refresh'), 'Refresh bypasses the shared CDN cache key');
     await assertPhoto(page);
     const requests = t.stats();
     assert.equal(requests.imageRequests, failure === 'image-error' ? 2 : 1, 'Exactly one image load per accepted menu response');
