@@ -38,6 +38,7 @@ jobs:
       - run: npm run verify:pwa-navigation
       - run: npx playwright install --with-deps chromium
       - run: npm run verify:accessibility
+      - run: npm run verify:v2-experience
       - run: npm run verify:pwa-lifecycle
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         if: always()

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { parseUnifiedDessertContract } from '../shared/dessertContract';
 import { buildUnifiedDessertEndpoint } from './dataLoader';
 
@@ -20,6 +20,59 @@ describe('buildUnifiedDessertEndpoint', () => {
 
     expect(endpoint.pathname).toBe('/api/mbti-dessert');
     expect(endpoint.searchParams.get('mbti')).toBe('INFJ');
+  });
+});
+
+describe('menu loading recovery', () => {
+  const data = {
+    mbti_type: 'ESTJ', linkage_type: 'exact', soul_dessert_name: '鹹蛋黃巴斯克',
+    display_name: '鹹蛋黃巴斯克', canonical_name: '鹹蛋黃｜巴斯克乳酪',
+    image_url: 'https://res.cloudinary.com/demo/image/upload/first.webp',
+  };
+  beforeEach(() => { vi.resetModules(); vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+  it('does not cache a failure, so retry can recover the real menu photo', async () => {
+    const fetcher = vi.fn().mockResolvedValueOnce(new Response('', { status: 503 }))
+      .mockResolvedValueOnce(Response.json({ success: true, data }));
+    vi.stubGlobal('fetch', fetcher);
+    const { loadUnifiedDessertContract } = await import('./dataLoader');
+    expect(await loadUnifiedDessertContract('ESTJ')).toBeNull();
+    expect((await loadUnifiedDessertContract('ESTJ'))?.image_url).toBe(data.image_url);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('explicit refresh replaces a cached photo URL instead of reusing stale data', async () => {
+    const updated = { ...data, image_url: 'https://res.cloudinary.com/demo/image/upload/current.webp' };
+    const fetcher = vi.fn().mockResolvedValueOnce(Response.json({ success: true, data }))
+      .mockResolvedValueOnce(Response.json({ success: true, data: updated }));
+    vi.stubGlobal('fetch', fetcher);
+    const { loadUnifiedDessertContract } = await import('./dataLoader');
+    await loadUnifiedDessertContract('ESTJ');
+    expect((await loadUnifiedDessertContract('estj'))?.image_url).toBe(data.image_url);
+    expect((await loadUnifiedDessertContract('ESTJ', true))?.image_url).toBe(updated.image_url);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(new URL(fetcher.mock.calls[0][0]).searchParams.has('_refresh')).toBe(false);
+    expect(new URL(fetcher.mock.calls[1][0]).searchParams.get('_refresh')).toBeTruthy();
+    expect(fetcher.mock.calls[1][1]).toMatchObject({ cache: 'no-store' });
+    fetcher.mockResolvedValueOnce(Response.json({ success: true, data: updated }));
+    await loadUnifiedDessertContract('ESTJ', true);
+    expect(fetcher.mock.calls[2][0]).not.toBe(fetcher.mock.calls[1][0]);
+  });
+
+  it('stalled requests stop loading after eight seconds and remain retryable', async () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const fetcher = vi.fn().mockImplementationOnce((_url, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+    })).mockResolvedValueOnce(Response.json({ success: true, data }));
+    vi.stubGlobal('fetch', fetcher);
+    const { loadUnifiedDessertContract } = await import('./dataLoader');
+    const pending = loadUnifiedDessertContract('ESTJ');
+    await vi.advanceTimersByTimeAsync(8000);
+    expect(await pending).toBeNull();
+    expect(await loadUnifiedDessertContract('ESTJ')).not.toBeNull();
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
 
