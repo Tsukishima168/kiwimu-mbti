@@ -3,7 +3,7 @@ import type { LastV1ResultBundle } from '../../utils/v2Access';
 import { V2_TAIWAN_QUESTIONS } from '../../data/v2TaiwanQuestions.generated';
 import { V2_VARIANT_REPORTS } from '../../data/v2VariantReports.generated';
 import { V2_VARIANT_SUMMARIES } from '../../data/v2VariantSummaries.generated';
-import { getDimensionDescription, hasDimensionAnswers, matchingRecordedResult } from './reportReading';
+import { getDimensionDescription, hasDimensionAnswers, matchingRecordedResult, splitReportParagraphs } from './reportReading';
 
 const emptyScores = {
   E: 0,
@@ -75,7 +75,10 @@ describe('V2 report reading integrity', () => {
         'work',
         'relationship',
       ]);
-      expect(report.narrative.scenes.every(scene => scene.body.length >= 60 && scene.body.length <= 110)).toBe(true);
+      expect(report.narrative.scenes.every(scene => scene.body.length >= 35 && scene.body.length <= 160)).toBe(true);
+      expect(splitReportParagraphs(report.narrative.overview)).toHaveLength(2);
+      expect(report.narrative.scenes.every(scene => splitReportParagraphs(scene.body).length === 2)).toBe(true);
+      expect(report.narrative.scenes.every(scene => splitReportParagraphs(scene.body)[1].startsWith('可以試試：'))).toBe(true);
       expect(report.narrative.scenes.every(scene => scene.body.split(/[。！？]/u).filter(Boolean).length >= 2)).toBe(true);
       expect(report.narrative.counterpoint).toContain('不是對你的定論');
 
@@ -87,6 +90,25 @@ describe('V2 report reading integrity', () => {
       expect(readerCopy).not.toMatch(/你不是/u);
       expect(readerCopy).not.toMatch(/天生|永遠|注定|一眼看穿|終其一生/u);
     }
+  });
+
+  it('keeps all 128 scene examples distinct and the A/T meanings separate', () => {
+    const reports = Object.values(V2_VARIANT_REPORTS);
+    expect(new Set(reports.flatMap(report => report.narrative.scenes.map(scene => scene.body))).size).toBe(128);
+    for (const report of reports) {
+      const opposite = V2_VARIANT_REPORTS[`${report.type}-${report.variant === 'A' ? 'T' : 'A'}`];
+      expect(report.narrative.overview).not.toBe(opposite.narrative.overview);
+      expect(report.professional.subtypeItems[0].body).not.toBe(opposite.professional.subtypeItems[0].body);
+      expect(report.dimension.bullets[4].body).toContain('不表示能力高低');
+      expect(report.career.bullets[0].body).toContain('不能只由型別決定');
+      expect(report.carry).not.toMatch(/你怕的是|是你自己決定的|那個聲音是你自己的|他們的標準/u);
+    }
+  });
+
+  it('preserves authored paragraphs and poetic single line breaks as plain text', () => {
+    expect(splitReportParagraphs('  第一段。\r\n\r\n第二段。\n下一行。\n\n  ')).toEqual(['第一段。', '第二段。\n下一行。']);
+    expect(splitReportParagraphs('')).toEqual([]);
+    expect(splitReportParagraphs('<script>example</script>')).toEqual(['<script>example</script>']);
   });
 
   it('publishes exactly 32 free summaries without paid chapter fields', () => {

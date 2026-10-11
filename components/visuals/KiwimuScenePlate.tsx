@@ -10,6 +10,8 @@ interface KiwimuScenePlateProps {
   bleed?: boolean;
   priority?: boolean;
   className?: string;
+  /** Reader-facing title may evolve independently of the original artwork name. */
+  title?: string;
 }
 
 /**
@@ -25,6 +27,7 @@ export default function KiwimuScenePlate({
   bleed = false,
   priority = false,
   className,
+  title = asset.title,
 }: KiwimuScenePlateProps) {
   const { scene, sceneSm } = asset;
   return (
@@ -40,7 +43,7 @@ export default function KiwimuScenePlate({
           sizes="(min-width: 900px) 900px, 100vw"
           width={scene.width}
           height={scene.height}
-          alt={scene.alt}
+          alt={title === asset.title ? scene.alt : `${asset.fullType}「${title}」場景插畫`}
           loading={priority ? 'eager' : 'lazy'}
           fetchPriority={priority ? 'high' : undefined}
           decoding="async"
@@ -53,7 +56,7 @@ export default function KiwimuScenePlate({
             <span className="ad-scene-code">
               {asset.fullType} · {asset.familyEn}
             </span>
-            <span className="ad-scene-title">{asset.title}</span>
+            <span className="ad-scene-title">{title}</span>
           </span>
           {indexLabel ? <span className="ad-scene-index">{indexLabel}</span> : null}
         </figcaption>

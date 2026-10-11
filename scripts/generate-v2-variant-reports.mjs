@@ -10,6 +10,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const OBSIDIAN_ROOT =
   process.env.PENSO_OBSIDIAN_ROOT ||
@@ -31,13 +32,14 @@ const FAMILY_DIRS = {
 const OUTPUT_FILE = path.resolve(process.cwd(), 'data/v2VariantReports.generated.ts');
 const PUBLIC_OUTPUT_FILE = path.resolve(process.cwd(), 'data/v2VariantSummaries.generated.ts');
 
-function cleanText(value = '') {
+export function cleanText(value = '') {
   return value
     .replace(/\r/g, '')
     .replace(/\*\*/g, '')
-    .replace(/^\s*---\s*$/gm, '')
+    .replace(/^[ \t]*---[ \t]*$/gm, '')
     .replace(/([\u4e00-\u9fff])\./g, '$1。')
-    .replace(/^[>\s]+/gm, '')
+    .replace(/^[ \t]*>[ \t]?/gm, '')
+    .replace(/^[ \t]+/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
@@ -69,12 +71,12 @@ function parseFrontmatter(content) {
   };
 }
 
-function parseAbstract(content) {
+export function parseAbstract(content) {
   const raw = firstMatch(content, /> \*\*([^*]+)\*\*：([\s\S]*?)(?=\n\n---|\n## )/m);
   const body = /> \*\*[^*]+\*\*：([\s\S]*?)(?=\n\n---|\n## )/m.exec(content)?.[1] || '';
   return {
     label: cleanInline(raw),
-    body: cleanInline(body),
+    body: cleanText(body),
   };
 }
 
@@ -85,14 +87,16 @@ function parseSoulQuote(content) {
     .trim();
 }
 
-function parseLabeledBullets(raw) {
+export function parseLabeledBullets(raw) {
   const items = [];
-  const re = /^[->]?\s*-?\s*\*\*([^*]+)\*\*：([\s\S]*?)(?=\n[->]?\s*-?\s*\*\*|$)/gm;
+  // `m` makes `$` match EVERY line ending. Use true EOF so a second authored
+  // paragraph cannot disappear silently, and horizontal whitespace for labels.
+  const re = /^[ \t>]*-?[ \t]*\*\*([^*]+)\*\*：([\s\S]*?)(?=\n[ \t>]*-?[ \t]*\*\*[^*]+\*\*：|(?![\s\S]))/gm;
   let match;
   while ((match = re.exec(raw)) !== null) {
     items.push({
       label: cleanInline(match[1]),
-      body: cleanInline(match[2]),
+      body: cleanText(match[2]),
     });
   }
   return items;
@@ -122,7 +126,7 @@ function parseProfessional(content) {
 
   return {
     coreTitle: cleanInline(coreTitle),
-    coreBody: cleanInline(coreBody),
+    coreBody: cleanText(coreBody),
     subtypeTitle: cleanInline(subtypeHeading?.[2] || ''),
     subtypeLabel: cleanInline(subtypeHeading?.[1] || ''),
     subtypeItems: parseLabeledBullets(subtypeItemsRaw),
@@ -265,16 +269,16 @@ const NARRATIVE_SCENES = [
  * 前台敘事層刻意和早期長篇草稿分開：舊段落保留編輯脈絡，這一層只承載
  * 「觀察 → 具體場景 → 可選行動」，讓讀者能用最近的真實經驗自行核對。
  */
-function parseNarrative(content) {
+export function parseNarrative(content) {
   const items = parseLabeledBullets(section(content, '📖 前台敘事版'));
   const read = (label) => items.find((item) => item.label === label)?.body || '';
 
   return {
-    overview: cleanInline(read('核心說明')),
+    overview: cleanText(read('核心說明')),
     scenes: NARRATIVE_SCENES.map(([kind, label]) => ({
       kind,
       label,
-      body: cleanInline(read(label)),
+      body: cleanText(read(label)),
     })).filter((item) => item.body),
     counterpoint: cleanInline(read('辨識留白')),
   };
@@ -497,4 +501,6 @@ export function getV2VariantSummary(fullCode: string): V2VariantSummary | null {
   console.log(`✅ Generated ${Object.keys(results).length} public summaries -> ${PUBLIC_OUTPUT_FILE}`);
 }
 
-main();
+// Importing parsing helpers in the regression check must never write outputs.
+if (process.argv[1] && fs.existsSync(process.argv[1])
+  && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url))) main();
