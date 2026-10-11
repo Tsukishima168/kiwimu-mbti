@@ -10,6 +10,30 @@ const browser = await launch();
 const results = [];
 try {
   for (const width of [320, 390, 768, 1280]) {
+    const welcome = await context(browser, server.url, { viewport: { width, height: 844 } });
+    try {
+      const page = await welcome.ctx.newPage();
+      await page.goto(server.url + '/read/quiz');
+      await page.getByRole('button', { name: '開始 40 題探索', exact: true }).waitFor();
+      await text200(page);
+      await assertNoOverflow(page);
+      const controls = page.locator('.ad-account-home, .ad-account-actions a, .ad-account-actions button, .ad-welcome-secondary');
+      for (const control of await controls.all()) {
+        const box = await control.boundingBox();
+        assert.ok(box && box.height >= 44 && box.width >= 44, 'Welcome controls retain their touch area');
+        assert.ok(box.x >= 0 && box.x + box.width <= width, 'Welcome controls stay inside the viewport at 200% text');
+      }
+      // A quieter appearance must retain a visible keyboard focus and a real exit.
+      const exit = page.getByRole('link', { name: '返回圖鑑入口', exact: true });
+      await exit.focus();
+      assert.equal(await exit.evaluate(e => getComputedStyle(e).outlineStyle), 'solid');
+      await page.screenshot({ path: path.join(directory, `welcome-${width}-text200.png`), fullPage: true });
+      await page.keyboard.press('Enter');
+      await page.getByRole('link', { name: '先做快速探索', exact: true }).waitFor();
+      assert.equal(new URL(page.url()).pathname, '/read');
+      assert.equal(welcome.errors.length, 0);
+      results.push({ width, version: 'welcome', textEnlargement: '200% CSS text only', keyboardExit: true, touchAreaPreserved: true, overflow: 0 });
+    } finally { await welcome.close(); }
     for (const version of ['v1', 'v1_5', 'v2']) {
       const t = await context(browser, server.url, { viewport: { width, height: 844 } });
       try {

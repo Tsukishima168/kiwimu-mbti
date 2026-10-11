@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { loginWithGoogle, useSupabaseAuth } from './useSupabaseAuth';
 import { signOutSupabase } from '../../utils/supabaseAuthBridge';
 
-export default function V2AccountBar() {
+export default function V2AccountBar({ editionLabel }: { editionLabel?: string }) {
   const auth = useSupabaseAuth();
   const [message, setMessage] = useState('');
   const [signingOut, setSigningOut] = useState(false);
@@ -16,7 +16,10 @@ export default function V2AccountBar() {
   };
   return (
     <nav className="ad-account-bar" aria-label="報告帳號">
-      <a href="/read" className="ad-account-home">V2 敘事探索</a>
+      <a href="/read" className="ad-account-home">
+        <span className="ad-account-name">V2 敘事探索</span>
+        {editionLabel ? <span className="ad-account-edition">{editionLabel}</span> : null}
+      </a>
       <div className="ad-account-actions">
         <a href="/read/library">我的報告 <span aria-hidden="true">↗</span></a>
         {!auth.isLoggedIn ? <button type="button" disabled={auth.isLoading}
