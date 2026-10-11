@@ -2,6 +2,11 @@ import type { Score } from '../../types';
 import { getVariant } from '../../utils/logic';
 import type { LastV1ResultBundle } from '../../utils/v2Access';
 
+/** Preserve authored paragraphs and poetic line breaks without parsing HTML. */
+export function splitReportParagraphs(text: string): string[] {
+  return text.replace(/\r\n?/g, '\n').trim().split(/\n\s*\n/u).map(part => part.trim()).filter(Boolean);
+}
+
 const DIMENSION_NAMES: Record<string, readonly string[]> = {
   E: ['外向'], I: ['內向'], S: ['實感', '感知'], N: ['直覺'],
   T: ['思考'], F: ['情感'], J: ['判斷'], P: ['感知'],

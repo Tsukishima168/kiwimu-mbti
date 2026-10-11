@@ -4,6 +4,7 @@ import type { AppUser } from '../../types';
 import V2Welcome from './V2Welcome';
 import V2AccountBar from './V2AccountBar';
 import DessertPhoto from './DessertPhoto';
+import ReportParagraphs from './ReportParagraphs';
 import { loginWithGoogle, useSupabaseAuth } from './useSupabaseAuth';
 import { getDimensionDescription, matchingRecordedResult, hasDimensionAnswers } from './reportReading';
 import { requestPaidReport, reportAccessFailure, type PaidReportBundle } from './reportAccess';
@@ -64,6 +65,7 @@ import KiwimuAtlasWall from '../visuals/KiwimuAtlasWall';
 import './v2-tailwind.css';
 import './v2.css';
 import './v2-dark.css';
+import './v2-report-reading.css';
 
 interface V2AppProps {
   user?: AppUser | null;
@@ -984,7 +986,7 @@ export default function V2App({ user }: V2AppProps) {
       ...fallbackCard,
       badge: code === currentVariant ? '你的型' : '另一型',
       title: cleanText(sourceReport?.professional.subtypeTitle || fallbackCard.title),
-      tone: cleanText(sourceReport?.professional.subtypeLabel || fallbackCard.tone || (code === 'A' ? 'A 變體' : 'T 變體')),
+      tone: code === 'A' ? '較少回看自己的判斷' : '較常回看自己的判斷',
       strategyLabel: cleanText(subtypeItems[0]?.label || fallbackCard.strategyLabel),
       strategy: cleanText(subtypeItems[0]?.body || fallbackCard.strategy),
       energyLabel: cleanText(subtypeItems[1]?.label || fallbackCard.energyLabel),
@@ -1058,9 +1060,6 @@ export default function V2App({ user }: V2AppProps) {
     I: 'Introverted', E: 'Extroverted', N: 'Intuitive', S: 'Sensing',
     T: 'Thinking', F: 'Feeling', J: 'Judging', P: 'Perceiving',
   };
-  const makeTagCode = (enName: string): string =>
-    enName.split(/[\s-]+/).filter(Boolean).slice(0, 2)
-      .map((w) => w.slice(0, 4).toUpperCase()).join('-');
 
   const suppressedSideText = (variantReport?.suppressedSide ?? '')
     .replace(/\n---\s*$/mu, '').trim();
@@ -1133,7 +1132,7 @@ export default function V2App({ user }: V2AppProps) {
       </details>
 
       {/* Fixed marquee */}
-      <div className="marquee-container ad-marquee-fixed">
+      <div className="marquee-container ad-marquee-fixed" aria-hidden="true">
         <div className="marquee-track">
           <span className="marquee-text">{REPORT_MARQUEE.repeat(4)}</span>
           <span className="marquee-text">{REPORT_MARQUEE.repeat(4)}</span>
@@ -1158,6 +1157,7 @@ export default function V2App({ user }: V2AppProps) {
         {sceneAsset ? (
           <KiwimuScenePlate
             asset={sceneAsset}
+            title={coverTitle}
             bleed
             priority
             indexLabel={`NO. ${String(sceneAsset.index).padStart(2, '0')} / 32`}
@@ -1171,7 +1171,7 @@ export default function V2App({ user }: V2AppProps) {
               <div className="ad-hero-variant-block">
                 <span className="ad-hero-variant-chip">{currentVariant}</span>
                 <span className="ad-hero-variant-label">
-                  {currentVariant === 'A' ? 'Assertive · 穩定型' : 'Turbulent · 謹慎型'}
+                  {currentVariant === 'A' ? '較少回看自己的判斷' : '較常回看自己的判斷'}
                 </span>
               </div>
             </div>
@@ -1204,10 +1204,10 @@ export default function V2App({ user }: V2AppProps) {
 
         <blockquote className="ad-hero-quote">{coverQuote}</blockquote>
         {stateInfo?.framing ? (
-          <p className="ad-hero-framing">{stateInfo.framing}</p>
+          <ReportParagraphs className="ad-hero-framing" text={stateInfo.framing} />
         ) : null}
-        <p className="ad-hero-abstract">{abstractContent}</p>
-        <p className="ad-hero-snapshot">狀態名稱由這次的型別對應，是理解日常的敘事提示。它還沒有獨立測量你最近的能量或耗損；讀到不符合自己的地方，可以保留不同意見。</p>
+        <ReportParagraphs className="ad-hero-abstract" text={abstractContent} />
+        <p className="ad-hero-snapshot">這是一份自我探索敘事。型別、A／T 與狀態名稱都不是心理診斷；不符合經驗的地方，可以保留不同意見。</p>
 
         {stateInfo ? null : (
           <div className="ad-hero-state">
@@ -1222,18 +1222,12 @@ export default function V2App({ user }: V2AppProps) {
         <p className="ad-section-kicker">01 · Tag Wall</p>
         <h2 className="ad-section-title">五個理解自己的切角</h2>
         <div className="ad-tag-grid">
-          {versionTags.slice(0, 5).map((tag, idx) => {
+          {versionTags.slice(0, 5).map((tag) => {
             const zhPart = tag.split('(')[0]?.trim() ?? tag;
-            const enMatch = tag.match(/\(([^)]+)\)/u);
-            const enPart = enMatch?.[1] ?? '';
-            const code = enPart ? makeTagCode(enPart) : `TAG-${String(idx + 1).padStart(2, '0')}`;
             return (
               <div key={tag} className="ad-tag">
-                <span className="ad-tag-code">{code}</span>
-                <span className="ad-tag-sep" />
                 <div className="ad-tag-info">
                   <span className="ad-tag-zh">{zhPart}</span>
-                  {enPart ? <span className="ad-tag-en">{enPart}</span> : null}
                 </div>
               </div>
             );
@@ -1315,18 +1309,18 @@ export default function V2App({ user }: V2AppProps) {
           <h2 className="ad-section-title">保護自己的方式，也有它的代價</h2>
           <p className="ad-section-lead">A 與 T 描述兩種自我回應傾向。把它們放在一起讀，看看哪些做法替你省力，哪些也讓你付出代價。</p>
           <div className="ad-card ad-mb-8">
-            <p className="ad-body-15">{professionalBody}</p>
+            <ReportParagraphs className="ad-body-15" text={professionalBody} />
           </div>
           {stateScene ? (
             <aside className="ad-narrative-scene ad-mb-12" aria-label="一個可能的狀態畫面">
               <span className="ad-narrative-scene-kicker">一個可能的畫面</span>
               <h3>{stateScene.label}</h3>
-              <p>{stateScene.body}</p>
+              <ReportParagraphs text={stateScene.body} />
             </aside>
           ) : null}
           {stateTruth ? (
             <details className="ad-state-details ad-mb-12">
-              <summary>再往下一層：{stateInfo?.primary} 的狀態機制</summary>
+              <summary>再想一想：這個做法幫了什麼忙？</summary>
               <div className="ad-state-truth-body">
                 {stateTruth.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => (
                   line.startsWith('- ')
@@ -1336,7 +1330,7 @@ export default function V2App({ user }: V2AppProps) {
               </div>
             </details>
           ) : null}
-          <p className="ad-compare-hint">A / T 對照 · 左右滑動閱讀兩種傾向</p>
+          <p className="ad-compare-hint">A／T 對照 · 兩種傾向都可以閱讀，沒有優劣排名</p>
           <div className="ad-grid-2 ad-compare-scroll" tabIndex={0} role="region" aria-label="A 與 T 傾向對照">
             {compareCards.map((card) => (
               <div key={card.code} className={`ad-subtype-card${card.code === currentVariant ? ' is-active' : ''}`}>
@@ -1350,16 +1344,16 @@ export default function V2App({ user }: V2AppProps) {
                 <div className="ad-subtype-name">{card.title}</div>
                 <div className="ad-subtype-row">
                   <div className="ad-subtype-label">{card.strategyLabel}</div>
-                  <div className="ad-subtype-value">{card.strategy}</div>
+                  <ReportParagraphs className="ad-subtype-value" text={card.strategy} />
                 </div>
                 <div className="ad-subtype-row">
                   <div className="ad-subtype-label">{card.energyLabel}</div>
-                  <div className="ad-subtype-value">{card.energy}</div>
+                  <ReportParagraphs className="ad-subtype-value" text={card.energy} />
                 </div>
                 {card.details?.map(item => (
                   <div className="ad-subtype-row" key={item.label}>
                     <div className="ad-subtype-label">{item.label}</div>
-                    <div className="ad-subtype-value">{item.body}</div>
+                    <ReportParagraphs className="ad-subtype-value" text={item.body} />
                   </div>
                 ))}
               </div>
@@ -1375,17 +1369,17 @@ export default function V2App({ user }: V2AppProps) {
         <div id="ch-03" className="atlas-report-section ad-reveal">
           <p className="ad-section-kicker">03 · Dimension Spectrum</p>
           <h2 className="ad-section-title">四種偏好怎麼出現</h2>
-          <p className="ad-section-lead">四組偏好提供不同的觀察角度。百分比只表示本機這次作答的加權傾向，不代表能力、人口排名或診斷。</p>
+          <p className="ad-section-lead">四組偏好是觀察日常選擇的角度。若有百分比，它只表示這次作答的加權傾向，不代表能力或人口排名；直接開啟型別報告時，不會替你補上分數。</p>
           <div className="ad-dim-grid">
             {spectrumRows.slice(0, 4).map((row) => (
               <div key={row.label} className="ad-dim-card">
                 <div className="ad-dim-letter">{row.selectedCode}</div>
-                <div className="ad-dim-name">{DIM_NAMES[row.selectedCode] ?? row.selectedCode}</div>
+                <div className="ad-dim-name">{row.label} · {DIM_NAMES[row.selectedCode] ?? row.selectedCode}</div>
                 {row.selectedPct !== null ? <>
                   <div className="ad-dim-track" aria-hidden="true"><div className="ad-dim-fill" style={{ width: `${row.selectedPct}%` }} /></div>
                   <div className="ad-dim-score">{row.selectedPct}% <span>本次作答</span></div>
                 </> : <p className="ad-dim-score-note">型別閱讀 · 尚無本機作答分數</p>}
-                <div className="ad-dim-tip">{row.description}</div>
+                <ReportParagraphs className="ad-dim-tip" text={row.description} />
               </div>
             ))}
           </div>
@@ -1401,14 +1395,14 @@ export default function V2App({ user }: V2AppProps) {
               <aside className="ad-narrative-scene ad-mb-12" aria-label="一個可能的日常畫面">
                 <span className="ad-narrative-scene-kicker">一個可能的畫面</span>
                 <h3>{dailyScene.label}</h3>
-                <p>{dailyScene.body}</p>
+                <ReportParagraphs text={dailyScene.body} />
               </aside>
             ) : null}
             <div className="ad-card">
-              <div className="ad-list-label">行為邏輯</div>
+              <div className="ad-list-label">可以觀察的日常選擇</div>
               <ul className="ad-arrow-list">
                 {behaviorLogic.map((item) => (
-                  <li key={item.label}><strong className="ad-strong-label">{item.label}：</strong>{item.body}</li>
+                  <li key={item.label}><strong className="ad-strong-label">{item.label}</strong><ReportParagraphs text={item.body} /></li>
                 ))}
               </ul>
             </div>
@@ -1423,7 +1417,7 @@ export default function V2App({ user }: V2AppProps) {
             {variantReport?.practices.map((item, index) => (
               <article key={item.label} className="ad-practice">
                 <span className="ad-practice-index" aria-hidden="true">{['?', '↗', '↔', '◌'][index]}</span>
-                <div><h3>{item.label}</h3><p>{item.body}</p></div>
+                <div><h3>{item.label}</h3><ReportParagraphs text={item.body} /></div>
               </article>
             ))}
           </div>
@@ -1436,32 +1430,32 @@ export default function V2App({ user }: V2AppProps) {
           <p className="ad-section-lead">工作與關係可能喚起不同的反應。分開讀這兩個場景，看看你在哪裡自在，又在哪裡需要多一點空間。</p>
           <div className="ad-grid-2">
             <div className="ad-card">
-              <div className="ad-list-label">職涯生存模式</div>
+              <div className="ad-list-label">工作裡的合作與分工</div>
               {workScene ? (
                 <aside className="ad-narrative-scene ad-narrative-scene-inline ad-narrative-scene-leading" aria-label="一個可能的工作畫面">
                   <span className="ad-narrative-scene-kicker">一個可能的畫面</span>
                   <h3>{workScene.label}</h3>
-                  <p>{workScene.body}</p>
+                  <ReportParagraphs text={workScene.body} />
                 </aside>
               ) : null}
               <ul className="ad-arrow-list">
                 {careerContent.bullets.map((item) => (
-                  <li key={item.label}>{item.body}</li>
+                  <li key={item.label}><strong className="ad-strong-label">{item.label}</strong><ReportParagraphs text={item.body} /></li>
                 ))}
               </ul>
             </div>
             <div className="ad-card">
-              <div className="ad-list-label">關係運作模式</div>
+              <div className="ad-list-label">關係裡的表達與回應</div>
               {relationshipScene ? (
                 <aside className="ad-narrative-scene ad-narrative-scene-inline ad-narrative-scene-leading" aria-label="一個可能的關係畫面">
                   <span className="ad-narrative-scene-kicker">一個可能的畫面</span>
                   <h3>{relationshipScene.label}</h3>
-                  <p>{relationshipScene.body}</p>
+                  <ReportParagraphs text={relationshipScene.body} />
                 </aside>
               ) : null}
               <ul className="ad-arrow-list">
                 {relationshipContent.bullets.map((item) => (
-                  <li key={item.label}>{item.body}</li>
+                  <li key={item.label}><strong className="ad-strong-label">{item.label}</strong><ReportParagraphs text={item.body} /></li>
                 ))}
               </ul>
             </div>
@@ -1469,7 +1463,7 @@ export default function V2App({ user }: V2AppProps) {
           {suppressedSideText ? (
             <div className="ad-suppressed-card">
               <div className="ad-suppressed-label">另一個還沒說出口的需要</div>
-              <p className="ad-suppressed-body">{suppressedSideText}</p>
+              <ReportParagraphs className="ad-suppressed-body" text={suppressedSideText} />
             </div>
           ) : null}
           <p className="ad-reflect">如果有一句話一直沒說出口，你希望在什麼樣的場合被聽見？</p>
@@ -1495,17 +1489,15 @@ export default function V2App({ user }: V2AppProps) {
                     setDessertRefresh(attempt => attempt + 1);
                   }}
                 />
-                <p className="ad-body-15 ad-mb-12">
-                  {dessertDescription}
-                </p>
+                <ReportParagraphs className="ad-body-15 ad-mb-12" text={dessertDescription} />
                 <div className="ad-pairing-card">
                   <div className="ad-pairing-label">月島菜單資訊</div>
-                  <div className="ad-pairing-body">{dessertSourceSummary}</div>
+                  <ReportParagraphs className="ad-pairing-body" text={dessertSourceSummary} />
                 </div>
                 {dessertNarrative ? (
                   <div className="ad-pairing-card">
                     <div className="ad-pairing-label">品牌敘事 · 非商品說明</div>
-                    <div className="ad-pairing-body">{dessertNarrative}</div>
+                    <ReportParagraphs className="ad-pairing-body" text={dessertNarrative} />
                   </div>
                 ) : null}
               </div>
@@ -1514,7 +1506,7 @@ export default function V2App({ user }: V2AppProps) {
               {abyssalContent.map((q, idx) => (
                 <div key={q.title} className="ad-abyssal-card">
                   <div className="ad-abyssal-index">留給自己 0{idx + 1} · {q.title}</div>
-                  <div className="ad-abyssal-body">{q.body}</div>
+                  <ReportParagraphs className="ad-abyssal-body" text={q.body} />
                 </div>
               ))}
             </div>
@@ -1523,9 +1515,9 @@ export default function V2App({ user }: V2AppProps) {
 
         {/* ── CARRY / IMPORTANT ────────────────────────────────── */}
         <div id="ch-08" className="ad-carry-section ad-reveal">
-          <div className="ad-carry-eyebrow">帶走的字</div>
+          <h2 className="ad-carry-eyebrow">帶走的字</h2>
           <p className="ad-carry-frame">這份報告讀到這裡，你帶走的不是一個分類，而是一種認識自己的角度。</p>
-          <p className="ad-carry-body">{carryFull}</p>
+          <ReportParagraphs className="ad-carry-body" text={carryFull} />
           {importantQuote ? (
             <div className="ad-carry-quote">
               <p className="ad-carry-quote-text">{importantQuote}</p>

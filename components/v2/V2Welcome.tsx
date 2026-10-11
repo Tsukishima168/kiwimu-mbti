@@ -5,6 +5,7 @@ import KiwimuScenePlate from '../visuals/KiwimuScenePlate';
 import KiwimuAtlasWall from '../visuals/KiwimuAtlasWall';
 import V2AccountBar from './V2AccountBar';
 import { V2_REPORT_PRICE_TWD } from '../../shared/v2Product';
+import { getV2VariantSummary } from '../../data/v2VariantSummaries.generated';
 
 export default function V2Welcome({ onStart, knownType, resumeCount, onResume }: {
   onStart?: () => void; knownType?: string | null; resumeCount?: number; onResume?: () => void;
@@ -37,7 +38,7 @@ export default function V2Welcome({ onStart, knownType, resumeCount, onResume }:
           {import.meta.env.VITE_V2_CHECKOUT_ENABLED !== 'true' ? <p className="ad-welcome-note">目前尚未開放新購買。已購報告可從「我的報告」繼續閱讀。</p> : null}
         </section>
         <aside className="ad-welcome-art" aria-label="Kiwimu 敘事圖鑑選頁">
-          {scene ? <KiwimuScenePlate asset={scene} priority indexLabel="圖鑑選頁" /> : null}
+          {scene ? <KiwimuScenePlate asset={scene} title={getV2VariantSummary(scene.fullType)?.title} priority indexLabel="圖鑑選頁" /> : null}
           <KiwimuAtlasWall highlight={knownType} caption="16 種人格 × A / T · 32 種閱讀視角" />
         </aside>
       </div>
