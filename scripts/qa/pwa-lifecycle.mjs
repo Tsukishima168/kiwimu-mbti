@@ -3,7 +3,9 @@ import { cp, mkdir, mkdtemp, readFile, writeFile, symlink } from 'node:fs/promis
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { root, localServer, launch, context, startQuiz, text200, assertNoOverflow } from './browserHarness.mjs';
+import { chromium } from 'playwright';
+import { root, localServer, context, startQuiz, text200, assertNoOverflow } from './browserHarness.mjs';
+import { loopbackProxy } from './loopbackProxy.mjs';
 
 const artifacts = path.join(root, '.qa-results/pwa');
 await mkdir(artifacts, { recursive: true });
@@ -39,8 +41,17 @@ for (let index = 0; index < versions.length; index++) {
   await writeFile(path.join(source, 'index.html'), html.replace('</head>', `<meta name="qa-build-version" content="${index}"></head>`));
   execFileSync(process.execPath, [path.join(root, 'node_modules/vite/bin/vite.js'), 'build'], { cwd: source, env, stdio: 'pipe', timeout: 120_000 });
 }
-const browser = await launch();
+const proxy = await loopbackProxy();
+let browser;
 const results = [];
+async function swContext(server) {
+  proxy.allow(server.url);
+  const t = await context(browser, server.url, { serviceWorkers: 'allow' });
+  // Even an external-only route enables Fetch interception for every request.
+  // Remove routing before opening pages; the proxy still blocks all other origins.
+  await t.ctx.unrouteAll({ behavior: 'ignoreErrors' });
+  return t;
+}
 async function waitControlled(page) {
   await page.evaluate(() => navigator.serviceWorker.ready);
   // Prompt-mode workers do not claim a first visit until the next navigation.
@@ -60,12 +71,17 @@ async function answer(page, version) {
     { selector: version === 'v1' ? '.classic-quiz h2' : version === 'v1_5' ? '.explore-quiz h2' : '.ad-question-text', before });
 }
 try {
+  browser = await chromium.launch({ headless: true,
+    proxy: { server: proxy.url, bypass: '<-loopback>' },
+    ...(process.env.QA_BROWSER_EXECUTABLE ? { executablePath: process.env.QA_BROWSER_EXECUTABLE } : {}),
+    args: ['--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1'],
+  });
   // Migration from the real previous release: no forced reload; V2 draft survives
   // explicit acceptance. The old release's button cannot acquire the new guard
   // until it reloads, so this case deliberately checks that existing behavior.
   const server = await localServer(path.join(versions[0], 'dist'));
   console.log('PWA: previous release → candidate');
-  const t = await context(browser, server.url, { serviceWorkers: 'allow' });
+  const t = await swContext(server);
   try {
     const page = await t.ctx.newPage();
     await page.goto(server.url + '/read'); await waitControlled(page);
@@ -94,7 +110,7 @@ try {
   for (const version of ['v1', 'v1_5', 'v2']) {
     console.log(`PWA: ${version} quiz and second-tab activation`);
     const server = await localServer(path.join(versions[1], 'dist'));
-    const t = await context(browser, server.url, { serviceWorkers: 'allow' });
+    const t = await swContext(server);
     try {
       const page = await t.ctx.newPage();
       await page.goto(server.url + '/read'); await waitControlled(page);
@@ -123,6 +139,8 @@ try {
       await page.getByRole('button', { name: '更新頁面', exact: true }).waitFor();
       await page.getByRole('button', { name: '更新頁面', exact: true }).click();
       await page.waitForFunction(() => document.querySelector('meta[name="qa-build-version"]')?.content === '2');
+      // Keep the callback tab foreground while retaining the full load assertion.
+      await other.bringToFront();
       const response = await other.goto(server.url + '/api/linepay/confirm?qa=local-only');
       assert.equal(response.status(), 503);
       assert.equal((await response.json()).code, 'QA_MOCK_ONLY');
@@ -133,6 +151,9 @@ try {
         callbackBypassesAppShell: true, realNotifications: 0, mockedNotifications: 1, pageErrors: 0 });
     } finally { await t.close(); await server.close(); }
   }
-  await writeFile(path.join(artifacts, 'results.json'), JSON.stringify({ results, workspace, realExternalWrites: 0 }, null, 2));
+  await writeFile(path.join(artifacts, 'results.json'), JSON.stringify({ results, workspace,
+    networkTransport: 'allowlisted-loopback-proxy', network: proxy.stats(), realExternalWrites: 0 }, null, 2));
   console.log(`PWA lifecycle: ${results.length} cases passed; artifacts: ${artifacts}`);
-} finally { await browser.close(); }
+} finally {
+  try { await browser?.close(); } finally { await proxy.close(); }
+}

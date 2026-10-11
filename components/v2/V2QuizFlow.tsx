@@ -2,7 +2,6 @@ import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { V2_TAIWAN_QUESTIONS } from '../../data/v2TaiwanQuestions.generated';
 import { calculateResults, getVariant } from '../../utils/logic';
 import { getResultData } from '../../constants';
-import { loadResultData } from '../../utils/dataLoader';
 import { setLastV2PrototypeResult } from '../../utils/v2Access';
 import { trackAction } from '../../utils/userDataCollector';
 import { trackPageView, trackScreenEngagement } from '../../utils/analytics';
@@ -24,7 +23,6 @@ import './v2-tailwind.css';
 import './v2.css';
 import './v2-dark.css';
 
-const MARQUEE = 'KIWIMU V2 · 生活反應探索 · QUIET ATLAS · ';
 const QUESTIONS = V2_TAIWAN_QUESTIONS;
 const QUIZ_CHAPTER_COUNT = 5;
 
@@ -47,8 +45,6 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
   const [answers, setAnswers] = useState<Option[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isResolving, setIsResolving] = useState(false);
-  /** 跨章時的全屏過場；null = 不顯示 */
-  const [chapterBreak, setChapterBreak] = useState<number | null>(null);
   /** 答完後接手渲染報告的路徑；null = 還在測驗。設了值代表已 pushState。 */
   const [handoffPath, setHandoffPath] = useState<string | null>(null);
 
@@ -84,22 +80,26 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
     return { asset, blur };
   }, [answers, currentIndex, totalQuestions]);
 
-  React.useEffect(() => {
-    if (chapterBreak === null) return;
-    const timer = window.setTimeout(() => setChapterBreak(null), 1900);
-    return () => window.clearTimeout(timer);
-  }, [chapterBreak]);
-
   useEffect(() => {
     active.current = true;
     return () => { active.current = false; if (answerTimer.current !== null) window.clearTimeout(answerTimer.current); };
   }, []);
   useEffect(() => {
-    if (started && chapterBreak === null && !isResolving && !handoffPath) {
+    if (started && !isResolving && !handoffPath) {
       answering.current = false;
       questionHeading.current?.focus({ preventScroll: true });
+      // Landscape / enlarged text may require document scrolling. Start each
+      // question at its heading, rather than leaving it above the viewport.
+      const heading = questionHeading.current;
+      if (heading) {
+        const rail = document.querySelector('.ku-universe-rail');
+        const top = Math.max(0, rail?.getBoundingClientRect().bottom ?? 0);
+        if (heading.getBoundingClientRect().top < top) {
+          heading.scrollIntoView({ block: 'start', behavior: 'instant' });
+        }
+      }
     }
-  }, [started, currentIndex, chapterBreak, isResolving, handoffPath]);
+  }, [started, currentIndex, isResolving, handoffPath]);
 
   React.useEffect(() => {
     const normalizedPath = normalizeV2Pathname(window.location.pathname);
@@ -171,7 +171,9 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
     try {
       const { type, scores } = calculateResults(nextAnswers, QUESTIONS);
       const variant = getVariant(scores);
-      const resultData = await loadResultData(type, variant) || getResultData(type, variant);
+      // Menu availability is independent of the quiz. The report loads its
+      // own current pairing; a slow menu must not hold the result handoff.
+      const resultData = getResultData(type, variant);
       if (!active.current) return;
       setLastV2PrototypeResult({ resultData, scores });
       trackAction('v2_quiz_flow_complete', {
@@ -228,14 +230,11 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
         return;
       }
       const nextIndex = currentIndex + 1;
-      const nextChapter = Math.min(QUIZ_CHAPTER_COUNT, Math.floor(nextIndex / questionsPerChapter) + 1);
-      // 跨到新章節就插一次過場：40 題純作答太長，這是節奏點
-      if (nextChapter !== currentChapter && !reducedMotion) setChapterBreak(nextChapter);
       setSelectedOption(null);
       setCurrentIndex(nextIndex);
       setIsAnimating(false);
       answering.current = false;
-    }, reducedMotion ? 0 : 250);
+    }, reducedMotion ? 0 : 420);
   };
 
   const handlePrevious = () => {
@@ -281,67 +280,16 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
 
   if (isResolving) return resolvingPanel;
 
-  if (chapterBreak !== null) {
-    const BREAK_FACES = ['INFP-A', 'INTJ-A', 'ISFP-A', 'ENFP-A', 'ESFP-A'] as const;
-    const breakAsset = getSceneAsset(BREAK_FACES[(chapterBreak - 1) % BREAK_FACES.length]);
-    return (
-      <div
-        className="v2-surface ad-chapter-break"
-        role="button"
-        tabIndex={0}
-        onClick={() => setChapterBreak(null)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setChapterBreak(null); }
-        }}
-        aria-label={`狀態顯影 ${chapterBreak} / ${QUIZ_CHAPTER_COUNT}`}
-      >
-        <div className="ad-chapter-break-inner">
-          {breakAsset ? (
-            <img
-              className="ad-chapter-break-img"
-              src={breakAsset.portrait.src}
-              width={breakAsset.portrait.width}
-              height={breakAsset.portrait.height}
-              alt=""
-              decoding="async"
-            />
-          ) : null}
-          <p className="ad-chapter-break-label">狀態顯影</p>
-          <p className="ad-chapter-break-count">
-            {String(chapterBreak).padStart(2, '0')} / {String(QUIZ_CHAPTER_COUNT).padStart(2, '0')}
-          </p>
-          <p className="ad-chapter-break-hint">選比較接近你的反應就好。</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="v2-surface ad-quiz-screen">
-      {/* Marquee */}
-      <div className="marquee-container ad-marquee-fixed" aria-hidden="true">
-        <div className="marquee-track">
-          <span className="marquee-text">{MARQUEE.repeat(4)}</span>
-          <span className="marquee-text">{MARQUEE.repeat(4)}</span>
-        </div>
-      </div>
-
       {/* Topbar */}
       <div className="ad-quiz-topbar">
-        <a href={buildV2QuizPath().replace('/quiz', '')} className="ad-quiz-back">← 圖鑑入口</a>
-        <span className="ad-quiz-status">照自己的步調回答</span>
+        <a href={buildV2QuizPath()} className="ad-quiz-back">← 稍後繼續</a>
+        <span className="ad-quiz-status">生活反應探索</span>
       </div>
 
       {/* Quiz panel */}
       <section className="ad-quiz-panel" aria-label="測驗題目">
-        {/* Header */}
-        <div className="ad-quiz-header">
-          <div>
-            <p className="ad-quiz-q-num">QUESTION {String(currentIndex + 1).padStart(2, '0')} / {totalQuestions}</p>
-            <h1 className="ad-quiz-lab-title">Kiwimu Lab</h1>
-          </div>
-        </div>
-
         {/* Chapter progress */}
         <div className="ad-chapter-block" aria-label={`狀態顯影 ${currentChapter} / ${QUIZ_CHAPTER_COUNT}`}>
           <div className="ad-chapter-head">
@@ -360,34 +308,19 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
             </span>
             <span className="ad-chapter-head-text">
               <span className="ad-chapter-row">
-                <span className="ad-chapter-label">狀態顯影</span>
-                <strong className="ad-chapter-count">
-                  {String(currentChapter).padStart(2, '0')} / {String(QUIZ_CHAPTER_COUNT).padStart(2, '0')}
-                </strong>
+                <span className="ad-quiz-q-num">第 {String(currentIndex + 1).padStart(2, '0')} / {totalQuestions} 題</span>
+                <span className="ad-chapter-label">第 {currentChapter} 段 / {QUIZ_CHAPTER_COUNT}</span>
               </span>
             </span>
           </div>
           <div className="ad-chapter-track" role="progressbar" aria-label="作答進度" aria-valuemin={0} aria-valuemax={totalQuestions} aria-valuenow={answers.length}>
             <span className="ad-chapter-fill" style={{ width: `${chapterProgress}%` }} />
           </div>
-          <div className="ad-chapter-dots" aria-hidden="true">
-            {Array.from({ length: QUIZ_CHAPTER_COUNT }).map((_, index) => (
-              <span
-                key={index}
-                className={[
-                  'ad-chapter-dot',
-                  index < currentChapter - 1 ? 'is-complete' : '',
-                  index === currentChapter - 1 ? 'is-current' : '',
-                ].filter(Boolean).join(' ')}
-              />
-            ))}
-          </div>
-          <p className="ad-chapter-hint">選比較接近你的反應就好。</p>
         </div>
 
         {/* Question */}
         <div className="ad-question-wrap">
-          <h2 ref={questionHeading} tabIndex={-1} className={`ad-question-text${isAnimating ? ' is-fading' : ''}`}>
+          <h2 ref={questionHeading} tabIndex={-1} className="ad-question-text">
             {question.text}
           </h2>
           <p className="ad-question-hint">兩個都像你時，選最近更常出現的反應。</p>
@@ -406,11 +339,12 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
               onClick={() => handleOptionSelect(idx as 0 | 1)}
               disabled={isAnimating || isResolving}
             >
-              <span className="ad-option-badge">{idx === 0 ? 'A' : 'B'}</span>
+              <span className="ad-option-badge" aria-hidden="true">{selectedOption === idx ? '✓' : idx === 0 ? 'A' : 'B'}</span>
               <span>{option.label}</span>
             </button>
           ))}
         </div>
+        <p className="ad-option-help">點選後會前往下一題；想修改時可回上一題。</p>
 
         {/* Footer */}
         <div className="ad-quiz-footer">
