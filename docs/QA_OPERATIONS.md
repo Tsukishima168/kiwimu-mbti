@@ -27,6 +27,8 @@ npm run verify:pwa-lifecycle
 
 PWA 先測前一版至候選版的明確接受／V2 draft 保留，再測候選版之間更新：三種作答畫面延後更新、另一分頁啟用 worker 不重載作答分頁、完成後才允許接受、付款 callback 不被 SPA shell 攔截。已開啟的舊版分頁要重新載入後才會取得新的作答保護；舊版更新提示仍請使用「稍後」。
 
+PWA 測試移除 Playwright request routing，避免 Fetch interception 干擾真正的 service worker 更新；改用只允許已登記 `http://127.0.0.1:<port>` 來源的本機代理。HTTPS CONNECT、外部來源與未登記的本機來源都回403，代理不追 redirect。先以六項原生 Node 測試核對允許／拒絕、轉址與連線清理，再跑四項瀏覽器生命週期案例。付款 callback 仍須完整 `load` 並取得503 JSON；不是降低等待條件來通過測試。
+
 GitHub 的成功 check 本身不會阻擋 merge。若要禁止略過，店主需將 `MBTI regression / regression` 設為 main 的 required check；這輪不修改 repo rules。
 
 ## V2 完整作答與甜點照片

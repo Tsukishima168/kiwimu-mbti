@@ -32,7 +32,7 @@
     "verify:build-matrix": "node scripts/verify-liff-build-matrix.mjs",
     "verify:pwa-navigation": "node scripts/verify-pwa-navigation.mjs",
     "verify:accessibility": "node scripts/qa/accessibility.mjs",
-    "verify:pwa-lifecycle": "node scripts/qa/pwa-lifecycle.mjs",
+    "verify:pwa-lifecycle": "node --test scripts/qa/loopbackProxy.test.mjs && node scripts/qa/pwa-lifecycle.mjs",
     "verify:v2-experience": "node scripts/qa/v2-experience.mjs",
     "notifications:health": "node scripts/notification-health.mjs"
   },
