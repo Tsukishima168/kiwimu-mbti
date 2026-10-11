@@ -1,5 +1,5 @@
-/* ─── V2 Apple Dark Design System ───────────────────────────────────────────
-   Loads AFTER v2.css — overrides light theme with Apple Dark tokens.
+/* ─── V2 Quiet Atlas Design System ──────────────────────────────────────────
+   Loads AFTER v2.css — scoped surfaces use the Quiet Atlas reading theme.
    All custom classes use ad- prefix to avoid collision with v2.css.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -50,6 +50,18 @@
   --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px; --r-pill: 999px;
   --r-arch: clamp(72px, 17vw, 190px);
   --dur-fast: 150ms; --dur: 200ms; --dur-slow: 620ms;
+}
+
+/* Shared reading/UI roles. New V2 components inherit these without touching V1. */
+.v2-app {
+  --text-body: 16px;
+  --text-secondary: 14px;
+  --text-label: 12px;
+  --space-tight: 8px;
+  --space-control: 12px;
+  --space-inline: 16px;
+  --space-block: 24px;
+  --space-section: 32px;
 }
 
 /* ─── Base overrides ─── */
@@ -2217,15 +2229,10 @@
   min-height: calc(100dvh - var(--ku-rail-height, 0px));
   padding: 32px max(24px, calc((100vw - 1180px) / 2)) 40px;
 }
-.ad-welcome-masthead {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  padding-bottom: 24px;
+.v2-app .ad-welcome .ad-account-bar {
+  margin-bottom: 0;
+  padding-bottom: var(--space-inline);
   border-bottom: 1px solid var(--b1);
-  font: 12px var(--f-mono);
-  letter-spacing: .13em;
-  color: var(--t3);
 }
 .ad-welcome-layout {
   display: grid;
@@ -2237,7 +2244,7 @@
 .ad-welcome-eyebrow { color: var(--signal); font-size: 13px; letter-spacing: .14em; margin-bottom: 28px; }
 .ad-welcome-copy h1 { font: 500 clamp(30px, 3.25vw, 46px)/1.48 var(--f-display); letter-spacing: -.05em; margin: 0 0 24px; }
 .ad-welcome-copy h1 em { font-style: normal; color: var(--moss); }
-.ad-welcome-lead { max-width: 31em; font-size: 16px; line-height: 1.95; color: var(--t2); margin: 0; }
+.ad-welcome-lead { max-width: 31em; font-size: var(--text-body); line-height: 1.95; color: var(--t2); margin: 0; }
 .ad-welcome-facts { display: flex; gap: 44px; margin: 32px 0; }
 .ad-welcome-facts dt { font-size: 12px; color: var(--t3); margin-bottom: 8px; }
 .ad-welcome-facts dd { font: 400 36px/1.2 var(--f-display); margin: 0; }
@@ -2245,7 +2252,22 @@
 .ad-welcome-facts .ad-welcome-pace { font: 400 23px/1.9 var(--f-body); }
 .ad-welcome .ad-btn-primary { gap: 28px; box-shadow: none; border-radius: var(--r-md); }
 .ad-welcome .ad-btn-ghost { border-radius: var(--r-md); }
-.ad-welcome-note, .ad-welcome-known { font-size: 12px; line-height: 1.85; color: var(--t3); margin: 20px 0 0; max-width: 34em; }
+.ad-welcome-secondary {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  padding-inline: var(--space-tight);
+  margin-left: calc(-1 * var(--space-tight));
+  border-radius: var(--r-sm);
+  font-size: var(--text-secondary);
+  line-height: 1.7;
+  color: var(--t2);
+  text-decoration: underline;
+  text-underline-offset: .25em;
+}
+.ad-welcome-secondary:hover { color: var(--t1); }
+.ad-welcome-note, .ad-welcome-known { font-size: var(--text-secondary); line-height: 1.85; color: var(--t2); margin: var(--space-inline) 0 0; max-width: 34em; }
 .ad-welcome-known { margin-bottom: 20px; }
 .ad-welcome-art { min-width: 0; }
 .ad-welcome-art .ad-scene { margin: 0 0 20px; }
@@ -2323,16 +2345,14 @@
     min-height: 44px;
   }
   .v2-surface.ad-welcome { padding: 24px 20px 32px; }
-  .ad-welcome-masthead { padding-bottom: 20px; font-size: 12px; letter-spacing: .04em; }
-  .ad-welcome-masthead > span:last-child { max-width: 8em; text-align: right; line-height: 1.5; }
-  .ad-welcome-layout { display: flex; flex-direction: column; gap: 36px; padding: 32px 0; }
+  .ad-welcome-layout { display: flex; flex-direction: column; gap: 36px; padding: var(--space-block) 0 var(--space-section); }
   .ad-welcome-copy h1 { font-size: clamp(27px, 7.5vw, 42px); }
   .ad-welcome-eyebrow { margin-bottom: 20px; font-size: 12px; }
-  .ad-welcome-lead { font-size: 15px; line-height: 1.9; }
+  .ad-welcome-lead { line-height: 1.9; }
   .ad-welcome-facts { margin: 24px 0; gap: 36px; }
   .ad-welcome-facts dd { font-size: 32px; }
   .ad-welcome .ad-btn-row { display: flex; flex-direction: column; gap: 10px; }
-  .ad-welcome .ad-btn-row > * { width: 100%; min-height: 50px; }
+  .ad-welcome .ad-btn-row > :is(.ad-btn-primary, .ad-btn-ghost) { width: 100%; min-height: 50px; }
   .ad-welcome-art { width: 100%; }
   .ad-welcome-guide { grid-template-columns: 1fr; gap: 28px; }
   .ad-welcome-guide h2 { margin: 8px 0; }
@@ -2503,9 +2523,11 @@
 }
 /* Account and purchased-report shelf follow the report's Quiet Atlas tokens. */
 .v2-app.ad-library-shell { min-height:100svh; background:var(--bg-0); color:var(--t1); font-family:var(--f-body); }
-.v2-app .ad-account-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; width:100%; margin:0 0 28px; font-family:var(--f-mono); font-size:12px; letter-spacing:.06em; }
-.v2-app .ad-account-home { display:inline-flex; align-items:center; min-height:44px; color:var(--t2); text-decoration:none; }
-.v2-app .ad-account-actions { display:flex; align-items:center; gap:18px; }
+.v2-app .ad-account-bar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--space-control); width:100%; margin:0 0 var(--space-block); font-family:var(--f-body); font-size:var(--text-secondary); letter-spacing:0; }
+.v2-app .ad-account-home { display:inline-flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; min-height:44px; min-width:0; max-width:100%; color:var(--t1); text-decoration:none; overflow-wrap:anywhere; }
+.v2-app .ad-account-name { font-weight:500; }
+.v2-app .ad-account-edition { font-size:var(--text-label); line-height:1.5; color:var(--t3); }
+.v2-app .ad-account-actions { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-inline); max-width:100%; }
 .v2-app .ad-account-actions a, .v2-app .ad-account-actions button { display:inline-flex; align-items:center; gap:6px; min-width:44px; min-height:44px; justify-content:center; color:var(--t1); text-decoration:none; }
 .v2-app .ad-account-actions button { border:0; background:none; font:inherit; cursor:pointer; padding:0; }
 .v2-app .ad-account-actions :focus-visible { outline:2px solid var(--signal); outline-offset:4px; border-radius:4px; }
@@ -2559,4 +2581,4 @@
   .v2-surface .ad-question-hint { font-size: 14px; }
   .v2-surface .ad-question-wrap { scroll-padding: 8px; }
 }
-@media (max-width:560px) { .v2-app .ad-account-bar { gap:8px; } .v2-app .ad-account-actions { gap:12px; } .v2-app .ad-account-home { letter-spacing:0; } }
+@media (max-width:560px) { .v2-app .ad-account-bar { gap:var(--space-tight); } .v2-app .ad-account-actions { gap:var(--space-control); } }

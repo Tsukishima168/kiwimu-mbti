@@ -12,8 +12,7 @@ export default function V2Welcome({ onStart, knownType, resumeCount, onResume }:
   const scene = getSceneAsset(knownType || 'INFP-A');
   return (
     <main className="v2-surface ad-welcome">
-      <V2AccountBar />
-      <div className="ad-welcome-masthead"><span>KIWIMU / QUIET ATLAS</span><span>自我探索圖鑑 · VOL. 02</span></div>
+      <V2AccountBar editionLabel="自我探索圖鑑" />
       <div className="ad-welcome-layout">
         <section className="ad-welcome-copy">
           <p className="ad-welcome-eyebrow">給自己一段閱讀的時間</p>
@@ -31,7 +30,7 @@ export default function V2Welcome({ onStart, knownType, resumeCount, onResume }:
           </aside> : null}
           <div className="ad-btn-row">
             {onStart ? <button className={resumeCount ? 'ad-btn-ghost' : 'ad-btn-primary'} type="button" onClick={onStart}>{resumeCount ? '重新開始 40 題' : '開始 40 題探索'} <span aria-hidden="true">↗</span></button> : <a className="ad-btn-primary" href="/read/quiz">開始 40 題探索 <span aria-hidden="true">↗</span></a>}
-            <a className="ad-btn-ghost" href={onStart ? '/read' : '/explore'}>{onStart ? '返回圖鑑入口' : '先做快速探索'}</a>
+            <a className="ad-welcome-secondary" href={onStart ? '/read' : '/explore'}>{onStart ? '返回圖鑑入口' : '先做快速探索'}</a>
           </div>
           <p className="ad-welcome-note">測驗與第 01 章試讀免費；完整 V2 報告 NT${V2_REPORT_PRICE_TWD}，單次解鎖。</p>
           {onStart ? <p className="ad-welcome-note">作答進度暫存在這個分頁，24 小時內可重新整理後續答，不會同步到帳號或其他裝置。</p> : null}

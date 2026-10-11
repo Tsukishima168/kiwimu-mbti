@@ -5,7 +5,7 @@
 > 並回頭更新本文件。
 >
 > **Status**: 現行實作（live）。
-> **Last updated**: 2026-10-09（測驗續答與操作細節）
+> **Last updated**: 2026-10-11（上方導覽、文字用途與持續演進規則）
 >
 > 舊版 Apple Dark 規格保留在 `DESIGN.md.bak-20260905`，
 > 舊 CSS 保留在 `v2-dark.css.bak-20260905`。
@@ -101,7 +101,7 @@
 | `--bg-3` | `#26412F` | 次級卡片 / option / subtype |
 | `--t1` | `#F3EFE2` | 主文字 / 標題（奶油白） |
 | `--t2` | `rgba(var(--cream-rgb), 0.74)` | 內文 |
-| `--t3` | `rgba(var(--cream-rgb), 0.44)` | 輔助 / label / muted |
+| `--t3` | `.v2-surface` 內 `rgba(var(--cream-rgb), 0.68)` | 輔助 / label / muted；`:root` 的 0.44 是舊預設，不能用來判斷 surface 的實際對比 |
 | `--signal` | `#E8A64A` | 暖琥珀訊號色 |
 | `--on-signal` | `#14210F` | 壓在訊號色上的文字 |
 | `--moss` | `#7A9470` | 苔綠，結構性中間調 |
@@ -134,17 +134,33 @@
 
 ## 3. 字體
 
-單一 `@import` 在 `v2.css`（先於 `v2-dark.css` 載入）：
-Space Grotesk / Inter / JetBrains Mono / Noto Sans TC。
+Space Grotesk / Inter / JetBrains Mono / Noto Sans TC 由 `index.html` 的獨立
+stylesheet link 載入。不要再放回 lazy CSS 的 `@import`：外部字型失敗時，
+頁面仍須使用既有 fallback 正常顯示。
 
 | Token | 堆疊 | 角色 |
 |---|---|---|
-| `--f-display` | `'Space Grotesk', sans-serif` | 大標題、型別字、數字 |
-| `--f-body` | `'Inter', sans-serif` | 內文 |
-| `--f-mono` | `'JetBrains Mono', monospace` | kicker / label / eyebrow / 代碼標籤 |
+| `--f-display` | `'Space Grotesk', 'Noto Sans TC', sans-serif` | 大標題、型別字、數字 |
+| `--f-body` | `'Inter', 'Noto Sans TC', sans-serif` | 內文、中文介面操作 |
+| `--f-mono` | `'JetBrains Mono', 'Noto Sans TC', monospace` | kicker / label / eyebrow / 代碼標籤 |
 
 CJK 由 `Noto Sans TC` 兜底（見 `v2.css` 的 `font-family` 宣告）。
 Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercase`。
+中文帳號導覽使用 body 字型，不套大字距或 uppercase。
+
+### 3.1 共用文字用途
+
+以下 token 限定在 `.v2-app`，入口、帳號列與後續新增元件沿用；既有報告字級
+逐元件收斂，不在一次改動中全部替換。
+
+| Token | 值 | 用途 |
+|---|---|---|
+| `--text-body` | 16px | 入口引言與主要閱讀文字 |
+| `--text-secondary` | 14px | 帳號操作、返回入口、付款與進度保存說明 |
+| `--text-label` | 12px | 圖鑑副標與裝飾標註 |
+
+付款與保存限制屬重要資訊，不得降成裝飾標註。文字可以換行、放大，
+不得用固定高度或截斷隱藏必要說明。
 
 ---
 
@@ -164,6 +180,11 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 
 **規則**：圓角只用 `--r-*`；transition 時長只用 `--dur*`。新程式碼不得再寫
 `12px` / `200ms` 這類裸值。
+
+`.v2-app` 的共用間距用途：`--space-tight: 8px`、`--space-control: 12px`、
+`--space-inline: 16px`、`--space-block: 24px`、`--space-section: 32px`。
+先用在帳號列與入口說明，不新增第二套配色／字體／圓角。44px 觸控下限
+是操作需求，不以縮減視覺重量為由降低。
 
 ---
 
@@ -205,10 +226,16 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 
 - `/read` 與 `/read/quiz` 共用 `V2Welcome`。首屏以「你有自己的樣子。也有此刻的狀態。」
   建立閱讀命題，右側只放一張主要場景圖；32 格 atlas 是可探索的索引，不搶主視覺。
+- 入口帳號列左側為「V2 敘事探索／自我探索圖鑑」，右側保留「我的報告／登入或登出」。
+  圖鑑副標整合在同一列，不再另放英文 masthead 與版本號；帳號提示可自然增高、換行。
+- 開始或續答是主要按鈕；返回圖鑑／快速探索是帶底線的次要文字入口，
+  仍保留44px觸控高度與可見焦點。重新開始維持原確認與草稿邏輯。
 - 入口要在首屏交代 40 題、32 種閱讀版本與可自行停下的節奏，並在開始前明示這是
   敘事探索工具，不是醫療或心理診斷。
-- 測驗以一題一屏為基準；手機選項固定在拇指可達區，長題不得把第二個選項推到摺線下。
-  進度按已作答題數計算，章節切換只負責節奏，不得讓進度倒退。
+- 測驗以單題閱讀為基準；手機長題與文字放大走整頁自然捲動，不建立題目內的小捲軸，
+  不以固定高度裁切選項。進度按已作答題數計算，不得讓進度倒退。
+- 不再於每8題插入全屏章節過場；普通作答420ms勾選回饋，reduced-motion不等待。
+  最後一題立即整理結果，不等菜單照片。
 - 手機閱讀字級分三層：主要內文 16px、次要提示 14px、介面標註 12px；選項文字 16px，
   不以 10–11px 承載需要讀懂的資訊。
 - 手機不顯示 V2 跑馬燈，跨站導覽在首屏後隨頁面捲走，只保留頂端 3px 閱讀進度；
@@ -313,7 +340,17 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 
 - **跨站導覽軌 `.ku-universe-rail`**（`styles/kiwimu-universe.css`）沿用五站共用的
   `--ku-lime #d4ff00` 色彩系統。本 repo 只調整可讀性與定位：桌機 11–12px 並 sticky；
-  手機 77px 高、隱藏重複 descriptor、隨文件捲走。若要讓五站完全一致，仍需同步其餘四站。
+  手機 `calc(3rem + 1px)` 高（16px預設下49px，nav48px）、五個中文入口、隱藏重複 descriptor、隨文件捲走。
+  本次V2導覽收斂不修改這條共用rail；若要讓五站完全一致，仍需同步其餘四站。
 - **`/` 與 `/explore`（V1.5）** 走根目錄 `DESIGN.md` 的 Neo-Brutalist 紙白系統。
   本次只把免費結果頁的角色圖換成該變體的 `portrait`，並加上圖鑑式標註，
   沒有改動該面的色彩系統。
+
+## 11. 持續演進方式
+
+- 保持 Quiet Atlas 的色彩、角色與圖版語言；新功能優先沿用帳號列、按鈕、提示與圖片狀態。
+- 內容與例子可逐次更新，文字用途與操作位置維持一致；題庫、計分、價格與權益是另外的變更範圍。
+- 整理舊CSS覆寫時先保持相同外觀，逐元件處理；同步本文件與最終computed style，
+  不以第一個CSS命中或歷史截圖代替現行結果。
+- 每次介面更新核對320／390／768／1280、文字200%、鍵盤與reduced-motion，
+  使用既有測驗、照片失敗與PWA回歸；瀏覽器尺寸模擬不等於真人Safari／LINE簽收。
