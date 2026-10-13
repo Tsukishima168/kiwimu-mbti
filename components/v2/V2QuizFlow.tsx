@@ -41,6 +41,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [started, setStarted] = useState(false);
+  const [focusWelcomeAction, setFocusWelcomeAction] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Option[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -131,6 +132,9 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
   const handleStart = () => {
     clearQuizDraft();
     setDraft(null);
+    setDraftSaved(true);
+    setErrorMessage('');
+    setSelectedOption(null);
     setAnswers([]);
     setCurrentIndex(0);
     setStarted(true);
@@ -145,6 +149,15 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
     setStarted(true);
     void prepareMbtiAttempt('v2-tw-40');
     trackAction('v2_quiz_flow_resume', { answeredCount: draft.answers.length });
+  };
+
+  const handlePause = () => {
+    if (answering.current || isAnimating || isResolving) return;
+    // Keep the live answers even if sessionStorage is blocked. Pausing must
+    // never navigate/reload and discard a draft that only exists in memory.
+    setDraft(answers.length ? { answers: [...answers], currentIndex } : null);
+    setFocusWelcomeAction(true);
+    setStarted(false);
   };
 
   // Warm the report chunk while the last questions are being answered so the
@@ -247,7 +260,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
     setCurrentIndex(prev => Math.max(prev - 1, 0));
   };
 
-  if (!started) return <div className="v2-app"><V2Welcome onStart={handleStart} resumeCount={draft?.currentIndex} onResume={handleResume} /></div>;
+  if (!started) return <div className="v2-app"><V2Welcome onStart={handleStart} resumeCount={draft?.currentIndex} onResume={handleResume} draftSaved={draftSaved} focusAction={focusWelcomeAction} /></div>;
 
   const resolvingPanel = (
     <div className="v2-surface ad-resolving" role="status" aria-live="polite">
@@ -259,7 +272,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
           </div>
           <p className="v2-eyebrow" style={{ marginBottom: 16 }}>FINAL PASS</p>
           <h2 style={{ fontFamily: 'var(--f-display)', fontSize: 26, fontWeight: 700, color: 'var(--t1)', marginBottom: 12 }}>
-            正在整理你的閱讀座標…
+            正在整理你的測驗結果…
           </h2>
           <p style={{ fontSize: 14, color: 'var(--t2)', lineHeight: 1.75 }}>
             把剛才的選擇整理成型別、傾向與對應的敘事。
@@ -284,7 +297,7 @@ export default function V2QuizFlow({ user }: V2QuizFlowProps) {
     <div className="v2-surface ad-quiz-screen">
       {/* Topbar */}
       <div className="ad-quiz-topbar">
-        <a href={buildV2QuizPath()} className="ad-quiz-back">← 稍後繼續</a>
+        <button type="button" onClick={handlePause} className="ad-quiz-back" disabled={isAnimating || isResolving}>暫停作答</button>
         <span className="ad-quiz-status">生活反應探索</span>
       </div>
 

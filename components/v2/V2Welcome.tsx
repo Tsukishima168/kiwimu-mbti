@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { V2_TAIWAN_QUESTIONS } from '../../data/v2TaiwanQuestions.generated';
 import { getSceneAsset } from '../../data/kiwimuVisualAssets';
 import KiwimuScenePlate from '../visuals/KiwimuScenePlate';
@@ -7,34 +7,65 @@ import V2AccountBar from './V2AccountBar';
 import { V2_REPORT_PRICE_TWD } from '../../shared/v2Product';
 import { getV2VariantSummary } from '../../data/v2VariantSummaries.generated';
 
-export default function V2Welcome({ onStart, knownType, resumeCount, onResume }: {
-  onStart?: () => void; knownType?: string | null; resumeCount?: number; onResume?: () => void;
+export default function V2Welcome({ onStart, knownType, resumeCount, onResume, draftSaved = true, focusAction = false }: {
+  onStart?: () => void; knownType?: string | null; resumeCount?: number; onResume?: () => void; draftSaved?: boolean; focusAction?: boolean;
 }) {
+  const hasDraft = Boolean(resumeCount && onResume);
+  const [confirmRestart, setConfirmRestart] = useState(false);
+  const entryRef = useRef<HTMLButtonElement>(null);
+  const restartRef = useRef<HTMLButtonElement>(null);
+  const keepRef = useRef<HTMLButtonElement>(null);
+  const confirmationId = useId();
+  useEffect(() => {
+    if (focusAction) entryRef.current?.focus();
+  }, [focusAction]);
+  useEffect(() => {
+    if (confirmRestart) keepRef.current?.focus();
+  }, [confirmRestart]);
+  const cancelRestart = () => {
+    setConfirmRestart(false);
+    restartRef.current?.focus();
+  };
   const scene = getSceneAsset(knownType || 'INFP-A');
   return (
     <main className="v2-surface ad-welcome">
       <V2AccountBar editionLabel="自我探索圖鑑" />
       <div className="ad-welcome-layout">
         <section className="ad-welcome-copy">
-          <p className="ad-welcome-eyebrow">給自己一段閱讀的時間</p>
-          <h1>你有自己的樣子。<br /><em>也有此刻的狀態。</em></h1>
-          <p className="ad-welcome-lead">有時想靠近世界，有時想把音量轉小。從生活裡的反應出發，讀讀你如何保護自己，以及還想留給自己什麼。</p>
-          <dl className="ad-welcome-facts">
-            <div><dt>生活情境</dt><dd>{V2_TAIWAN_QUESTIONS.length}<span>題</span></dd></div>
-            <div><dt>閱讀視角</dt><dd>32<span>種</span></dd></div>
-            <div><dt>你的步調</dt><dd className="ad-welcome-pace">慢慢來</dd></div>
-          </dl>
-          {knownType ? <p className="ad-welcome-known">上次的入口座標 <strong>{knownType}</strong> · 也可以重新探索。</p> : null}
-          {resumeCount && onResume ? <aside className="atlas-quiz-resume" aria-label="接續未完成的測驗">
-            <p>已完成 <strong>{resumeCount} / {V2_TAIWAN_QUESTIONS.length} 題</strong>。可以從上次停下的地方接著回答。</p>
-            <button className="ad-btn-primary" type="button" onClick={onResume}>接著答第 {resumeCount + 1} 題 <span aria-hidden="true">↗</span></button>
+          <p className="ad-welcome-eyebrow">{hasDraft ? '繼續未完成的測驗' : '40 個生活情境，認識自己的反應'}</p>
+          <h1>{hasDraft ? <>你的進度還在。<br /><em>準備好，就繼續。</em></> : <>你有自己的樣子。<br /><em>也有此刻的狀態。</em></>}</h1>
+          {!hasDraft ? <>
+            <p className="ad-welcome-lead">每題選一個比較像你的反應。答完後，看看你如何與人相處、面對工作，以及對應的甜點故事。</p>
+            <dl className="ad-welcome-facts">
+              <div><dt>生活情境</dt><dd>{V2_TAIWAN_QUESTIONS.length}<span>題</span></dd></div>
+              <div><dt>閱讀視角</dt><dd>32<span>種</span></dd></div>
+              <div><dt>你的步調</dt><dd className="ad-welcome-pace">慢慢來</dd></div>
+            </dl>
+          </> : null}
+          {knownType && !hasDraft ? <p className="ad-welcome-known">上次的測驗結果 <strong>{knownType}</strong> · 也可以重新探索。</p> : null}
+          {hasDraft ? <aside className="atlas-quiz-resume" aria-label="接續未完成的測驗">
+            <p>已完成 <strong>{resumeCount} / {V2_TAIWAN_QUESTIONS.length} 題</strong>，不必從頭再答。</p>
+            <button ref={entryRef} className="ad-btn-primary" type="button" onClick={onResume}>接著答第 {resumeCount! + 1} 題 <span aria-hidden="true">→</span></button>
+            <p className="ad-welcome-note" role={draftSaved ? undefined : 'status'}>{draftSaved
+              ? '進度只留在這個分頁，24 小時內可續答；關閉分頁或換裝置後可能無法接續。'
+              : '目前無法暫存進度。可以在這裡暫停，但請不要重新整理或關閉此分頁。'}</p>
           </aside> : null}
+          <p className="ad-welcome-note ad-welcome-pricing"><strong>免費完成測驗，閱讀第 01 章。</strong><br />想繼續讀完整報告時，再以 NT${V2_REPORT_PRICE_TWD} 單次解鎖。</p>
           <div className="ad-btn-row">
-            {onStart ? <button className={resumeCount ? 'ad-btn-ghost' : 'ad-btn-primary'} type="button" onClick={onStart}>{resumeCount ? '重新開始 40 題' : '開始 40 題探索'} <span aria-hidden="true">↗</span></button> : <a className="ad-btn-primary" href="/read/quiz">開始 40 題探索 <span aria-hidden="true">↗</span></a>}
-            <a className="ad-welcome-secondary" href={onStart ? '/read' : '/explore'}>{onStart ? '返回圖鑑入口' : '先做快速探索'}</a>
+            {onStart ? (hasDraft
+              ? <button ref={restartRef} className="ad-welcome-secondary ad-welcome-restart" type="button" aria-expanded={confirmRestart} aria-controls={confirmRestart ? confirmationId : undefined} onClick={() => confirmRestart ? cancelRestart() : setConfirmRestart(true)}>重新開始 40 題</button>
+              : <button ref={entryRef} className="ad-btn-primary" type="button" onClick={onStart}>開始 40 題探索 <span aria-hidden="true">→</span></button>)
+              : <a className="ad-btn-primary" href="/read/quiz">開始 40 題探索 <span aria-hidden="true">→</span></a>}
+            {confirmRestart ? <section id={confirmationId} className="ad-restart-confirm" aria-label="確認重新開始" onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); cancelRestart(); } }}>
+              <p>重新開始會清除已答的 {resumeCount} 題。要從第 1 題重來嗎？</p>
+              <div className="ad-btn-row">
+                <button ref={keepRef} className="ad-btn-primary" type="button" onClick={cancelRestart}>保留目前進度</button>
+                <button className="ad-btn-ghost" type="button" onClick={onStart}>清除並重新開始</button>
+              </div>
+            </section> : null}
+            {!hasDraft ? <a className="ad-welcome-secondary" href={onStart ? '/read' : '/explore'}>{onStart ? '了解測驗與報告' : '改做 V1.5 快速測驗'}</a> : null}
           </div>
-          <p className="ad-welcome-note">測驗與第 01 章試讀免費；完整 V2 報告 NT${V2_REPORT_PRICE_TWD}，單次解鎖。</p>
-          {onStart ? <p className="ad-welcome-note">作答進度暫存在這個分頁，24 小時內可重新整理後續答，不會同步到帳號或其他裝置。</p> : null}
+          {onStart && !hasDraft ? <p className="ad-welcome-note">中途可按「暫停作答」，回來再繼續。進度只留在此分頁，不會同步到帳號；請在 24 小時內完成。</p> : null}
           {import.meta.env.VITE_V2_CHECKOUT_ENABLED !== 'true' ? <p className="ad-welcome-note">目前尚未開放新購買。已購報告可從「我的報告」繼續閱讀。</p> : null}
         </section>
         <aside className="ad-welcome-art" aria-label="Kiwimu 敘事圖鑑選頁">

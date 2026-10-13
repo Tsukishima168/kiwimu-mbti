@@ -72,6 +72,79 @@ async function assertPhoto(page) {
   await assertNoOverflow(page);
 }
 try {
+  // Start/pause/resume/restart must preserve work, including when storage fails.
+  for (const [name, viewport, blocked, enlarge] of [
+    ['controls-mobile', { width: 390, height: 844 }, false, false],
+    ['controls-desktop', { width: 1280, height: 900 }, false, false],
+    ['controls-landscape', { width: 844, height: 390 }, false, false],
+    ['controls-text200', { width: 320, height: 568 }, false, true],
+    ['controls-storage-blocked', { width: 390, height: 844 }, true, false],
+  ]) {
+    const t = await fixture({ viewport, reducedMotion: 'no-preference' });
+    if (blocked) await t.ctx.addInitScript(() => {
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function(key, value) {
+        if (key === 'kiwimu_v2_quiz_draft_v1') throw new DOMException('Storage blocked', 'SecurityError');
+        return original.call(this, key, value);
+      };
+    });
+    const page = await t.ctx.newPage();
+    await startQuiz(page, server.url, 'v2');
+    const timeOrigin = await page.evaluate(() => performance.timeOrigin);
+    const pause = page.getByRole('button', { name: '暫停作答', exact: true });
+    // Pausing before the first answer returns to the start action without a reload.
+    await pause.click();
+    const start = page.getByRole('button', { name: '開始 40 題探索', exact: true });
+    await start.waitFor();
+    assert.ok(await start.evaluate(node => node === document.activeElement));
+    const price = page.locator('.ad-welcome-pricing');
+    assert.ok((await price.boundingBox()).y < (await start.boundingBox()).y, 'Price/free terms precede start');
+    await start.click();
+    for (let index = 0; index < 2; index++) {
+      await page.locator('.ad-option').first().click();
+      assert.equal(await pause.isEnabled(), false, 'Pause is disabled during answer transition');
+      await page.waitForFunction(text => document.querySelector('.ad-question-text')?.textContent === text, questions[index + 1].text);
+    }
+    await pause.click();
+    const resume = page.getByRole('button', { name: '接著答第 3 題', exact: true });
+    await resume.waitFor();
+    assert.ok(await resume.evaluate(node => node === document.activeElement));
+    assert.equal(await page.evaluate(() => performance.timeOrigin), timeOrigin, 'Pause never reloads');
+    assert.equal(await page.locator('.ad-welcome-facts').count(), 0, 'Draft goes straight to resume');
+    if (blocked) assert.match(await page.locator('.atlas-quiz-resume').innerText(), /不要重新整理或關閉/);
+    else {
+      await page.reload();
+      await resume.waitFor();
+    }
+    const stored = await page.evaluate(() => sessionStorage.getItem('kiwimu_v2_quiz_draft_v1'));
+    const restart = page.getByRole('button', { name: '重新開始 40 題', exact: true });
+    await restart.click();
+    const keep = page.getByRole('button', { name: '保留目前進度', exact: true });
+    await keep.waitFor();
+    assert.ok(await keep.evaluate(node => node === document.activeElement));
+    assert.equal(await page.evaluate(() => sessionStorage.getItem('kiwimu_v2_quiz_draft_v1')), stored);
+    if (enlarge) await text200(page);
+    await assertNoOverflow(page);
+    await keep.press('Escape');
+    assert.equal(await page.getByRole('region', { name: '確認重新開始', exact: true }).count(), 0);
+    assert.ok(await restart.evaluate(node => node === document.activeElement));
+    await restart.click();
+    await keep.click();
+    assert.ok(await resume.isVisible());
+    await resume.click();
+    await page.waitForFunction(text => document.querySelector('.ad-question-text')?.textContent === text, questions[2].text);
+    assert.match(await page.locator('.ad-quiz-helper').innerText(), /2 \/ 40/);
+    await pause.click();
+    await restart.click();
+    await page.getByRole('button', { name: '清除並重新開始', exact: true }).click();
+    await page.waitForFunction(text => document.querySelector('.ad-question-text')?.textContent === text, questions[0].text);
+    assert.equal(await page.evaluate(() => sessionStorage.getItem('kiwimu_v2_quiz_draft_v1')), null);
+    assert.match(await page.locator('.ad-quiz-helper').innerText(), /0 \/ 40/);
+    assert.equal(t.stats().notifications, 0, 'Partial quiz never completes');
+    assert.equal(t.errors.length, 0);
+    results.push({ case: name, pauseWithoutReload: true, resume: true, restartCancelAndConfirm: true, storageBlocked: blocked, errors: t.errors });
+    console.log(`PASS ${name}`);
+  }
   for (const [name, options, enlarge] of [
     ['mobile', { viewport: { width: 390, height: 844 }, reducedMotion: 'no-preference' }, false],
     ['desktop', { viewport: { width: 1280, height: 900 } }, false],
@@ -170,7 +243,7 @@ try {
   await writeFile(path.join(artifacts, 'results.json'), JSON.stringify({ results, realExternalWrites: 0, paidAndMenuData: 'fixtures' }, null, 2));
   console.log(`V2 experience: ${results.length} cases passed; artifacts: ${artifacts}`);
 } finally {
-  await writeFile(path.join(artifacts, 'results.json'), JSON.stringify({ results, completed: results.length === 39, realExternalWrites: 0, paidAndMenuData: 'fixtures' }, null, 2));
+  await writeFile(path.join(artifacts, 'results.json'), JSON.stringify({ results, completed: results.length === 44, realExternalWrites: 0, paidAndMenuData: 'fixtures' }, null, 2));
   for (const t of contexts) await t.close();
   await browser.close(); await server.close();
 }

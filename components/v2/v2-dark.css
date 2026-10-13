@@ -2582,3 +2582,17 @@
   .v2-surface .ad-question-wrap { scroll-padding: 8px; }
 }
 @media (max-width:560px) { .v2-app .ad-account-bar { gap:var(--space-tight); } .v2-app .ad-account-actions { gap:var(--space-control); } }
+
+/* Quiz decisions: resume first; only an explicit confirmation discards work. */
+.v2-surface .ad-quiz-back {
+  background: transparent; border: 0; padding: 8px 0;
+  min-height: 44px; font-family: var(--f-body); font-size: var(--text-secondary);
+  color: var(--t2); cursor: pointer;
+}
+.v2-surface .ad-quiz-back:disabled { opacity: .5; cursor: wait; }
+.ad-welcome .ad-welcome-pricing { margin: 20px 0; }
+.ad-welcome-pricing strong { color: var(--t1); font-weight: 500; }
+.ad-welcome .ad-welcome-restart { background: transparent; border: 0; font-family: inherit; cursor: pointer; }
+.ad-welcome .ad-restart-confirm { padding: 20px; border: 1px solid var(--b1); border-radius: var(--r-md); background: var(--bg-2); }
+.ad-restart-confirm p { margin: 0 0 16px; color: var(--t1); font-size: var(--text-body); line-height: 1.85; }
+.v2-app .atlas-quiz-resume .ad-welcome-note { margin: 16px 0 0; font-size: var(--text-secondary); color: var(--t2); }

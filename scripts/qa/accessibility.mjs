@@ -24,12 +24,12 @@ try {
         assert.ok(box.x >= 0 && box.x + box.width <= width, 'Welcome controls stay inside the viewport at 200% text');
       }
       // A quieter appearance must retain a visible keyboard focus and a real exit.
-      const exit = page.getByRole('link', { name: '返回圖鑑入口', exact: true });
+      const exit = page.getByRole('link', { name: '了解測驗與報告', exact: true });
       await exit.focus();
       assert.equal(await exit.evaluate(e => getComputedStyle(e).outlineStyle), 'solid');
       await page.screenshot({ path: path.join(directory, `welcome-${width}-text200.png`), fullPage: true });
       await page.keyboard.press('Enter');
-      await page.getByRole('link', { name: '先做快速探索', exact: true }).waitFor();
+      await page.getByRole('link', { name: '改做 V1.5 快速測驗', exact: true }).waitFor();
       assert.equal(new URL(page.url()).pathname, '/read');
       assert.equal(welcome.errors.length, 0);
       results.push({ width, version: 'welcome', textEnlargement: '200% CSS text only', keyboardExit: true, touchAreaPreserved: true, overflow: 0 });
