@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 export type KiwimuUniverseSiteId = 'kiwimu' | 'shop' | 'passport' | 'gacha' | 'map';
@@ -86,17 +86,12 @@ export function createKiwimuUniverseNavigationDetails(
   };
 }
 
-export const KiwimuUniverseRail: React.FC<KiwimuUniverseRailProps> = ({
-  currentSite,
-  authClient,
-  onTrack,
-}) => {
+export const KiwimuUniverseRail: React.FC<KiwimuUniverseRailProps> = ({ currentSite, authClient, onTrack }) => {
   const railRef = useRef<HTMLElement>(null);
-  const navRef = useRef<HTMLElement>(null);
-  const moreButtonRef = useRef<HTMLButtonElement>(null);
-  const morePanelId = useId();
-  const [isMoreOpen, setIsMoreOpen] = useState(false);
-  const [moreMaxHeight, setMoreMaxHeight] = useState<number>();
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [menuHeight, setMenuHeight] = useState(0);
+  const panelId = useId();
   const loginStatusRef = useRef<KiwimuUniverseLoginStatus>('unknown');
 
   const trackNavigation = (targetSite: KiwimuUniverseSiteId) => {
@@ -109,48 +104,6 @@ export const KiwimuUniverseRail: React.FC<KiwimuUniverseRailProps> = ({
       // Analytics must never block the cross-site navigation.
     }
   };
-
-  useLayoutEffect(() => {
-    const rail = railRef.current;
-    if (!isMoreOpen || !rail) return undefined;
-
-    const measureSpace = () => {
-      // Text enlargement can make the rail taller than its usual 3rem.
-      setMoreMaxHeight(Math.max(0, Math.floor(window.innerHeight - rail.getBoundingClientRect().bottom - 16)));
-    };
-    measureSpace();
-    const observer = new ResizeObserver(measureSpace);
-    observer.observe(rail);
-    return () => observer.disconnect();
-  }, [isMoreOpen]);
-
-  useEffect(() => {
-    if (!isMoreOpen) return undefined;
-
-    const closeOutside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !railRef.current?.contains(event.target)) {
-        setIsMoreOpen(false);
-      }
-    };
-    const closeWithEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.stopPropagation();
-      setIsMoreOpen(false);
-      moreButtonRef.current?.focus();
-    };
-    document.addEventListener('pointerdown', closeOutside);
-    document.addEventListener('keydown', closeWithEscape, true);
-    return () => {
-      document.removeEventListener('pointerdown', closeOutside);
-      document.removeEventListener('keydown', closeWithEscape, true);
-    };
-  }, [isMoreOpen]);
-
-  useEffect(() => {
-    const closeOnResize = () => setIsMoreOpen(false);
-    window.addEventListener('resize', closeOnResize);
-    return () => window.removeEventListener('resize', closeOnResize);
-  }, []);
 
   useEffect(() => {
     if (!authClient) {
@@ -183,133 +136,103 @@ export const KiwimuUniverseRail: React.FC<KiwimuUniverseRailProps> = ({
     };
   }, [authClient]);
 
+
+
+  const measureMenu = () => {
+    const rail = railRef.current;
+    if (rail) setMenuHeight(Math.max(0, Math.floor(window.innerHeight - Math.max(0, rail.getBoundingClientRect().bottom) - 16)));
+  };
+  const closeMenu = (restoreFocus = false) => {
+    if (restoreFocus) moreRef.current?.focus();
+    setMoreOpen(false);
+  };
+
   useEffect(() => {
-    const centerCurrentSite = () => {
-      const nav = navRef.current;
-
-      if (!nav || !window.matchMedia('(max-width: 640px)').matches) return;
-
-      const currentLink = nav.querySelector<HTMLElement>('[aria-current="page"]');
-
-      if (!currentLink) return;
-
-      nav.scrollLeft = Math.max(
-        0,
-        currentLink.offsetLeft - (nav.clientWidth - currentLink.clientWidth) / 2,
-      );
+    const rail = railRef.current;
+    if (!rail) return;
+    const root = document.documentElement;
+    const previousHeight = root.style.getPropertyValue('--ku-rail-height');
+    const measure = () => {
+      // Fixed route headers also need the real height after text enlargement.
+      root.style.setProperty('--ku-rail-height', `${rail.getBoundingClientRect().height}px`);
+      measureMenu();
     };
-
-    const animationFrame = window.requestAnimationFrame(centerCurrentSite);
-    window.addEventListener('resize', centerCurrentSite);
-
+    const resize = () => {
+      measure();
+      if (!window.matchMedia('(max-width: 640px)').matches) closeMenu();
+    };
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    observer?.observe(rail);
+    measure();
+    window.addEventListener('resize', resize);
     return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener('resize', centerCurrentSite);
+      observer?.disconnect();
+      window.removeEventListener('resize', resize);
+      if (previousHeight) root.style.setProperty('--ku-rail-height', previousHeight);
+      else root.style.removeProperty('--ku-rail-height');
     };
-  }, [currentSite]);
+  }, []);
 
-  return (
-    <aside
-      ref={railRef}
-      className={`ku-universe-rail${isMoreOpen ? ' is-menu-open' : ''}`}
-      data-current-site={currentSite}
-      onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setIsMoreOpen(false);
-      }}
-    >
-      <div className="ku-universe-rail__inner">
-        <div className="ku-universe-rail__identity" aria-label="Kiwimu Universe 五站導覽">
-          <span className="ku-universe-rail__orbit" aria-hidden="true">
-            {UNIVERSE_SITES.map((site) => (
-              <span
-                key={site.id}
-                className={site.id === currentSite ? 'is-current' : undefined}
-              />
-            ))}
-          </span>
-          <span className="ku-universe-rail__wordmark">Kiwimu Universe</span>
-          <span className="ku-universe-rail__meta">05 connected sites</span>
-        </div>
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.stopPropagation(); event.preventDefault(); closeMenu(true); }
+    };
+    const onOutside = (event: PointerEvent) => {
+      if (event.target instanceof Node && !railRef.current?.contains(event.target)) closeMenu();
+    };
+    const onBlur = () => closeMenu();
+    document.addEventListener('keydown', onKey, true);
+    window.addEventListener('blur', onBlur);
+    window.addEventListener('scroll', measureMenu, { passive: true });
+    document.addEventListener('pointerdown', onOutside, true);
+    return () => {
+      document.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('blur', onBlur);
+      window.removeEventListener('scroll', measureMenu);
+      document.removeEventListener('pointerdown', onOutside, true);
+    };
+  }, [moreOpen]);
 
-        <nav ref={navRef} className="ku-universe-rail__nav" aria-label="Kiwimu Universe 站點與展覽">
-          {UNIVERSE_SITES.map((site, index) => {
-            const isCurrent = site.id === currentSite;
+  const siteLink = (site: typeof UNIVERSE_SITES[number], inPanel = false) => {
+    const isCurrent = site.id === currentSite;
+    // Preserve the cross-site attribution contract and the current site's URL.
+    const href = site.href;
+    return <a key={site.id} href={href}
+      className={`ku-universe-rail__link${isCurrent ? ' is-current' : ''}${!inPanel && MOBILE_MORE_SITES.has(site.id) ? ' ku-universe-rail__secondary' : ''}`}
+      aria-current={isCurrent ? 'page' : undefined}
+      onClick={() => { trackNavigation(site.id); if (inPanel) closeMenu(true); }}>{site.descriptor}</a>;
+  };
+  const forestLink = (inPanel = false) => <a href={FOREST_EXHIBITION_URL} target="_blank" rel="noopener noreferrer"
+    aria-label={FOREST_EXHIBITION_LABEL}
+    className={`ku-universe-rail__link ku-universe-rail__showcase${inPanel ? '' : ' ku-universe-rail__secondary'}`}
+    onClick={inPanel ? () => closeMenu(true) : undefined}>
+      <span>森林展覽 <span aria-hidden="true">↗</span></span>
+      {inPanel ? <span className="ku-universe-rail__hint">臺灣森林冠層・另開分頁</span> : null}
+    </a>;
 
-            return (
-              <a
-                key={site.id}
-                href={site.href}
-                className={`ku-universe-rail__link${isCurrent ? ' is-current' : ''}${MOBILE_MORE_SITES.has(site.id) ? ' ku-universe-rail__link--mobile-more' : ''}`}
-                aria-current={isCurrent ? 'page' : undefined}
-                onClick={() => trackNavigation(site.id)}
-              >
-                <span className="ku-universe-rail__index" aria-hidden="true">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-                <span className="ku-universe-rail__label">{site.label}</span>
-                <span className="ku-universe-rail__descriptor">{site.descriptor}</span>
-              </a>
-            );
-          })}
-          <a
-            href={FOREST_EXHIBITION_URL}
-            className="ku-universe-rail__link ku-universe-rail__link--showcase"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={FOREST_EXHIBITION_LABEL}
-          >
-            <span className="ku-universe-rail__index" aria-hidden="true">↗</span>
-            <span className="ku-universe-rail__label">森林展覽</span>
-            <span className="ku-universe-rail__descriptor">臺灣森林 ↗</span>
-          </a>
-          <button
-            ref={moreButtonRef}
-            className="ku-universe-rail__more-button"
-            type="button"
-            aria-expanded={isMoreOpen}
-            aria-controls={isMoreOpen ? morePanelId : undefined}
-            onClick={() => setIsMoreOpen((open) => !open)}
-          >
-            更多 <span aria-hidden="true">{isMoreOpen ? '−' : '＋'}</span>
-          </button>
-        </nav>
-        {isMoreOpen && (
-          <nav
-            id={morePanelId}
-            className="ku-universe-rail__more-panel"
-            style={{ maxHeight: moreMaxHeight }}
-            aria-label="更多站點與森林展覽"
-          >
-            {UNIVERSE_SITES.filter((site) => MOBILE_MORE_SITES.has(site.id)).map((site) => (
-              <a
-                key={site.id}
-                href={site.href}
-                aria-current={site.id === currentSite ? 'page' : undefined}
-                onClick={() => {
-                  trackNavigation(site.id);
-                  setIsMoreOpen(false);
-                }}
-              >
-                <span>{site.descriptor}</span>
-                <span className="ku-universe-rail__more-caption">{site.label}</span>
-              </a>
-            ))}
-            <a
-              href={FOREST_EXHIBITION_URL}
-              className="ku-universe-rail__more-exhibition"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={FOREST_EXHIBITION_LABEL}
-              onClick={() => setIsMoreOpen(false)}
-            >
-              <span>森林展覽 <span aria-hidden="true">↗</span></span>
-              <span className="ku-universe-rail__more-caption">島嶼之上｜臺灣森林冠層</span>
-            </a>
-          </nav>
-        )}
+  return <aside ref={railRef} className={`ku-universe-rail${moreOpen ? ' is-menu-open' : ''}`} data-current-site={currentSite}
+    onBlurCapture={event => { const next = event.relatedTarget; if (!(next instanceof Node) || !railRef.current?.contains(next)) closeMenu(); }}>
+    <div className="ku-universe-rail__inner">
+      <div className="ku-universe-rail__identity" aria-label="Kiwimu Universe 五站與展覽導覽">
+        <span className="ku-universe-rail__wordmark">Kiwimu Universe</span>
       </div>
-    </aside>
-  );
+      <nav className="ku-universe-rail__nav" aria-label="Kiwimu Universe 站點與展覽">
+        {UNIVERSE_SITES.map(site => siteLink(site))}
+        {forestLink()}
+        <button ref={moreRef} type="button"
+          className={`ku-universe-rail__more${MOBILE_MORE_SITES.has(currentSite) ? ' is-current' : ''}`}
+          aria-expanded={moreOpen} aria-controls={moreOpen ? panelId : undefined}
+          onClick={() => { if (moreOpen) closeMenu(); else { measureMenu(); setMoreOpen(true); } }}>
+          更多 <span aria-hidden="true">{moreOpen ? '−' : '＋'}</span>
+        </button>
+      </nav>
+      {moreOpen ? <nav id={panelId} className="ku-universe-rail__more-panel" aria-label="更多站點與森林展覽" style={{ maxHeight: menuHeight }}>
+        {UNIVERSE_SITES.filter(site => MOBILE_MORE_SITES.has(site.id)).map(site => siteLink(site, true))}
+        {forestLink(true)}
+      </nav> : null}
+    </div>
+  </aside>;
 };
 
 export default KiwimuUniverseRail;
