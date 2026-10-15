@@ -28,6 +28,10 @@
   /* ── 訊號色：暖琥珀，小面積使用 ── */
   --signal:     #E8A64A;
   --on-signal:  #14210F;
+  /* 柔金：主行動按鈕與深色面焦點環（月島深綠系統色）。其餘 V2 色彩仍用 --signal。 */
+  --gold:       #D7C678;
+  --gold-rgb:   215, 198, 120;
+  --on-gold:    #1F2F1F;
   --moss:       #7A9470;
   /* `--acid` 是 Apple Dark 時期的舊名，現指向暖琥珀訊號色；保留別名讓既有規則不動 */
   --acid:       var(--signal);
@@ -107,10 +111,10 @@
 
 /* Buttons */
 .v2-surface .kiwimu-btn-primary {
-  background: var(--acid);
-  color: var(--on-signal);
+  background: var(--gold);
+  color: var(--on-gold);
   border: none;
-  box-shadow: 0 0 32px rgba(var(--signal-rgb), 0.20);
+  box-shadow: 0 0 32px rgba(var(--gold-rgb), 0.20);
   border-radius: var(--r-pill);
   font-family: var(--f-display);
   font-weight: 700;
@@ -313,8 +317,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--acid);
-  color: var(--on-signal);
+  background: var(--gold);
+  color: var(--on-gold);
   border: none;
   border-radius: var(--r-pill);
   font-family: var(--f-display);
@@ -324,11 +328,11 @@
   padding: 16px 28px;
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 0 32px rgba(var(--signal-rgb), 0.20);
+  box-shadow: 0 0 32px rgba(var(--gold-rgb), 0.20);
   transition: box-shadow 200ms, transform 100ms;
 }
 .ad-btn-primary:hover {
-  box-shadow: 0 0 48px rgba(var(--signal-rgb), 0.38);
+  box-shadow: 0 0 48px rgba(var(--gold-rgb), 0.38);
   transform: translateY(-1px);
 }
 .ad-btn-ghost {
@@ -1401,7 +1405,7 @@
 .ad-chapternav-item.is-locked { opacity: 0.45; }
 .ad-chapternav-item.is-locked .ad-chapternav-dot { background: var(--b2); }
 .ad-chapternav-item:focus-visible {
-  outline: 2px solid var(--acid);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 
@@ -1467,17 +1471,17 @@
 /* ─── Interaction states (buttons / links) ─── */
 .ad-btn-primary:focus-visible,
 .ad-btn-ghost:focus-visible {
-  outline: 2px solid var(--acid);
+  outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
 .ad-btn-primary:active {
   transform: translateY(0);
-  box-shadow: 0 0 24px rgba(var(--signal-rgb), 0.30);
+  box-shadow: 0 0 24px rgba(var(--gold-rgb), 0.30);
 }
 .ad-btn-ghost:active { transform: translateY(1px); }
 .v2-surface .kiwimu-btn-primary:focus-visible,
 .v2-surface .kiwimu-btn:focus-visible {
-  outline: 2px solid var(--acid);
+  outline: 2px solid var(--gold);
   outline-offset: 3px;
 }
 
@@ -1719,9 +1723,9 @@
 .ad-scene-code {
   display: block;
   font-family: var(--f-mono);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--type-glow);
   margin-bottom: 5px;
@@ -1738,8 +1742,8 @@
 .ad-scene-index {
   flex-shrink: 0;
   font-family: var(--f-mono);
-  font-size: 9px;
-  letter-spacing: 0.16em;
+  font-size: 12px;
+  letter-spacing: 0.13em;
   color: rgba(var(--cream-rgb), 0.6);
   text-align: right;
   line-height: 1.6;
@@ -2220,7 +2224,7 @@
   font-family: var(--f-body);
 }
 .v2-surface :is(button, a, summary, [tabindex="0"]):focus-visible {
-  outline: 2px solid var(--signal);
+  outline: 2px solid var(--gold);
   outline-offset: 4px;
 }
 .v2-surface.ad-welcome {
@@ -2530,7 +2534,7 @@
 .v2-app .ad-account-actions { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-inline); max-width:100%; }
 .v2-app .ad-account-actions a, .v2-app .ad-account-actions button { display:inline-flex; align-items:center; gap:6px; min-width:44px; min-height:44px; justify-content:center; color:var(--t1); text-decoration:none; }
 .v2-app .ad-account-actions button { border:0; background:none; font:inherit; cursor:pointer; padding:0; }
-.v2-app .ad-account-actions :focus-visible { outline:2px solid var(--signal); outline-offset:4px; border-radius:4px; }
+.v2-app .ad-account-actions :focus-visible { outline:2px solid var(--gold); outline-offset:4px; border-radius:4px; }
 .v2-app .ad-account-signed-in { color:var(--t2); }
 .v2-app .ad-account-message { flex-basis:100%; margin:0; color:var(--signal); line-height:1.7; }
 .v2-app .ad-purchase-account-note { margin:0 0 28px; color:var(--t2); font-size:14px; line-height:1.8; }
@@ -2575,7 +2579,7 @@
 .v2-app .atlas-quiz-resume p { margin: 0 0 16px; color: var(--t1); font-size: 16px; line-height: 1.8; }
 .v2-app .atlas-quiz-resume button { min-height: 48px; }
 .v2-app .ad-library-receipt summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }
-.v2-app .ad-library-receipt summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 4px; }
+.v2-app .ad-library-receipt summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; }
 .v2-surface .ad-quiz-prev { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 4px; }
 @media (max-width: 700px) {
   .v2-surface .ad-question-hint { font-size: 14px; }

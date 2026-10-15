@@ -9,7 +9,7 @@ const NotFound: React.FC<NotFoundProps> = ({ onHome }) => {
     const { t } = useLanguage();
 
     return (
-        <div className="min-h-screen bg-kiwi-bg flex flex-col items-center justify-center p-6 text-center select-none fade-in">
+        <div className="min-h-screen bg-kiwi-paper flex flex-col items-center justify-center p-6 text-center select-none fade-in">
 
             {/* Visual: Lost Ghost / Kiwimu */}
             <div className="relative mb-12">

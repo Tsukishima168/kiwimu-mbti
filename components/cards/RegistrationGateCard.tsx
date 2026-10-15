@@ -23,9 +23,9 @@ export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogi
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-kiwi-dark text-white overflow-hidden pb-16 justify-center px-8 relative">
+        <div className="ku-dark-surface w-full h-full flex flex-col bg-kiwi-dark text-white overflow-hidden pb-16 justify-center px-8 relative">
             {/* Background atmosphere */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,_rgba(198,255,0,0.06)_0%,_transparent_60%),radial-gradient(circle_at_70%_80%,_rgba(198,255,0,0.04)_0%,_transparent_50%)] pointer-events-none" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,_rgba(215,198,120,0.06)_0%,_transparent_60%),radial-gradient(circle_at_70%_80%,_rgba(215,198,120,0.04)_0%,_transparent_50%)] pointer-events-none" />
 
             {/* Kiwimu watermark in background */}
             <div
@@ -46,10 +46,10 @@ export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogi
                 <div className="mb-8 flex justify-center">
                     <div
                         className="w-16 h-16 rounded-full flex items-center justify-center"
-                        style={{ background: 'rgba(198,255,0,0.12)', border: '1.5px solid rgba(198,255,0,0.35)' }}
+                        style={{ background: 'rgba(215,198,120,0.12)', border: '1.5px solid rgba(215,198,120,0.35)' }}
                     >
                         {/* Sparkle / constellation icon */}
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C6FF00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#D7C678" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M12 3l1.5 4.5h4.5l-3.75 2.7 1.5 4.5L12 12l-3.75 2.7 1.5-4.5L6 7.5h4.5L12 3z" />
                             <path d="M5 18l1 2M18 5l1 2M5 5l1 2" opacity="0.5" />
                         </svg>
@@ -60,14 +60,14 @@ export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogi
                 <div className="mb-5 flex items-center justify-center gap-2">
                     <span
                         className="inline-block w-2 h-2 rounded-full animate-pulse"
-                        style={{ background: '#C6FF00' }}
+                        style={{ background: '#D7C678' }}
                     />
-                    <span className="text-[10px] font-mono tracking-[0.2em]" style={{ color: '#C6FF00', opacity: 0.85 }}>
+                    <span className="text-[10px] font-mono tracking-[0.2em]" style={{ color: '#D7C678', opacity: 0.85 }}>
                         {t('gate_dissolving') || '配方消散中'}
                     </span>
                     <span
                         className="inline-block w-2 h-2 rounded-full animate-pulse"
-                        style={{ background: '#C6FF00', animationDelay: '0.5s' }}
+                        style={{ background: '#D7C678', animationDelay: '0.5s' }}
                     />
                 </div>
 
@@ -88,7 +88,7 @@ export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogi
                         <button
                             onClick={handleLogin}
                             className="w-full py-4 rounded-md text-xs font-black tracking-[0.2em] uppercase transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
-                            style={{ background: '#C6FF00', color: '#000' }}
+                            style={{ background: '#D7C678', color: '#1F2F1F' }}
                         >
                             {t('gate_login')}
                         </button>

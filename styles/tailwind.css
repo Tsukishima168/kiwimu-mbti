@@ -1,13 +1,17 @@
 @import "tailwindcss";
+@import "./forest-skin.css";
 
 @theme {
+  /* kiwi-bg is still used by frozen files (App.tsx, components/ResultLegacyDump.tsx):
+     keep its value. Non-frozen screens use kiwi-paper instead. */
   --color-kiwi-bg: #fafafa;
+  --color-kiwi-paper: #f5f0e8;
   --color-kiwi-surface: #ffffff;
   --color-kiwi-dark: #121212;
   --color-kiwi-grey: #757575;
   --color-kiwi-lightgrey: #e0e0e0;
   --color-kiwi-accent: #000000;
-  --color-kiwi-green: #d4ff00;
+  --color-kiwi-gold: #d7c678;
 
   --font-sans: "Noto Sans TC", sans-serif;
   --font-serif: "Noto Serif TC", "Cormorant Garamond", serif;

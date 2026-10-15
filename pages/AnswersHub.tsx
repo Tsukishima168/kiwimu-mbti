@@ -78,18 +78,18 @@ const AnswersHub: React.FC = () => {
   const { hero, quickAnswers, fixedSections, authorityReferences, editorialViews, faqs, relatedGuides } = answersHubContent;
 
   return (
-    <main className="min-h-screen bg-[#F6F2E9] text-[#111111]">
+    <main className="min-h-screen bg-[#F5F0E8] text-[#111111]">
       <section className="relative overflow-hidden border-b border-black/10">
         <div
           className="absolute inset-0 opacity-90"
           style={{
             background:
-              'radial-gradient(circle at top left, rgba(143,154,58,0.18), transparent 32%), radial-gradient(circle at 80% 15%, rgba(111,119,50,0.16), transparent 28%), linear-gradient(180deg, #F6F2E9 0%, #F8F7F1 100%)',
+              'radial-gradient(circle at top left, rgba(143,154,58,0.18), transparent 32%), radial-gradient(circle at 80% 15%, rgba(111,119,50,0.16), transparent 28%), linear-gradient(180deg, #F5F0E8 0%, #F5F0E8 100%)',
           }}
         />
         <div className="relative mx-auto grid max-w-6xl gap-10 px-6 py-16 md:py-24 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
           <div>
-            <p className="text-[11px] font-semibold tracking-[0.4em] text-black/55 uppercase">
+            <p className="text-xs font-semibold tracking-[0.4em] text-[#5F6856] uppercase">
               {hero.eyebrow}
             </p>
             <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-[-0.04em] text-[#111111] md:text-6xl lg:text-7xl">
@@ -105,7 +105,7 @@ const AnswersHub: React.FC = () => {
               <a
                 href="/quiz"
                 onClick={() => handleGuideClick('answers_hub_start_v1', '/quiz', 'answers_hub_hero')}
-                className="inline-flex items-center gap-2 border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#CCFF00] hover:text-black"
+                className="inline-flex items-center gap-2 border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#D7C678] hover:text-black"
               >
                 <span>開始 V1 完整測驗</span>
                 <span aria-hidden="true">→</span>
@@ -123,7 +123,7 @@ const AnswersHub: React.FC = () => {
                   key={guide.title}
                   href={guide.href}
                   onClick={() => handleGuideClick('answers_hub_related_article', guide.href)}
-                  className="inline-flex items-center gap-2 border border-black/12 bg-white/70 px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-black hover:text-white"
+                  className="inline-flex min-h-11 items-center gap-2 border border-black/12 bg-white/70 px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-black hover:text-white"
                 >
                   <span>{guide.title}</span>
                   <span aria-hidden="true">→</span>
@@ -135,17 +135,17 @@ const AnswersHub: React.FC = () => {
           <aside className="border-t border-black/10 pt-6 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
             <div className="grid gap-5 sm:grid-cols-3 lg:grid-cols-1">
               <div>
-                <p className="text-[11px] tracking-[0.3em] text-black/45 uppercase">核心</p>
+                <p className="text-xs tracking-[0.3em] text-[#5F6856] uppercase">核心</p>
                 <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">16 型</p>
                 <p className="mt-2 text-sm leading-6 text-black/65">官方 MBTI 的基礎分類。</p>
               </div>
               <div>
-                <p className="text-[11px] tracking-[0.3em] text-black/45 uppercase">延伸</p>
+                <p className="text-xs tracking-[0.3em] text-[#5F6856] uppercase">延伸</p>
                 <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">32 變體</p>
                 <p className="mt-2 text-sm leading-6 text-black/65">Kiwimu 的 16 × A/T 內容分層。</p>
               </div>
               <div>
-                <p className="text-[11px] tracking-[0.3em] text-black/45 uppercase">定位</p>
+                <p className="text-xs tracking-[0.3em] text-[#5F6856] uppercase">定位</p>
                 <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">可引用</p>
                 <p className="mt-2 text-sm leading-6 text-black/65">先把結論寫清楚，再讓搜尋知道來源。</p>
               </div>
@@ -158,7 +158,7 @@ const AnswersHub: React.FC = () => {
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {quickAnswers.map((item) => (
             <article key={item.label} className="border-t border-black/12 pt-5">
-              <h2 className="text-sm font-semibold tracking-[0.12em] text-black/52 uppercase">
+              <h2 className="text-sm font-semibold tracking-[0.12em] text-[#5F6856] uppercase">
                 {item.label}
               </h2>
               <p className="mt-3 text-[15px] leading-8 text-black/82">
@@ -191,7 +191,7 @@ const AnswersHub: React.FC = () => {
       <section className="mx-auto max-w-6xl px-6 py-14 md:py-18">
         <div className="grid gap-8 lg:grid-cols-[1fr_0.95fr]">
           <article className="border-t border-black/12 pt-6">
-            <p className="text-[11px] font-semibold tracking-[0.35em] text-black/45 uppercase">
+            <p className="text-xs font-semibold tracking-[0.35em] text-[#5F6856] uppercase">
               哪些有權威背書
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
@@ -204,7 +204,7 @@ const AnswersHub: React.FC = () => {
                     href={reference.url}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="text-[15px] font-semibold leading-7 text-black underline decoration-black/20 underline-offset-4 hover:decoration-black"
+                    className="-my-3 inline-block py-3 text-[15px] font-semibold leading-7 text-black underline decoration-black/20 underline-offset-4 hover:decoration-black"
                   >
                     {reference.label}
                   </a>
@@ -215,7 +215,7 @@ const AnswersHub: React.FC = () => {
           </article>
 
           <article className="border-t border-black/12 pt-6">
-            <p className="text-[11px] font-semibold tracking-[0.35em] text-black/45 uppercase">
+            <p className="text-xs font-semibold tracking-[0.35em] text-[#5F6856] uppercase">
               哪些是我們的觀點
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
@@ -236,7 +236,7 @@ const AnswersHub: React.FC = () => {
         <div className="border-t border-black/12 pt-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-[11px] font-semibold tracking-[0.35em] text-black/45 uppercase">
+              <p className="text-xs font-semibold tracking-[0.35em] text-[#5F6856] uppercase">
                 FAQ
               </p>
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
@@ -251,7 +251,7 @@ const AnswersHub: React.FC = () => {
           <div className="mt-8 grid gap-4">
             {faqs.map((faq) => (
               <details key={faq.question} className="group border border-black/12 bg-white/60 px-5 py-4">
-                <summary className="cursor-pointer list-none text-[15px] font-semibold leading-7 text-black outline-none">
+                <summary className="-mx-5 -my-4 block cursor-pointer list-none px-5 py-4 text-[15px] font-semibold leading-7 text-black">
                   <span>{faq.question}</span>
                 </summary>
                 <p className="mt-3 pr-4 text-[15px] leading-8 text-black/78">
@@ -266,7 +266,7 @@ const AnswersHub: React.FC = () => {
       <section className="mx-auto max-w-6xl px-6 pb-20 pt-6 md:pb-28">
         <div className="grid gap-8 border-t border-black/12 pt-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <article>
-            <p className="text-[11px] font-semibold tracking-[0.35em] text-black/45 uppercase">
+            <p className="text-xs font-semibold tracking-[0.35em] text-[#5F6856] uppercase">
               延伸導流
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
@@ -279,7 +279,7 @@ const AnswersHub: React.FC = () => {
               <a
                 href="/quiz"
                 onClick={() => handleGuideClick('answers_hub_start_v1', '/quiz', 'answers_hub_bottom')}
-                className="inline-flex items-center justify-center border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#CCFF00] hover:text-black"
+                className="inline-flex items-center justify-center border border-black bg-black px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#D7C678] hover:text-black"
               >
                 看完答案，開始完整測驗
               </a>
@@ -308,7 +308,7 @@ const AnswersHub: React.FC = () => {
                     </h3>
                     <p className="mt-2 text-sm leading-7 text-black/68">{guide.summary}</p>
                   </div>
-                  <span className="mt-1 text-lg text-black/45 transition-transform group-hover:translate-x-1">→</span>
+                  <span className="mt-1 text-lg text-[#5F6856] transition-transform group-hover:translate-x-1">→</span>
                 </div>
               </a>
             ))}

@@ -75,7 +75,7 @@ const LoginCallback: React.FC = () => {
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 text-center">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-paper p-6 text-center">
                 <div className="bg-white p-8 rounded-xl shadow-lg max-w-md">
                     <h2 className="text-xl font-bold text-red-600 mb-4">登入失敗</h2>
                     <p className="text-gray-700 mb-6">{error}</p>
@@ -91,7 +91,7 @@ const LoginCallback: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-paper">
             <div className="text-xl font-display tracking-widest animate-pulse">
                 登入中...
             </div>

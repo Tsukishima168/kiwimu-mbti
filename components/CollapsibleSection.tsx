@@ -24,10 +24,10 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         <div id={id} className={`border-b border-gray-100 transition-all duration-500 ease-in-out ${className} ${isOpen ? 'py-12 md:py-20' : 'py-6 md:py-8'}`}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full group flex flex-col items-center justify-center text-center focus:outline-none"
+                className="w-full min-h-11 group flex flex-col items-center justify-center text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kiwi-dark"
             >
                 <div className="flex items-center gap-3 md:gap-4 transition-transform duration-300">
-                    <h3 className="text-[10px] md:text-[11px] font-bold tracking-[0.3em] md:tracking-[0.4em] text-gray-400 group-hover:text-kiwi-dark font-mono uppercase transition-colors">
+                    <h3 className="text-xs font-bold tracking-[0.3em] md:tracking-[0.4em] text-[#5F6856] group-hover:text-kiwi-dark font-mono uppercase transition-colors">
                         {title}
                         {subtitle && <span className="block mt-1 md:inline md:mt-0 md:ml-2 opacity-70 group-hover:opacity-100 transition-opacity">{subtitle}</span>}
                     </h3>
@@ -36,7 +36,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
                     </span>
                 </div>
                 {!isOpen && (
-                    <span className="text-[9px] text-gray-300 mt-2 font-mono tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">CLICK TO EXPAND</span>
+                    <span className="text-xs text-[#5F6856] mt-2 font-mono tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">CLICK TO EXPAND</span>
                 )}
             </button>
 

@@ -6,7 +6,7 @@ interface LandingProps {
 
 const Landing: React.FC<LandingProps> = ({ onStart }) => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 text-center fade-in">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-paper p-6 text-center fade-in">
       <div className="max-w-md w-full border border-black p-12 relative">
         <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-black -mt-1 -ml-1"></div>
         <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-black -mt-1 -mr-1"></div>

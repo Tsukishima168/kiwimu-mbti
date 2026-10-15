@@ -37,7 +37,7 @@ export const RunDetail: React.FC<RunDetailProps> = ({ run, onBack }) => {
     };
 
     return (
-        <div className="min-h-screen bg-kiwi-bg">
+        <div className="min-h-screen bg-kiwi-paper">
             {/* Back Button */}
             <div className="max-w-4xl mx-auto px-6 pt-8 pb-4">
                 <button

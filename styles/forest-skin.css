@@ -1,0 +1,92 @@
+/*
+ * Kiwimu MBTI site skin (D1: change colour only, never structure).
+ *
+ * Why this file exists: three things must change on public pages but live in
+ * files that are off limits in this round (App.tsx and ResultLegacyDump.tsx are
+ * production-frozen; kiwimu-universe.css is the shared rail file). Instead of
+ * editing them, this page-layer file overrides them by selector.
+ *
+ * Palette (Moon Island forest, see docs/five-site-design-system):
+ *   forest #1F2F1F  mid #304F2F  cream #F5F0E8  soft gold #D7C678
+ *   secondary text on cream #5F6856 (5.14:1, never lighter)
+ * Ink (#111) stays the line/border colour: the black-and-white Kiwimu line art
+ * and ink borders are intentionally untouched.
+ */
+
+html:root {
+  --ku-gold: #d7c678;
+  --ku-forest: #1f2f1f;
+  --ku-forest-mid: #304f2f;
+  --ku-cream: #f5f0e8;
+  --ku-text-soft: #5f6856;
+}
+
+/* ---- focus: one visible ring everywhere -------------------------------- */
+/* Base layer on purpose: component rings (utilities, quiz CSS, rail) still win. */
+@layer base {
+  :where(a[href], button, summary, select, input, textarea, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid var(--ku-forest);
+    outline-offset: 2px;
+  }
+}
+/* Dark surfaces (result gate cards, V2 reading theme) use the soft gold ring. */
+.ku-dark-surface :focus-visible,
+.v2-app :focus-visible,
+.v2-surface :focus-visible {
+  outline: 2px solid var(--ku-gold);
+  outline-offset: 2px;
+}
+
+/* ---- paper: frozen App.tsx wrappers still say bg-kiwi-bg (#FAFAFA) ----- */
+/* Only when a non-frozen screen (which uses bg-kiwi-paper) is mounted inside;
+   the frozen og-render / ResultLegacyDump screen has no such child and keeps #FAFAFA. */
+.bg-kiwi-bg:has(.bg-kiwi-paper) {
+  background-color: var(--color-kiwi-paper, #f5f0e8);
+}
+
+/* ---- home: V2 entry card (rule lives in the shared rail css: lime) ------- */
+html .ku-quiz-entry .ku-quiz-entry__choice--v2 {
+  background: var(--ku-gold);
+  color: #111111;
+}
+/* Orbit frame halo was lime at 8%: same shape, gold. */
+html .ku-orbit-frame {
+  box-shadow:
+    0 1.5rem 4rem rgba(17, 17, 17, 0.12),
+    0 0 0 0.5rem rgba(215, 198, 120, 0.08);
+}
+
+/* ---- home footer (rendered by frozen App.tsx): contrast + 44px targets --- */
+#root footer.text-center.text-xs.text-gray-400 {
+  color: var(--ku-text-soft);
+}
+#root footer.text-center.text-xs.text-gray-400 > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding-inline: 0.5rem;
+  vertical-align: middle;
+}
+
+/* ---- reduced motion: one global catch-all (same recipe as map) ---------- */
+/* Covers the V1 fadeIn (index.html) and the 1s colour transition on the App wrapper. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  /* Entrance fades: drop them outright (their end state is the normal state) so no
+     Animation object exists at all, instead of leaving a 0.01ms one behind. */
+  .fade-in,
+  .slide-up,
+  .subtitle-anim {
+    animation: none !important;
+  }
+}

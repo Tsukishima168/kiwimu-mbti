@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
           short_name: 'Kiwimu MBTI',
           description: '透過 MBTI 測驗深刻了解自己。Kiwimu 16 型人格化身，每型對應獨特的甜點風味與情緒主題。',
           theme_color: '#121212',
-          background_color: '#FAFAFA',
+          background_color: '#F5F0E8',
           display: 'standalone',
           orientation: 'portrait',
           scope: '/',

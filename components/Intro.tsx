@@ -27,7 +27,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
   }[language];
 
   return (
-    <div className="classic-intro flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6 fade-in relative overflow-hidden">
+    <main className="classic-intro flex flex-col items-center justify-center min-h-screen bg-kiwi-paper p-6 fade-in relative overflow-hidden">
 
       {/* Language Toggle in top-left corner */}
       <div className="absolute top-6 left-6 z-50">
@@ -97,7 +97,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
       )}
 
       {/* 裝飾性背景文字 */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] font-display font-bold text-gray-100 select-none -z-10 pointer-events-none opacity-50">
+      <div aria-hidden="true" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20vw] font-display font-bold text-gray-100 select-none -z-10 pointer-events-none opacity-50">
         MBTI
       </div>
 
@@ -129,10 +129,10 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
           {t('kiwimu_universe')}
         </h1>
 
-        <p className="text-xs font-mono text-gray-500 mb-2 tracking-[0.3em] uppercase">
+        <p className="text-xs font-mono text-[#5F6856] mb-2 tracking-[0.3em] uppercase">
           {t('discover_inner_self')}
         </p>
-        <p className="text-sm font-serif text-gray-400 mb-6 italic leading-relaxed px-4">
+        <p className="text-sm font-serif text-[#5F6856] mb-6 italic leading-relaxed px-4">
           {t('soft_understanding')}
         </p>
 
@@ -166,7 +166,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
 
         <p className="mt-6 max-w-sm text-sm leading-relaxed text-gray-600">{entry.note}</p>
       </div>
-    </div>
+    </main>
   );
 };
 
