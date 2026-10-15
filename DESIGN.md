@@ -174,8 +174,11 @@ V1.5 的 neo-brutalist 墨線結構是刻意差異；色彩已於 2026-10-14 併
 
 - 五站共用的頂部 rail 是**森林版**：深綠 `#1F2F1F`、奶油 `#F5F0E8`、柔金 `#D7C678`（目前所在站為柔金），
   中文入口 14px、操作區 48px；2026-10-13（PR #50）已合併上線，五站同步。舊稿「黑底／lime」描述作廢。
-- 元件 `components/KiwimuUniverseRail.tsx` 與 `styles/kiwimu-universe.css` 是共用檔，本檔不規範其內容；
-  頁面層只在 `styles/forest-skin.css` 覆寫（例如首頁 V2 入口卡的底色）。
+- 元件 `components/KiwimuUniverseRail.tsx` 與 `styles/kiwimu-universe.css` 是共用核心（五站 byte-identical，
+  2026-10-15 起由 rail kit 安裝），本檔不規範其內容、也不得修改。本站自己的規則放 `styles/kiwimu-site.css`
+  （`kw-site-kicker`、`kw-orbit-frame`、`kw-quiz-entry*`、`kw-account-menu`；首頁 V2 入口卡的柔金底在這裡），
+  公開頁的紙底、頁尾與全域焦點／reduced-motion 放 `styles/forest-skin.css`。
+- rail 點擊送 GA4 `universe_nav_click`（12 欄），見 `docs/GA4_EVENTS_REFERENCE.md` §2.10。
 
 ---
 

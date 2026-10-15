@@ -95,6 +95,39 @@
 | `begin_checkout` | `components/v2/V2App.tsx` | items, mbti_type, source, checkout_url | 點擊 V2 解鎖 CTA |
 | `purchase` | `components/v2/V2App.tsx` | transaction_id, items, mbti_type, unlock_type, source | V2 解鎖成功（含 Supabase entitlement / dev preview） |
 
+### 2.10 跨站導覽（五站共用 rail）
+
+| 事件名稱 | 觸發位置 | 參數 | 說明 |
+|----------|----------|------|------|
+| `universe_nav_click` | `components/KiwimuUniverseRail.tsx`（共用核心），由 `main.tsx` 的 `onTrack` 接 `utils/crossSiteTracking.trackEvent` | 見下表，共 12 欄，另有 `site_id` | 點擊頂部導覽的任一連結：五站、森林展覽、手機「更多」面板內的連結。不 `preventDefault`，追蹤失敗仍會換站 |
+
+12 欄（D3 規定的 8 欄＋既有 4 欄）：
+
+| 欄位 | 值 | 說明 |
+|------|----|------|
+| `source_site` | 發出點擊的站；本站固定為 `kiwimu` | 值域 `kiwimu`／`passport`／`map`／`gacha`／`shop`；注意與 `site_id`（`mbti_lab`）是兩個欄位 |
+| `target_site` | 五站 id 或 `canopy` | **森林展覽為 `canopy`** |
+| `viewport` | 如 `390x844` | 與下面兩欄一致 |
+| `viewport_width`／`viewport_height` | 數字 | 視窗尺寸 |
+| `viewport_category` | `mobile`（≤640）／`tablet`（≤1024）／`desktop`／`unknown` | |
+| `login_status` | `authenticated`／`anonymous`／`unknown` | 掛載時以 `readSupabaseLoginStatus` 讀一次並快取，不更新；讀不到為 `unknown` |
+| `surface` | `universe_rail` | |
+| `link_name` | `MBTI`／`Passport`／`Map`／`Gacha`／`Shop`／`Canopy` | |
+| `entry_surface` | `universe_rail` | 同 `surface` |
+| `destination_type` | `cross_site_nav`；森林展覽為 `external` | |
+| `transport_type` | `beacon` | |
+
+本站 `trackEvent` 另外加 `site_id: mbti_lab`。
+
+**分析注意事項**
+
+- **五站都會送**同一個事件、同樣 12 欄（gacha 自 2026-10 起不再送 `outbound_click`；passport／map／shop 原本不送，現在也送）。
+- **本站點擊也會送**（`source_site` = `target_site` = `kiwimu`，連結帶 `?from=mbti_universe_nav`）。看跨站流量時要過濾：`source_site != target_site`。
+- 森林展覽是 `target_site = canopy`、`destination_type = external`，另開分頁、連結不帶 `from`。
+- 跨站連結的歸因參數：kiwimu 出站為 `?from=mbti_universe_nav`；其他四站出站為 `?from=<站>_universe_rail`。
+- 只用於分析，不寫入 Economy ledger，也不用來決定點數。
+- 新欄位（`source_site`、`target_site`、`link_name`、`entry_surface` 等）若要在標準報表出現，需另在 GA4 後台登錄自訂維度（本檔未代為登錄）。
+
 ---
 
 ## 三、自訂維度建議（GA4 後台）
