@@ -193,7 +193,7 @@ export const ResultCardFlow: React.FC<ResultCardFlowProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-black z-[220] flex items-center justify-center overflow-hidden">
+        <div className="fixed inset-0 bg-black z-[150] flex items-center justify-center overflow-hidden">
             {/* Mobile container constraint */}
             <div className="w-full h-full max-w-md mx-auto bg-white relative shadow-2xl overflow-hidden">
 
