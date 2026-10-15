@@ -5,7 +5,7 @@
 > 並回頭更新本文件。
 >
 > **Status**: 現行實作（live）。
-> **Last updated**: 2026-10-11（上方導覽、文字用途與持續演進規則）
+> **Last updated**: 2026-10-14（主行動按鈕改柔金、焦點環改柔金、rail 描述改為森林版）
 >
 > 舊版 Apple Dark 規格保留在 `DESIGN.md.bak-20260905`，
 > 舊 CSS 保留在 `v2-dark.css.bak-20260905`。
@@ -85,6 +85,10 @@
 - 深色固定主題，不提供 light 切換。
 - 強調色是暖琥珀 `--signal (#E8A64A)`，用於 highlight / active / 進度 / dot，
   絕不整片鋪。`--acid` 保留為 `--signal` 的別名，讓舊規則不必逐條改寫。
+- **主行動按鈕**（`.ad-btn-primary`、`.kiwimu-btn-primary`）改用柔金 `--gold (#D7C678)`，
+  字色深綠 `--on-gold (#1F2F1F)`，對比約 8.2:1，與五站「深色面主行動」一致（2026-10-14；淺色面的主按鈕是深綠實心配奶油字，V2 全為深色面，不適用）。
+  暖琥珀不再用在主按鈕，只留給上述小面積訊號；V2 其餘色彩不動。
+- **焦點環**：V2 深色面一律 2px 柔金 `--gold`（舊的琥珀／訊號色焦點環已改）。
 - 允許 blur（marquee、nav、ambient orb）與漸層（頁面頂光、paywall 遮罩、圖版 scrim）。
 
 ---
@@ -104,6 +108,8 @@
 | `--t3` | `.v2-surface` 內 `rgba(var(--cream-rgb), 0.68)` | 輔助 / label / muted；`:root` 的 0.44 是舊預設，不能用來判斷 surface 的實際對比 |
 | `--signal` | `#E8A64A` | 暖琥珀訊號色 |
 | `--on-signal` | `#14210F` | 壓在訊號色上的文字 |
+| `--gold` / `--gold-rgb` | `#D7C678` / `215, 198, 120` | 柔金：主行動按鈕底、焦點環（2026-10-14 新增，月島深綠系統色） |
+| `--on-gold` | `#1F2F1F` | 壓在柔金上的文字（深綠） |
 | `--moss` | `#7A9470` | 苔綠，結構性中間調 |
 | `--acid` | `var(--signal)` | 舊名別名，勿在新程式碼使用 |
 | `--acid-glow` / `--acid-dim` | `rgba(var(--signal-rgb), .18/.08)` | 光暈 / 極淡強調底 |
@@ -329,7 +335,7 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 - 沒有已購報告、登入失效、讀取失敗與通知未寄出必須各有文字；寄信失敗不遮擋已付款的閱讀入口，不能以登入成功或通知送出替代付款權限核對。
 
 - 按鈕（`.ad-btn-primary` / `.ad-btn-ghost` / `.kiwimu-btn*`）與導覽 item 一律具備
-  `:hover`、`:focus-visible`（訊號色 outline + offset）、`:active`（微位移/收斂光暈）。
+  `:hover`、`:focus-visible`（柔金 outline + offset）、`:active`（微位移/收斂光暈）。
 - hover 只動 border 色、文字色、光暈、`translateY(-1px)` 級距，不做大變形。
 - 所有 transition 走 `--dur*` token。
 
@@ -338,18 +344,20 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 
 ## 10. 邊界：本規格不管的地方
 
-- **跨站導覽軌 `.ku-universe-rail`**（`styles/kiwimu-universe.css`）沿用五站共用的
-  `--ku-lime #d4ff00` 色彩系統。桌機 sticky，手機隨文件捲走；手機最小高度為
+- **跨站導覽軌 `.ku-universe-rail`**（`styles/kiwimu-universe.css`）是五站共用的森林版：
+  深綠 `#1F2F1F`、奶油 `#F5F0E8`、柔金 `#D7C678`（目前所在站點為柔金），不再是黑底／lime。
+  五站已於 2026-10-13（PR #50 合併）同步。桌機 sticky，手機隨文件捲走；手機最小高度為
   `calc(3rem + 1px)`（16px預設下49px，nav48px），文字放大可增加高度。
-  PR46 只收斂V2頁內導覽；頂部rail的最新排列見下節，其他四站尚未同步。
+  該檔與 `KiwimuUniverseRail.tsx` 屬共用檔，本規格不改它；頂部rail的最新排列見下節。
 
-- **`/` 與 `/explore`（V1.5）** 走根目錄 `DESIGN.md` 的 Neo-Brutalist 紙白系統。
-  本次只把免費結果頁的角色圖換成該變體的 `portrait`，並加上圖鑑式標註，
-  沒有改動該面的色彩系統。
+- **`/`、`/explore`（V1.5）與 `/answers`** 走根目錄 `DESIGN.md`（黑白線稿、墨色邊框，
+  2026-10-14 起主色為奶油 `#F5F0E8` 與柔金 `#D7C678`，螢光綠已退場）。
+  本次只把免費結果頁的角色圖換成該變體的 `portrait`，並加上圖鑑式標註；
+  色彩調整只換色、不換結構。
 
 ### 森林展覽與手機導覽（2026-10-12）
 
-- 本 repo 的共用頂部 rail 沿用黑底／lime 的五站識別。桌機五個服務入口維持原順序，
+- 本 repo 的共用頂部 rail 是森林版五站識別（深綠底、奶油字、柔金目前站）。桌機五個服務入口維持原順序，
   「森林展覽」放在甜點預訂後，連到 `https://canopy.kiwimu.com/` 並另開分頁。
   展覽是延伸內容，不算第六個會員服務，五個 orbit 與 `05 connected sites` 保留。
 - 手機 ≤640px 顯示「人格測驗／會員護照／甜點預訂／更多」。地圖、遊戲與森林展覽
@@ -359,7 +367,8 @@ Mono 類文字慣例：`letter-spacing` 0.1–0.22em、`text-transform: uppercas
 - 「更多」用原生 button、`aria-expanded` 與一般導航連結；Tab正常進出，Esc回到按鈕，
   點外部或改變視窗尺寸收起。它不是需要方向鍵操作的應用程式 menu。
 - 手機頂部 rail 隨頁面捲動，桌機沿用 sticky；展開選單覆蓋頁面但不改正文布局。
-  這輪只改 kiwimu.com，不聲稱其他四站的頂部排列已同步。
+  五站已於 2026-10-13（PR #50 合併）同步為同一版森林 rail；各站整合層（z-index、安全區）
+  仍有差異，以五站契約為準，不在本檔重述。
 
 ## 11. 持續演進方式
 
