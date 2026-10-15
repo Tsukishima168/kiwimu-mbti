@@ -43,7 +43,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
           {t('login')}
         </button>
       ) : (
-        <details className="absolute top-6 right-6 z-50 ku-account-menu">
+        <details className="absolute top-6 right-6 z-50 kw-account-menu">
           <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 bg-white px-4 py-2 rounded-full shadow-md hover:shadow-lg transition-all">
             <span className="max-w-28 truncate text-sm font-medium">{user.displayName || user.email}</span>
             <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +107,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
         <button
           type="button"
           aria-label={entry.v1Start}
-          className="ku-orbit-frame w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden mt-16 mb-6 relative group cursor-pointer bg-gray-100"
+          className="kw-orbit-frame w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden mt-16 mb-6 relative group cursor-pointer bg-gray-100"
           onClick={() => { trackButtonClick('進入_圓形', 'intro_main'); onStart(); }}
         >
           <img
@@ -123,7 +123,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
           </div>
         </button>
 
-        <p className="ku-site-kicker mb-5">01 / Personality lab</p>
+        <p className="kw-site-kicker mb-5">01 / Personality lab</p>
 
         <h1 className="text-3xl md:text-4xl font-serif font-bold tracking-[0.04em] md:tracking-[0.08em] text-balance text-kiwi-dark mb-4">
           {t('kiwimu_universe')}
@@ -136,23 +136,23 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
           {t('soft_understanding')}
         </p>
 
-        <nav className="ku-quiz-entry" aria-label={entry.choose}>
-          <p className="ku-quiz-entry__heading">{entry.choose}</p>
-          <div className="ku-quiz-entry__choices">
-            <button className="ku-quiz-entry__choice" onClick={() => { trackButtonClick('V1_經典人格', 'intro_version'); onStart(); }}>
+        <nav className="kw-quiz-entry" aria-label={entry.choose}>
+          <p className="kw-quiz-entry__heading">{entry.choose}</p>
+          <div className="kw-quiz-entry__choices">
+            <button className="kw-quiz-entry__choice" onClick={() => { trackButtonClick('V1_經典人格', 'intro_version'); onStart(); }}>
               <strong>{entry.v1}</strong>
               <span>{entry.v1Detail}</span>
-              <span className="ku-quiz-entry__cta">{entry.v1Start} ↗</span>
+              <span className="kw-quiz-entry__cta">{entry.v1Start} ↗</span>
             </button>
-            <a className="ku-quiz-entry__choice ku-quiz-entry__choice--v2" href="/read?from=mbti_version_entry" onClick={() => trackButtonClick('V2_敘事探索', 'intro_version')}>
+            <a className="kw-quiz-entry__choice kw-quiz-entry__choice--v2" href="/read?from=mbti_version_entry" onClick={() => trackButtonClick('V2_敘事探索', 'intro_version')}>
               <strong>{entry.v2}</strong>
               <span>{entry.v2Detail}</span>
               <span>{entry.v2Price}</span>
-              <span className="ku-quiz-entry__cta">{entry.v2Start} ↗</span>
+              <span className="kw-quiz-entry__cta">{entry.v2Start} ↗</span>
             </a>
           </div>
-          <a className="ku-quiz-entry__quick" href="/explore?from=mbti_version_entry">{entry.quick} ↗</a>
-          <a className="ku-quiz-entry__quick" href="/read/library">{{ zh: '我的已購報告', en: 'My purchased reports', ja: '購入済みレポート', ko: '구매한 보고서' }[language]} ↗</a>
+          <a className="kw-quiz-entry__quick" href="/explore?from=mbti_version_entry">{entry.quick} ↗</a>
+          <a className="kw-quiz-entry__quick" href="/read/library">{{ zh: '我的已購報告', en: 'My purchased reports', ja: '購入済みレポート', ko: '구매한 보고서' }[language]} ↗</a>
         </nav>
 
         {(!user || user.isAnonymous) && (

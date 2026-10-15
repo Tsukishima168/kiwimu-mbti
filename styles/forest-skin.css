@@ -1,12 +1,12 @@
 /*
  * Kiwimu MBTI site skin (D1: change colour only, never structure).
  *
- * Why this file exists: three things must change on public pages but live in
- * files that are off limits in this round (App.tsx and ResultLegacyDump.tsx are
- * production-frozen; kiwimu-universe.css is the shared rail file). Instead of
- * editing them, this page-layer file overrides them by selector.
+ * Why this file exists: App.tsx and components/ResultLegacyDump.tsx are production-frozen, but
+ * public pages still need the cream paper, a readable footer and global focus/motion rules.
+ * Instead of editing them, this page-layer file overrides them by selector.
+ * (Site component rules that used to sit in the rail css now live in styles/kiwimu-site.css.)
  *
- * Palette (Moon Island forest, see docs/five-site-design-system):
+ * Palette (Moon Island forest, see docs/five-site-design-system.md):
  *   forest #1F2F1F  mid #304F2F  cream #F5F0E8  soft gold #D7C678
  *   secondary text on cream #5F6856 (5.14:1, never lighter)
  * Ink (#111) stays the line/border colour: the black-and-white Kiwimu line art
@@ -42,18 +42,6 @@ html:root {
    the frozen og-render / ResultLegacyDump screen has no such child and keeps #FAFAFA. */
 .bg-kiwi-bg:has(.bg-kiwi-paper) {
   background-color: var(--color-kiwi-paper, #f5f0e8);
-}
-
-/* ---- home: V2 entry card (rule lives in the shared rail css: lime) ------- */
-html .ku-quiz-entry .ku-quiz-entry__choice--v2 {
-  background: var(--ku-gold);
-  color: #111111;
-}
-/* Orbit frame halo was lime at 8%: same shape, gold. */
-html .ku-orbit-frame {
-  box-shadow:
-    0 1.5rem 4rem rgba(17, 17, 17, 0.12),
-    0 0 0 0.5rem rgba(215, 198, 120, 0.08);
 }
 
 /* ---- home footer (rendered by frozen App.tsx): contrast + 44px targets --- */
