@@ -13,8 +13,13 @@
 > `components/ResultLegacyDump.tsx`、`i18n/resultTranslations.ts`、
 > `i18n/questionsTranslations.ts`、`App.tsx`（含題庫／計分／付費程式）。凍結指「這些檔案
 > 不得更動」，不是「`/` 的畫面不得調整」。`/` 的視覺由 `Intro`、`Quiz` 等非凍結元件與
-> `styles/forest-skin.css` 控制，因此本檔適用；凍結檔內的舊色（例如 `ResultLegacyDump`
-> 裡的 lime）保留，待另行指示。
+> `styles/forest-skin.css` 控制，因此本檔適用。
+>
+> **2026-10-16 Penso 解凍 V1 結果頁顏色**：`components/ResultLegacyDump.tsx` 的螢光綠
+> （`#C6FF00`／`#CCFF00`）已換柔金 `#D7C678`，根容器 `bg-kiwi-bg` 改 `bg-kiwi-paper`（奶油）；
+> **內容、版面、IG Story 結構與邏輯仍凍結**（只准改色值與色彩 class）。其餘四個凍結檔
+> （`constants.ts`、兩份 i18n、`App.tsx`）維持凍結。IG Story 分享圖的編輯風調色盤
+> （`SHARE_EDITORIAL_PALETTE`：olive／moss／limeMist／`#F8F7F1`）不在本次範圍，未動。
 
 ## 色彩與結構的現行原則（2026-10-14，D1）
 
@@ -160,7 +165,7 @@ label:   11px    / 600 / JetBrains Mono / letter-spacing 0.25em / uppercase
 
 | 專案 | 主色系 | 字型 | 說明 |
 |------|--------|------|------|
-| **MBTI（`/`、`/explore`、`/answers`）** | `#F5F0E8` 奶油 + `#D7C678` 柔金，墨線稿保留 | Noto Sans/Serif TC | 本文件規範（凍結檔內舊色保留，見上） |
+| **MBTI（`/`、`/explore`、`/answers`）** | `#F5F0E8` 奶油 + `#D7C678` 柔金，墨線稿保留 | Noto Sans/Serif TC | 本文件規範（V1 結果頁已於 2026-10-16 解凍換色，見上） |
 | MBTI V2（`/read`） | 深林綠 Quiet Atlas + 柔金主按鈕 | Space Grotesk + Inter + Noto Sans TC | 不適用本檔，見 `components/v2/DESIGN.md` |
 | moonmoon-gacha | `#F9F8F2` 暖紙 + Amber | Noto Sans TC | 獨立產品，暖色系 |
 | moonmoon-dessert-passport | `#0A0A0A` 深黑 + Moon Gold | Inter | 後台深色系 |
@@ -194,3 +199,4 @@ V1.5 的 neo-brutalist 墨線結構是刻意差異；色彩已於 2026-10-14 併
 | 2026-03-26 | Border-radius 二元（0 / pill）| 一致性，neo-brutalist 不用中間值 |
 | 2026-10-14 | D1：kiwimu 只換色不換結構，螢光綠 → 柔金 `#D7C678`，紙底 → 奶油 `#F5F0E8` | 對齊月島深綠系統，保留黑白線稿與墨框；`kiwi-bg` 因凍結檔使用而不改值 |
 | 2026-10-14 | 更正：V2 不是 Apple Dark，是 Quiet Atlas；`/` 適用本檔，凍結的是五個內容／邏輯檔 | 消除本檔與 `components/v2/DESIGN.md` 的矛盾 |
+| 2026-10-16 | Penso 解凍 V1 結果頁顏色：螢光綠換柔金；內容仍凍結 | `ResultLegacyDump.tsx` 只改色值與色彩 class（7 行），`kiwi-bg` token 值不改，其餘四個凍結檔不動 |

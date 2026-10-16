@@ -1,5 +1,11 @@
 # Kiwimu / MBTI Current
 
+## 2026-10-16｜Penso 解凍 V1 結果頁顏色（內容仍凍結）
+
+- Penso 指示「先解凍吧」：`components/ResultLegacyDump.tsx` 只准改色值與色彩 className。螢光綠（`#C6FF00`／`#CCFF00`）全部換柔金 `#D7C678`，頁面根容器 `bg-kiwi-bg` 改 `bg-kiwi-paper`（奶油 `#F5F0E8`），與首頁一致。
+- 文案、版面、尺寸、IG Story 結構與邏輯仍凍結；`constants.ts`、`i18n/resultTranslations.ts`、`i18n/questionsTranslations.ts`、`App.tsx` 維持凍結。`kiwi-bg` token 值不改（`App.tsx` 仍使用）。
+- 分支 `claude/style-upgrade-20261014`（PR #51）。證據：還原色值後與 origin/main 逐字相同；V1 結果頁（zh）computed lime 6→0；IG Story PNG 前後 byte-identical。
+
 ## 2026-10-07｜主對話收尾｜本機驗證完成，待獨立簽收與上線核定
 
 - ✅ 菜單卡「月島菜單真相源」改為「月島菜單資訊」，同時保留現行菜單品名與供應來源說明。`components/v2/V2App.tsx:1499`。
