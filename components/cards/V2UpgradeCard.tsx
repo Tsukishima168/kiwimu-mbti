@@ -23,7 +23,7 @@ export const V2UpgradeCard: React.FC<CardProps> = ({
   return (
     <div className="ku-dark-surface w-full h-full flex flex-col bg-[#0F172A] text-white overflow-hidden pb-16">
       <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth px-6 pt-16 pb-10">
-        <div className="inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-[#D7C678]">
+        <div className="inline-flex items-center rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#D7C678]">
           KIWIMU V2 深度報告
         </div>
 
@@ -34,7 +34,7 @@ export const V2UpgradeCard: React.FC<CardProps> = ({
         </div>
 
         <div className="mt-10 rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#D7C678]">解鎖後可讀</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#D7C678]">解鎖後可讀</p>
           <ul className="mt-4 space-y-3 text-sm leading-relaxed text-white/80">
             <li>A / T 變體的完整深讀</li>
             <li>四個維度、職涯與關係切面</li>
@@ -51,7 +51,7 @@ export const V2UpgradeCard: React.FC<CardProps> = ({
         </div>
 
         <div className="mt-10 space-y-4 rounded-[28px] border border-dashed border-white/20 bg-white/5 p-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-white/40">Preview</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/40">Preview</p>
           <p className="blur-[3px] select-none text-sm leading-relaxed text-white/55">
             你擅長在熟悉的秩序與個人節奏之間找到平衡，但真正讓你持續前進的，往往不是外界期待，而是你內在那條更安靜的判準線。
           </p>

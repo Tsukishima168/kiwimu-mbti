@@ -62,7 +62,7 @@ export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogi
                         className="inline-block w-2 h-2 rounded-full animate-pulse"
                         style={{ background: '#D7C678' }}
                     />
-                    <span className="text-[10px] font-mono tracking-[0.2em]" style={{ color: '#D7C678', opacity: 0.85 }}>
+                    <span className="text-xs font-mono tracking-[0.2em]" style={{ color: '#D7C678', opacity: 0.85 }}>
                         {t('gate_dissolving') || '配方消散中'}
                     </span>
                     <span
