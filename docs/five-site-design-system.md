@@ -78,7 +78,7 @@
 - **層級**：
   - rail 收合時 `z-index` 60，展開時 210。
   - 站點可用 CSS 變數 `--ku-nav-z`、`--ku-nav-z-open` 覆寫（shop 收合時為 35，讓購物車抽屜 z50 能蓋過 rail）。
-  - 全螢幕層（結果卡、dialog、抽屜）必須高於 rail 當時的層級，關閉控制不得被 rail 擋住。
+  - 全螢幕層（結果卡、dialog、抽屜）必須高於 rail 當時的層級（全螢幕層出現時 rail 一定是收合的 60），關閉控制不得被 rail 擋住；同時不得蓋過站內的全域提示（例：kiwimu 存檔提示 toast z200）。kiwimu 結果卡為 z150。
 - **安全區**：rail 有 `padding-top: env(safe-area-inset-top)`。
 - **`--ku-rail-height`**：包含安全區；元件掛載後改用實測 px，且會隨尺寸變化重新量測。站點所有 fixed／sticky 頂部元素都必須以它下移，不准寫死 49px。
 - **連結開法**：站點之間切換用同頁導覽；森林展覽另開新分頁，加 `rel="noopener noreferrer"`。這是唯一的新分頁例外。
