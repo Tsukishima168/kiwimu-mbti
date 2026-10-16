@@ -23,7 +23,7 @@ export const RegistrationGateCard: React.FC<CardProps> = ({ user, onNext, onLogi
     };
 
     return (
-        <div className="ku-dark-surface w-full h-full flex flex-col bg-kiwi-dark text-white overflow-hidden pb-16 justify-center px-8 relative">
+        <div className="kw-dark-surface w-full h-full flex flex-col bg-kiwi-dark text-white overflow-hidden pb-16 justify-center px-8 relative">
             {/* Background atmosphere */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,_rgba(215,198,120,0.06)_0%,_transparent_60%),radial-gradient(circle_at_70%_80%,_rgba(215,198,120,0.04)_0%,_transparent_50%)] pointer-events-none" />
 

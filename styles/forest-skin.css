@@ -30,7 +30,7 @@ html:root {
   }
 }
 /* Dark surfaces (result gate cards, V2 reading theme) use the soft gold ring. */
-.ku-dark-surface :focus-visible,
+.kw-dark-surface :focus-visible,
 .v2-app :focus-visible,
 .v2-surface :focus-visible {
   outline: 2px solid var(--ku-gold);
@@ -45,6 +45,9 @@ html:root {
 }
 
 /* ---- home footer (rendered by frozen App.tsx): contrast + 44px targets --- */
+/* DEPENDS ON App.tsx's FooterLinks className (`footer.text-center.text-xs.text-gray-400` with
+   direct <a> children). When App.tsx is unfrozen and the footer is redesigned, update or delete
+   these two rules in the same change; otherwise they silently stop matching. */
 #root footer.text-center.text-xs.text-gray-400 {
   color: var(--ku-text-soft);
 }
