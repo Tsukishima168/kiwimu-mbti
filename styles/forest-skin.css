@@ -38,8 +38,9 @@ html:root {
 }
 
 /* ---- paper: frozen App.tsx wrappers still say bg-kiwi-bg (#FAFAFA) ----- */
-/* Only when a non-frozen screen (which uses bg-kiwi-paper) is mounted inside;
-   the frozen og-render / ResultLegacyDump screen has no such child and keeps #FAFAFA. */
+/* Applies whenever a screen that uses bg-kiwi-paper is mounted inside. Since 2026-10-16 that includes the
+   V1 result page (ResultLegacyDump: colour-only unfreeze), so its wrapper is cream too. App.tsx's own
+   RouteFallback / loading screens still say bg-kiwi-bg and keep #FAFAFA (token value is unchanged). */
 .bg-kiwi-bg:has(.bg-kiwi-paper) {
   background-color: var(--color-kiwi-paper, #f5f0e8);
 }
