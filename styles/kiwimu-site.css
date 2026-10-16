@@ -48,3 +48,41 @@
 
 .kw-account-menu summary::-webkit-details-marker { display: none; }
 .kw-account-menu summary:focus-visible { outline: 2px solid #1f2f1f; outline-offset: 4px; }
+
+/*
+ * 中文補字（Latin 專用字型的堆疊沒有漢字，中文會落到系統字）。
+ * JetBrains Mono、Space Grotesk、Inter 都不含漢字；真機沒裝 Noto Sans TC 時，中文落 PingFang TC 而不是站上載入的 Noto Sans TC。
+ * 只在中文介面補：html lang 由 contexts/LanguageContext.tsx 依介面語言設定（zh→zh-TW、ja、ko、en），
+ * 所以用 :lang(zh)；日文與韓文介面不受影響（避免日文漢字被換成繁中字形）。
+ * "Noto Sans TC" 一律排在原 Latin 字型後面，英數字形與原本逐位元相同。
+ * 不在此處理的：
+ *  - App.tsx、ResultLegacyDump.tsx（凍結檔）的 Tailwind font-mono／inline 堆疊。
+ *  - 首頁眉標「Discover Your Inner Self 探索內在自我」（components/Intro.tsx，Tailwind font-mono，堆疊以 ui-monospace 開頭）：
+ *    WebKit 對 ui-monospace 這類系統字會在該字型自己的回退清單內解決漢字（PingFang TC），排在後面的 Noto Sans TC 用不到；
+ *    要生效就得把 Noto 排到 ui-monospace 前面，英數會跟著換字形，不符「英數字形不變」，所以不改。
+ */
+:lang(zh) .kw-site-kicker {
+  font-family: 'JetBrains Mono', 'Noto Sans TC', ui-monospace, SFMono-Regular, monospace;
+}
+
+:lang(zh) .v2-label {
+  font-family: 'JetBrains Mono', 'Noto Sans TC', monospace;
+}
+
+/* v2-dark.css 在 :root 定義 --f-mono；:root:lang(zh) 權重較高，載入順序不影響 */
+:root:lang(zh) {
+  --f-mono: 'JetBrains Mono', 'Noto Sans TC', monospace;
+}
+
+/*
+ * /explore（ExploreIntro／ExploreQuiz／ExploreResult）的字體是 inline style，只有 !important 蓋得過；
+ * 用屬性選擇器對應那串字，並限定在這三個 <main> 之內，不波及 V1 結果頁的 inline 堆疊（凍結檔）。
+ */
+:lang(zh) :is(main.fade-in, main.explore-quiz, main.explore-result) [style*="JetBrains Mono"] {
+  font-family: 'JetBrains Mono', 'Noto Sans TC', monospace !important;
+}
+
+:lang(zh) :is(main.explore-quiz, main.explore-result):is([style*="Space Grotesk"]),
+:lang(zh) :is(main.fade-in, main.explore-quiz, main.explore-result) [style*="Space Grotesk"] {
+  font-family: 'Space Grotesk', 'Inter', 'Noto Sans TC', sans-serif !important;
+}
