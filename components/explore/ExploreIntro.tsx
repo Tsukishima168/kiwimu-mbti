@@ -43,8 +43,9 @@ const ExploreIntro: React.FC<Props> = ({ introCopy, quizTitle, onStart }) => {
         @media (min-width: 768px) { .explore-intro-brand { top: 56px; } }
       `}</style>
 
+      {/* Neutral dark-grey scrim: only as deep as the white text needs for 4.5:1 (flat 35% fails). No green or gold here. */}
       {/* overlay */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,10,10,0.62) 0%, rgba(10,10,10,0.5) 22%, rgba(10,10,10,0.35) 45%, rgba(10,10,10,0.35) 58%, rgba(10,10,10,0.58) 76%, rgba(10,10,10,0.74) 100%)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,10,10,0.58) 0%, rgba(10,10,10,0.48) 22%, rgba(10,10,10,0.35) 45%, rgba(10,10,10,0.35) 58%, rgba(10,10,10,0.55) 76%, rgba(10,10,10,0.68) 100%)' }} />
 
       <div style={{ position: 'absolute', top: 24, left: 24, zIndex: 10 }}>
         <LanguageToggle />
@@ -163,9 +164,11 @@ const ExploreIntro: React.FC<Props> = ({ introCopy, quizTitle, onStart }) => {
             width: '100%',
             maxWidth: 400,
             padding: '15px 24px',
-            background: '#D7C678',
-            color: '#1F2F1F',
-            border: '1px solid #D7C678',
+            background: 'rgba(17,17,17,0.76)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            color: '#FFFFFF',
+            border: '1px solid rgba(255,255,255,0.35)',
             fontWeight: 600,
             fontSize: 14,
             letterSpacing: '0.12em',
