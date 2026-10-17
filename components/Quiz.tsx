@@ -233,9 +233,9 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                 />
             )}
 
-            <div className="classic-quiz flex flex-col min-h-screen bg-kiwi-bg">
+            <div className="classic-quiz flex flex-col min-h-screen bg-kiwi-paper">
                 {/* Header */}
-                <div className="fixed top-[var(--ku-rail-height)] left-0 right-0 z-50 bg-kiwi-bg/95 backdrop-blur-sm">
+                <div className="fixed top-[var(--ku-rail-height)] left-0 right-0 z-50 bg-kiwi-paper/95 backdrop-blur-sm">
                     <div className="max-w-3xl mx-auto px-6 h-20 flex items-end justify-between pb-4">
                         <div className="flex items-center gap-4">
                             <h1 className="text-sm font-serif font-bold text-kiwi-dark tracking-[0.08em] uppercase">
@@ -251,7 +251,7 @@ const Quiz: React.FC<QuizProps> = ({ user, onComplete, onSaveToCloud }) => {
                                 </button>
                             )}
                         </div>
-                        <span className="text-xs font-mono text-gray-400 tracking-wider">
+                        <span className="text-xs font-mono text-[#5F6856] tracking-wider">
                             {questionsLoaded && currentQuestion ? `${currentIndex + 1} / ${questions.length}` : t('quiz_loading')}
                         </span>
                     </div>

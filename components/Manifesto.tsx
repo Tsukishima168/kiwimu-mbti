@@ -23,7 +23,7 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-8 fade-in relative">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-paper p-8 fade-in relative">
             {showEasterEgg && <SealedEnvelope onClose={() => setShowEasterEgg(false)} />}
 
             <div className="max-w-xl w-full text-center space-y-12">
@@ -31,7 +31,7 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
                 {/* Decorative Header */}
                 <div className="space-y-4">
                     <div className="w-12 h-[1px] bg-kiwi-dark mx-auto"></div>
-                    <p className="text-[10px] font-mono tracking-[0.4em] uppercase text-gray-400">{t('manifesto_guideline')}</p>
+                    <p className="text-xs font-mono tracking-[0.4em] uppercase text-[#5F6856]">{t('manifesto_guideline')}</p>
                 </div>
 
                 {/* Polished Content */}
@@ -65,7 +65,7 @@ const Manifesto: React.FC<ManifestoProps> = ({ onProceed }) => {
                         </span>
                         <div className="absolute inset-0 bg-black translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
                     </button>
-                    <p className="mt-8 text-[9px] font-mono text-gray-300 tracking-[0.2em] uppercase">
+                    <p className="mt-8 text-xs font-mono text-[#5F6856] tracking-[0.2em] uppercase">
                         {t('manifesto_time')}
                     </p>
                 </div>

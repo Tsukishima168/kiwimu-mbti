@@ -26,7 +26,7 @@ const Loading: React.FC<LoadingProps> = ({ onFinished }) => {
   }, [onFinished]);
 
   return (
-    <div className="classic-loading flex flex-col items-center justify-center min-h-screen bg-kiwi-bg" role="status" aria-live="polite">
+    <div className="classic-loading flex flex-col items-center justify-center min-h-screen bg-kiwi-paper" role="status" aria-live="polite">
       <div className="w-64">
         <div className="flex justify-between text-xs font-mono tracking-widest text-kiwi-dark mb-2">
           <span>{t('loading_processing')}</span>

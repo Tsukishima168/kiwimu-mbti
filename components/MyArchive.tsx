@@ -58,7 +58,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">
+            <div className="min-h-screen bg-kiwi-paper flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block w-8 h-8 border-2 border-kiwi-dark border-t-transparent rounded-full animate-spin mb-4"></div>
                     <p className="text-gray-600 font-mono text-sm tracking-wider">{t('archive_loading')}</p>
@@ -68,7 +68,7 @@ export const MyArchive: React.FC<MyArchiveProps> = ({ user, onBack }) => {
     }
 
     return (
-        <div className="min-h-screen bg-kiwi-bg">
+        <div className="min-h-screen bg-kiwi-paper">
             {/* Settings View */}
             {viewMode === 'settings' && (
                 <UserSettings user={user} onBack={() => handleViewChange('timeline')} />

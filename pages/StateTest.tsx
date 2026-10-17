@@ -559,13 +559,13 @@ const StateTest: React.FC = () => {
             >
               <span
                 className="font-mono text-[10px] font-medium tracking-widest uppercase"
-                style={{ color: '#CCFF00' }}
+                style={{ color: '#D7C678' }}
               >
                 Current State
               </span>
               <span
                 className="font-mono text-[10px] font-medium"
-                style={{ color: 'rgba(204,255,0,0.5)' }}
+                style={{ color: 'rgba(215,198,120,0.5)' }}
               >
                 {result.id} / 12
               </span>
@@ -609,7 +609,7 @@ const StateTest: React.FC = () => {
               {/* Pairing block */}
               <div
                 className="pl-4 pr-3 py-3 rounded-r-xl"
-                style={{ borderLeft: '2px solid #CCFF00', backgroundColor: 'rgba(248,248,245,0.6)' }}
+                style={{ borderLeft: '2px solid #D7C678', backgroundColor: 'rgba(248,248,245,0.6)' }}
               >
                 <p
                   className="font-mono text-[10px] font-medium tracking-widest uppercase mb-1"

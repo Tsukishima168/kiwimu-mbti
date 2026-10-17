@@ -68,7 +68,7 @@ export const UserSettings: React.FC<UserSettingsProps> = ({ user, onBack }) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-kiwi-bg flex items-center justify-center">
+            <div className="min-h-screen bg-kiwi-paper flex items-center justify-center">
                 <div className="text-center">
                     <div className="inline-block w-8 h-8 border-2 border-kiwi-dark border-t-transparent rounded-full animate-spin mb-4"></div>
                     <p className="text-gray-600 font-mono text-sm">載入設定中...</p>
@@ -78,7 +78,7 @@ export const UserSettings: React.FC<UserSettingsProps> = ({ user, onBack }) => {
     }
 
     return (
-        <div className="min-h-screen bg-kiwi-bg px-6 py-8 md:py-12">
+        <div className="min-h-screen bg-kiwi-paper px-6 py-8 md:py-12">
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">

@@ -8,8 +8,8 @@ import KiwimuVisual from '../visuals/KiwimuVisual';
 const tk = {
   ink:   '#1A1A1A',
   paper: '#F8F8F5',
-  acid:  '#CCFF00',
-  muted: '#888880',
+  acid:  '#D7C678',
+  muted: '#5F6856',
 } as const;
 
 interface Props {
@@ -63,7 +63,7 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
   };
 
   return (
-    <div className="explore-quiz" style={{ minHeight: '100svh', position: 'relative', overflow: 'hidden', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+    <main className="explore-quiz" style={{ minHeight: '100svh', position: 'relative', overflow: 'hidden', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
 
       {/* 模糊背景圖 */}
       <div style={{
@@ -194,6 +194,6 @@ export default function ExploreQuiz({ language, quiz, onComplete }: Props) {
           .explore-quiz * { animation: none !important; transition: none !important; }
         }
       `}</style>
-    </div>
+    </main>
   );
 }

@@ -53,10 +53,10 @@ const Login: React.FC<LoginProps> = ({ isUnlockMode = false }) => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-bg p-6">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-kiwi-paper p-6">
             <div className="max-w-md mx-auto px-6 py-12 bg-white rounded-2xl shadow-2xl">
                 <div className="text-center mb-8">
-                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-kiwi-green to-kiwi-dark flex items-center justify-center">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-kiwi-gold to-kiwi-dark flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
                         </svg>

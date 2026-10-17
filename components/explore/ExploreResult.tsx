@@ -10,7 +10,7 @@ import KiwimuVisual from '../visuals/KiwimuVisual';
 const tk = {
   ink:   '#1A1A1A',
   paper: '#F8F8F5',
-  acid:  '#CCFF00',
+  acid:  '#D7C678',
   muted: '#888880',
 } as const;
 
@@ -108,7 +108,7 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
   };
 
   return (
-    <div className="explore-result" style={{ minHeight: '100svh', background: tk.paper, display: 'flex', flexDirection: 'column', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+    <main className="explore-result" style={{ minHeight: '100svh', background: tk.paper, display: 'flex', flexDirection: 'column', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '48px 24px', maxWidth: 600, margin: '0 auto', width: '100%' }}>
 
         {/* Type badge */}
@@ -178,7 +178,7 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
 
         {/* CTAs */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button type="button" disabled={shareBusy} onClick={handleShare} style={{ display: 'block', width: '100%', padding: '16px 24px', background: tk.acid, border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 700, fontSize: 16, textAlign: 'center' as const, boxShadow: `4px 4px 0 ${tk.ink}`, cursor: 'pointer', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+          <button type="button" disabled={shareBusy} onClick={handleShare} style={{ display: 'block', width: '100%', padding: '16px 24px', background: '#1F2F1F', border: `1.5px solid ${tk.ink}`, color: '#F5F0E8', fontWeight: 700, fontSize: 16, textAlign: 'center' as const, boxShadow: `4px 4px 0 ${tk.ink}`, cursor: 'pointer', fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
             {shareBusy ? copy.busy : resultCopy.shareButton}
           </button>
           {shareMessage ? <p role="status" style={{ fontSize: 14, lineHeight: 1.7, color: tk.ink }}>{shareMessage}</p> : null}
@@ -193,7 +193,7 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
           <a href={passportUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackButtonClick('explore_result_to_passport', 'explore_result', passportUrl)} style={{ display: 'block', padding: '14px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
             {copy.passport}
           </a>
-          <a href="https://store.line.me/stickershop/product/33314326/zh-Hant" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '14px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const, opacity: 0.6 }}>
+          <a href="https://store.line.me/stickershop/product/33314326/zh-Hant" target="_blank" rel="noopener noreferrer" style={{ display: 'block', padding: '14px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const, opacity: 0.75 }}>
             {resultCopy.stickerButton}
           </a>
           <button type="button" onClick={onRetest} style={{ background: 'none', border: 'none', color: '#595952', fontSize: 14, minHeight: 44, cursor: 'pointer', padding: '8px', fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.1em' }}>
@@ -205,6 +205,6 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
         .explore-result :is(button, a):focus-visible { outline: 2px solid ${tk.ink}; outline-offset: 4px; }
         .explore-result :is(button, a) { touch-action: manipulation; }
       `}</style>
-    </div>
+    </main>
   );
 }

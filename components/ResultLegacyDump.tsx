@@ -557,7 +557,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
   }
 
   return (
-    <div className="min-h-screen bg-kiwi-bg pb-24 fade-in select-none">
+    <div className="min-h-screen bg-kiwi-paper pb-24 fade-in select-none">
       {/* Floating UserMenu */}
       {onLogin && onLogout && (
         <div className="fixed top-[calc(var(--ku-rail-height)+1.5rem)] right-6 z-50">
@@ -624,7 +624,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           <button
             onClick={onRetest}
             className="shrink-0 px-4 py-1.5 rounded-full text-xs font-black tracking-[0.1em] uppercase transition-all active:scale-95 hover:scale-105"
-            style={{ background: '#C6FF00', color: '#000' }}
+            style={{ background: '#D7C678', color: '#000' }}
           >
             測測你的甜點 →
           </button>
@@ -1297,7 +1297,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   className="inline-flex items-center gap-2 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em]"
                   style={{
                     fontFamily: "'JetBrains Mono', monospace",
-                    background: '#CCFF00',
+                    background: '#D7C678',
                     color: '#1A1A1A',
                     border: '1px solid #1A1A1A',
                     borderRadius: 999,
@@ -1322,7 +1322,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                     href={v2ReportUrl}
                     onClick={() => trackButtonClick('v1_result_to_v2_report', 'v1_result_upsell', v2ReportUrl)}
                     className="rounded-full px-5 py-4 text-center text-xs font-black uppercase tracking-[0.08em] md:text-sm md:tracking-[0.12em]"
-                    style={{ background: '#CCFF00', color: '#1A1A1A', border: '1px solid #CCFF00' }}
+                    style={{ background: '#D7C678', color: '#1A1A1A', border: '1px solid #D7C678' }}
                   >
                     查看我的 V2 深度報告
                   </a>
@@ -1379,7 +1379,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           <div className="fixed bottom-[88px] md:bottom-[100px] left-1/2 transform -translate-x-1/2 z-40 w-max max-w-[90vw]">
             <div
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-xl cursor-pointer transition-all hover:scale-105 active:scale-95"
-              style={{ background: '#C6FF00', color: '#000' }}
+              style={{ background: '#D7C678', color: '#000' }}
               onClick={() => { trackButtonClick('login_gate_banner', 'result_floating'); triggerFullReportLogin('floating_banner'); }}
             >
               <span className="text-[10px] md:text-[11px] font-black tracking-[0.08em] leading-tight whitespace-nowrap">
@@ -1394,7 +1394,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
         <div className="fixed bottom-6 md:bottom-12 left-1/2 transform -translate-x-1/2 bg-black/95 text-white p-1.5 md:p-3 rounded-full shadow-2xl flex items-center justify-between md:justify-center gap-1 md:gap-3 z-50 w-[calc(100vw-32px)] max-w-[430px] md:w-max md:max-w-[95vw] border border-white/10 backdrop-blur-xl transition-all duration-300 hover:scale-[1.02]">
           {/* LINE share */}
           <button onClick={handleLineShare} className="shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-[#06C755] hover:bg-[#05b34c] transition-all duration-300 border border-white/20 hover:scale-110 active:scale-95 shadow-lg" title="LINE 分享" aria-label="LINE 分享">
-            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
+            <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 md:w-6 md:h-6"><path d="M12 2C6.48 2 2 5.92 2 10.75c0 3.39 2.21 6.36 5.56 7.82-.16.63-.58 2.24-.66 2.65-.12.65.26 1.07 1 1.07.39 0 .86-.17 3.5-3.04.83.1 1.68.16 2.55.16 5.52 0 10-3.92 10-8.75S19.52 2 12 2zm1.09 11h-2.18c-.28 0-.5-.22-.5-.5v-1.63H8.78c-.28 0-.5-.22-.5-.5V8.87c0-.28.22-.5.5-.5h4.31c.28 0 .5.22.5.5v1.63h1.63c.28 0 .5.22.5.5v1.62c0 .28-.22.5-.5.5z" /></svg>
           </button>
           <div className="hidden md:block shrink-0 w-[1px] h-4 md:h-6 bg-white/20"></div>
           {/* Retest */}
@@ -1444,7 +1444,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
           <button
             onClick={handleDownloadIG}
             className="shrink-0 flex items-center justify-center gap-1.5 md:gap-2 w-10 h-10 md:w-auto md:h-auto md:px-5 md:py-3 rounded-full transition-all duration-300 active:scale-95 hover:scale-105 shadow-lg"
-            style={{ background: '#C6FF00', color: '#000' }}
+            style={{ background: '#D7C678', color: '#000' }}
             title="下載 IG Story 限動圖卡"
             aria-label="下載 IG Story 限動圖卡"
           >
@@ -1502,7 +1502,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                       }
                     }}
                     className="w-full flex items-center justify-center gap-2.5 py-3.5 rounded-xl text-[12px] font-black tracking-[0.08em] uppercase transition-all active:scale-95"
-                    style={{ background: '#C6FF00', color: '#000' }}
+                    style={{ background: '#D7C678', color: '#000' }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" x2="17.51" y1="6.5" y2="6.5" /></svg>
                     分享到 IG 限動
