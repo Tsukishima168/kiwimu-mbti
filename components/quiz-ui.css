@@ -2,7 +2,8 @@
 .classic-intro :is(button, a, summary, select):focus-visible,
 .classic-quiz :is(button, a):focus-visible,
 .quiz-resume button:focus-visible {
-  outline: 2px solid #121212;
+  /* 契約 v2：淺色面焦點用深綠（原 #121212 墨黑） */
+  outline: 2px solid #1f2f1f;
   outline-offset: 4px;
 }
 .classic-intro :is(button, a, summary, select),
