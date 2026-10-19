@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 
 const mocks = vi.hoisted(() => ({
   getUser: vi.fn(), getLinePayOrder: vi.fn(), listOrders: vi.fn(), claimOrder: vi.fn(),
-  sendReceipt: vi.fn(), receiptStatuses: vi.fn(),
+  sendReceipt: vi.fn(), receiptStatuses: vi.fn(), listPromo: vi.fn(),
 }));
 vi.mock('../../supabase/user-admin.js', () => ({ getUserAdminDb: () => ({ auth: { getUser: mocks.getUser } }) }));
 vi.mock('../../linePayOrderStore.js', () => ({
@@ -17,6 +17,9 @@ vi.mock('../../v2PaymentReceipt.js', async original => ({
   sendV2PaymentReceipt: mocks.sendReceipt,
   getV2ReceiptStatuses: mocks.receiptStatuses,
 }));
+
+// The free-promo table is a separate store; most cases here see an account with no promo grants.
+vi.mock('../../v2PromoStore.js', () => ({ listV2PromoUnlocksForUser: mocks.listPromo }));
 
 import myReports from './my-reports';
 import claimReport from './claim-report';
@@ -47,6 +50,7 @@ beforeEach(() => {
   mocks.claimOrder.mockResolvedValue(true);
   mocks.sendReceipt.mockResolvedValue('sent');
   mocks.receiptStatuses.mockResolvedValue(new Map([[ORDER_ID, 'sent']]));
+  mocks.listPromo.mockResolvedValue([]);
 });
 
 describe('account report library', () => {
@@ -201,5 +205,64 @@ describe.each([['list', myReports], ['claim', claimReport], ['receipt', receiptH
     await handler(req(), response);
     expect(state.status).toBe(401);
     expect(mocks.listOrders).not.toHaveBeenCalled();
+  });
+});
+
+describe('account report library with free promo grants', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('paid regression: a paid-only library keeps its exact response shape', async () => {
+    const { response, state } = res();
+    await myReports(req(), response);
+    expect(state.status).toBe(200);
+    expect(state.body).toEqual({
+      ok: true,
+      data: {
+        reports: [{
+          mbtiType: 'ESTJ-A', amount: 49, currency: 'TWD', purchasedAt: '2026-10-02T09:20:00Z',
+          reference: paymentReceiptReference(ORDER_ID), receiptStatus: 'sent',
+        }],
+        claimableReport: null,
+      },
+    });
+  });
+
+  it('still lists a promo unlock after the window has closed, without payment data', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2027-01-15T10:00:00+08:00'));
+    mocks.listPromo.mockResolvedValue([{ mbti_type: 'INFP-T', created_at: '2026-11-20T03:00:00Z' }]);
+    const { response, state } = res();
+    await myReports(req(), response);
+    expect(state.status).toBe(200);
+    expect(mocks.listPromo).toHaveBeenCalledWith('account-a');
+    expect(state.body.data.grants).toEqual([{ mbtiType: 'INFP-T', claimedAt: '2026-11-20T03:00:00Z' }]);
+    expect(state.body.data.reports).toHaveLength(1);
+    expect(Object.keys(state.body.data.grants[0]).sort()).toEqual(['claimedAt', 'mbtiType']);
+  });
+
+  it('shows a paid type only once even if it was also unlocked for free', async () => {
+    mocks.listPromo.mockResolvedValue([{ mbti_type: 'ESTJ-A', created_at: '2026-11-01T00:00:00Z' }]);
+    const { response, state } = res();
+    await myReports(req(), response);
+    expect(state.body.data.reports).toHaveLength(1);
+    expect(state.body.data).not.toHaveProperty('grants');
+  });
+
+  it('keeps the paid library available and flags it when the promo store is unavailable', async () => {
+    mocks.listPromo.mockResolvedValue(undefined);
+    const { response, state } = res();
+    await myReports(req(), response);
+    expect(state.status).toBe(200);
+    expect(state.body.data.reports).toHaveLength(1);
+    expect(state.body.data.grantsUnavailable).toBe(true);
+  });
+
+  it('cannot send a payment receipt for a promo grant', async () => {
+    mocks.listOrders.mockResolvedValue([]);
+    mocks.listPromo.mockResolvedValue([{ mbti_type: 'INFP-T', created_at: '2026-11-20T03:00:00Z' }]);
+    const { response, state } = res();
+    await receiptHandler(req({ body: { reference: `KW-${'A'.repeat(24)}` } }), response);
+    expect(state.status).toBe(404);
+    expect(mocks.sendReceipt).not.toHaveBeenCalled();
   });
 });
