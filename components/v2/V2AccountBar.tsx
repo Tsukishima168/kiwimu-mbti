@@ -27,7 +27,7 @@ export default function V2AccountBar({ editionLabel }: { editionLabel?: string }
           {auth.isLoading ? '確認帳號…' : '登入'}
         </button> : <button type="button" disabled={signingOut} onClick={() => { void handleSignOut(); }}>{signingOut ? '正在登出…' : '登出'}</button>}
       </div>
-      {auth.isLoggedIn ? <p className="ad-account-identity">已登入 · 報告保存在購買時的帳號</p> : null}
+      {auth.isLoggedIn ? <p className="ad-account-identity">已登入 · 報告保存在這個帳號</p> : null}
       {message ? <p role="status" className="ad-account-message">{message}</p> : null}
     </nav>
   );

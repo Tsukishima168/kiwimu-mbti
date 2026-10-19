@@ -19,9 +19,13 @@ type PurchasedReport = {
   reference: string;
   receiptStatus: ReceiptStatus;
 };
+// 限時免費解鎖：沒有金額、付款紀錄或收據，與已購報告分開顯示。
+type PromoGrant = { mbtiType: string; claimedAt: string };
 type LibraryData = {
   reports: PurchasedReport[];
   claimableReport: { mbtiType: string; amount: number; currency: string } | null;
+  grants?: PromoGrant[];
+  grantsUnavailable?: boolean;
 };
 
 class AccountRequestError extends Error {
@@ -161,7 +165,7 @@ export default function V2ReportLibrary() {
       <header className="ad-library-heading">
         <p className="ad-section-kicker">YOUR READING SHELF</p>
         <h1>你的報告，留在這裡。</h1>
-        <p>換一台手機、換一個步調，都能用購買時的同一個帳號，接著讀下去。</p>
+        <p>換一台手機、換一個步調，都能用同一個帳號，接著讀下去。</p>
       </header>
       {auth.isLoading ? <p role="status">正在確認登入狀態…</p> : !auth.isLoggedIn ? (
         <section className="ad-library-empty">
@@ -180,7 +184,7 @@ export default function V2ReportLibrary() {
             <p>請先確認上方帳號正確；保存後會歸屬這個帳號，付款通知也會寄到這個帳號的 Email。</p>
             <button type="button" className="ad-btn-primary" disabled={Boolean(busy)} onClick={handleClaim}>{busy === 'claim' ? '正在保存…' : '保存這份已購報告'}</button>
           </section> : null}
-          {!loading && !loadError && !library?.claimableReport && library?.reports.length === 0 ? <section className="ad-library-empty">
+          {!loading && !loadError && !library?.claimableReport && library?.reports.length === 0 && !library.grants?.length && !library.grantsUnavailable ? <section className="ad-library-empty">
             <h2>這個帳號還沒有已購報告。</h2>
             <p>如果你已經付款，請確認是否用了另一個帳號。匿名付款的舊報告，需在原付款裝置登入保存。</p>
             <a className="ad-btn-ghost" href="/read">返回圖鑑入口 ↗</a>
@@ -204,9 +208,23 @@ export default function V2ReportLibrary() {
                 </div>
               </article>;
             })}
+            {library?.grants?.map(grant => {
+              const summary = getV2VariantSummary(grant.mbtiType);
+              const scene = getSceneAsset(grant.mbtiType);
+              return <article key={`promo-${grant.mbtiType}`} className="ad-library-card">
+                {scene ? <a className="ad-library-art" href={`/read/${grant.mbtiType}`} aria-label={`閱讀 ${grant.mbtiType} 報告`}><KiwimuVisual asset={scene.portrait} fit="cover" /></a> : null}
+                <div className="ad-library-card-copy">
+                  <p className="ad-section-kicker">{grant.mbtiType} · 限時免費解鎖</p>
+                  <h2>{summary?.title || 'Kiwimu 深度報告'}</h2>
+                  <p>解鎖於 {new Date(grant.claimedAt).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' })}</p>
+                  <a className="ad-btn-primary" href={`/read/${grant.mbtiType}`}>繼續閱讀 ↗</a>
+                </div>
+              </article>;
+            })}
           </div>
+          {library?.grantsUnavailable ? <p className="ad-library-message" role="status">限時免費解鎖的報告暫時無法列出，請稍後按「重新讀取」。報告權限不受影響。</p> : null}
           {loadError?.ownerId === auth.userId ? <p className="ad-library-message" role="status">{loadError.text}</p> : null}
-          {!loading && (!library || loadError?.ownerId === auth.userId) ? <button type="button" className="ad-btn-ghost" onClick={() => setRefresh(value => value + 1)}>重新讀取</button> : null}
+          {!loading && (!library || library.grantsUnavailable || loadError?.ownerId === auth.userId) ? <button type="button" className="ad-btn-ghost" onClick={() => setRefresh(value => value + 1)}>重新讀取</button> : null}
         </>
       )}
       {message ? <p className="ad-library-message" role="status">{message}</p> : null}

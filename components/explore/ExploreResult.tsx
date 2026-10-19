@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { shareWithFeedback } from '../../utils/shareFeedback';
-import { V2_REPORT_PRICE_TWD } from '../../shared/v2Product';
+import { exploreV2PriceLine } from '../../utils/v2PromoCopy';
 import { ExplorePersonality } from '../../data/questions-explore';
 import { Language } from '../../contexts/LanguageContext';
 import { trackButtonClick } from '../../utils/analytics';
@@ -64,10 +64,10 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
   const [shareMessage, setShareMessage] = useState('');
   const [manualShare, setManualShare] = useState(false);
   const copy = {
-    zh: { failed: '無法自動分享，請複製下方連結。', shared: '已開啟分享。', v2: `試讀 ${fullType} 的 V2 報告`, price: `第 01 章免費，完整報告 NT$${V2_REPORT_PRICE_TWD}。`, passport: '回會員護照看今日任務', busy: '正在準備分享…' },
-    en: { failed: 'Sharing is unavailable. Copy the link below.', shared: 'Shared.', v2: `Preview the ${fullType} V2 report`, price: `Chapter 01 is free. Full report NT$${V2_REPORT_PRICE_TWD}.`, passport: 'See today’s tasks in Passport', busy: 'Preparing to share…' },
-    ja: { failed: '共有できませんでした。下のリンクをコピーしてください。', shared: '共有しました。', v2: `${fullType}のV2レポートを試し読み`, price: `第01章は無料。完全版はNT$${V2_REPORT_PRICE_TWD}。`, passport: '会員パスポートで今日のタスクを見る', busy: '共有を準備しています…' },
-    ko: { failed: '공유할 수 없습니다. 아래 링크를 복사해 주세요.', shared: '공유했습니다.', v2: `${fullType} V2 보고서 미리 보기`, price: `01장 무료. 전체 보고서 NT$${V2_REPORT_PRICE_TWD}.`, passport: '회원 패스포트에서 오늘의 할 일 보기', busy: '공유 준비 중…' },
+    zh: { failed: '無法自動分享，請複製下方連結。', shared: '已開啟分享。', v2: `試讀 ${fullType} 的 V2 報告`, passport: '回會員護照看今日任務', busy: '正在準備分享…' },
+    en: { failed: 'Sharing is unavailable. Copy the link below.', shared: 'Shared.', v2: `Preview the ${fullType} V2 report`, passport: 'See today’s tasks in Passport', busy: 'Preparing to share…' },
+    ja: { failed: '共有できませんでした。下のリンクをコピーしてください。', shared: '共有しました。', v2: `${fullType}のV2レポートを試し読み`, passport: '会員パスポートで今日のタスクを見る', busy: '共有を準備しています…' },
+    ko: { failed: '공유할 수 없습니다. 아래 링크를 복사해 주세요.', shared: '공유했습니다.', v2: `${fullType} V2 보고서 미리 보기`, passport: '회원 패스포트에서 오늘의 할 일 보기', busy: '공유 준비 중…' },
   }[language];
   const shareUrl = new URL('/explore', window.location.origin);
   shareUrl.searchParams.set('v', quizVersion.toLowerCase());
@@ -189,7 +189,7 @@ export default function ExploreResult({ language, mbtiType, suffix, personality,
           <a href={v2ReportUrl} onClick={() => trackButtonClick('explore_result_to_v2_report', 'explore_result', v2ReportUrl)} style={{ display: 'block', padding: '16px 24px', background: tk.ink, border: `1.5px solid ${tk.ink}`, color: tk.paper, fontWeight: 700, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
             {copy.v2}
           </a>
-          <p style={{ fontSize: 14, lineHeight: 1.7, color: '#595952', textAlign: 'center' }}>{copy.price}</p>
+          <p style={{ fontSize: 14, lineHeight: 1.7, color: '#595952', textAlign: 'center' }}>{exploreV2PriceLine(language)}</p>
           <a href={passportUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackButtonClick('explore_result_to_passport', 'explore_result', passportUrl)} style={{ display: 'block', padding: '14px 24px', background: 'transparent', border: `1.5px solid ${tk.ink}`, color: tk.ink, fontWeight: 600, fontSize: 14, textDecoration: 'none', textAlign: 'center' as const }}>
             {copy.passport}
           </a>

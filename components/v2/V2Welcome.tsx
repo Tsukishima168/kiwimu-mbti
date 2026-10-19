@@ -4,7 +4,7 @@ import { getSceneAsset } from '../../data/kiwimuVisualAssets';
 import KiwimuScenePlate from '../visuals/KiwimuScenePlate';
 import KiwimuAtlasWall from '../visuals/KiwimuAtlasWall';
 import V2AccountBar from './V2AccountBar';
-import { V2_REPORT_PRICE_TWD } from '../../shared/v2Product';
+import { v2WelcomePricing } from '../../utils/v2PromoCopy';
 import { getV2VariantSummary } from '../../data/v2VariantSummaries.generated';
 
 export default function V2Welcome({ onStart, knownType, resumeCount, onResume, draftSaved = true, focusAction = false }: {
@@ -27,6 +27,7 @@ export default function V2Welcome({ onStart, knownType, resumeCount, onResume, d
     restartRef.current?.focus();
   };
   const scene = getSceneAsset(knownType || 'INFP-A');
+  const pricing = v2WelcomePricing();
   return (
     <main className="v2-surface ad-welcome">
       <V2AccountBar editionLabel="自我探索圖鑑" />
@@ -50,7 +51,7 @@ export default function V2Welcome({ onStart, knownType, resumeCount, onResume, d
               ? '進度只留在這個分頁，24 小時內可續答；關閉分頁或換裝置後可能無法接續。'
               : '目前無法暫存進度。可以在這裡暫停，但請不要重新整理或關閉此分頁。'}</p>
           </aside> : null}
-          <p className="ad-welcome-note ad-welcome-pricing"><strong>免費完成測驗，閱讀第 01 章。</strong><br />想繼續讀完整報告時，再以 NT${V2_REPORT_PRICE_TWD} 單次解鎖。</p>
+          <p className="ad-welcome-note ad-welcome-pricing"><strong>{pricing.lead}</strong><br />{pricing.detail}</p>
           <div className="ad-btn-row">
             {onStart ? (hasDraft
               ? <button ref={restartRef} className="ad-welcome-secondary ad-welcome-restart" type="button" aria-expanded={confirmRestart} aria-controls={confirmRestart ? confirmationId : undefined} onClick={() => confirmRestart ? cancelRestart() : setConfirmRestart(true)}>重新開始 40 題</button>
@@ -66,7 +67,7 @@ export default function V2Welcome({ onStart, knownType, resumeCount, onResume, d
             {!hasDraft ? <a className="ad-welcome-secondary" href={onStart ? '/read' : '/explore'}>{onStart ? '了解測驗與報告' : '改做 V1.5 快速測驗'}</a> : null}
           </div>
           {onStart && !hasDraft ? <p className="ad-welcome-note">中途可按「暫停作答」，回來再繼續。進度只留在此分頁，不會同步到帳號；請在 24 小時內完成。</p> : null}
-          {import.meta.env.VITE_V2_CHECKOUT_ENABLED !== 'true' ? <p className="ad-welcome-note">目前尚未開放新購買。已購報告可從「我的報告」繼續閱讀。</p> : null}
+          {!pricing.promo && import.meta.env.VITE_V2_CHECKOUT_ENABLED !== 'true' ? <p className="ad-welcome-note">目前尚未開放新購買。已購報告可從「我的報告」繼續閱讀。</p> : null}
         </section>
         <aside className="ad-welcome-art" aria-label="Kiwimu 敘事圖鑑選頁">
           {scene ? <KiwimuScenePlate asset={scene} title={getV2VariantSummary(scene.fullType)?.title} priority indexLabel="圖鑑選頁" /> : null}

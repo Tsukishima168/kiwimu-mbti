@@ -50,7 +50,17 @@ import {
   parseV2RouteTarget,
   type V2VariantCode,
 } from '../../utils/v2Routes';
-import { buildDessertOrderLink, trackDessertOrderClick } from '../../utils/utmTracking';
+import { buildV2ReportDessertLink, trackDessertOrderClick } from '../../utils/utmTracking';
+import { V2_PROMO_PAYWALL_COPY, v2PaywallOffer } from '../../utils/v2PromoCopy';
+import {
+  clearPromoIntent,
+  readPromoIntent,
+  runPromoClaim,
+  savePromoIntent,
+  trackPromoLoginComplete,
+  trackPromoLoginStart,
+  V2_PROMO_UNLOCK_TYPE,
+} from './promoUnlock';
 import { usePendingEconomyClaimUrl } from '../../hooks/usePendingEconomyClaimUrl';
 import {
   KIWIMU_CAMPAIGN_ASSETS,
@@ -321,6 +331,10 @@ export default function V2App({ user }: V2AppProps) {
   const [dessertContract, setDessertContract] = useState<UnifiedDessertContract | null>(null);
   const [dessertLoadStatus, setDessertLoadStatus] = useState<DessertLoadStatus>('idle');
   const [dessertRefresh, setDessertRefresh] = useState(0);
+  // 限時免費：promoEnded 只在 server 回 PROMO_ENDED 時設定（頁面跨過結束時間仍開著）。
+  const [promoEnded, setPromoEnded] = useState(false);
+  const [promoStatus, setPromoStatus] = useState<'idle' | 'claiming'>('idle');
+  const promoClaimRef = useRef(0);
   const source = params.get('source') || 'direct';
 
   const knownType = useMemo(() => {
@@ -537,6 +551,16 @@ export default function V2App({ user }: V2AppProps) {
   }, [auth.userId, fullType]);
 
   useEffect(() => {
+    // 登入前按過「免費解鎖」的讀者，登入回來後自動領取一次（同分頁、30 分鐘內）。
+    if (!fullType || auth.isLoading || !auth.userId) return;
+    if (!readPromoIntent(fullType)) return;
+    clearPromoIntent();
+    trackPromoLoginComplete(fullType, canonicalPath);
+    startPromoClaim(auth.userId);
+    // startPromoClaim reads the latest refs; re-run only when the account or report changes.
+  }, [auth.userId, auth.isLoading, fullType]);
+
+  useEffect(() => {
     if (!fullType) {
       setPaidReports(null);
       return;
@@ -618,8 +642,8 @@ export default function V2App({ user }: V2AppProps) {
       source,
       hasUser: Boolean(user && !user.isAnonymous),
     });
-    trackV2PaywallView(fullType, source);
-  }, [entitlement.status, fullType, source, user]);
+    trackV2PaywallView(fullType, source, v2PaywallOffer(Date.now(), promoEnded) === 'promo' ? 'promo_free' : 'paid');
+  }, [entitlement.status, fullType, source, user, promoEnded]);
 
   useEffect(() => {
     if (!fullType) {
@@ -820,6 +844,44 @@ export default function V2App({ user }: V2AppProps) {
         });
       }
     })();
+  };
+
+  // 限時免費：UI 只呼叫 API，權限由 server 寫入 v2_promo_unlocks 後，再由 /api/v2/report 判斷。
+  const startPromoClaim = (ownerId: string) => {
+    if (!fullType) return;
+    const requestId = ++promoClaimRef.current;
+    const isCurrentRequest = () => promoClaimRef.current === requestId
+      && checkoutContextRef.current.ownerId === ownerId
+      && checkoutContextRef.current.fullType === fullType;
+    setPromoStatus('claiming');
+    void runPromoClaim({
+      fullType,
+      source,
+      ownerId,
+      getSession: async () => {
+        const supabase = getAuthSupabaseClient();
+        return supabase ? (await supabase.auth.getSession()).data.session : null;
+      },
+      isCurrent: isCurrentRequest,
+      onGranted: () => setReportRefresh(value => value + 1),
+      onEnded: () => setPromoEnded(true),
+      onMessage: setReportMessage,
+    }).finally(() => {
+      if (promoClaimRef.current === requestId) setPromoStatus('idle');
+    });
+  };
+
+  const handlePromoUnlock = () => {
+    if (!fullType) return;
+    // Open login synchronously from the tap so mobile browsers allow the popup.
+    if (!auth.isLoggedIn) {
+      savePromoIntent(fullType);
+      trackPromoLoginStart(fullType, canonicalPath);
+      setReportMessage(V2_PROMO_PAYWALL_COPY.loginPending);
+      void loginWithGoogle({ onError: setReportMessage });
+      return;
+    }
+    if (auth.userId) startPromoClaim(auth.userId);
   };
 
   const handleCheckPaymentStatus = () => {
@@ -1041,7 +1103,11 @@ export default function V2App({ user }: V2AppProps) {
     dessertLinkageNote,
   ].filter(Boolean).join(' ');
   const dessertImageUrl = cleanText(dessertContract?.image_url);
-  const dessertOrderUrl = dessertContract?.cta_url || buildDessertOrderLink(resultData.id, variant);
+  const dessertOrderUrl = buildV2ReportDessertLink(dessertContract?.cta_url, resultData.id, variant, 'v2_report_dessert');
+  const tasteMenuUrl = buildV2ReportDessertLink(dessertContract?.cta_url, resultData.id, variant, 'v2_report_taste');
+  const readerUnlockType = currentPaidReports?.access === 'promo' ? V2_PROMO_UNLOCK_TYPE : 'paid';
+  const paywallOffer = v2PaywallOffer(Date.now(), promoEnded);
+  const showPromoOffer = paywallOffer === 'promo' && !isReportLoading && currentAccess?.status !== 'error';
   const abyssalContent = variantReport?.abyssal ?? [];
   const carryFull = cleanText(variantReport?.carry || variantReport?.important || variantSummary.soulQuote);
   const coverQuote = cleanText(variantReport?.soulQuote || variantSummary.soulQuote || variantReport?.important || resultData.quote || abstractContent);
@@ -1145,7 +1211,9 @@ export default function V2App({ user }: V2AppProps) {
         <p>這台裝置上次讀到 <strong>{REPORT_CHAPTERS.find(chapter => chapter.id === resumeChapter)?.label}</strong></p>
         <button className="ad-btn-ghost" type="button" onClick={() => { handleChapterNav(resumeChapter); setResumeChapter(null); }}>接著讀 <span aria-hidden="true">↗</span></button>
       </aside> : null}
-      {canReadReport ? <p className="ad-purchase-account-note">已購報告可從<a href="/read/library">我的報告</a>繼續閱讀。若購買時未登入，請在這台裝置登入後保存到帳號。</p> : null}
+      {canReadReport ? (currentPaidReports?.access === 'promo'
+        ? <p className="ad-purchase-account-note">{V2_PROMO_PAYWALL_COPY.savedNote}<a href="/read/library">我的報告</a>繼續閱讀。</p>
+        : <p className="ad-purchase-account-note">已購報告可從<a href="/read/library">我的報告</a>繼續閱讀。若購買時未登入，請在這台裝置登入後保存到帳號。</p>) : null}
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <header id="ch-01" className="atlas-report-hero ad-reveal">
@@ -1238,21 +1306,39 @@ export default function V2App({ user }: V2AppProps) {
       {/* ── PAYWALL GATE ─────────────────────────────────────── */}
       {!canReadReport ? (
         <div className="ad-paywall-box ad-reveal">
-          <p className="ad-paywall-eyebrow">⬡ {isReportLoading ? 'Verifying' : currentAccess?.status === 'error' ? 'Try again' : 'Premium'}</p>
+          <p className="ad-paywall-eyebrow">⬡ {isReportLoading ? 'Verifying' : currentAccess?.status === 'error' ? 'Try again' : showPromoOffer ? V2_PROMO_PAYWALL_COPY.eyebrow : 'Premium'}</p>
           <h2 className="ad-paywall-title">
             {isReportLoading ? '正在驗證並載入完整報告'
               : currentAccess?.status === 'error' ? '完整報告暫時無法載入'
-                : currentAccess?.status === 'denied' ? '請確認報告的購買帳號'
-                  : IS_CHECKOUT_ENABLED ? '解鎖這份完整 V2 報告' : '完整報告尚未開放新購買'}
+                : showPromoOffer ? V2_PROMO_PAYWALL_COPY.title
+                  : currentAccess?.status === 'denied' ? '請確認報告的購買帳號'
+                    : IS_CHECKOUT_ENABLED ? '解鎖這份完整 V2 報告' : '完整報告尚未開放新購買'}
           </h2>
           <p className="ad-paywall-sub">
             {isReportLoading
               ? '請稍候，通過權限確認後會自動展開。'
               : 'Section 02 – 08 · 職涯 × 關係 · 靈魂甜點 · 帶走的字'}
           </p>
-          {!isReportLoading ? <p className="ad-paywall-note">NT${V2_REPORT_PRICE_TWD} · 單次解鎖 · 保存到購買帳號</p> : null}
-          {!isReportLoading && !IS_CHECKOUT_ENABLED ? <p className="ad-paywall-note">目前尚未開放新購買。已購報告請使用購買時的帳號，從「我的報告」繼續閱讀。</p> : null}
-          {!isReportLoading && currentAccess?.status !== 'error' && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
+          {showPromoOffer ? (
+            <>
+              <p className="ad-paywall-note">{V2_PROMO_PAYWALL_COPY.priceNote}</p>
+              <button
+                type="button"
+                className="ad-btn-primary ad-btn-center"
+                onClick={handlePromoUnlock}
+                disabled={promoStatus === 'claiming' || auth.isLoading}
+              >
+                {promoStatus === 'claiming'
+                  ? V2_PROMO_PAYWALL_COPY.ctaBusy
+                  : auth.isLoggedIn ? V2_PROMO_PAYWALL_COPY.ctaLoggedIn : V2_PROMO_PAYWALL_COPY.ctaLoggedOut}
+              </button>
+              <p className="ad-paywall-note">{V2_PROMO_PAYWALL_COPY.note}</p>
+              <p className="ad-paywall-note"><a href="/read/library">{V2_PROMO_PAYWALL_COPY.ownedHint}</a></p>
+            </>
+          ) : null}
+          {!isReportLoading && !showPromoOffer ? <p className="ad-paywall-note">NT${V2_REPORT_PRICE_TWD} · 單次解鎖 · 保存到購買帳號</p> : null}
+          {!isReportLoading && !showPromoOffer && !IS_CHECKOUT_ENABLED ? <p className="ad-paywall-note">目前尚未開放新購買。已購報告請使用購買時的帳號，從「我的報告」繼續閱讀。</p> : null}
+          {!isReportLoading && !showPromoOffer && currentAccess?.status !== 'error' && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
             checkoutPaymentUrl ? (
               <div className="ad-paywall-actions">
                 <a
@@ -1283,16 +1369,16 @@ export default function V2App({ user }: V2AppProps) {
               </button>
             )
           ) : null}
-          {!isReportLoading && (currentAccess?.status === 'error' || currentAccess?.status === 'denied') ? (
+          {!isReportLoading && (currentAccess?.status === 'error' || (currentAccess?.status === 'denied' && !showPromoOffer)) ? (
             <div className="ad-paywall-actions">
               {!auth.isLoggedIn && currentAccess.status === 'denied' ? <button type="button" className="ad-btn-primary ad-btn-center" onClick={() => { setReportMessage(''); void loginWithGoogle({ onError: setReportMessage }); }}>登入購買時的帳號 ↗</button> : null}
               <button type="button" className="ad-btn-ghost ad-btn-center" onClick={() => setReportRefresh(value => value + 1)}>重新載入報告</button>
               <a className="ad-btn-ghost ad-btn-center" href="/read/library">查看我的報告 ↗</a>
             </div>
           ) : null}
-          {currentAccess?.message ? <p className="ad-paywall-note" role="status">{currentAccess.message}</p> : null}
+          {currentAccess?.message && !(showPromoOffer && currentAccess.status === 'denied') ? <p className="ad-paywall-note" role="status">{currentAccess.message}</p> : null}
           {reportMessage ? <p className="ad-paywall-note" role="status">{reportMessage}</p> : null}
-          {!isReportLoading && IS_CHECKOUT_ENABLED ? <p className="ad-paywall-note">購買後，這份報告會保存到你的登入帳號；付款通知會寄到該帳號的 Email。</p> : null}
+          {!isReportLoading && !showPromoOffer && IS_CHECKOUT_ENABLED ? <p className="ad-paywall-note">購買後，這份報告會保存到你的登入帳號；付款通知會寄到該帳號的 Email。</p> : null}
           {IS_DEV && isLocalPreview ? (
             <div className="ad-mt-12">
               <button type="button" className="ad-btn-ghost ad-btn-center ad-btn-sm" onClick={handleResetPreview}>
@@ -1500,6 +1586,17 @@ export default function V2App({ user }: V2AppProps) {
                     <ReportParagraphs className="ad-pairing-body" text={dessertNarrative} />
                   </div>
                 ) : null}
+                <a
+                  href={tasteMenuUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ad-btn-ghost"
+                  onClick={() => trackDessertOrderClick(resultData.id, variant, {
+                    entrySurface: 'v2_report_taste', url: tasteMenuUrl, unlockType: readerUnlockType,
+                  })}
+                >
+                  到月島菜單看看 →
+                </a>
               </div>
             </div>
             <div>
@@ -1535,7 +1632,9 @@ export default function V2App({ user }: V2AppProps) {
               target="_blank"
               rel="noreferrer"
               className="ad-btn-primary"
-              onClick={() => trackDessertOrderClick(resultData.id, variant)}
+              onClick={() => trackDessertOrderClick(resultData.id, variant, {
+                entrySurface: 'v2_report_dessert', url: dessertOrderUrl, unlockType: readerUnlockType,
+              })}
             >
               查看月島甜點 →
             </a>

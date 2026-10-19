@@ -533,7 +533,7 @@ export const trackButtonClick = (
  * Track V2 paywall view (user sees locked state)
  * GA4 standard: view_item
  */
-export const trackV2PaywallView = (mbtiType: string, source: string) => {
+export const trackV2PaywallView = (mbtiType: string, source: string, offer: 'paid' | 'promo_free' = 'paid') => {
     gtagSafe('event', 'view_item', withSiteId({
         item_list_id: 'v2_deep_report',
         item_list_name: 'V2 Deep Report',
@@ -546,6 +546,8 @@ export const trackV2PaywallView = (mbtiType: string, source: string) => {
         }],
         mbti_type: mbtiType,
         source,
+        // Only the free promo adds this; the paid paywall event keeps its exact shape.
+        ...(offer === 'promo_free' ? { offer } : {}),
     }));
 };
 
@@ -573,11 +575,17 @@ export const trackV2CheckoutStart = (mbtiType: string, source: string, _checkout
  * Reading an unlocked report is not proof of a new purchase. Restored access,
  * free previews and historical purchases must not inflate revenue.
  */
-export const trackV2Unlocked = (mbtiType: string, unlockType: string, source: string) => {
+export const trackV2Unlocked = (
+    mbtiType: string,
+    unlockType: string,
+    source: string,
+    extra: { promo_id?: string } = {},
+) => {
     gtagSafe('event', 'v2_report_unlocked', withSiteId({
         mbti_type: mbtiType,
         unlock_type: unlockType,
         source,
+        ...extra,
     }));
 };
 
@@ -616,6 +624,8 @@ export const trackLoginGateOpened = (context: {
     is_shared_view?: boolean;
     session_id?: string;
     mbti_type?: string;
+    from_stage?: string;
+    promo_id?: string;
 } = {}) => {
     gtagSafe('event', 'login_gate_opened', withSiteId(context));
 };
@@ -626,6 +636,8 @@ export const trackLoginSuccess = (context: {
     had_result_before_login?: boolean;
     provider?: string;
     session_id?: string;
+    mbti_type?: string;
+    promo_id?: string;
 } = {}) => {
     gtagSafe('event', 'login_success', withSiteId(context));
 };

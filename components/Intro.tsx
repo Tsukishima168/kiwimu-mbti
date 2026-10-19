@@ -3,7 +3,7 @@ import type { AppUser } from '../types';
 import { trackButtonClick } from '../utils/analytics';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
-import { V2_REPORT_PRICE_TWD } from '../shared/v2Product';
+import { introV2PriceLine } from '../utils/v2PromoCopy';
 import { useReducedMotion } from '../hooks/useReducedMotion';
 import { KIWIMU_CAMPAIGN_ASSETS } from '../data/kiwimuVisualAssets';
 import './quiz-ui.css';
@@ -20,10 +20,10 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
   const { t, language } = useLanguage();
   const reducedMotion = useReducedMotion();
   const entry = {
-    zh: { choose: '選擇你的探索方式', v1: 'V1｜經典人格', v1Detail: '40 題・測驗與結果免費', v1Start: '開始 V1', v2: 'V2｜敘事探索', v2Detail: '40 個生活情境・第 01 章免費', v2Price: `完整報告 NT$${V2_REPORT_PRICE_TWD}・單次解鎖`, v2Start: '開始 V2', quick: '想先輕鬆看看？V1.5 五題狀態探索', note: '依此刻的感受回答，讓結果成為理解自己的起點。' },
-    en: { choose: 'Choose your exploration', v1: 'V1 | Classic personality', v1Detail: '40 questions · Free quiz and results', v1Start: 'Start V1', v2: 'V2 | Narrative exploration', v2Detail: '40 everyday situations · Chapter 01 free', v2Price: `Full report NT$${V2_REPORT_PRICE_TWD} · One-time unlock`, v2Start: 'Start V2', quick: 'A lighter start? V1.5: five questions about today', note: 'Answer from how you feel today. Let the result start a conversation with yourself.' },
-    ja: { choose: '自分に合う入口を選ぶ', v1: 'V1｜いつもの人格', v1Detail: '40問・診断と結果は無料', v1Start: 'V1を始める', v2: 'V2｜日常の物語', v2Detail: '40の日常場面・第01章は無料', v2Price: `完全版 NT$${V2_REPORT_PRICE_TWD}・1回の購入で解放`, v2Start: 'V2を始める', quick: 'まずは気軽に：V1.5、今の気持ちを5問で', note: '今の気持ちで答えて、自分を理解するきっかけに。' },
-    ko: { choose: '나에게 맞는 탐색 선택', v1: 'V1｜기본 성격', v1Detail: '40문항 · 테스트와 결과 무료', v1Start: 'V1 시작', v2: 'V2｜이야기 탐색', v2Detail: '40가지 일상 상황 · 01장 무료', v2Price: `전체 보고서 NT$${V2_REPORT_PRICE_TWD} · 한 번 결제`, v2Start: 'V2 시작', quick: '가볍게 시작하기: V1.5 오늘의 상태 5문항', note: '지금의 마음으로 답하고, 나를 이해하는 출발점으로 삼아 보세요.' },
+    zh: { choose: '選擇你的探索方式', v1: 'V1｜經典人格', v1Detail: '40 題・測驗與結果免費', v1Start: '開始 V1', v2: 'V2｜敘事探索', v2Detail: '40 個生活情境・第 01 章免費', v2Start: '開始 V2', quick: '想先輕鬆看看？V1.5 五題狀態探索', note: '依此刻的感受回答，讓結果成為理解自己的起點。' },
+    en: { choose: 'Choose your exploration', v1: 'V1 | Classic personality', v1Detail: '40 questions · Free quiz and results', v1Start: 'Start V1', v2: 'V2 | Narrative exploration', v2Detail: '40 everyday situations · Chapter 01 free', v2Start: 'Start V2', quick: 'A lighter start? V1.5: five questions about today', note: 'Answer from how you feel today. Let the result start a conversation with yourself.' },
+    ja: { choose: '自分に合う入口を選ぶ', v1: 'V1｜いつもの人格', v1Detail: '40問・診断と結果は無料', v1Start: 'V1を始める', v2: 'V2｜日常の物語', v2Detail: '40の日常場面・第01章は無料', v2Start: 'V2を始める', quick: 'まずは気軽に：V1.5、今の気持ちを5問で', note: '今の気持ちで答えて、自分を理解するきっかけに。' },
+    ko: { choose: '나에게 맞는 탐색 선택', v1: 'V1｜기본 성격', v1Detail: '40문항 · 테스트와 결과 무료', v1Start: 'V1 시작', v2: 'V2｜이야기 탐색', v2Detail: '40가지 일상 상황 · 01장 무료', v2Start: 'V2 시작', quick: '가볍게 시작하기: V1.5 오늘의 상태 5문항', note: '지금의 마음으로 답하고, 나를 이해하는 출발점으로 삼아 보세요.' },
   }[language];
 
   return (
@@ -147,7 +147,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
             <a className="kw-quiz-entry__choice kw-quiz-entry__choice--v2" href="/read?from=mbti_version_entry" onClick={() => trackButtonClick('V2_敘事探索', 'intro_version')}>
               <strong>{entry.v2}</strong>
               <span>{entry.v2Detail}</span>
-              <span>{entry.v2Price}</span>
+              <span>{introV2PriceLine(language)}</span>
               <span className="kw-quiz-entry__cta">{entry.v2Start} ↗</span>
             </a>
           </div>
