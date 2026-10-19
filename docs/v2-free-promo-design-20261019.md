@@ -142,3 +142,8 @@ COMMIT;
 3. Discord 要不要通知免費解鎖？（不發，週報用 SQL 查）
 4. 訂單 DB 層的歸因（讓 map 存 `from`）要不要另開 map 任務？（另案處理；現階段先用 GA4 的 `purchase` 加 `entry_from`）
 5. 活動什麼時候開始？（上線即開始）
+
+## 9. Phase 2 實作與上文的差異
+- DB 欄位改名 `created_at`（不是 `claimed_at`）；service_role 只有 SELECT 與不含 `created_at` 的欄位級 INSERT，沒有 UPDATE／DELETE；migration 可重複執行。
+- 未驗證 Email 回 403（不是 422）。付費回應形狀完全不變：`access`、`grants`、`view_item.offer` 都只在免費解鎖時出現。
+- `my-reports` 的 promo 查詢失敗時回 `grantsUnavailable: true`，不讓付費的我的報告變 503；report 只在兩條付費路徑都不成立時才查 promo 表。
