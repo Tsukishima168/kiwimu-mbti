@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   getLinePayOrder: vi.fn(),
   hasConfirmedLinePayOrderForUser: vi.fn(),
   getUserAdminDb: vi.fn(),
+  hasV2PromoUnlock: vi.fn(),
 }));
 
 vi.mock('../../linePayOrderStore.js', () => ({
@@ -14,6 +15,10 @@ vi.mock('../../linePayOrderStore.js', () => ({
 }));
 vi.mock('../../supabase/user-admin.js', () => ({
   getUserAdminDb: mocks.getUserAdminDb,
+}));
+// The free-promo table is a separate store; paid-path cases below see "no promo grant".
+vi.mock('../../v2PromoStore.js', () => ({
+  hasV2PromoUnlock: mocks.hasV2PromoUnlock,
 }));
 
 import handler from './report';
@@ -59,6 +64,7 @@ describe('POST /api/v2/report', () => {
     mocks.getLinePayOrder.mockResolvedValue(null);
     mocks.getUserAdminDb.mockReturnValue(null);
     mocks.hasConfirmedLinePayOrderForUser.mockResolvedValue(false);
+    mocks.hasV2PromoUnlock.mockResolvedValue(false);
   });
 
   it('returns the purchased report and its A/T counterpart for a matching confirmed order', async () => {
@@ -277,5 +283,100 @@ describe('POST /api/v2/report', () => {
     expect(state.status).toBe(200);
     expect(mocks.hasConfirmedLinePayOrderForUser).toHaveBeenCalledWith('user-1', 'ESTJ-A');
     expect(mocks.getLinePayOrder).toHaveBeenCalledWith(ORDER_ID);
+  });
+});
+
+describe('POST /api/v2/report with the free promo', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.useRealTimers();
+    mocks.getLinePayOrder.mockResolvedValue(null);
+    mocks.getUserAdminDb.mockReturnValue(null);
+    mocks.hasConfirmedLinePayOrderForUser.mockResolvedValue(false);
+    mocks.hasV2PromoUnlock.mockResolvedValue(false);
+  });
+
+  it('reads the full report from a stored promo grant, tagged as promo access', async () => {
+    mocks.hasV2PromoUnlock.mockResolvedValue(true);
+    const { res, state } = response();
+    await handler(verifiedAccountRequest(), res);
+    expect(state.status).toBe(200);
+    expect(state.body).toMatchObject({ ok: true, data: { access: 'promo', report: { fullCode: 'ESTJ-A' }, oppositeReport: { fullCode: 'ESTJ-T' } } });
+    expect(mocks.hasV2PromoUnlock).toHaveBeenCalledWith('user-1', 'ESTJ-A');
+  });
+
+  it('keeps reading a promo grant after the window has closed', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2027-03-01T12:00:00+08:00'));
+    mocks.hasV2PromoUnlock.mockResolvedValue(true);
+    const { res, state } = response();
+    await handler(verifiedAccountRequest(), res);
+    vi.useRealTimers();
+    expect(state.status).toBe(200);
+    expect(state.body).toMatchObject({ ok: true, data: { access: 'promo' } });
+  });
+
+  it('never grants from the window alone: a signed-in account without a stored grant stays locked', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-15T12:00:00+08:00'));
+    const { res, state } = response();
+    await handler(verifiedAccountRequest(), res);
+    vi.useRealTimers();
+    expect(state.status).toBe(403);
+    expect(state.body).toEqual({ ok: false, code: 'ENTITLEMENT_REQUIRED' });
+  });
+
+  it('asks the promo store only for the requested type', async () => {
+    mocks.hasV2PromoUnlock.mockImplementation(async (_user: string, type: string) => type === 'ESTJ-T');
+    const { res, state } = response();
+    await handler(verifiedAccountRequest(), res);
+    expect(state.status).toBe(403);
+    expect(mocks.hasV2PromoUnlock).toHaveBeenCalledWith('user-1', 'ESTJ-A');
+  });
+
+  it('fails closed with a retryable error when the promo store is unavailable', async () => {
+    mocks.hasV2PromoUnlock.mockResolvedValue(undefined);
+    const { res, state } = response();
+    await handler(verifiedAccountRequest(), res);
+    expect(state.status).toBe(503);
+    expect(state.body).toEqual({ ok: false, code: 'STORE_UNAVAILABLE' });
+  });
+
+  it('does not consult the promo store without a signed-in account', async () => {
+    const { res, state } = response();
+    await handler(request(), res);
+    expect(state.status).toBe(403);
+    expect(mocks.hasV2PromoUnlock).not.toHaveBeenCalled();
+  });
+
+  it('does not grant promo access to an anonymous session even if a row existed', async () => {
+    mocks.hasV2PromoUnlock.mockResolvedValue(true);
+    mocks.getUserAdminDb.mockReturnValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'anon-1', is_anonymous: true } }, error: null }) },
+    });
+    const { res, state } = response();
+    await handler(request({ headers: { host: 'kiwimu.com', origin: 'https://kiwimu.com', authorization: 'Bearer anon-token' } }), res);
+    expect(state.status).toBe(403);
+    expect(mocks.hasV2PromoUnlock).not.toHaveBeenCalled();
+  });
+
+  it('paid regression: a paid account gets the exact paid response and never touches the promo store', async () => {
+    mocks.hasConfirmedLinePayOrderForUser.mockResolvedValue(true);
+    const { res, state } = response();
+    await handler(verifiedAccountRequest(), res);
+    expect(state.status).toBe(200);
+    const body = state.body as { ok: boolean; code: string; data: Record<string, unknown> };
+    expect(Object.keys(body.data).sort()).toEqual(['oppositeReport', 'report']);
+    expect(body).toMatchObject({ ok: true, code: 'OK', data: { report: { fullCode: 'ESTJ-A' }, oppositeReport: { fullCode: 'ESTJ-T' } } });
+    expect(mocks.hasV2PromoUnlock).not.toHaveBeenCalled();
+  });
+
+  it('paid regression: an anonymous order proof keeps its exact response and skips the promo store', async () => {
+    mocks.getLinePayOrder.mockResolvedValue({ order_id: ORDER_ID, mbti_type: 'ESTJ-A', status: 'confirmed', user_uid: null });
+    const { res, state } = response();
+    await handler(request(), res);
+    expect(state.status).toBe(200);
+    expect(Object.keys((state.body as { data: object }).data).sort()).toEqual(['oppositeReport', 'report']);
+    expect(mocks.hasV2PromoUnlock).not.toHaveBeenCalled();
   });
 });

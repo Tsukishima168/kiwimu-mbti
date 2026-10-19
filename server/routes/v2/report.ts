@@ -8,6 +8,7 @@ import {
   hasConfirmedLinePayOrderForUser,
 } from '../../linePayOrderStore.js';
 import { getUserAdminDb } from '../../supabase/user-admin.js';
+import { hasV2PromoUnlock } from '../../v2PromoStore.js';
 
 const FULL_CODE_PATTERN = /^[A-Z]{4}-[AT]$/;
 const MAX_BODY_BYTES = 1_024;
@@ -16,15 +17,29 @@ function readHeader(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0] || '' : value || '';
 }
 
-async function hasUserEntitlement(token: string, fullCode: string): Promise<boolean | undefined> {
+type TokenUser = { id: string; is_anonymous?: boolean };
+
+// undefined = auth or store unavailable; null = no valid account for this token.
+async function resolveTokenUser(token: string): Promise<TokenUser | null | undefined> {
   const admin = getUserAdminDb();
   if (!admin) return undefined;
 
   const { data: authData, error: authError } = await admin.auth.getUser(token);
   if (isAuthRetryableFetchError(authError) || (authError?.status && authError.status >= 500)) return undefined;
-  if (authError || !authData.user) return false;
+  if (authError || !authData.user) return null;
+  return authData.user as TokenUser;
+}
 
-  return hasConfirmedLinePayOrderForUser(authData.user.id, fullCode);
+async function hasUserEntitlement(user: TokenUser | null, fullCode: string): Promise<boolean | undefined> {
+  if (!user) return false;
+  return hasConfirmedLinePayOrderForUser(user.id, fullCode);
+}
+
+// Promo grants never expire with the window: claiming is time-limited, reading is not.
+// Only a stored row grants access; there is no time-based or client-side shortcut.
+async function hasPromoEntitlement(user: TokenUser | null, fullCode: string): Promise<boolean | undefined> {
+  if (!user || user.is_anonymous) return false;
+  return hasV2PromoUnlock(user.id, fullCode);
 }
 
 async function hasOrderEntitlement(orderId: string, fullCode: string): Promise<boolean | undefined> {
@@ -69,9 +84,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const bearerToken = getBearerToken(req);
   const orderId = readV2OrderIdCookie(req.headers.cookie)
     || readHeader(req.headers['x-v2-order-id']).trim();
-  const profileAuthorized = bearerToken
-    ? await hasUserEntitlement(bearerToken, fullCode)
-    : false;
+  const tokenUser = bearerToken ? await resolveTokenUser(bearerToken) : null;
+  if (tokenUser === undefined) {
+    return res.status(503).json({ ok: false, code: 'STORE_UNAVAILABLE' });
+  }
+  const profileAuthorized = await hasUserEntitlement(tokenUser, fullCode);
   if (profileAuthorized === undefined) {
     return res.status(503).json({ ok: false, code: 'STORE_UNAVAILABLE' });
   }
@@ -81,7 +98,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (orderAuthorized === undefined) {
     return res.status(503).json({ ok: false, code: 'STORE_UNAVAILABLE' });
   }
-  const authorized = profileAuthorized || orderAuthorized;
+  // Paid access (account or order proof) is decided first and unchanged; the promo
+  // table is consulted only when neither paid path grants the report.
+  const promoAuthorized = profileAuthorized || orderAuthorized
+    ? false
+    : await hasPromoEntitlement(tokenUser, fullCode);
+  if (promoAuthorized === undefined) {
+    return res.status(503).json({ ok: false, code: 'STORE_UNAVAILABLE' });
+  }
+  const authorized = profileAuthorized || orderAuthorized || promoAuthorized;
 
   if (!authorized) {
     return res.status(403).json({ ok: false, code: 'ENTITLEMENT_REQUIRED' });
@@ -96,6 +121,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     data: {
       report,
       oppositeReport,
+      // Present only for promo grants, so paid responses keep their exact shape.
+      ...(promoAuthorized ? { access: 'promo' as const } : {}),
     },
   });
 }
