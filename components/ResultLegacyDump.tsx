@@ -15,6 +15,7 @@ import { MARKETING_EVENTS, trackLINEEvent } from '../utils/marketingPixels';
 import { trackOutboundClick } from '../utils/utmTracking';
 import type { PassportLoginUiOptions } from '../utils/authStorage';
 import { usePendingEconomyClaimUrl } from '../hooks/usePendingEconomyClaimUrl';
+import { v1ResultV2OfferLine, v1ResultV2TrialNote } from '../utils/v2PromoCopy';
 
 
 interface ResultProps {
@@ -1315,7 +1316,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                 </h3>
                 <p className="mt-4 text-sm md:text-base leading-relaxed text-white/70">
                   V2 在 V1 基礎上加入 A / T 變體分流、心理原型層、關係與職場語境，寫成一份更完整的深度報告。<br />
-                  第 01 章免費試讀；完整報告 NT$99，購買後可在「我的報告」回看。
+                  {v1ResultV2OfferLine()}
                 </p>
                 <div className="mt-7 grid gap-3 sm:grid-cols-2">
                   <a
@@ -1346,7 +1347,7 @@ const Result: React.FC<ResultProps> = ({ resultData, rawScores, onRetest, onOpen
                   className="mt-5 text-white/40"
                   style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11 }}
                 >
-                  你可以先試讀，再決定是否解鎖完整報告。
+                  {v1ResultV2TrialNote()}
                 </p>
               </div>
             </div>

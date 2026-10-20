@@ -3,6 +3,8 @@ import type { V2VariantReport } from '../../data/v2VariantReports.generated';
 export type PaidReportBundle = {
   report: V2VariantReport;
   oppositeReport: V2VariantReport | null;
+  // Set by the server only for a free promo grant; absent for paid access.
+  access?: 'promo';
 };
 
 export class ReportAccessError extends Error {

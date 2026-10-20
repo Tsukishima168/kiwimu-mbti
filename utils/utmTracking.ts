@@ -194,6 +194,31 @@ export function buildDessertOrderLink(mbtiType: string, variant: string, entrySu
 }
 
 /**
+ * V2 深度報告內的月島菜單入口。沿用菜單 API 給的 cta_url（保留它的 mbti 等業務參數），
+ * 只把 from 換成 V2 報告專屬的 mbti_<entrySurface>，讓報告→菜單→訂單能與 V1 結果頁分開計算。
+ * 沒有可用的 cta_url 時，退回 buildDessertOrderLink。
+ */
+export function buildV2ReportDessertLink(
+  ctaUrl: string | null | undefined,
+  mbtiType: string,
+  variant: string,
+  entrySurface: string = 'v2_report_dessert',
+): string {
+  if (ctaUrl) {
+    try {
+      const url = new URL(ctaUrl);
+      const isKiwimuHost = url.hostname === 'kiwimu.com' || url.hostname.endsWith('.kiwimu.com');
+      if (!isKiwimuHost) return ctaUrl;
+      url.searchParams.set('from', `${FROM_SOURCE_SITE}_${entrySurface}`);
+      return url.toString();
+    } catch {
+      // A malformed contract URL falls back to the canonical menu link below.
+    }
+  }
+  return buildDessertOrderLink(mbtiType, variant, entrySurface);
+}
+
+/**
  * 月島地圖連結（結果頁專用）。同上，保留 mbti 業務參數。
  */
 export function buildMoonMapLink(mbtiType: string, entrySurface: string = 'result_map'): string {
@@ -308,16 +333,22 @@ export function trackOutboundClick(
 /**
  * 追蹤訂購按鈕點擊
  */
-export function trackDessertOrderClick(mbtiType: string, variant: string) {
-  const orderUrl = buildDessertOrderLink(mbtiType, variant);
+export function trackDessertOrderClick(
+  mbtiType: string,
+  variant: string,
+  options: { entrySurface?: string; url?: string; unlockType?: string } = {},
+) {
+  // 不帶 options 的既有呼叫維持原本的 entry_surface 與連結。
+  const orderUrl = options.url || buildDessertOrderLink(mbtiType, variant, options.entrySurface);
   trackOutboundClick('DESSERT_BOOKING', 'result-cta', {
     destination_type: 'order_menu',
-    entry_surface: 'result_dessert_card',
+    entry_surface: options.entrySurface || 'result_dessert_card',
     mbti_type: mbtiType,
     mbti_variant: variant,
     variant: variant,
     conversion_type: 'dessert_order_intent',
     url: orderUrl,
+    ...(options.unlockType ? { unlock_type: options.unlockType } : {}),
   });
 
   // 行銷像素追蹤（如果已啟用）
