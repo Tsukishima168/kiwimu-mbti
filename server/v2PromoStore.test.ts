@@ -52,6 +52,23 @@ describe('v2 promo store', () => {
     expect(mocks.calls).toContainEqual(['eq', ['mbti_type', 'ESTJ-A']]);
   });
 
+  it('denies when the lookup succeeds but finds no row (data: null, error: null)', async () => {
+    mocks.result = { data: null, error: null };
+    await expect(hasV2PromoUnlock('account-a', 'ESTJ-A')).resolves.toBe(false);
+  });
+
+  it.each([
+    { error: { code: '08006', message: 'connection failure' }, expected: undefined },
+    { error: { code: '42501', message: 'permission denied' }, expected: undefined },
+    { error: { message: 'no code' }, expected: undefined },
+    { error: { code: '42P01', message: 'relation does not exist' }, expected: false },
+  ])('never grants when data is null and the lookup errored ($error.message)', async ({ error, expected }) => {
+    mocks.result = { data: null, error };
+    const result = await hasV2PromoUnlock('account-a', 'ESTJ-A');
+    expect(result).not.toBe(true);
+    expect(result).toBe(expected);
+  });
+
   it.each([
     { error: { code: 'PGRST205' }, expected: false },
     { error: { code: '42P01' }, expected: false },
