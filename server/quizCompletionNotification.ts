@@ -1,7 +1,7 @@
 import { createHash, createHmac } from 'node:crypto';
 import { isIP } from 'node:net';
 import type { VercelRequest } from '@vercel/node';
-import type { QuizNotificationInput } from '../shared/quizNotification.js';
+import type { QuizAttribution, QuizNotificationInput } from '../shared/quizNotification.js';
 import { calculateMbtiResult, getEconomyQuestionBank } from './economy/mbtiCompletion.js';
 import { getEconomyAdminClient } from './economy/supabaseAdmin.js';
 
@@ -28,9 +28,73 @@ export function quizResult(input: QuizNotificationInput): string {
   return `${result.resultType}-${result.variant}`;
 }
 
-export function buildQuizCompletionMessage(input: QuizNotificationInput, loggedIn: boolean, channelId: string) {
+export type QuizAccount = { email?: string; user_metadata?: Record<string, unknown> };
+export interface QuizCompletionViewer { member: { name: string; email: string } | null; location: string; device: string }
+
+const plainText = (value: string, max: number) => value.normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, max);
+const escapeMarkdown = (value: string) => value.replace(/[\\*_~`|>#[\]()<]/g, '\\$&');
+const inlineCode = (value: string) => `\`${value}\``;
+const headerValue = (req: VercelRequest, name: string) => {
+  const value = req.headers[name];
+  return (Array.isArray(value) ? value[0] : value ?? '').trim();
+};
+
+// Vercel's edge sets x-vercel-ip-*; only country and city are shown, never the IP.
+function locationLabel(req: VercelRequest): string {
+  const country = headerValue(req, 'x-vercel-ip-country').toUpperCase();
+  if (!/^[A-Z]{2}$/.test(country)) return '未知';
+  let city = '';
+  try {
+    city = plainText(decodeURIComponent(headerValue(req, 'x-vercel-ip-city')), 60).replace(/[^\p{L}\p{N} .'-]/gu, '');
+  } catch { /* A malformed city header is shown as country only. */ }
+  const flag = String.fromCodePoint(...[...country].map(letter => 0x1F1E6 + letter.charCodeAt(0) - 65));
+  return city ? `${flag} ${country} · ${city}` : `${flag} ${country}`;
+}
+
+function deviceLabel(userAgent: string): string {
+  const os = /iPhone|iPad|iPod/.test(userAgent) ? 'iOS'
+    : /Android/.test(userAgent) ? 'Android'
+    : /Macintosh|Mac OS X/.test(userAgent) ? 'macOS'
+    : /Windows/.test(userAgent) ? 'Windows' : '其他系統';
+  const browser = /\bLine\//.test(userAgent) ? 'LINE 內建瀏覽器'
+    : /Instagram/.test(userAgent) ? 'Instagram 內建瀏覽器'
+    : /FBAN|FBAV|FB_IAB/.test(userAgent) ? 'Facebook 內建瀏覽器'
+    : /Edg\//.test(userAgent) ? 'Edge'
+    : /CriOS|Chrome\//.test(userAgent) ? 'Chrome'
+    : /FxiOS|Firefox\//.test(userAgent) ? 'Firefox'
+    : /Safari\//.test(userAgent) ? 'Safari' : '其他瀏覽器';
+  return `${os} · ${browser}`;
+}
+
+// The member comes only from the verified account (shop owner decision 2026-10-23:
+// every configured channel is private, so name and email may be shown).
+export function quizCompletionViewer(req: VercelRequest, account?: QuizAccount): QuizCompletionViewer {
+  const metadata = account?.user_metadata ?? {};
+  const name = [metadata.full_name, metadata.name].find((value): value is string => typeof value === 'string' && value.trim() !== '');
+  return {
+    member: account ? {
+      name: name ? escapeMarkdown(plainText(name, 80)) : '（未提供名字）',
+      email: account.email ? escapeMarkdown(plainText(account.email, 120)) : '（沒有 email）',
+    } : null,
+    location: locationLabel(req),
+    device: deviceLabel(headerValue(req, 'user-agent')),
+  };
+}
+
+function sourceSummary(attribution: QuizAttribution): string {
+  const lines: string[] = [];
+  if (attribution.from) lines.push(`站內入口（最近一次）：${inlineCode(attribution.from)}`);
+  if (attribution.src) lines.push(`外部來源（30 天內首次）：${inlineCode(attribution.med ? `${attribution.src} / ${attribution.med}` : attribution.src)}`);
+  if (attribution.ref) lines.push(`來源網站：${inlineCode(attribution.ref)}`);
+  return lines.join('\n') || '沒有來源紀錄（直接開啟，或連結沒帶來源參數）';
+}
+
+export function buildQuizCompletionMessage(input: QuizNotificationInput, viewer: QuizCompletionViewer, channelId: string) {
   const label = { v1: 'V1 完整測驗', v1_5: 'V1.5 五題快測', v2: 'V2 生活情境測驗' }[input.funnel];
   const locale = { zh: '繁體中文', en: 'English', ja: '日本語', ko: '한국어' }[input.locale];
+  const attribution = input.attribution ?? {};
+  const optional = ([['活動', attribution.cmp], ['內容', attribution.cnt], ['首次著陸站', attribution.land]] as const)
+    .flatMap(([name, value]) => value ? [{ name, value: inlineCode(value), inline: true }] : []);
   return {
     content: 'Kiwimu｜測驗完成回報',
     embeds: [{ title: `${label} · ${quizResult(input)}`, color: 0x4b7355,
@@ -38,7 +102,15 @@ export function buildQuizCompletionMessage(input: QuizNotificationInput, loggedI
         { name: '測驗版本', value: label, inline: true },
         { name: '結果', value: quizResult(input), inline: true },
         { name: '語言', value: locale, inline: true },
-        { name: '身份', value: loggedIn ? '已登入會員' : '未登入訪客', inline: true },
+        { name: '身份', value: viewer.member ? '已登入會員' : '未登入訪客', inline: true },
+        ...(viewer.member ? [
+          { name: '會員', value: viewer.member.name, inline: true },
+          { name: 'Email', value: viewer.member.email, inline: true },
+        ] : []),
+        { name: '從哪裡來', value: sourceSummary(attribution), inline: false },
+        ...optional,
+        { name: '地區（依 IP）', value: viewer.location, inline: true },
+        { name: '裝置', value: viewer.device, inline: true },
       ],
       footer: { text: '依提交答案計算；此為完成回報，不代表付款或新增會員。' },
     }],
@@ -50,7 +122,7 @@ export function buildQuizCompletionMessage(input: QuizNotificationInput, loggedI
 
 export type QuizDeliveryResult = { status: 'sent' | 'review' | 'duplicate' | 'conflict' | 'limited' | 'retry' | 'unavailable'; retryAfter?: number };
 
-export async function deliverQuizCompletion(input: QuizNotificationInput, loggedIn: boolean, clientHash: string,
+export async function deliverQuizCompletion(input: QuizNotificationInput, viewer: QuizCompletionViewer, clientHash: string,
   config: NonNullable<ReturnType<typeof getQuizNotificationConfig>>,
 ): Promise<QuizDeliveryResult> {
   const db = getEconomyAdminClient();
@@ -72,7 +144,7 @@ export async function deliverQuizCompletion(input: QuizNotificationInput, logged
     const outcomes = await Promise.allSettled(channels.map(async channelId => {
       const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
         method: 'POST', headers: { Authorization: `Bot ${config.token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(buildQuizCompletionMessage(input, loggedIn, channelId)), signal: AbortSignal.timeout(8_000),
+        body: JSON.stringify(buildQuizCompletionMessage(input, viewer, channelId)), signal: AbortSignal.timeout(8_000),
       });
       const body = await response.json().catch(() => null);
       if (response.ok && /^\d{17,20}$/.test(body?.id || '') && body?.channel_id === channelId) {

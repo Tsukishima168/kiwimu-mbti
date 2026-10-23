@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { parseQuizNotification } from '../shared/quizNotification.js';
 import { jsonBodySize, requestOriginMatchesHost } from '../server/economy/requestSecurity.js';
 import { getVerifiedV2User } from '../server/v2Account.js';
-import { deliverQuizCompletion, getQuizNotificationConfig, quizClientHash } from '../server/quizCompletionNotification.js';
+import { deliverQuizCompletion, getQuizNotificationConfig, quizClientHash, quizCompletionViewer, type QuizAccount } from '../server/quizCompletionNotification.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Cache-Control', 'private, no-store, max-age=0');
@@ -21,13 +21,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const config = getQuizNotificationConfig();
   const clientHash = config && quizClientHash(req, config.token);
   if (!config || !clientHash) return res.status(503).json({ ok: false, code: 'NOTIFICATION_UNAVAILABLE' });
-  let loggedIn = false;
+  let account: QuizAccount | undefined;
   if (req.headers.authorization) {
     const identity = await getVerifiedV2User(req);
     if (!identity.user) return res.status(identity.code === 'AUTH_UNAVAILABLE' ? 503 : 401).json({ ok: false, code: identity.code });
-    loggedIn = true;
+    account = identity.user;
   }
-  const { status, retryAfter } = await deliverQuizCompletion(input, loggedIn, clientHash, config);
+  const { status, retryAfter } = await deliverQuizCompletion(input, quizCompletionViewer(req, account), clientHash, config);
   if (status === 'unavailable') return res.status(503).json({ ok: false, code: 'NOTIFICATION_UNAVAILABLE' });
   if (status === 'limited' || status === 'retry') {
     res.setHeader('Retry-After', String(retryAfter || 3600));

@@ -1,4 +1,5 @@
-import { parseQuizNotification, type QuizNotificationInput } from '../shared/quizNotification';
+import { parseQuizNotification, QUIZ_ATTRIBUTION_KEYS, type QuizAttribution, type QuizNotificationInput } from '../shared/quizNotification';
+import { readAttribution } from './attribution';
 import { getAuthSupabaseClient } from './supabaseAuthBridge';
 
 // Compatibility export for frozen App.tsx. V1 now sends from its existing
@@ -101,9 +102,25 @@ export function flushQuizNotifications(): Promise<void> {
   return flushing;
 }
 
+// Captured when the quiz completes and stored with the outbox entry, so retries
+// carry the same source. The shared parser re-cleans every value.
+function collectAttribution(): QuizAttribution {
+  const stored: Record<string, unknown> = { ...readAttribution() };
+  const attribution: QuizAttribution = {};
+  for (const key of QUIZ_ATTRIBUTION_KEYS) {
+    const value = stored[key];
+    if (typeof value === 'string' && value) attribution[key] = value;
+  }
+  try {
+    const host = document.referrer ? new URL(document.referrer).hostname : '';
+    if (host && host !== window.location.hostname) attribution.ref = host;
+  } catch { /* No document, or a malformed referrer, means no referrer. */ }
+  return attribution;
+}
+
 export function queueQuizCompletionNotification(input: Omit<QuizNotificationInput, 'completionId'>,
   completionId = crypto.randomUUID()): void {
-  const request = parseQuizNotification({ ...input, completionId });
+  const request = parseQuizNotification({ attribution: collectAttribution(), ...input, completionId });
   if (!request) return;
   const entries = read();
   if (!entries.some(entry => entry.request.completionId === request.completionId)) {
