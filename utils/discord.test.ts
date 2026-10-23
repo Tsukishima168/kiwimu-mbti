@@ -35,6 +35,21 @@ it.each(['v1', 'v1_5', 'v2'] as const)('sends %s completion as an anonymous visi
   expect(options?.headers).toEqual({ 'Content-Type': 'application/json' });
   expect(JSON.parse(String(options?.body))).toEqual({ completionId: ID, ...request(funnel) });
 });
+it('stores kw_attr source fields and an external referrer host with the completion', async () => {
+  const cookie = { src: 'line', med: 'oa', cmp: 'autumn', land: 'map.kiwimu.com', from: 'passport_home', mbti: 'ENFP-T', ts: 1 };
+  vi.stubGlobal('document', { cookie: `kw_attr=${encodeURIComponent(JSON.stringify(cookie))}`, referrer: 'https://l.instagram.com/?u=x' });
+  vi.stubGlobal('window', { location: { hostname: 'kiwimu.com' } });
+  api.queueQuizCompletionNotification(request(), ID); await api.flushQuizNotifications();
+  expect(JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body)).attribution).toEqual({
+    src: 'line', med: 'oa', cmp: 'autumn', land: 'map.kiwimu.com', from: 'passport_home', ref: 'l.instagram.com',
+  });
+});
+it('omits attribution for a same-site referrer and no cookie', async () => {
+  vi.stubGlobal('document', { cookie: '', referrer: 'https://kiwimu.com/quiz' });
+  vi.stubGlobal('window', { location: { hostname: 'kiwimu.com' } });
+  api.queueQuizCompletionNotification(request(), ID); await api.flushQuizNotifications();
+  expect(JSON.parse(String(vi.mocked(fetch).mock.calls[0][1]?.body))).not.toHaveProperty('attribution');
+});
 it('attaches only the bearer for a registered member, never account IDs', async () => {
   mocks.session.mockResolvedValue({ data: { session: { access_token: 'synthetic-session', user: { id: 'synthetic-user' } } }, error: null });
   api.queueQuizCompletionNotification(request(), ID); await api.flushQuizNotifications();

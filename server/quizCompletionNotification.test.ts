@@ -16,6 +16,9 @@ const input = (funnel: QuizNotificationInput['funnel'] = 'v1'): QuizNotification
   completionId: ID, funnel, locale: 'zh', answerIndices: Array(funnel === 'v1_5' ? 5 : 40).fill(0),
 });
 const headers = { host: 'kiwimu.com', origin: 'https://kiwimu.com', 'x-vercel-forwarded-for': '192.0.2.10' };
+const guest = { member: null, location: '未知', device: '其他系統 · 其他瀏覽器' };
+const fieldsOf = (body: unknown) => JSON.parse(String(body)).embeds[0].fields as { name: string; value: string }[];
+const fieldValue = (body: unknown, name: string) => fieldsOf(body).find(field => field.name === name)?.value;
 function request(body: unknown = input(), extra = {}, method = 'POST'): VercelRequest {
   return { method, headers: { ...headers, ...extra }, body } as unknown as VercelRequest;
 }
@@ -82,13 +85,32 @@ describe('strict notification contract', () => {
     expect(parseQuizNotification({ answerIndices: canonical.answerIndices, locale: 'zh', funnel: 'v1', completionId: ID.toUpperCase() })).toEqual(canonical);
   });
   it.each(['zh', 'en', 'ja', 'ko'] as const)('only bounded %s template data reaches Discord', locale => {
-    const payload = buildQuizCompletionMessage({ ...input(), locale }, false, CHANNEL);
+    const payload = buildQuizCompletionMessage({ ...input(), locale }, guest, CHANNEL);
     expect(payload.allowed_mentions).toEqual({ parse: [] });
     expect(payload.enforce_nonce).toBe(true);
     expect(payload.nonce).toHaveLength(24);
     expect(JSON.stringify(payload)).not.toMatch(/synthetic-user|example.invalid|192\.0\.2|answerIndices|completionId/);
     expect(JSON.stringify(payload)).toContain('未登入訪客');
     expect(JSON.stringify(payload)).toContain('不代表付款或新增會員');
+  });
+  it('accepts attribution only as cleaned source fields', () => {
+    expect(parseQuizNotification({ ...input(), attribution: 'utm_source=x' })).toBeNull();
+    expect(parseQuizNotification({ ...input(), attribution: {} })).toEqual(input());
+    expect(parseQuizNotification({ ...input(), attribution: {
+      src: '@everyone', cmp: '`<@123>`', cnt: '[x](https://evil.example)', ref: ['l.instagram.com'], userId: 'another-user', med: 'a'.repeat(80),
+    } })?.attribution).toEqual({ src: 'everyone', cmp: '123', cnt: 'xhttps://evil.example', med: 'a'.repeat(64) });
+  });
+  it('shows source, location and device for a guest, without member fields', () => {
+    const payload = buildQuizCompletionMessage({ ...input(), attribution: { from: 'passport_home', src: 'line', med: 'oa', cmp: 'autumn', land: 'map.kiwimu.com', ref: 'l.instagram.com' } },
+      { member: null, location: '🇹🇼 TW · Tainan', device: 'iOS · LINE 內建瀏覽器' }, CHANNEL);
+    const body = JSON.stringify(payload);
+    expect(fieldValue(body, '從哪裡來')).toBe('站內入口（最近一次）：`passport_home`\n外部來源（30 天內首次）：`line / oa`\n來源網站：`l.instagram.com`');
+    expect(fieldValue(body, '活動')).toBe('`autumn`'); expect(fieldValue(body, '首次著陸站')).toBe('`map.kiwimu.com`');
+    expect(fieldValue(body, '地區（依 IP）')).toBe('🇹🇼 TW · Tainan'); expect(fieldValue(body, '裝置')).toBe('iOS · LINE 內建瀏覽器');
+    expect(fieldsOf(body).map(field => field.name)).not.toContain('Email');
+  });
+  it('labels a completion with no source plainly', () => {
+    expect(fieldValue(JSON.stringify(buildQuizCompletionMessage(input(), guest, CHANNEL)), '從哪裡來')).toBe('沒有來源紀錄（直接開啟，或連結沒帶來源參數）');
   });
 });
 
@@ -102,11 +124,23 @@ describe('endpoint authorization and delivery', () => {
       p_completion_id: ID, p_client_hash: expect.stringMatching(/^[a-f0-9]{64}$/), p_evidence_hash: expect.stringMatching(/^[a-f0-9]{64}$/),
     });
   });
-  it('uses verified membership only, without disclosing customer identity', async () => {
+  it('shows the verified member name and email, never the account ID or IP', async () => {
+    mocks.identity.mockResolvedValue({ user: { id: 'synthetic-user', email: 'synthetic_member@example.invalid', user_metadata: { full_name: '王*小明' } } });
     const { res, state } = response(); await notify(request(input(), { authorization: 'Bearer synthetic-session' }), res);
     expect(state.status).toBe(200); expect(mocks.identity).toHaveBeenCalledOnce();
-    const body = String(vi.mocked(fetch).mock.calls[0][1]?.body);
-    expect(body).toContain('已登入會員'); expect(body).not.toContain('synthetic-user'); expect(body).not.toContain('example.invalid');
+    const body = vi.mocked(fetch).mock.calls[0][1]?.body;
+    expect(fieldValue(body, '身份')).toBe('已登入會員');
+    expect(fieldValue(body, '會員')).toBe('王\\*小明');
+    expect(fieldValue(body, 'Email')).toBe('synthetic\\_member@example.invalid');
+    expect(String(body)).not.toMatch(/synthetic-user|192\.0\.2/);
+  });
+  it('reads location and device from Vercel edge headers', async () => {
+    const { res } = response();
+    await notify(request(input(), { 'x-vercel-ip-country': 'tw', 'x-vercel-ip-city': encodeURIComponent('Tainan'),
+      'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari Line/14.12.0' }), res);
+    const body = vi.mocked(fetch).mock.calls[0][1]?.body;
+    expect(fieldValue(body, '地區（依 IP）')).toBe('🇹🇼 TW · Tainan'); expect(fieldValue(body, '裝置')).toBe('iOS · LINE 內建瀏覽器');
+    expect(fieldsOf(body).map(field => field.name)).not.toContain('會員');
   });
   it.each([['AUTH_REQUIRED', 401], ['AUTH_UNAVAILABLE', 503]] as const)('fails closed for provided bearer: %s', async (code, status) => {
     mocks.identity.mockResolvedValue({ code }); const { res, state } = response();
@@ -174,7 +208,7 @@ describe('endpoint authorization and delivery', () => {
   });
   it('treats persistence failure after send as review', async () => {
     mocks.persist.mockResolvedValue({ data: null, error: { code: 'DB_UNAVAILABLE' } });
-    expect(await deliverQuizCompletion(input(), false, 'a'.repeat(64), getQuizNotificationConfig()!)).toEqual({ status: 'review' });
+    expect(await deliverQuizCompletion(input(), guest, 'a'.repeat(64), getQuizNotificationConfig()!)).toEqual({ status: 'review' });
   });
   it('honors Discord 429 and retries only channels not already accepted', async () => {
     const detail = '1555794895313300001';
