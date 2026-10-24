@@ -21,8 +21,11 @@ Preview／本機回傳 `disabled`，不讀寫正式資料或發送訊息。正�
 
 - 通知文字明確為「測驗完成回報」，不宣稱新增會員、真實人類驗證或已付款。
 - 已登入會員顯示 Google 帳號的名字與 Email（店主 2026-10-23 決定）。前提是所有設定的通知頻道都只有店主看得到；任何頻道要改成公開前，必須先拿掉這兩欄。
+- 「會員」名字是使用者可自行修改的個人檔案文字：清掉隱形格式字元後以 inline code 原樣顯示，不會變成連結或清單。認人請看 Email，不要看名字。
 - 不向 Discord 傳帳號 ID、電話、IP、答案或任何憑證；禁 mentions。
 - 來源只傳 kw_attr 的 src／med／cmp／cnt／land／from 與外部 referrer 網域，前後端都清成字母、數字與少數網址符號，並以 inline code 顯示。地區只顯示 Vercel 依 IP 判斷的國家／城市，IP 本身不送出。
+- 地區與裝置只供參考：`x-vercel-ip-*` 是否會被 Vercel 覆寫，文件沒有明說；User-Agent 則由瀏覽器自報。兩者都可能是假的，但只會顯示錯的值，無法注入格式。
+- 退版注意：退回不支援 `attribution` 的版本（ea12783 之前）時，瀏覽器 outbox 裡最多 24 小時內帶 `attribution` 的通知會被舊解析器以 400 拒收並丟棄。
 - 表格只保存 completion UUID、答案證據 hash、成功頻道及送達狀態；rate 表只含以 bot secret 做用途隔離 HMAC 的 IP 摘要與計數，過期 rate keys 在下一次 reservation 清理。
 - 原子 RPC 為 SECURITY INVOKER，只有 service_role 可執行；兩張新表 RLS+FORCE，anon/authenticated 沒有讀寫或 RPC 權限。
 - 每來源 IP 每小時 12 個、全站每小時 600 個邏輯完成回報，三版本共用。相同 ID 不再次耗用額度；已登入者也不能靠重試洗版。共享網路過量會延後通知，測驗結果仍立即顯示。
