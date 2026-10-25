@@ -31,15 +31,20 @@ export function quizResult(input: QuizNotificationInput): string {
 export type QuizAccount = { email?: string; user_metadata?: Record<string, unknown> };
 export interface QuizCompletionViewer { member: { name: string; email: string } | null; location: string; device: string }
 
-// Drops format characters (bidi overrides, zero-width) and lone surrogates, turns
-// controls and line/paragraph separators into spaces, and truncates by code point
-// so an emoji is never cut in half.
+// Drops format characters (bidi overrides, zero-width space) and lone surrogates,
+// keeping ZWNJ/ZWJ that scripts and emoji sequences need; turns controls and
+// line/paragraph separators into spaces; truncates by code point so an emoji
+// is never cut in half.
 const plainText = (value: string, max: number) => Array.from(value.normalize('NFKC')
-  .replace(/[\p{Cf}\p{Cs}]/gu, '').replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, ' ').replace(/\s+/g, ' ').trim())
+  .replace(/(?![‌‍])[\p{Cf}\p{Cs}]/gu, '').replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, ' ').replace(/\s+/g, ' ').trim())
   .slice(0, max).join('').trim();
 const inlineCode = (value: string) => `\`${value}\``;
 // Account text is shown as inline code, so links, lists and markdown render literally.
-const accountText = (value: unknown, max: number) => typeof value === 'string' ? plainText(value.replace(/`/g, ''), max) : '';
+// Text that is nothing but joiners counts as empty.
+const accountText = (value: unknown, max: number) => {
+  const text = typeof value === 'string' ? plainText(value.replace(/`/g, ''), max) : '';
+  return /[^\s‌‍]/u.test(text) ? text : '';
+};
 const headerValue = (req: VercelRequest, name: string) => {
   const value = req.headers[name];
   return (Array.isArray(value) ? value[0] : value ?? '').trim();

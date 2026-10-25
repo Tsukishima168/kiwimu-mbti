@@ -141,11 +141,13 @@ describe('endpoint authorization and delivery', () => {
     ['x  y\n- bullet', '`x y - bullet`'],
     ['`<@123>` ``', '`<@123>`'],
     ['a'.repeat(79) + '😀😀', `\`${'a'.repeat(79)}😀\``],
+    ['👨‍👩‍👧 家族', '`👨‍👩‍👧 家族`'],
+    ['می‌خواهم', '`می‌خواهم`'],
   ])('renders an editable profile name %j literally as inline code', (fullName, expected) => {
     expect(quizCompletionViewer(request(), { email: 'a@example.invalid', user_metadata: { full_name: fullName } }).member?.name).toBe(expected);
   });
   it('falls back when a profile name or email is only invisible characters', () => {
-    expect(quizCompletionViewer(request(), { email: '​`', user_metadata: { full_name: '\u0001\u0002', name: '‮' } }).member)
+    expect(quizCompletionViewer(request(), { email: '​`', user_metadata: { full_name: '\u0001\u0002', name: '‮‍‌' } }).member)
       .toEqual({ name: '（未提供名字）', email: '（沒有 email）' });
     expect(quizCompletionViewer(request(), { user_metadata: { full_name: '\u0001', name: 'Backup Name' } }).member?.name).toBe('`Backup Name`');
   });
