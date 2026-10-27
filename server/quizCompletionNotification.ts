@@ -31,9 +31,20 @@ export function quizResult(input: QuizNotificationInput): string {
 export type QuizAccount = { email?: string; user_metadata?: Record<string, unknown> };
 export interface QuizCompletionViewer { member: { name: string; email: string } | null; location: string; device: string }
 
-const plainText = (value: string, max: number) => value.normalize('NFKC').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, max);
-const escapeMarkdown = (value: string) => value.replace(/[\\*_~`|>#[\]()<]/g, '\\$&');
+// Drops format characters (bidi overrides, zero-width space) and lone surrogates,
+// keeping ZWNJ/ZWJ that scripts and emoji sequences need; turns controls and
+// line/paragraph separators into spaces; truncates by code point so an emoji
+// is never cut in half.
+const plainText = (value: string, max: number) => Array.from(value.normalize('NFKC')
+  .replace(/(?![‌‍])[\p{Cf}\p{Cs}]/gu, '').replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, ' ').replace(/\s+/g, ' ').trim())
+  .slice(0, max).join('').trim();
 const inlineCode = (value: string) => `\`${value}\``;
+// Account text is shown as inline code, so links, lists and markdown render literally.
+// Text that is nothing but joiners counts as empty.
+const accountText = (value: unknown, max: number) => {
+  const text = typeof value === 'string' ? plainText(value.replace(/`/g, ''), max) : '';
+  return /[^\s‌‍]/u.test(text) ? text : '';
+};
 const headerValue = (req: VercelRequest, name: string) => {
   const value = req.headers[name];
   return (Array.isArray(value) ? value[0] : value ?? '').trim();
@@ -67,14 +78,16 @@ function deviceLabel(userAgent: string): string {
 }
 
 // The member comes only from the verified account (shop owner decision 2026-10-23:
-// every configured channel is private, so name and email may be shown).
+// every configured channel is private, so name and email may be shown). The name is
+// profile text the user can edit, so people are identified by email, not by name.
 export function quizCompletionViewer(req: VercelRequest, account?: QuizAccount): QuizCompletionViewer {
   const metadata = account?.user_metadata ?? {};
-  const name = [metadata.full_name, metadata.name].find((value): value is string => typeof value === 'string' && value.trim() !== '');
+  const name = [metadata.full_name, metadata.name].map(value => accountText(value, 80)).find(Boolean);
+  const email = accountText(account?.email, 120);
   return {
     member: account ? {
-      name: name ? escapeMarkdown(plainText(name, 80)) : '（未提供名字）',
-      email: account.email ? escapeMarkdown(plainText(account.email, 120)) : '（沒有 email）',
+      name: name ? inlineCode(name) : '（未提供名字）',
+      email: email ? inlineCode(email) : '（沒有 email）',
     } : null,
     location: locationLabel(req),
     device: deviceLabel(headerValue(req, 'user-agent')),
