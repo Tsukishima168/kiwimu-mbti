@@ -163,6 +163,7 @@
             <li><strong>Email</strong>: 결제 안내 메일(결제 참조 번호 포함)과 테스트 결과 안내 메일을 보내는 데 사용됩니다.</li>
             <li><strong>이용 및 기기 데이터</strong>: 웹사이트는 Google Analytics 4와 LINE Tag를 통해 열람한 페이지, 테스트와 버튼 조작, 유입 경로 파라미터(from, utm 등), 브라우저와 기기 정보, 대략적인 지역, 브라우저를 식별하는 쿠키 식별자 등 이용 정보를 수집합니다.</li>
             <li><strong>매장 내부 알림</strong>: 테스트가 완료되거나 결제가 확인되면 매장 관리자만 볼 수 있는 Discord 채널로 시스템이 알림을 보냅니다. 테스트 완료 알림에는 테스트 버전과 결과 유형, 언어, 유입 경로, IP로 추정한 국가/도시(IP 주소 자체는 제외), 기기/브라우저 종류가 포함되며, 로그인한 경우 회원 이름과 Email도 표시됩니다(로그인하지 않은 경우 이름과 Email은 포함되지 않습니다). 결제 알림에는 보고서 유형, 금액, 결제 참조 코드, 결제 시각이 포함됩니다.</li>
+            <li><strong>알림 요청 제한 기록</strong>: 같은 접속 출처에서 짧은 시간에 테스트 완료 알림이 대량으로 전송되는 것을 막기 위해, 시스템은 키로 해시(HMAC)한 IP 요약값과 횟수를 저장합니다. 원본 IP 주소는 저장하지 않으며, 만료된 기록은 다음 확인 시 정리됩니다.</li>
         </ul>
         <p>로그인하지 않고도 테스트를 이용할 수 있지만 기기 간 기록 및 장기 추적 기능은 없습니다. 위 사항의 저장은 귀하의 동의 및 서비스 요구 사항에 기반합니다.</p>
 
@@ -173,7 +174,7 @@
             <li>결제 처리, 구매한 전체 보고서의 확인 및 열람 해제, 결제 안내 메일과 테스트 결과 안내 메일 발송, 고객 지원·환불·분쟁 처리</li>
             <li>저희 LINE을 추가하신 경우, 이벤트 또는 할인 알림을 받을 수 있습니다 (언제든지 취소 가능)</li>
             <li>이용 현황의 통계 분석, 서비스 품질 개선 및 광고 성과 측정</li>
-            <li>테스트 완료와 결제 현황을 매장 내부에서 파악하여 고객 지원과 운영에 활용</li>
+            <li>테스트 완료와 결제 현황을 매장 내부에서 파악하여 고객 지원과 운영에 활용하고, 같은 출처에서 짧은 시간에 대량의 알림이 전송되는 것을 제한하여 악용을 방지</li>
         </ul>
 
         <h2>3. 기록의 저장 및 보호 방법</h2>
@@ -185,12 +186,13 @@
         </ul>
 
         <h2>3-1. 기록의 보관 위치</h2>
-        <p>당사는 Supabase, Google, Cloudinary, LINE Pay, Resend, Discord, LINE 등의 클라우드 서비스를 사용하여 로그인 및 기록 저장, 결제 처리, 알림 발송을 합니다. 이러한 서비스는 해외에서 운영될 수 있으며, 당사는 안전 기준을 갖춘 서비스 제공자를 선택합니다. 이 서비스를 사용하면 이 사항을 이해하고 동의하는 것으로 간주됩니다.</p>
+        <p>당사는 Supabase, Vercel, Google, Cloudinary, LINE Pay, Resend, Discord, LINE 등의 클라우드 서비스를 사용하여 로그인 및 기록 저장, 결제 처리, 알림 발송을 합니다. 이러한 서비스는 해외에서 운영될 수 있으며, 당사는 안전 기준을 갖춘 서비스 제공자를 선택합니다. 이 서비스를 사용하면 이 사항을 이해하고 동의하는 것으로 간주됩니다.</p>
 
         <h2>4. 사용하는 서비스</h2>
         <p>로그인, 결제, 알림 및 통계는 다음 서비스를 통해 수행되며 각각 고유한 개인 정보 보호 정책이 있습니다:</p>
         <ul>
             <li><strong>Supabase</strong>: 사용자 인증 및 세션 관리용 <a href="https://supabase.com/privacy" target="_blank" rel="noopener">개인정보 보호정책</a></li>
+            <li><strong>Vercel</strong>: 웹사이트와 백엔드 API 호스팅용이며, 접속 시 서비스 제공과 대략적인 지역 판별을 위해 IP 주소 등 접속 데이터가 Vercel에서 처리됩니다 <a href="https://vercel.com/legal/privacy-notice" target="_blank" rel="noopener">개인정보 보호정책</a></li>
             <li><strong>Google</strong>: Google 로그인 본인 확인용 및 Google Analytics 4 웹사이트 이용 분석용 <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">개인정보 보호정책</a></li>
             <li><strong>Cloudinary</strong>: 이미지 저장 및 최적화용 <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener">개인정보 보호정책</a></li>
             <li><strong>LINE Pay</strong>: 전체 보고서 구매 시 결제 처리용이며, 결제 정보는 LINE Pay가 자체 정책에 따라 처리합니다 <a href="https://terms2.line.me/linepay_TW_PP" target="_blank" rel="noopener">개인정보 보호정책</a></li>

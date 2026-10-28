@@ -163,6 +163,7 @@
             <li><strong>Email</strong>: Used to send payment notices (including the payment reference number) and test-result emails.</li>
             <li><strong>Usage and Device Data</strong>: The website uses Google Analytics 4 and LINE Tag to collect usage information, such as pages viewed, test and button actions, traffic-source parameters (such as from and utm), browser and device information, approximate location, and a cookie identifier that recognises your browser.</li>
             <li><strong>Internal Notifications to the Shop</strong>: When a test is completed or a payment is confirmed, the system sends a notice to a Discord channel visible only to the shop's administrators. A test-completion notice includes the test version and result type, language, traffic source, the country/city derived from your IP address (not the IP address itself) and device/browser type; if you are signed in, it also shows your member name and email (if you are not signed in, the notice contains no name or email). A payment notice includes the report type, amount, payment reference code and payment time.</li>
+            <li><strong>Notification Rate-Limit Records</strong>: To stop one source from sending a large number of test-completion notices in a short time, the system stores a keyed-hash (HMAC) digest of the IP address together with a counter. The original IP address is not stored, and expired records are cleared at the next check.</li>
         </ul>
         <p>You can play the test without logging in, but there will be no cross-device records and long-term tracking functions. The above saving is based on your consent and service needs.</p>
 
@@ -173,7 +174,7 @@
             <li>To process payments, confirm and unlock the full report you bought, send payment notices and test-result emails, and handle support, refunds and disputes</li>
             <li>If you have added our LINE, you may receive event or discount notifications (can be canceled at any time)</li>
             <li>To analyse usage statistically, improve service quality and measure advertising performance</li>
-            <li>For the shop's internal awareness of completed tests and payments, so that we can provide support and run the business</li>
+            <li>For the shop's internal awareness of completed tests and payments, so that we can provide support and run the business, and to limit how many notices a single source can trigger in a short time (abuse prevention)</li>
         </ul>
 
         <h2>3. How your records are saved and protected</h2>
@@ -185,12 +186,13 @@
         </ul>
 
         <h2>3-1. Storage Method of Records</h2>
-        <p>We use cloud services such as Supabase, Google, Cloudinary, LINE Pay, Resend, Discord and LINE to save your login and records, process payments and send notices. These services may operate outside the country, and we will choose service providers with security standards. Using this service indicates that you understand and agree to this arrangement.</p>
+        <p>We use cloud services such as Supabase, Vercel, Google, Cloudinary, LINE Pay, Resend, Discord and LINE to save your login and records, process payments and send notices. These services may operate outside the country, and we will choose service providers with security standards. Using this service indicates that you understand and agree to this arrangement.</p>
 
         <h2>4. Services we use</h2>
         <p>Login, payment, notices and statistics are handled through the following services, each with its own privacy explanation:</p>
         <ul>
             <li><strong>Supabase</strong>: For user authentication and account session management <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></li>
+            <li><strong>Vercel</strong>: Hosts the website and the back-end API; when you connect, Vercel processes connection data such as your IP address to deliver the service and determine your approximate region <a href="https://vercel.com/legal/privacy-notice" target="_blank" rel="noopener">Privacy Policy</a></li>
             <li><strong>Google</strong>: For Google sign-in identity verification and Google Analytics 4 website usage analysis <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></li>
             <li><strong>Cloudinary</strong>: For image storage and optimization <a href="https://cloudinary.com/privacy" target="_blank" rel="noopener">Privacy Policy</a></li>
             <li><strong>LINE Pay</strong>: For payment processing when you buy a full report; payment data is handled by LINE Pay under its own policy <a href="https://terms2.line.me/linepay_TW_PP" target="_blank" rel="noopener">Privacy Policy</a></li>
