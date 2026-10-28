@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { SOUL_ANCHOR_MAP } from '../constants';
 
 // ResultLegacyDump.tsx（凍結區、行號被 v2PromoCopy.test.ts 釘住）內仍有一份本地的
-// SOUL_ANCHOR_MAP。它只用文字讀取，不 import，所以靠這個測試確保兩份不會再各自過期。
+// SOUL_ANCHOR_MAP。它只用文字讀取，不 import，所以靠這個測試確保兩份的甜點名稱與分類不會再各自過期。
+// 只比 name／series／quad：alt、飲品、hook 屬凍結區內的文案，店主授權範圍只有「甜點名稱對齊」，不在此鎖定。
 const legacySource = readFileSync(new URL('../components/ResultLegacyDump.tsx', import.meta.url), 'utf8');
 
 function legacyMap(): Record<string, Record<string, unknown>> {
@@ -25,7 +26,7 @@ describe('soul dessert anchors', () => {
   });
 
   it.each(Object.keys(SOUL_ANCHOR_MAP))('%s: the zh result page copy matches constants.ts', (type) => {
-    for (const field of ['name', 'series', 'quad', 'alt', 'drinkA', 'drinkT', 'hook']) {
+    for (const field of ['name', 'series', 'quad']) {
       expect(legacy[type][field], `${type}.${field}`).toEqual(SOUL_ANCHOR_MAP[type][field]);
     }
   });
