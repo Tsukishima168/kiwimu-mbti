@@ -67,6 +67,7 @@ function renderPaywall(instant: string, options: { loggedIn: boolean; promoEnded
     text: textOf(tree),
     freeCta: buttons.filter(button => button.props.onClick === handlers.handlePromoUnlock),
     paidCta: buttons.filter(button => button.props.onClick === handlers.handleCheckout),
+    termsLinks: findAll(tree, node => node.type === 'a' && node.props.href === '/terms.html'),
   };
 }
 
@@ -94,6 +95,21 @@ describe('V2 paywall CTA across the promo boundary (rendered from V2App.tsx)', (
     expect(textOf(view.paidCta[0])).toBe(`NT$${V2_REPORT_PRICE_TWD} 解鎖這份完整報告`);
     expect(view.text).toContain(`NT$${V2_REPORT_PRICE_TWD} · 單次解鎖`);
     expect(view.text).not.toContain(V2_PROMO_PAYWALL_COPY.priceNote);
+  });
+
+  it.each([true, false])('shows the digital-content / refund consent line with a terms link next to the paid checkout (loggedIn=%s)', (loggedIn) => {
+    const view = renderPaywall(FIRST_CLOSED, { loggedIn });
+    expect(view.text).toContain('不適用七日猶豫期');
+    expect(view.text).toContain('全額退款');
+    expect(view.termsLinks).toHaveLength(1);
+    expect(view.termsLinks[0].props.target).toBe('_blank');
+    expect(view.termsLinks[0].props.rel).toBe('noopener noreferrer');
+  });
+
+  it('does not show the payment consent line during the free window (nothing is charged)', () => {
+    const view = renderPaywall(LAST_OPEN, { loggedIn: true });
+    expect(view.text).not.toContain('不適用七日猶豫期');
+    expect(view.termsLinks).toHaveLength(0);
   });
 
   it('switches to the paid checkout once the server reports the promo ended, even before the client clock does', () => {

@@ -20,7 +20,7 @@ interface ExternalLink {
 
 // LINE Ads 自訂事件對照表
 // 刻意只掛兩個高訊號目的地：事件切太細會讓每個受眾都湊不到可用量。
-// 其餘目的地（MOON_MAP / PASSPORT / GACHA / DISCORD / INSTAGRAM）不送 LINE cv。
+// 其餘目的地（MOON_MAP / PASSPORT / GACHA / INSTAGRAM）不送 LINE cv。
 const LINE_CV_BY_LINK_KEY: Record<string, string> = {
   LINE_OA: MARKETING_EVENTS.CLICK_LINE_CTA,
   DESSERT_BOOKING: MARKETING_EVENTS.CLICK_DESSERT_LINK,
@@ -32,7 +32,6 @@ const TARGET_SITE_BY_LINK_KEY: Record<string, string> = {
   PASSPORT: 'passport',
   GACHA: 'gacha',
   LINE_OA: 'external',
-  DISCORD: 'external',
   INSTAGRAM: 'external',
 };
 
@@ -72,13 +71,6 @@ export const EXTERNAL_LINKS: Record<string, ExternalLink> = {
   LINE_OA: {
     name: 'LINE 官方帳號',
     baseUrl: 'https://line.me/R/ti/p/@kiwimu',
-    defaultSource: 'mbti-lab'
-  },
-
-  // Discord
-  DISCORD: {
-    name: 'Discord 社群',
-    baseUrl: 'https://discord.gg/WJMQEAXx',
     defaultSource: 'mbti-lab'
   },
 
@@ -249,16 +241,6 @@ export function buildPassportClaimLink(claimCode: string, mbtiType?: string, var
   if (variant) additionalParams.variant = variant;
 
   return buildInternalKiwimuLink('PASSPORT', entrySurface, additionalParams);
-}
-
-/**
- * Discord 連結（結果頁專用）
- */
-export function buildDiscordLink(): string {
-  return buildUTMLink('DISCORD', 'result-cta', {
-    campaign: '2026-q1-community',
-    content: 'join-discord-button'
-  });
 }
 
 /**

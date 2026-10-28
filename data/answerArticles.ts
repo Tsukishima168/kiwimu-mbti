@@ -61,7 +61,7 @@ export const answerArticles: AnswerArticle[] = [
     takeaways: [
       'MBTI 的核心是 16 型偏好，不是能力高低。',
       'Kiwimu 把 MBTI 當作敘事入口，不把它當成診斷工具。',
-      '做完 V1 後，使用者可以往 V1.5、V2、Passport、Shop、Gacha、Map 延伸。',
+      '做完 V1 後，可以往 V1.5 狀態快測、V2 深度報告、Passport 收藏與月島甜點菜單延伸。',
     ],
     sections: [
       {
@@ -111,7 +111,7 @@ export const answerArticles: AnswerArticle[] = [
     title: 'A/T 是什麼？Kiwimu 為什麼會有 32 種人格結果',
     eyebrow: 'A/T VARIANTS',
     description:
-      'A/T 不是官方 MBTI 第五維，而是 Kiwimu 用來區分壓力反應、自我敘事與內容語氣的 editorial layer。',
+      'A/T 不是官方 MBTI 第五維，而是 Kiwimu 用來區分壓力反應、自我敘事與內容語氣的內容分層。',
     keywords: 'A/T 是什麼,MBTI A T,32變體,Kiwimu V2',
     updatedAt: '2026-05-29',
     summary:
@@ -173,7 +173,7 @@ export const answerArticles: AnswerArticle[] = [
       '靈魂甜點不是心理診斷，而是 Kiwimu 的品牌敘事方式。它把抽象的人格偏好轉成具體風味：濃郁、清爽、層次、苦甜、柔軟或穩定。使用者做完 V1 後，會得到對應的甜點語言，再延伸到訂購、地圖、分享與 Passport 收藏。',
     takeaways: [
       '靈魂甜點是人格的生活化翻譯。',
-      '甜點映射來自 Kiwimu / Moon Island Dessert 的 editorial layer。',
+      '甜點映射是 Kiwimu 與月島甜點一起設計的品牌語言。',
       '它的任務是讓結果更容易記住、分享與體驗。',
     ],
     sections: [
@@ -193,14 +193,14 @@ export const answerArticles: AnswerArticle[] = [
       {
         title: '靈魂甜點會導向哪裡',
         body:
-          'V1 結果頁會把靈魂甜點導向 Map 菜單、Shop 商品、Gacha 分享、Passport 收藏與 V2 深度報告，讓一次測驗變成可回訪的體驗。',
+          'V1 結果頁會把靈魂甜點連到月島甜點的菜單與地圖、Passport 收藏，以及 V2 深度報告，讓一次測驗變成可回訪的體驗。',
       },
     ],
     faqs: [
       {
         question: '靈魂甜點是真實商品嗎？',
         answer:
-          'Kiwimu 的甜點映射會連到 Moon Island Dessert / 月島甜點的實際品項或品牌體驗，不只是抽象比喻。',
+          'Kiwimu 的甜點映射會連到月島甜點的實際品項或品牌體驗，不只是抽象比喻。',
       },
       {
         question: '我的靈魂甜點會改變嗎？',
