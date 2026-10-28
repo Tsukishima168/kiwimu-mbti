@@ -190,7 +190,7 @@ const buildV1SeoConfig = (stage: Stage, pathname: string, resultData: MbtiResult
   if (stage === 'result' && resultData) {
     return {
       title: `${resultData.id} 人格結果｜${resultData.title}｜Kiwimu MBTI`,
-      description: `${resultData.summary} 對應靈魂甜點：${resultData.dessert}。`,
+      description: `${resultData.summary} 對應靈魂甜點：${resultData.dessert.name}。`,
       canonical,
       image: resultData.characterImage || DEFAULT_SOCIAL_IMAGE,
       keywords: `${defaultKeywords},${resultData.id},${resultData.title}`,
