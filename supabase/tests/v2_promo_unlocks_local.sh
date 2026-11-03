@@ -6,6 +6,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MIGRATION="$ROOT/supabase/migrations/20261020100000_v2_promo_unlocks.sql"
+# The extension migration replaces the end guard (2026-12-01 -> 2027-01-01 Asia/Taipei); it carries no BEGIN/COMMIT,
+# so it is applied with --single-transaction like the real apply tool does.
+MIGRATION_EXTEND="$ROOT/supabase/migrations/20261103035126_v2_promo_extend_to_20261231.sql"
 while IFS= read -r name; do unset "$name"; done < <(env | sed -n 's/^\(PG[A-Z_]*\)=.*/\1/p')
 # macOS postmaster refuses to start under some user locales ("became multithreaded").
 export LC_ALL=C
@@ -67,13 +70,23 @@ USER_A="00000000-0000-0000-0000-00000000000a"
 USER_B="00000000-0000-0000-0000-00000000000b"
 
 "${PSQL[@]}" "${DB[@]}" -f "$MIGRATION"
-ok "migration applies on a fresh database"
-first="$(snapshot)"
+ok "original migration applies on a fresh database"
 q "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at)
    VALUES ('$USER_B', 'INFP-T', 'v2_free_202611', '2026-11-01 12:00:00+08')"
+expect_error "before the extension the original guard rejects 2026-12-01 00:00 Asia/Taipei" "v2_promo_unlocks_before_end" \
+  "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ENTJ-A', 'v2_free_202611', '2026-12-01 00:00:00+08')"
+"${PSQL[@]}" "${DB[@]}" --single-transaction -f "$MIGRATION_EXTEND"
+ok "extension migration applies over the existing table"
+expect_eq "the end guard is now 2027-01-01 00:00 Asia/Taipei (2026-12-31T16:00:00Z)" \
+  "CHECK ((created_at < '2026-12-31 16:00:00+00'::timestamp with time zone))" \
+  "SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = 'v2_promo_unlocks_before_end'"
+expect_eq "the extension keeps existing rows" "1" \
+  "SELECT count(*) FROM public.v2_promo_unlocks WHERE user_uid = '$USER_B'"
+first="$(snapshot)"
 "${PSQL[@]}" "${DB[@]}" -f "$MIGRATION"
+"${PSQL[@]}" "${DB[@]}" --single-transaction -f "$MIGRATION_EXTEND"
 [[ "$(snapshot)" == "$first" ]] || fail "re-running changed the table definition, policies or grants"
-expect_eq "re-running the migration is idempotent and keeps existing rows" "1" \
+expect_eq "re-running both migrations is idempotent and keeps existing rows" "1" \
   "SELECT count(*) FROM public.v2_promo_unlocks WHERE user_uid = '$USER_B'"
 
 expect_eq "RLS is enabled and forced" "t|t" \
@@ -88,7 +101,7 @@ for role in anon authenticated; do
     "SET ROLE $role; INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id) VALUES ('$USER_A', 'ESTJ-A', 'v2_free_202611')"
 done
 
-window_open="$(q "SELECT now() < TIMESTAMPTZ '2026-12-01 00:00:00+08'")"
+window_open="$(q "SELECT now() < TIMESTAMPTZ '2027-01-01 00:00:00+08'")"
 if [[ "$window_open" == "t" ]]; then
   expect_eq "service_role can insert (created_at defaulted by the DB) and read back" "ESTJ-A|v2_free_202611|t" \
     "SET ROLE service_role;
@@ -108,21 +121,26 @@ expect_error "service_role cannot update grants" "permission denied" \
 expect_error "service_role cannot delete grants" "permission denied" \
   "SET ROLE service_role; DELETE FROM public.v2_promo_unlocks WHERE user_uid = '$USER_A'"
 
-q "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ISTJ-A', 'v2_free_202611', '2026-11-30 23:59:59.999+08')"
-ok "end guard accepts 2026-11-30 23:59:59.999 Asia/Taipei"
-q "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ISTJ-T', 'v2_free_202611', '2026-11-30T15:59:59Z')"
-ok "end guard accepts 2026-11-30T15:59:59Z (same instant as 23:59:59 Taipei)"
-expect_error "end guard rejects 2026-12-01 00:00:00 Asia/Taipei" "v2_promo_unlocks_before_end" \
-  "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ESFP-A', 'v2_free_202611', '2026-12-01 00:00:00+08')"
-expect_error "end guard rejects 2026-11-30T16:00:00Z" "v2_promo_unlocks_before_end" \
-  "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ESFP-T', 'v2_free_202611', '2026-11-30T16:00:00Z')"
+q "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ISTJ-A', 'v2_free_202611', '2026-12-31 23:59:59.999+08')"
+ok "end guard accepts 2026-12-31 23:59:59.999 Asia/Taipei"
+q "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ISTJ-T', 'v2_free_202611', '2026-12-31T15:59:59Z')"
+ok "end guard accepts 2026-12-31T15:59:59Z (same instant as 23:59:59 Taipei)"
+# The previous end of the promo is open now: this is what proves the extension took effect.
+q "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ESFP-A', 'v2_free_202611', '2026-12-01 00:00:00+08')"
+ok "end guard accepts the previous end 2026-12-01 00:00:00 Asia/Taipei"
+q "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ESFP-T', 'v2_free_202611', '2026-11-30T16:00:00Z')"
+ok "end guard accepts the previous end 2026-11-30T16:00:00Z"
+expect_error "end guard rejects 2027-01-01 00:00:00 Asia/Taipei" "v2_promo_unlocks_before_end" \
+  "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ENFJ-A', 'v2_free_202611', '2027-01-01 00:00:00+08')"
+expect_error "end guard rejects 2026-12-31T16:00:00Z" "v2_promo_unlocks_before_end" \
+  "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id, created_at) VALUES ('$USER_B', 'ENFJ-T', 'v2_free_202611', '2026-12-31T16:00:00Z')"
 expect_error "invalid MBTI codes are rejected" "v2_promo_unlocks_mbti_type_check" \
   "INSERT INTO public.v2_promo_unlocks (user_uid, mbti_type, promo_id) VALUES ('$USER_B', 'ABCD-A', 'v2_free_202611')"
 
 q "CREATE DATABASE restore_check"
 pg_dump -h "$WORK" -U postgres -d postgres | "${PSQL[@]}" -d restore_check >/dev/null
 DB=(-d restore_check)
-expect_eq "dump/restore keeps every row (constant guard, no now() in CHECK or trigger)" "4" \
+expect_eq "dump/restore keeps every row (constant guard, no now() in CHECK or trigger)" "6" \
   "SELECT count(*) FROM public.v2_promo_unlocks"
 DB=(-d postgres)
 

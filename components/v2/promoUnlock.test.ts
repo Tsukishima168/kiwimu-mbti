@@ -93,7 +93,7 @@ describe('promo unlock GA4 events', () => {
     await expect(runPromoClaim(input)).resolves.toEqual({ ok: false, code: 'PROMO_ENDED' });
     expect(input.onEnded).toHaveBeenCalledOnce();
     expect(input.onGranted).not.toHaveBeenCalled();
-    expect(input.onMessage).toHaveBeenCalledWith('限時免費已於 2026/11/30 23:59 結束，完整報告恢復 NT$99。');
+    expect(input.onMessage).toHaveBeenCalledWith('限時免費已於 2026/12/31 23:59 結束，完整報告恢復 NT$99。');
     expect(eventNames()).toEqual([]);
   });
 
