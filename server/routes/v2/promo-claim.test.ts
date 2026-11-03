@@ -56,7 +56,7 @@ beforeEach(() => {
   mocks.getUser.mockResolvedValue({ data: { user }, error: null });
   mocks.hasPaid.mockResolvedValue(false);
   mocks.hasPromo.mockResolvedValue(false);
-  mocks.insert.mockResolvedValue({ status: 'created', claimedAt: '2026-11-30T15:59:59.999Z' });
+  mocks.insert.mockResolvedValue({ status: 'created', claimedAt: '2026-12-31T15:59:59.999Z' });
 });
 
 afterEach(() => {
@@ -69,34 +69,37 @@ afterEach(() => {
 
 describe('POST /api/v2/promo-claim window', () => {
   it.each([
-    '2026-11-30T23:59:59.999+08:00',
-    '2026-11-30T15:59:59.999Z',
+    '2026-12-31T23:59:59.999+08:00',
+    '2026-12-31T15:59:59.999Z',
     '2026-10-20T09:00:00+08:00',
+    // The previous end of the promo is open now that it has been extended.
+    '2026-12-01T00:00:00.000+08:00',
+    '2026-11-30T16:00:00.000Z',
   ])('accepts a new claim at %s', async (instant) => {
     const state = await claimAt(instant);
     expect(state.status).toBe(200);
     expect(state.body).toEqual({
       ok: true,
-      data: { mbtiType: 'ESTJ-A', access: 'promo', created: true, claimedAt: '2026-11-30T15:59:59.999Z' },
+      data: { mbtiType: 'ESTJ-A', access: 'promo', created: true, claimedAt: '2026-12-31T15:59:59.999Z' },
     });
     expect(state.headers['Cache-Control']).toBe('private, no-store, max-age=0');
   });
 
   it.each([
-    '2026-12-01T00:00:00.000+08:00',
-    '2026-11-30T16:00:00.000Z',
-    '2026-12-01T23:59:59.000+08:00',
+    '2027-01-01T00:00:00.000+08:00',
+    '2026-12-31T16:00:00.000Z',
+    '2027-01-01T23:59:59.000+08:00',
     '2027-06-01T00:00:00+08:00',
   ])('rejects a new claim at %s using server time only', async (instant) => {
     const state = await claimAt(instant);
     expect(state.status).toBe(403);
-    expect(state.body).toEqual({ ok: false, code: 'PROMO_ENDED', endsAt: '2026-12-01T00:00:00+08:00' });
+    expect(state.body).toEqual({ ok: false, code: 'PROMO_ENDED', endsAt: '2027-01-01T00:00:00+08:00' });
     expect(mocks.insert).not.toHaveBeenCalled();
   });
 
   it('treats a DB end-guard rejection as the end of the promo', async () => {
     mocks.insert.mockResolvedValue({ status: 'ended' });
-    const state = await claimAt('2026-11-30T23:59:59.999+08:00');
+    const state = await claimAt('2026-12-31T23:59:59.999+08:00');
     expect(state.status).toBe(403);
     expect(state.body).toMatchObject({ code: 'PROMO_ENDED' });
   });

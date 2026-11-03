@@ -70,8 +70,10 @@ function renderPaywall(instant: string, options: { loggedIn: boolean; promoEnded
   };
 }
 
-const LAST_OPEN = '2026-11-30T23:59:59.999+08:00';
-const FIRST_CLOSED = '2026-12-01T00:00:00.000+08:00';
+const LAST_OPEN = '2026-12-31T23:59:59.999+08:00';
+const FIRST_CLOSED = '2027-01-01T00:00:00.000+08:00';
+// The previous end of the promo: it must now still show the free CTA (the extension took effect).
+const PREVIOUS_END = '2026-12-01T00:00:00.000+08:00';
 
 describe('V2 paywall CTA across the promo boundary (rendered from V2App.tsx)', () => {
   it.each([
@@ -85,6 +87,13 @@ describe('V2 paywall CTA across the promo boundary (rendered from V2App.tsx)', (
     expect(view.text).toContain(V2_PROMO_PAYWALL_COPY.priceNote);
     expect(view.text).not.toContain(`NT$${V2_REPORT_PRICE_TWD} · 單次解鎖`);
     expect(view.text).not.toContain('登入購買時的帳號');
+  });
+
+  it('keeps the free CTA at the previous end of the promo (2026-12-01 00:00 Taipei)', () => {
+    const view = renderPaywall(PREVIOUS_END, { loggedIn: true });
+    expect(view.freeCta).toHaveLength(1);
+    expect(view.paidCta).toHaveLength(0);
+    expect(view.text).toContain(V2_PROMO_PAYWALL_COPY.priceNote);
   });
 
   it.each([true, false])('after the window (loggedIn=%s): LINE Pay checkout only, no free CTA', (loggedIn) => {

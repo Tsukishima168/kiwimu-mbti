@@ -12,7 +12,7 @@ const PRICE = V2_REPORT_PRICE_TWD;
 // V1 結果頁（components/ResultLegacyDump.tsx 的 V2 試讀區）。付費版是原文，一字不改。
 export function v1ResultV2OfferLine(nowMs: number = Date.now()): string {
   return isV2FreePromoActive(nowMs)
-    ? '第 01 章免費試讀；完整報告限時免費（原價 NT$99，至 2026/11/30），登入後保存在「我的報告」。'
+    ? '第 01 章免費試讀；完整報告限時免費（原價 NT$99，至 2026/12/31），登入後保存在「我的報告」。'
     : '第 01 章免費試讀；完整報告 NT$99，購買後可在「我的報告」回看。';
 }
 
@@ -29,10 +29,10 @@ const INTRO_PAID_PRICE: Record<V2CopyLanguage, string> = {
   ko: `전체 보고서 NT$${PRICE} · 한 번 결제`,
 };
 const INTRO_PROMO_PRICE: Record<V2CopyLanguage, string> = {
-  zh: `完整報告限時免費・原價 NT$${PRICE}（至 11/30）`,
-  en: `Full report free for a limited time (reg. NT$${PRICE}, until Nov 30)`,
-  ja: `完全版は期間限定で無料（通常 NT$${PRICE}・11/30まで）`,
-  ko: `전체 보고서 기간 한정 무료 (정가 NT$${PRICE}, 11/30까지)`,
+  zh: `完整報告限時免費・原價 NT$${PRICE}（至 12/31）`,
+  en: `Full report free for a limited time (reg. NT$${PRICE}, until Dec 31)`,
+  ja: `完全版は期間限定で無料（通常 NT$${PRICE}・12/31まで）`,
+  ko: `전체 보고서 기간 한정 무료 (정가 NT$${PRICE}, 12/31까지)`,
 };
 
 export function introV2PriceLine(language: V2CopyLanguage, nowMs: number = Date.now()): string {
@@ -46,10 +46,10 @@ const EXPLORE_PAID_PRICE: Record<V2CopyLanguage, string> = {
   ko: `01장 무료. 전체 보고서 NT$${PRICE}.`,
 };
 const EXPLORE_PROMO_PRICE: Record<V2CopyLanguage, string> = {
-  zh: `第 01 章免費；完整報告限時免費（原價 NT$${PRICE}，至 11/30），登入即可解鎖。`,
-  en: `Chapter 01 is free. The full report is free for a limited time (reg. NT$${PRICE}, until Nov 30) when you sign in.`,
-  ja: `第01章は無料。完全版も期間限定で無料（通常 NT$${PRICE}・11/30まで）、ログインで読めます。`,
-  ko: `01장 무료. 전체 보고서도 기간 한정 무료 (정가 NT$${PRICE}, 11/30까지), 로그인하면 읽을 수 있어요.`,
+  zh: `第 01 章免費；完整報告限時免費（原價 NT$${PRICE}，至 12/31），登入即可解鎖。`,
+  en: `Chapter 01 is free. The full report is free for a limited time (reg. NT$${PRICE}, until Dec 31) when you sign in.`,
+  ja: `第01章は無料。完全版も期間限定で無料（通常 NT$${PRICE}・12/31まで）、ログインで読めます。`,
+  ko: `01장 무료. 전체 보고서도 기간 한정 무료 (정가 NT$${PRICE}, 12/31까지), 로그인하면 읽을 수 있어요.`,
 };
 
 export function exploreV2PriceLine(language: V2CopyLanguage, nowMs: number = Date.now()): string {
@@ -61,7 +61,7 @@ export function v2WelcomePricing(nowMs: number = Date.now()): { lead: string; de
   return {
     lead: '免費完成測驗，閱讀第 01 章。',
     detail: promo
-      ? `完整報告限時免費（原價 NT$${PRICE}），登入即可解鎖，活動至 2026/11/30。`
+      ? `完整報告限時免費（原價 NT$${PRICE}），登入即可解鎖，活動至 2026/12/31。`
       : `想繼續讀完整報告時，再以 NT$${PRICE} 單次解鎖。`,
     promo,
   };
