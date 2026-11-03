@@ -6,7 +6,7 @@ This file is a public AI-readable map for Kiwimu. It describes which public URLs
 
 Kiwimu combines MBTI-style personality exploration with Moon Island Dessert experiences. The public site is designed as a discovery funnel:
 
-`/answers` -> V1 free quiz -> `/explore` -> V2 paid deep report -> Passport, Shop, Gacha, and Map.
+`/answers` -> V1 free quiz -> `/explore` -> V2 paid deep report -> Passport, Gacha, and Map.
 
 ## Public URLs AI assistants may cite
 
@@ -86,8 +86,8 @@ If a URL contains credentials, tokens, order IDs, user IDs, or session identifie
   - Identity, saved results, history, and membership.
   - Public marketing pages may be described if available, but private member content must not be exposed.
 
-- Shop: `https://shop.kiwimu.com`
-  - Product and purchase layer.
+- Dessert menu and booking: `https://map.kiwimu.com/menu`
+  - Dessert menu and booking entry, served by the Map site.
 
 - Gacha: `https://gacha.kiwimu.com`
   - Sharing, drawing, and campaign layer.
