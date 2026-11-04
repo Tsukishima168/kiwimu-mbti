@@ -1339,6 +1339,11 @@ export default function V2App({ user }: V2AppProps) {
           {!isReportLoading && !showPromoOffer ? <p className="ad-paywall-note">NT${V2_REPORT_PRICE_TWD} · 單次解鎖 · 保存到購買帳號</p> : null}
           {!isReportLoading && !showPromoOffer && !IS_CHECKOUT_ENABLED ? <p className="ad-paywall-note">目前尚未開放新購買。已購報告請使用購買時的帳號，從「我的報告」繼續閱讀。</p> : null}
           {!isReportLoading && !showPromoOffer && currentAccess?.status !== 'error' && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
+            <p className="ad-paywall-note">
+              按下下方按鈕付款，即表示你同意：完整報告為數位內容，解鎖後即提供完成，依《通訊交易解除權合理例外情事適用準則》不適用七日猶豫期；重複扣款、付款成功卻無法開啟報告者可全額退款。詳見<a href="/terms.html" target="_blank" rel="noopener noreferrer">使用者條款</a>。
+            </p>
+          ) : null}
+          {!isReportLoading && !showPromoOffer && currentAccess?.status !== 'error' && (IS_CHECKOUT_ENABLED || (IS_DEV && isLocalPreview)) ? (
             checkoutPaymentUrl ? (
               <div className="ad-paywall-actions">
                 <a

@@ -290,6 +290,7 @@ async function generateAllQRCodes() {
     });
 
     // 生成 README
+    const readmePath = './docs/marketing/qr-codes-spring2026-README.md';
     const readmeContent = `# KIWIMU 春季活動 QR Codes
 
 生成日期：${new Date().toISOString()}
@@ -324,13 +325,14 @@ ${qrCodes.map((qr, index) => `
 `;
 
     fs.writeFileSync(
-        path.join(outputDir, 'README.md'),
+        // README 含發放量，不放進 public/（public 會被公開部署）
+        readmePath,
         readmeContent
     );
 
     console.log('\n✅ 所有 QR Codes 生成完成！');
     console.log(`📁 檔案位置：${outputDir}`);
-    console.log(`📄 說明文件：${path.join(outputDir, 'README.md')}`);
+    console.log(`📄 說明文件：${readmePath}`);
 }
 
 // 執行

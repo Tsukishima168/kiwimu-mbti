@@ -146,8 +146,8 @@ const AnswersHub: React.FC = () => {
               </div>
               <div>
                 <p className="text-xs tracking-[0.3em] text-[#5F6856] uppercase">定位</p>
-                <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">可引用</p>
-                <p className="mt-2 text-sm leading-6 text-black/65">先把結論寫清楚，再讓搜尋知道來源。</p>
+                <p className="mt-2 text-3xl font-semibold tracking-[-0.04em]">有來源</p>
+                <p className="mt-2 text-sm leading-6 text-black/65">先把結論寫清楚，再附上來源。</p>
               </div>
             </div>
           </aside>
@@ -219,7 +219,7 @@ const AnswersHub: React.FC = () => {
               哪些是我們的觀點
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
-              Kiwimu 只對自己的 editorial layer 負責。
+              Kiwimu 只對自己的內容設計負責。
             </h2>
             <ul className="mt-6 space-y-4">
               {editorialViews.map((view) => (
@@ -244,7 +244,7 @@ const AnswersHub: React.FC = () => {
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-7 text-black/62">
-              這一段刻意保留成可被摘錄的短答格式，讓搜尋引擎、AI 摘要與使用者都能快速抓到結論。
+              每個問題都先用幾句話回答，想看完整說明，再往下讀各篇指南。
             </p>
           </div>
 
@@ -267,13 +267,13 @@ const AnswersHub: React.FC = () => {
         <div className="grid gap-8 border-t border-black/12 pt-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
           <article>
             <p className="text-xs font-semibold tracking-[0.35em] text-[#5F6856] uppercase">
-              延伸導流
+              延伸閱讀
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
-              這個 hub 之後要接哪些內容。
+              想知道更多，可以接著讀這些。
             </h2>
             <p className="mt-4 max-w-xl text-[15px] leading-8 text-black/72">
-              目前這一頁先把通用答案固定下來。接下來要上線的內容，應該優先沿著「品項型 / 情境型 / 品牌型」三條線補齊，讓公開頁面有穩定的 evergreen 結構。
+              這一頁整理了最常被問到的 MBTI 基本問題。想深入某個主題，可以從右邊的指南接著看；準備好了，也可以直接開始測驗。
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <a

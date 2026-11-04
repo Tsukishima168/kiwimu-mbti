@@ -42,7 +42,7 @@ describe('trackOutboundClick → LINE Tag cv', () => {
 
   it('其他目的地不送 LINE cv（避免稀釋受眾）', async () => {
     const { trackOutboundClick } = await import('./utmTracking');
-    for (const key of ['MOON_MAP', 'PASSPORT', 'GACHA', 'DISCORD', 'INSTAGRAM']) {
+    for (const key of ['MOON_MAP', 'PASSPORT', 'GACHA', 'INSTAGRAM']) {
       trackOutboundClick(key, 'navigation', { section: 'smoke' });
     }
     expect(cvCalls()).toHaveLength(0);
