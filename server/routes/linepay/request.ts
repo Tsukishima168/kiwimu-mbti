@@ -8,6 +8,9 @@ import {
   isLinePaySuccessCode,
   requestLinePay,
   type LinePayPaymentRequestInfo,
+  type LinePayPaymentRequestOptions,
+  V2_LINE_PAY_BRANCH_ID,
+  V2_LINE_PAY_BRANCH_NAME,
   V2_REPORT_CURRENCY,
   V2_REPORT_PRICE_TWD,
 } from '../../linePay.js';
@@ -79,6 +82,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const appBaseUrl = buildAppBaseUrl(origin);
     const apiPath = buildLinePayApiPath('/payments/request');
     const sharedRedirectParams = `mbtiType=${encodeURIComponent(mbtiType)}&source=${encodeURIComponent(source)}&orderId=${encodeURIComponent(orderId)}`;
+    const options: LinePayPaymentRequestOptions = {
+      extra: {
+        branchName: V2_LINE_PAY_BRANCH_NAME,
+        branchId: V2_LINE_PAY_BRANCH_ID,
+      },
+    };
     const payload = {
       amount: V2_REPORT_PRICE_TWD,
       currency: V2_REPORT_CURRENCY,
@@ -102,6 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         confirmUrl: `${appBaseUrl}/api/linepay/confirm?${sharedRedirectParams}`,
         cancelUrl: `${appBaseUrl}/api/linepay/cancel?${sharedRedirectParams}`,
       },
+      options,
     };
 
     const orderCreated = await createLinePayOrder({

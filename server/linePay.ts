@@ -15,6 +15,13 @@ export type LinePayApiResponse<T> = {
   info?: T;
 };
 
+export type LinePayPaymentRequestOptions = {
+  extra?: {
+    branchName?: string;
+    branchId?: string;
+  };
+};
+
 export type LinePayPaymentRequestInfo = {
   transactionId: string;
   paymentAccessToken?: string;
@@ -28,6 +35,10 @@ export const V2_LINE_PAY_ORDER_PATTERN = /^V2-[A-Z]{4}-[AT]-\d+-[0-9a-f]{32}$/;
 export const V2_ORDER_COOKIE_NAME = '__Host-kiwimu-v2-order';
 export const V2_PENDING_ORDER_COOKIE_NAME = '__Host-kiwimu-v2-pending-order';
 export { V2_REPORT_PRICE_TWD, V2_REPORT_CURRENCY } from '../shared/v2Product.js';
+// Shown in the LINE Pay merchant console (交易紀錄 → 分店名稱). This LINE Pay
+// merchant is shared with shop.kiwimu.com, so the branch tells MBTI orders apart.
+export const V2_LINE_PAY_BRANCH_NAME = 'Kiwimu MBTI';
+export const V2_LINE_PAY_BRANCH_ID = 'mbti';
 const V2_ORDER_COOKIE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 const V2_PENDING_ORDER_COOKIE_MAX_AGE_SECONDS = 30 * 60;
 
