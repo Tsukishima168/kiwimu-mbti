@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../../types/vercel';
 import { isV2FreePromoActive, V2_FREE_PROMO_ENDS_AT } from '../../../shared/v2Promo.js';
 import { jsonBodySize, requestOriginMatchesHost } from '../../economy/requestSecurity.js';
 import { hasConfirmedLinePayOrderForUser } from '../../linePayOrderStore.js';

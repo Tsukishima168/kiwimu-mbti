@@ -1,5 +1,5 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../../types/vercel';
 import { readNotificationHealth } from '../../notificationHealth.js';
 
 const digest = (value: string) => createHash('sha256').update(value).digest();

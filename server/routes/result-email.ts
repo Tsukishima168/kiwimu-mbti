@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 import { jsonBodySize, requestOriginMatchesHost } from '../economy/requestSecurity.js';
 import { getVerifiedV2User } from '../v2Account.js';
 

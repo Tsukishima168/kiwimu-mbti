@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 import cancelHandler from '../../server/routes/linepay/cancel.js';
 import confirmHandler from '../../server/routes/linepay/confirm.js';
 import requestHandler from '../../server/routes/linepay/request.js';

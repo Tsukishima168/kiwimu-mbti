@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 import reportHandler from '../../server/routes/v2/report.js';
 import verifyUnlockHandler from '../../server/routes/v2/verify-unlock.js';
 import myReportsHandler from '../../server/routes/v2/my-reports.js';

@@ -1,4 +1,4 @@
-import type { VercelRequest } from '@vercel/node';
+import type { VercelRequest } from '../../types/vercel';
 
 export function requestOriginMatchesHost(request: VercelRequest): boolean {
   const origin = request.headers.origin;

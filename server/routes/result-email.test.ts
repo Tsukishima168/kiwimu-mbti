@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 const mocks = vi.hoisted(() => ({ identity: vi.fn() }));
 vi.mock('../v2Account.js', () => ({ getVerifiedV2User: mocks.identity }));
 import handler from './result-email';

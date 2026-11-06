@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 import { parseEconomyResponse, type EconomyResponseCode } from '../../shared/economy.js';
 import { parseMbtiAttemptRequest } from './mbtiAttempt.js';
 import { parseMbtiCompletion } from './mbtiCompletion.js';

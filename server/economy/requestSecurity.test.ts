@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { VercelRequest } from '@vercel/node';
+import type { VercelRequest } from '../../types/vercel';
 import { getBearerToken, requestOriginMatchesHost } from './requestSecurity';
 
 function request(headers: Record<string, string | string[]>): VercelRequest {
