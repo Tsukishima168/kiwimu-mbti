@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../../types/vercel';
 import { jsonBodySize, requestOriginMatchesHost } from '../../../server/economy/requestSecurity.js';
 import { getVerifiedV2User } from '../../../server/v2Account.js';
 import {

@@ -1,4 +1,4 @@
-import type { VercelRequest } from '@vercel/node';
+import type { VercelRequest } from '../types/vercel';
 import { isAuthRetryableFetchError, type User } from '@supabase/supabase-js';
 import { getBearerToken } from './economy/requestSecurity.js';
 import { getUserAdminDb } from './supabase/user-admin.js';

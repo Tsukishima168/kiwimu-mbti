@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 import { handleMbtiEconomyRequest, type MbtiEconomyOperation } from '../../server/economy/mbtiHandler.js';
 
 export default function handler(request: VercelRequest, response: VercelResponse) {

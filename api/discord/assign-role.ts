@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 
 // No current caller owns this legacy arbitrary guild/member role writer.
 // Account linking remains available through the verified Supabase flow.

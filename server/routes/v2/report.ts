@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../../types/vercel';
 import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { getV2VariantReport } from '../../../data/v2VariantReports.generated.js';
 import { readV2OrderIdCookie, V2_LINE_PAY_ORDER_PATTERN } from '../../linePay.js';

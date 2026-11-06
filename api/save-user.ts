@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../types/vercel';
 
 // The Firebase/Sheet login logger has no current caller. Supabase SSO owns
 // account identity; keep the old URL closed without reading Google credentials.

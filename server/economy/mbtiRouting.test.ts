@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 import handler from '../../api/economy/[operation]';
 
 function request(operation: string, body: Record<string, unknown>): VercelRequest {
