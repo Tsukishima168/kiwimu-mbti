@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../types/vercel';
 import { parseUnifiedDessertContract } from '../shared/dessertContract.js';
 
 const SHOP_MENU_MBTI_API_URL =

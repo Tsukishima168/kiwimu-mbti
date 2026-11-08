@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../../types/vercel';
 import { getLinePayOrder } from '../../linePayOrderStore.js';
 import {
   readV2OrderIdCookie,

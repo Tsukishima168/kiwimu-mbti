@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../types/vercel';
 import { QUESTIONS } from '../constants';
 import { V2_TAIWAN_QUESTIONS } from '../data/v2TaiwanQuestions.generated';
 import { calculateResults, getVariant } from '../utils/logic';

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../../types/vercel';
 
 const ORDER_ID = `V2-ESTJ-A-1788920000000-${'a'.repeat(32)}`;
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../types/vercel';
 
 const mocks = vi.hoisted(() => ({ db: vi.fn() }));
 vi.mock('../supabase/user-admin.js', () => ({ getUserAdminDb: mocks.db }));

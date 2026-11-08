@@ -1,6 +1,6 @@
 import { createHash, createHmac } from 'node:crypto';
 import { isIP } from 'node:net';
-import type { VercelRequest } from '@vercel/node';
+import type { VercelRequest } from '../types/vercel';
 import type { QuizAttribution, QuizNotificationInput } from '../shared/quizNotification.js';
 import { calculateMbtiResult, getEconomyQuestionBank } from './economy/mbtiCompletion.js';
 import { getEconomyAdminClient } from './economy/supabaseAdmin.js';

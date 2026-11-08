@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../../../types/vercel';
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 
 const mocks = vi.hoisted(() => ({

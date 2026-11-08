@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '../types/vercel';
 
 const mocks = vi.hoisted(() => ({
   identity: vi.fn(), state: vi.fn(), upsert: vi.fn(), used: vi.fn(), log: vi.fn(),
