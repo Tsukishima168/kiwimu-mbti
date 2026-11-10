@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
 import { introV2PriceLine } from '../utils/v2PromoCopy';
 import { useReducedMotion } from '../hooks/useReducedMotion';
-import { KIWIMU_CAMPAIGN_ASSETS } from '../data/kiwimuVisualAssets';
+import { KIWIMU_LANDING_HERO_THUMB_512_SRC } from '../data/kiwimuVisualAssets';
 import './quiz-ui.css';
 
 interface IntroProps {
@@ -111,7 +111,7 @@ const Intro: React.FC<IntroProps> = ({ onStart, user, onLogin, onViewArchive, on
           onClick={() => { trackButtonClick('進入_圓形', 'intro_main'); onStart(); }}
         >
           <img
-            src={reducedMotion ? KIWIMU_CAMPAIGN_ASSETS.landingHero.src : 'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif'}
+            src={reducedMotion ? KIWIMU_LANDING_HERO_THUMB_512_SRC : 'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3N2cW13djJidTVwZ2YxdnlrcHRwZGFuNmExdGZnbDN4eW85YXZiaSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LTRNEJfeVV17OTUEGF/giphy.gif'}
             alt=""
             width={256}
             height={256}
