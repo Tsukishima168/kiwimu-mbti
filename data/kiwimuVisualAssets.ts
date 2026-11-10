@@ -34,6 +34,14 @@ export interface KiwimuVisualAsset {
 
 const defineAsset = (asset: KiwimuVisualAsset) => Object.freeze(asset);
 
+/**
+ * landingHero 的 512 縮圖版（Cloudinary f_auto,q_auto,w_512,h_512,c_fill，約 5 KB，原圖 1.7 MB）。
+ * 只給 Intro 的 reduced-motion 圓框（顯示 192–256px，hover 放大到約 281px）使用；
+ * 不能拿去當 OG／分享圖，也不能取代 landingHero.src（ExploreIntro／ExploreQuiz 以它當整頁背景）。
+ */
+export const KIWIMU_LANDING_HERO_THUMB_512_SRC =
+  'https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_512,h_512,c_fill/v1774772303/redesigned-photo-1774598290392_wlohqn.png';
+
 export const KIWIMU_CAMPAIGN_ASSETS = {
   landingHero: defineAsset({
     id: 'campaign-landing-hero',
