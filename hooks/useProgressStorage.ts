@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Option } from '../types';
 import { CURRENT_QUIZ_VERSION } from '../constants/versions';
 import { QUESTIONS } from '../constants';
+import { prefetchResultWhenIdle } from '../utils/prefetchResult';
 
 const STORAGE_KEY = 'kiwimu_quiz_progress';
 
@@ -60,6 +61,8 @@ export const useProgressStorage = () => {
     }, [loadProgress]);
 
     const saveProgress = (answers: Option[], currentIndex: number) => {
+        // Answering has begun: warm the result chunk in the background.
+        prefetchResultWhenIdle();
         const progress: LocalProgress = {
             answers,
             currentIndex,
