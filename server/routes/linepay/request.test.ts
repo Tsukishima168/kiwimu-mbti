@@ -138,6 +138,23 @@ describe('POST /api/linepay/request security', () => {
     expect(state.headers['Set-Cookie']).toContain(`V2-${mbtiType}-`);
   });
 
+  it('tags the LINE Pay request with the MBTI branch so merchant console orders are distinguishable', async () => {
+    const { res, state } = response();
+    await handler(verifiedPurchaseRequest('ESTJ-A'), res);
+
+    expect(state.status).toBe(200);
+    expect(mocks.requestLinePay).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        options: { extra: { branchName: 'Kiwimu MBTI', branchId: 'mbti' } },
+      }),
+    }));
+    expect(mocks.createLinePayOrder).toHaveBeenCalledWith(expect.objectContaining({
+      requestPayload: expect.objectContaining({
+        options: { extra: { branchName: 'Kiwimu MBTI', branchId: 'mbti' } },
+      }),
+    }));
+  });
+
   it('normalizes case and surrounding whitespace for a supported report type', async () => {
     const { res, state } = response();
     await handler(verifiedPurchaseRequest('  intj-t  '), res);
