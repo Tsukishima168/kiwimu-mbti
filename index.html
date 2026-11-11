@@ -35,22 +35,57 @@
     "@context": "https://schema.org",
     "@graph": [
       {
+        "@type": "WebSite",
+        "@id": "https://kiwimu.com/#website",
+        "name": "Kiwimu MBTI Lab",
+        "alternateName": "Kiwimu",
+        "description": "Moon Moon 月島甜點推出的 MBTI 甜點人格測驗與答案中心，連結 16 型人格、靈魂甜點與台南實體甜點體驗。",
+        "url": "https://kiwimu.com/",
+        "inLanguage": [
+          "zh-TW",
+          "en",
+          "ja",
+          "ko"
+        ],
+        "publisher": {
+          "@id": "https://map.kiwimu.com/#moonmoon"
+        }
+      },
+      {
         "@type": "WebApplication",
         "@id": "https://kiwimu.com/#mbti-lab",
         "name": "Kiwimu MBTI 甜點人格測驗",
-        "alternateName": ["Kiwimu MBTI", "Kiwimu 人格測驗"],
+        "alternateName": [
+          "Kiwimu MBTI",
+          "Kiwimu 人格測驗"
+        ],
         "applicationCategory": "LifestyleApplication",
         "description": "Moon Moon 月島甜點推出的 MBTI 甜點人格測驗。用 40 題找到你的 16 型人格、靈魂甜點與情緒敘事，支援繁中、英文、日文、韓文。",
         "url": "https://kiwimu.com/",
-        "inLanguage": ["zh-TW", "en", "ja", "ko"],
-        "isPartOf": { "@id": "https://map.kiwimu.com/#moonmoon" },
-        "about": { "@id": "https://kiwimu.com/#kiwimu" }
+        "inLanguage": [
+          "zh-TW",
+          "en",
+          "ja",
+          "ko"
+        ],
+        "isPartOf": {
+          "@id": "https://map.kiwimu.com/#moonmoon"
+        },
+        "about": {
+          "@id": "https://kiwimu.com/#kiwimu"
+        }
       },
       {
-        "@type": ["Bakery", "CafeOrCoffeeShop"],
+        "@type": [
+          "Bakery",
+          "CafeOrCoffeeShop"
+        ],
         "@id": "https://map.kiwimu.com/#moonmoon",
         "name": "Moon Moon 月島甜點",
-        "alternateName": ["月島甜點店", "MOON MOON"],
+        "alternateName": [
+          "月島甜點店",
+          "MOON MOON"
+        ],
         "description": "位於台南市安南區本原街一段97巷168號的療癒系甜點品牌，以甜點、Kiwimu 角色與心理學敘事陪伴情緒。",
         "url": "https://map.kiwimu.com/",
         "address": {
@@ -58,7 +93,8 @@
           "streetAddress": "本原街一段97巷168號",
           "addressRegion": "台南市",
           "addressLocality": "安南區",
-          "addressCountry": "TW"
+          "addressCountry": "TW",
+          "postalCode": "709"
         },
         "geo": {
           "@type": "GeoCoordinates",
@@ -79,13 +115,85 @@
         "@id": "https://kiwimu.com/#kiwimu",
         "name": "Kiwimu",
         "description": "Moon Moon 月島甜點的敘事角色。圓潤白色鳥型生物，由鮮奶油誕生，以 16 型 MBTI 人格化身，承載品牌的情緒敘事。",
-        "isPartOf": { "@id": "https://map.kiwimu.com/#moonmoon" },
+        "isPartOf": {
+          "@id": "https://map.kiwimu.com/#moonmoon"
+        },
         "url": "https://kiwimu.com"
+      },
+      {
+        "@type": "Quiz",
+        "@id": "https://kiwimu.com/#mbti-quiz",
+        "name": "Kiwimu MBTI 人格測驗",
+        "description": "透過 40 道題目發現你的 MBTI 人格類型，並找到你的靈魂甜點。16 種人格類型，每型對應 Moon Moon 月島甜點的真實品項。",
+        "url": "https://kiwimu.com/",
+        "inLanguage": [
+          "zh-TW",
+          "en",
+          "ja",
+          "ko"
+        ],
+        "educationalLevel": "General",
+        "about": {
+          "@type": "Thing",
+          "name": "MBTI 人格測驗",
+          "description": "Myers-Briggs Type Indicator，16 型人格分類框架"
+        },
+        "isPartOf": {
+          "@id": "https://kiwimu.com/#mbti-lab"
+        },
+        "provider": {
+          "@id": "https://map.kiwimu.com/#moonmoon"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://kiwimu.com/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Kiwimu MBTI 測驗是什麼？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Kiwimu MBTI 測驗是 Moon Moon 月島甜點推出的互動式人格測驗。透過約 40 道題目，幫助你找到對應的 MBTI 人格類型與靈魂甜點，甜點真實存在於台南月島甜點菜單上。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "MBTI 16 種人格各對應什麼甜點？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "16 型人格各有對應：INTJ-北海道經典巴斯克、INTP-檸檬柚子千層蛋糕、ENTJ-奶酒提拉米蘇、ENTP-柚子蘋果提拉米蘇、INFJ-蜜香紅茶千層、INFP-焦糖烤布丁戚風、ENFJ-摩卡焦糖提拉米蘇、ENFP-十勝水果派對千層、ISTJ-經典十勝原味千層、ISFJ-經典烤布丁、ESTJ-鹹蛋黃巴斯克、ESFJ-莓果戚風蛋糕、ISTP-經典提拉米蘇、ISFP-抹茶提拉米蘇、ESTP-巧克力布朗尼千層、ESFP-檸檬巴斯克。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Kiwimu 測驗免費嗎？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "V1 完整 MBTI 測驗（40 題）永久免費，無需登入即可完成。V1.5 快速漏斗（5 題）在 kiwimu.com/explore 也免費。V2 深度靈魂報告為付費進階功能。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Moon Moon 月島甜點在哪裡？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Moon Moon 月島甜點位於台灣台南市安南區，是一間以療癒甜點與情緒敘事為核心的品牌甜點店。可在 map.kiwimu.com 查看地圖與菜單。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is Kiwimu?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Kiwimu is Taiwan's first platform combining MBTI personality psychology with real dessert experiences. Each of the 16 MBTI types is matched to a soul dessert from Moon Moon (月島甜點), a real dessert shop in Tainan, Taiwan. The quiz is available in Traditional Chinese, English, Japanese, and Korean."
+            }
+          }
+        ]
       }
     ]
   }
   </script>
-  <!-- DEPLOY_ID: 20260108-2315 -->
 
   <!-- Favicon -->
   <link rel="icon" href="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
@@ -207,19 +315,6 @@
     }
   </style>
 
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.0",
-    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0"
-  }
-}
-  </script>
-
   <script>
     // Older LINE Pay callbacks placed order credentials in the report URL.
     // Remove them before analytics starts so saved links and page_view payloads
@@ -270,124 +365,6 @@
     }
   </script>
 
-  <!-- 結構化資料 (JSON-LD) - AI SEO 可理解、可引用 -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://kiwimu.com/#website",
-        "name": "Kiwimu MBTI Lab",
-        "alternateName": "Kiwimu",
-        "description": "Moon Moon 月島甜點推出的 MBTI 甜點人格測驗與答案中心，連結 16 型人格、靈魂甜點與台南實體甜點體驗。",
-        "url": "https://kiwimu.com/",
-        "inLanguage": ["zh-TW", "en", "ja", "ko"],
-        "publisher": { "@id": "https://map.kiwimu.com/#moonmoon" }
-      },
-      {
-        "@type": "LocalBusiness",
-        "@id": "https://map.kiwimu.com/#moonmoon",
-        "name": "Moon Moon 月島甜點",
-        "alternateName": "月島甜點店",
-        "description": "結合甜點與情緒敘事的療癒系甜點品牌，位於台南安南區。透過 Kiwimu 角色與 Moon Map 世界觀，陪伴人整理情緒。",
-        "url": "https://kiwimu.com",
-        "address": {
-          "@type": "PostalAddress",
-          "addressRegion": "台南市",
-          "addressLocality": "安南區",
-          "addressCountry": "TW"
-        },
-        "priceRange": "$$",
-        "servesCuisine": "Dessert",
-        "sameAs": [
-          "https://www.instagram.com/moon_moon_dessert/",
-          "https://lin.ee/MndRHE2"
-        ]
-      },
-      {
-        "@type": "WebApplication",
-        "@id": "https://kiwimu.com/#mbti-lab",
-        "name": "Kiwimu MBTI 人格測驗",
-        "applicationCategory": "Lifestyle",
-        "description": "互動式人格測驗，幫助發現你的甜點人格。透過 MBTI 框架與 Kiwimu 角色，找到對應的情緒與甜點風味。",
-        "url": "https://kiwimu.com",
-        "inLanguage": "zh-TW",
-        "isPartOf": { "@id": "https://map.kiwimu.com/#moonmoon" }
-      },
-      {
-        "@type": "Thing",
-        "@id": "https://kiwimu.com/#kiwimu",
-        "name": "Kiwimu",
-        "description": "Moon Moon 月島甜點的敘事角色。紐西蘭奇異鳥，由鮮奶油誕生。以 16 型 MBTI 人格化身，承載品牌的情緒敘事。",
-        "isPartOf": { "@id": "https://map.kiwimu.com/#moonmoon" },
-        "url": "https://kiwimu.com"
-      },
-      {
-        "@type": "Quiz",
-        "@id": "https://kiwimu.com/#mbti-quiz",
-        "name": "Kiwimu MBTI 人格測驗",
-        "description": "透過 40 道題目發現你的 MBTI 人格類型，並找到你的靈魂甜點。16 種人格類型，每型對應 Moon Moon 月島甜點的真實品項。",
-        "url": "https://kiwimu.com/",
-        "inLanguage": ["zh-TW", "en", "ja", "ko"],
-        "educationalLevel": "General",
-        "about": {
-          "@type": "Thing",
-          "name": "MBTI 人格測驗",
-          "description": "Myers-Briggs Type Indicator，16 型人格分類框架"
-        },
-        "isPartOf": { "@id": "https://kiwimu.com/#mbti-lab" },
-        "provider": { "@id": "https://map.kiwimu.com/#moonmoon" }
-      },
-      {
-        "@type": "FAQPage",
-        "@id": "https://kiwimu.com/#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Kiwimu MBTI 測驗是什麼？",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Kiwimu MBTI 測驗是 Moon Moon 月島甜點推出的互動式人格測驗。透過約 40 道題目，幫助你找到對應的 MBTI 人格類型與靈魂甜點，甜點真實存在於台南月島甜點菜單上。"
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "MBTI 16 種人格各對應什麼甜點？",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "16 型人格各有對應：INTJ-北海道經典巴斯克、INTP-檸檬柚子千層、ENTJ-奶酒提拉米蘇、ENTP-柚子蘋果提拉米蘇、INFJ-茶香巴斯克、INFP-北海道十勝戚風、ENFJ-檸檬蘋果戚風、ENFP-草莓莓果千層、ISTJ-十勝原味千層、ISFJ-經典烤布丁、ESTJ-鹹蛋黃巴斯克、ESFJ-莓果戚風、ISTP-經典提拉米蘇、ISFP-抹茶提拉米蘇、ESTP-巧克力布朗尼千層、ESFP-綜合水果戚風。"
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Kiwimu 測驗免費嗎？",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "V1 完整 MBTI 測驗（40 題）永久免費，無需登入即可完成。V1.5 快速漏斗（5 題）在 kiwimu.com/explore 也免費。V2 深度靈魂報告為付費進階功能。"
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Moon Moon 月島甜點在哪裡？",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Moon Moon 月島甜點位於台灣台南市安南區，是一間以療癒甜點與情緒敘事為核心的品牌甜點店。可在 map.kiwimu.com 查看地圖與菜單。"
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What is Kiwimu?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Kiwimu is Taiwan's first platform combining MBTI personality psychology with real dessert experiences. Each of the 16 MBTI types is matched to a soul dessert from Moon Moon (月島甜點), a real dessert shop in Tainan, Taiwan. The quiz is available in Traditional Chinese, English, Japanese, and Korean."
-            }
-          }
-        ]
-      }
-    ]
-  }
-  </script>
 
 </head>
 
@@ -422,7 +399,7 @@
       <dl>
         <dt>Kiwimu</dt>
         <dd>
-          品牌敘事角色，紐西蘭奇異鳥由鮮奶油誕生。
+          品牌敘事角色，圓潤白色鳥型生物，由鮮奶油誕生。
           用 16 型 MBTI 人格化身，承載情緒敘事。
           不是單純的品牌吉祥物。
         </dd>
@@ -442,7 +419,7 @@
 
       <h2>品牌構成</h2>
       <ul>
-        <li>實體店面：台南安南區，提供新鮮甜點與手沖咖啡</li>
+        <li>實體店面：台南安南區，提供新鮮甜點與飲品</li>
         <li>Moon Map：品牌世界觀敘事入口</li>
         <li>Kiwimu：16 型 MBTI 人格角色，承載情緒敘事</li>
         <li>集點卡護照：會員忠誠度與情緒記錄系統</li>

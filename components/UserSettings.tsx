@@ -9,6 +9,8 @@ interface UserSettingsProps {
     onBack: () => void;
 }
 
+const SHOW_NOTIFICATION_PREFERENCES = false;
+
 const defaultPreferences: UserProfile['preferences'] = {
     language: 'zh',
     notifications: {
@@ -131,51 +133,54 @@ export const UserSettings: React.FC<UserSettingsProps> = ({ user, onBack }) => {
                         </div>
                     </section>
 
-                    {/* Notification Preferences */}
-                    <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
-                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            通知偏好
-                        </h2>
-                        <div className="space-y-4">
-                            <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input
-                                    type="checkbox"
-                                    checked={preferences.notifications.newFeatures}
-                                    onChange={(e) => setPreferences({
-                                        ...preferences,
-                                        notifications: {
-                                            ...preferences.notifications,
-                                            newFeatures: e.target.checked
-                                        }
-                                    })}
-                                    className="mt-1 w-4 h-4 text-kiwi-dark"
-                                />
-                                <div>
-                                    <div className="font-medium">新功能上線通知</div>
-                                    <div className="text-sm text-gray-500">當 KIWIMU 推出新功能時通知你</div>
-                                </div>
-                            </label>
+                    {/* Notification Preferences：目前沒有任何寄送「新功能通知／每週性格洞見」的服務，
+                        有對應的寄送後端之前先不顯示（preferences.notifications 欄位照舊保存，不刪資料）。 */}
+                    {SHOW_NOTIFICATION_PREFERENCES && (
+                        <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
+                            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                通知偏好
+                            </h2>
+                            <div className="space-y-4">
+                                <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input
+                                        type="checkbox"
+                                        checked={preferences.notifications.newFeatures}
+                                        onChange={(e) => setPreferences({
+                                            ...preferences,
+                                            notifications: {
+                                                ...preferences.notifications,
+                                                newFeatures: e.target.checked
+                                            }
+                                        })}
+                                        className="mt-1 w-4 h-4 text-kiwi-dark"
+                                    />
+                                    <div>
+                                        <div className="font-medium">新功能上線通知</div>
+                                        <div className="text-sm text-gray-500">當 KIWIMU 推出新功能時通知你</div>
+                                    </div>
+                                </label>
 
-                            <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input
-                                    type="checkbox"
-                                    checked={preferences.notifications.weeklyInsights}
-                                    onChange={(e) => setPreferences({
-                                        ...preferences,
-                                        notifications: {
-                                            ...preferences.notifications,
-                                            weeklyInsights: e.target.checked
-                                        }
-                                    })}
-                                    className="mt-1 w-4 h-4 text-kiwi-dark"
-                                />
-                                <div>
-                                    <div className="font-medium">每週性格洞見</div>
-                                    <div className="text-sm text-gray-500">每週收到基於你性格類型的深度內容</div>
-                                </div>
-                            </label>
-                        </div>
-                    </section>
+                                <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input
+                                        type="checkbox"
+                                        checked={preferences.notifications.weeklyInsights}
+                                        onChange={(e) => setPreferences({
+                                            ...preferences,
+                                            notifications: {
+                                                ...preferences.notifications,
+                                                weeklyInsights: e.target.checked
+                                            }
+                                        })}
+                                        className="mt-1 w-4 h-4 text-kiwi-dark"
+                                    />
+                                    <div>
+                                        <div className="font-medium">每週性格洞見</div>
+                                        <div className="text-sm text-gray-500">每週收到基於你性格類型的深度內容</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </section>
+                    )}
 
                     {/* Privacy Settings */}
                     <section className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200">
